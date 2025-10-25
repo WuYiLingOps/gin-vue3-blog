@@ -1,0 +1,19 @@
+app:
+  port: 8080
+server:
+  mode: debug
+
+db:
+  host: localhost
+  port: 5432
+  user: postgres
+  password: 153247
+  dbname: blogdb
+  sslmode: disable
+jwt:
+  secret: "dGhpcyBpcyBhIHNlY3VyZSBqd3Qgc2VjcmV0IGtleSBmb3IgaHMyNTYK"
+  expire_hours: 72
+
+log:
+  level: debug
+

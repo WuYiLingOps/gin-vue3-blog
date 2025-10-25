@@ -18,6 +18,10 @@
             />
           </n-form-item>
 
+          <n-form-item label="详细内容">
+            <markdown-editor v-model="formData.about_content" height="400px" />
+          </n-form-item>
+
           <n-form-item label="个人头像">
             <n-space vertical>
               <avatar-upload
@@ -78,6 +82,7 @@ import type { FormInst } from 'naive-ui'
 import { getAboutSettings, updateAboutSettings } from '@/api/setting'
 import type { AboutSettings } from '@/api/setting'
 import AvatarUpload from '@/components/AvatarUpload.vue'
+import MarkdownEditor from '@/components/MarkdownEditor.vue'
 
 const message = useMessage()
 
@@ -89,6 +94,7 @@ const formData = reactive<AboutSettings>({
   about_title: '',
   about_intro: '',
   about_avatar: '',
+  about_content: '',
   about_skills: '[]',
   about_email: '',
   about_github: '',

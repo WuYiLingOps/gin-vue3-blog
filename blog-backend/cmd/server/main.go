@@ -13,8 +13,8 @@ import (
 )
 
 func main() {
-	// 加载配置
-	if err := config.LoadConfig("config/config.yml"); err != nil {
+	// 根据环境变量加载配置
+	if err := config.LoadConfigByEnv(); err != nil {
 		log.Fatalf("Failed to load config: %v", err)
 	}
 

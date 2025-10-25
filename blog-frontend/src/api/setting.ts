@@ -6,6 +6,7 @@ export interface AboutSettings {
   about_title?: string
   about_intro?: string
   about_avatar?: string
+  about_content?: string  // 富文本内容
   about_skills?: string
   about_email?: string
   about_github?: string

@@ -1,6 +1,8 @@
 package config
 
-import "github.com/spf13/viper"
+import (
+	"github.com/spf13/viper"
+)
 
 type Config struct {
 	App struct {
@@ -42,4 +44,23 @@ func LoadConfig(path string) error {
 	Cfg = &cfg
 
 	return nil
+}
+
+// LoadConfigByEnv 根据 config.yml 中的 env 字段加载对应环境的配置
+func LoadConfigByEnv() error {
+	// 先读取 config.yml 获取环境配置
+	v := viper.New()
+	v.SetConfigFile("./config/config.yml")
+	if err := v.ReadInConfig(); err != nil {
+		return err
+	}
+
+	env := v.GetString("env")
+	if env == "" {
+		env = "dev" // 默认开发环境
+	}
+
+	// 根据环境加载对应的配置文件
+	configPath := "./config/config-" + env + ".yml"
+	return LoadConfig(configPath)
 }

@@ -108,6 +108,8 @@ lerna-debug.log*
 
 # Environment variables
 .env
+.env.development
+.env.production
 .env.local
 .env.*.local
 .env.development.local
@@ -123,7 +125,9 @@ coverage/
 
 # ==================== Configuration Files ====================
 # Backend configuration with sensitive data
-blog-backend/config/config.yml
+!blog-backend/config/config.yml
+blog-backend/config/config-prod.yml
+!blog-backend/config/config-dev.yml
 !blog-backend/config/config.example.yml
 
 # ==================== Uploads and User Content ====================
