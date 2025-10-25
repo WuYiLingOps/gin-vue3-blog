@@ -84,7 +84,7 @@ const columns: DataTableColumns<Category> = [
     title: 'ID', 
     key: 'id', 
     width: 60,
-    render: (row, index) => index + 1
+    render: (_row, index) => index + 1
   },
   { title: '名称', key: 'name' },
   {

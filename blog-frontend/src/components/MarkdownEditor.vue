@@ -45,7 +45,7 @@ VMdEditor.use(vuepressTheme, {
 })
 
 interface Props {
-  modelValue: string
+  modelValue?: string
   height?: string
 }
 
@@ -125,7 +125,7 @@ function handleChange(text: string) {
 }
 
 async function handleUploadImage(
-  event: Event,
+  _event: Event,
   insertImage: (arg: { url: string; desc?: string; width?: string; height?: string }) => void,
   files: File[]
 ) {
@@ -136,7 +136,7 @@ async function handleUploadImage(
     // 上传图片
     const res = await uploadImage(file)
     const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
-    const imageUrl = baseURL + res.url
+    const imageUrl = baseURL + res.data?.url
 
     // 插入图片到编辑器
     insertImage({

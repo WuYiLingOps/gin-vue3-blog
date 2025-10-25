@@ -22,20 +22,20 @@ export interface VisitStat {
  * 获取仪表盘统计数据
  */
 export function getDashboardStats() {
-  return request.get<DashboardStats>('/api/admin/dashboard/stats')
+  return request.get<DashboardStats>('/admin/dashboard/stats')
 }
 
 /**
  * 获取分类统计数据
  */
 export function getCategoryStats() {
-  return request.get<CategoryStat[]>('/api/admin/dashboard/category-stats')
+  return request.get<CategoryStat[]>('/admin/dashboard/category-stats')
 }
 
 /**
  * 获取最近7天访问量统计
  */
 export function getVisitStats() {
-  return request.get<VisitStat[]>('/api/admin/dashboard/visit-stats')
+  return request.get<VisitStat[]>('/admin/dashboard/visit-stats')
 }
 

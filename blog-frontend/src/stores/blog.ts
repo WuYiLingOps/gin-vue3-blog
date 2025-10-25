@@ -66,7 +66,7 @@ export const useBlogStore = defineStore(
     persist: {
       key: 'blog-data',
       storage: localStorage,
-      paths: ['categories', 'tags']
+      pick: ['categories', 'tags']
     }
   }
 )

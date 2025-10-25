@@ -68,19 +68,19 @@ const rules: FormRules = {
   username: [
     { required: true, message: '请输入用户名', trigger: 'blur' },
     {
-      validator: (rule, value) => validateUsername(value),
+      validator: (_rule, value) => validateUsername(value),
       message: '用户名格式不正确',
       trigger: 'blur'
     }
   ],
   email: [
     { required: true, message: '请输入邮箱', trigger: 'blur' },
-    { validator: (rule, value) => validateEmail(value), message: '邮箱格式不正确', trigger: 'blur' }
+    { validator: (_rule, value) => validateEmail(value), message: '邮箱格式不正确', trigger: 'blur' }
   ],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
     {
-      validator: (rule, value) => validatePassword(value),
+      validator: (_rule, value) => validatePassword(value),
       message: '密码至少6个字符',
       trigger: 'blur'
     }
@@ -88,7 +88,7 @@ const rules: FormRules = {
   confirmPassword: [
     { required: true, message: '请再次输入密码', trigger: 'blur' },
     {
-      validator: (rule, value) => value === formData.password,
+      validator: (_rule, value) => value === formData.password,
       message: '两次密码不一致',
       trigger: ['blur', 'input']
     }

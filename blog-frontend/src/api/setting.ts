@@ -21,26 +21,26 @@ export interface SiteSettings {
 
 // 获取关于页面配置
 export function getAboutSettings() {
-  return request.get<AboutSettings>('/api/settings/about')
+  return request.get<AboutSettings>('/settings/about')
 }
 
 // 更新关于页面配置（管理员）
 export function updateAboutSettings(data: Record<string, string>) {
-  return request.put('/api/settings/about', data)
+  return request.put('/settings/about', data)
 }
 
 // 获取公开的网站配置
 export function getPublicSettings() {
-  return request.get<SiteSettings>('/api/settings/public')
+  return request.get<SiteSettings>('/settings/public')
 }
 
 // 获取网站配置（管理员）
 export function getSiteSettings() {
-  return request.get<SiteSettings>('/api/settings/site')
+  return request.get<SiteSettings>('/settings/site')
 }
 
 // 更新网站配置（管理员）
 export function updateSiteSettings(data: Record<string, string>) {
-  return request.put('/api/settings/site', data)
+  return request.put('/settings/site', data)
 }
 

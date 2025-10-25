@@ -54,7 +54,7 @@
         <div class="footer">
           <div class="footer-content">
             <p>&copy; 2025 {{ siteSettings.site_name || '我的博客' }}. All rights reserved.</p>
-            <p class="running-time">{{ runningTime }}</p>
+            <p class="running-time" v-html="runningTime"></p>
             <div v-if="siteSettings.site_icp || siteSettings.site_police" class="filing-info">
               <a v-if="siteSettings.site_icp" href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">
                 {{ siteSettings.site_icp }}
@@ -245,7 +245,7 @@ function calculateRunningTime() {
   const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
   const seconds = Math.floor((diff % (1000 * 60)) / 1000)
   
-  runningTime.value = `网站已运行 ${days} 天 ${hours} 小时 ${minutes} 分钟 ${seconds} 秒`
+  runningTime.value = `网站已运行 <span class="time-number">${days}</span> 天 <span class="time-number">${hours}</span> 小时 <span class="time-number">${minutes}</span> 分钟 <span class="time-number">${seconds}</span> 秒`
 }
 
 let timer: number | null = null
@@ -709,6 +709,24 @@ html.dark :deep(.search-highlight) {
   background: linear-gradient(120deg, #fbbf24 0%, #f59e0b 100%);
   color: #1f2937;
   box-shadow: 0 1px 3px rgba(251, 191, 36, 0.5);
+}
+
+/* 运行时间样式 */
+.running-time :deep(.time-number) {
+  font-weight: 600;
+  background: linear-gradient(135deg, #0891b2 0%, #059669 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-size: 1.05em;
+  margin: 0 2px;
+}
+
+html.dark .running-time :deep(.time-number) {
+  background: linear-gradient(135deg, #38bdf8 0%, #4ade80 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 </style>
 

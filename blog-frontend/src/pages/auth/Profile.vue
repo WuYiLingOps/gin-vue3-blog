@@ -153,7 +153,7 @@ const passwordRules: FormRules = {
   confirm_password: [
     { required: true, message: '请再次输入新密码', trigger: 'blur' },
     {
-      validator: (rule, value) => value === passwordForm.new_password,
+      validator: (_rule, value) => value === passwordForm.new_password,
       message: '两次密码不一致',
       trigger: ['blur', 'input']
     }

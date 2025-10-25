@@ -94,7 +94,7 @@ const formData = reactive<AboutSettings>({
   about_title: '',
   about_intro: '',
   about_avatar: '',
-  about_content: '',
+  about_content: '' as string,
   about_skills: '[]',
   about_email: '',
   about_github: '',
@@ -128,17 +128,19 @@ async function loadSettings() {
     
     console.log('Settings data:', data)
     
-    formData.about_title = data.about_title || ''
-    formData.about_intro = data.about_intro || ''
-    formData.about_avatar = data.about_avatar || ''
-    formData.about_skills = data.about_skills || '[]'
-    formData.about_email = data.about_email || ''
-    formData.about_github = data.about_github || ''
-    formData.about_site_intro = data.about_site_intro || ''
+    const settingsData: AboutSettings = ('data' in data ? data.data : data) as AboutSettings
+    formData.about_title = settingsData?.about_title || ''
+    formData.about_intro = settingsData?.about_intro || ''
+    formData.about_avatar = settingsData?.about_avatar || ''
+    formData.about_skills = settingsData?.about_skills || '[]'
+    formData.about_email = settingsData?.about_email || ''
+    formData.about_github = settingsData?.about_github || ''
+    formData.about_site_intro = settingsData?.about_site_intro || ''
+    formData.about_content = settingsData?.about_content || ''
 
     // 解析技能标签
     try {
-      skills.value = JSON.parse(data.about_skills || '[]')
+      skills.value = JSON.parse(settingsData?.about_skills || '[]')
     } catch (error) {
       console.error('Failed to parse skills:', error)
       skills.value = []

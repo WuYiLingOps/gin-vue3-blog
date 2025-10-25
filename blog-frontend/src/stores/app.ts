@@ -46,7 +46,7 @@ export const useAppStore = defineStore(
     persist: {
       key: 'blog-app',
       storage: localStorage,
-      paths: ['theme', 'sidebarCollapsed']
+      pick: ['theme', 'sidebarCollapsed']
     }
   }
 )

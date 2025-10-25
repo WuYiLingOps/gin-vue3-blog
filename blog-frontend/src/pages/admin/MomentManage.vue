@@ -165,7 +165,7 @@ const total = ref(0)
 const filterStatus = ref<number | null>(null)
 
 const statusOptions = [
-  { label: '全部', value: null },
+  { label: '全部', value: null as any },
   { label: '公开', value: 1 },
   { label: '私密', value: 0 }
 ]
@@ -209,9 +209,9 @@ async function fetchMoments() {
     }
 
     const res = await getAdminMoments(params)
-    if (res.data) {
-      moments.value = res.data.list
-      total.value = res.data.total
+    if (res.data && res.data.data) {
+      moments.value = res.data.data.list
+      total.value = res.data.data.total
     }
   } catch (error) {
     message.error('获取说说列表失败')
@@ -227,7 +227,7 @@ function handleSearch() {
 }
 
 // 图片上传成功
-function handleImageSuccess(urls: string[]) {
+function handleImageSuccess(_urls: string[]) {
   // MultiImageUpload组件已经返回JSON字符串，不需要再次转换
   // formData.images已经通过v-model自动更新
 }

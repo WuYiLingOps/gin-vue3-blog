@@ -161,7 +161,7 @@ const columns: DataTableColumns<Post> = [
     title: 'ID', 
     key: 'id', 
     width: 60,
-    render: (row, index) => {
+    render: (_row, index) => {
       return (currentPage.value - 1) * pageSize.value + index + 1
     }
   },
@@ -215,7 +215,7 @@ const columns: DataTableColumns<Post> = [
 const rules = {
   title: [{ required: true, message: '请输入标题', trigger: 'blur' }],
   content: [{ required: true, message: '请输入内容', trigger: 'blur' }],
-  category_id: [{ required: true, message: '请选择分类', trigger: 'change', type: 'number' }]
+  category_id: [{ required: true, message: '请选择分类', trigger: 'change' }]
 }
 
 onMounted(() => {

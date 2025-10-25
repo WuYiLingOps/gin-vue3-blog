@@ -41,7 +41,7 @@ const columns: DataTableColumns<Comment> = [
     title: 'ID', 
     key: 'id', 
     width: 60,
-    render: (row, index) => {
+    render: (_row, index) => {
       return (currentPage.value - 1) * pageSize.value + index + 1
     }
   },

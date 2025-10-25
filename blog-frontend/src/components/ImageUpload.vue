@@ -110,7 +110,7 @@ const uploadHeaders = computed(() => {
   const token = authStore.token
   if (!token) {
     console.warn('未找到认证 token')
-    return {}
+    return { Authorization: '' }
   }
   return { Authorization: `Bearer ${token}` }
 })

@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <defs>
+    <!-- 主渐变：青色到绿色 -->
+    <linearGradient id="mainGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0891b2;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- 浅色渐变 -->
+    <linearGradient id="lightGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#38bdf8;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#4ade80;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- 发光效果 -->
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- 背景圆环 -->
+  <circle cx="50" cy="50" r="45" fill="none" stroke="url(#lightGradient)" 
+          stroke-width="1" opacity="0.2"/>
+  
+  <!-- 主图形：打开的书本 + 羽毛笔的抽象组合 -->
+  <g transform="translate(50, 50)">
+    <!-- 左页 - 书本 -->
+    <path d="M -20 -15 Q -20 -18 -17 -18 L -5 -18 L -5 18 L -17 18 Q -20 18 -20 15 Z" 
+          fill="url(#mainGradient)" opacity="0.85">
+      <animate attributeName="opacity" values="0.85;0.95;0.85" dur="3s" repeatCount="indefinite"/>
+    </path>
+    
+    <!-- 右页 - 书本 -->
+    <path d="M 5 -18 L 17 -18 Q 20 -18 20 -15 L 20 15 Q 20 18 17 18 L 5 18 Z" 
+          fill="url(#mainGradient)">
+      <animate attributeName="opacity" values="1;0.9;1" dur="3s" repeatCount="indefinite"/>
+    </path>
+    
+    <!-- 书脊 -->
+    <rect x="-5" y="-18" width="10" height="36" fill="url(#mainGradient)" opacity="0.6"/>
+    
+    <!-- 装饰线条 - 左页 -->
+    <g opacity="0.5">
+      <line x1="-16" y1="-10" x2="-8" y2="-10" stroke="#ffffff" stroke-width="1.2" stroke-linecap="round"/>
+      <line x1="-16" y1="-5" x2="-8" y2="-5" stroke="#ffffff" stroke-width="1.2" stroke-linecap="round"/>
+      <line x1="-16" y1="0" x2="-8" y2="0" stroke="#ffffff" stroke-width="1.2" stroke-linecap="round"/>
+      <line x1="-16" y1="5" x2="-10" y2="5" stroke="#ffffff" stroke-width="1.2" stroke-linecap="round"/>
+    </g>
+    
+    <!-- 装饰线条 - 右页 -->
+    <g opacity="0.5">
+      <line x1="8" y1="-10" x2="16" y2="-10" stroke="#ffffff" stroke-width="1.2" stroke-linecap="round"/>
+      <line x1="8" y1="-5" x2="16" y2="-5" stroke="#ffffff" stroke-width="1.2" stroke-linecap="round"/>
+      <line x1="8" y1="0" x2="16" y2="0" stroke="#ffffff" stroke-width="1.2" stroke-linecap="round"/>
+      <line x1="8" y1="5" x2="14" y2="5" stroke="#ffffff" stroke-width="1.2" stroke-linecap="round"/>
+    </g>
+    
+    <!-- 羽毛笔装饰 -->
+    <g transform="rotate(-35)" opacity="0.9">
+      <!-- 笔杆 -->
+      <path d="M 18 -8 Q 20 -5 22 5 L 23 12" 
+            stroke="url(#lightGradient)" stroke-width="2.5" 
+            fill="none" stroke-linecap="round" filter="url(#glow)"/>
+      
+      <!-- 笔尖 -->
+      <path d="M 22.5 12 L 21 16 L 24 16 Z" fill="url(#mainGradient)"/>
+      
+      <!-- 羽毛纹理 -->
+      <line x1="19" y1="-5" x2="16" y2="-3" stroke="url(#lightGradient)" 
+            stroke-width="1" opacity="0.6" stroke-linecap="round"/>
+      <line x1="20" y1="-2" x2="17" y2="0" stroke="url(#lightGradient)" 
+            stroke-width="1" opacity="0.6" stroke-linecap="round"/>
+      <line x1="21" y1="1" x2="18" y2="3" stroke="url(#lightGradient)" 
+            stroke-width="1" opacity="0.6" stroke-linecap="round"/>
+    </g>
+    
+    <!-- 点缀：墨水点 -->
+    <circle cx="15" cy="20" r="1.5" fill="url(#mainGradient)" opacity="0.4">
+      <animate attributeName="opacity" values="0.4;0.7;0.4" dur="2s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="10" cy="22" r="1" fill="url(#mainGradient)" opacity="0.3">
+      <animate attributeName="opacity" values="0.3;0.6;0.3" dur="2.5s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+</svg>
+

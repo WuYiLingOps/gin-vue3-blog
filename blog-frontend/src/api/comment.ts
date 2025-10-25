@@ -6,31 +6,31 @@ import type { PageData } from '@/types/common'
 
 // 获取文章的评论列表
 export function getCommentsByPostId(postId: number) {
-  return request.get<Comment[]>(`/api/comments/post/${postId}`)
+  return request.get<Comment[]>(`/comments/post/${postId}`)
 }
 
 // 创建评论
 export function createComment(data: CommentForm) {
-  return request.post<Comment>('/api/comments', data)
+  return request.post<Comment>('/comments', data)
 }
 
 // 更新评论
 export function updateComment(id: number, data: { content: string }) {
-  return request.put<Comment>(`/api/comments/${id}`, data)
+  return request.put<Comment>(`/comments/${id}`, data)
 }
 
 // 删除评论
 export function deleteComment(id: number) {
-  return request.delete(`/api/comments/${id}`)
+  return request.delete(`/comments/${id}`)
 }
 
 // 获取所有评论（管理后台）
 export function getAllComments(params: { page?: number; page_size?: number }) {
-  return request.get<PageData<Comment>>('/api/admin/comments', { params })
+  return request.get<PageData<Comment>>('/admin/comments', { params })
 }
 
 // 更新评论状态
 export function updateCommentStatus(id: number, status: number) {
-  return request.put(`/api/admin/comments/${id}/status`, { status })
+  return request.put(`/admin/comments/${id}/status`, { status })
 }
 

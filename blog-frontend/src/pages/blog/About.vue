@@ -101,10 +101,11 @@ onMounted(async () => {
     
     // 响应拦截器返回的是完整的响应对象，需要从 data 中获取实际数据
     const data = response.data || response
+    const settingsData: AboutSettings = ('data' in data ? data.data : data) as AboutSettings
     
-    console.log('About settings loaded:', data)
-    console.log('Avatar URL:', data.about_avatar)
-    Object.assign(settings, data)
+    console.log('About settings loaded:', settingsData)
+    console.log('Avatar URL:', settingsData?.about_avatar)
+    Object.assign(settings, settingsData)
   } catch (error) {
     console.error('Failed to load about settings:', error)
   } finally {

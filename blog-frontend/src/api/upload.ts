@@ -11,7 +11,7 @@ export function uploadAvatar(file: File) {
   const formData = new FormData()
   formData.append('file', file)
 
-  return request.post<UploadResponse>('/api/upload/avatar', formData, {
+  return request.post<UploadResponse>('/upload/avatar', formData, {
     headers: {
       'Content-Type': 'multipart/form-data'
     }
@@ -23,7 +23,7 @@ export function uploadImage(file: File) {
   const formData = new FormData()
   formData.append('file', file)
 
-  return request.post<UploadResponse>('/api/upload/image', formData, {
+  return request.post<UploadResponse>('/upload/image', formData, {
     headers: {
       'Content-Type': 'multipart/form-data'
     }

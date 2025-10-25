@@ -35,6 +35,7 @@ export interface Post {
   is_top: boolean
   view_count: number
   like_count: number
+  liked?: boolean
   user_id: number
   category_id: number
   published_at: string
@@ -59,6 +60,10 @@ export interface Comment {
   user: User
   parent?: Comment
   children?: Comment[]
+  post?: {
+    id: number
+    title: string
+  }
 }
 
 // 文章表单

@@ -68,7 +68,7 @@ export const useAuthStore = defineStore(
     persist: {
       key: 'blog-auth',
       storage: localStorage,
-      paths: ['token', 'user']
+      pick: ['token', 'user']
     }
   }
 )

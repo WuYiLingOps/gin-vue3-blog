@@ -89,7 +89,7 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useMessage } from 'naive-ui'
-import { PersonOutline, TimeOutline, EyeOutline } from '@vicons/ionicons5'
+import { TimeOutline, EyeOutline } from '@vicons/ionicons5'
 import { getPosts } from '@/api'
 import { formatDate } from '@/utils/format'
 import { highlightKeyword } from '@/utils/highlight'
