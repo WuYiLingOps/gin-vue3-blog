@@ -482,15 +482,19 @@ html.dark .logo h2 {
   padding-bottom: 20px;
 }
 
-/* 玻璃态底部 */
+/* 玻璃态底部 - 占满全屏宽度 */
 .footer {
-  padding: 32px 24px;
+  padding: 20px 24px;
   text-align: center;
   background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(20px) saturate(180%);
   border-top: 1px solid rgba(8, 145, 178, 0.1);
   box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.04);
   margin-top: 40px;
+  /* 占满全屏宽度 */
+  width: 100vw;
+  margin-left: calc(-50vw + 50%);
+  position: relative;
 }
 
 html.dark .footer {
@@ -505,7 +509,7 @@ html.dark .footer {
 }
 
 .footer-content p {
-  margin: 6px 0;
+  margin: 4px 0;
   color: #64748b;
   font-size: 14px;
   font-weight: 500;

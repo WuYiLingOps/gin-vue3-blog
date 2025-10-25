@@ -3,6 +3,7 @@ package service
 import (
 	"blog-backend/model"
 	"blog-backend/repository"
+
 	"errors"
 )
 
@@ -50,7 +51,7 @@ func (s *MomentService) GetByID(id uint) (*model.Moment, error) {
 }
 
 // List 获取说说列表
-func (s *MomentService) List(page, pageSize int, status *int, keyword string) ([]model.Moment, int64, error) {
+func (s *MomentService) List(page, pageSize int, status *int, keyword string, userID *uint, ip string) ([]model.Moment, int64, error) {
 	if page <= 0 {
 		page = 1
 	}
@@ -61,7 +62,33 @@ func (s *MomentService) List(page, pageSize int, status *int, keyword string) ([
 		pageSize = 100
 	}
 
-	return s.repo.List(page, pageSize, status, keyword)
+	moments, total, err := s.repo.List(page, pageSize, status, keyword)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// 获取当前用户点赞过的说说ID列表
+	if len(moments) > 0 {
+		momentIDs := make([]uint, len(moments))
+		for i, m := range moments {
+			momentIDs[i] = m.ID
+		}
+
+		likedIDs, err := s.repo.GetLikedMomentIDs(momentIDs, userID, ip)
+		if err == nil {
+			// 标记已点赞的说说
+			likedMap := make(map[uint]bool)
+			for _, id := range likedIDs {
+				likedMap[id] = true
+			}
+
+			for i := range moments {
+				moments[i].Liked = likedMap[moments[i].ID]
+			}
+		}
+	}
+
+	return moments, total, nil
 }
 
 // GetRecent 获取最新说说
@@ -75,3 +102,52 @@ func (s *MomentService) GetRecent(limit int) ([]model.Moment, error) {
 	return s.repo.GetRecent(limit)
 }
 
+// Like 点赞/取消点赞说说
+func (s *MomentService) Like(id uint, userID *uint, ip string) (bool, error) {
+	// 检查是否已点赞
+	liked, err := s.repo.CheckLiked(id, userID, ip)
+	if err != nil {
+		return false, err
+	}
+
+	// 获取说说
+	moment, err := s.repo.GetByID(id)
+	if err != nil {
+		return false, err
+	}
+
+	if liked {
+		// 已点赞，执行取消点赞
+		if err := s.repo.DeleteLike(id, userID, ip); err != nil {
+			return false, err
+		}
+		
+		// 减少点赞数
+		if moment.LikeCount > 0 {
+			moment.LikeCount--
+		}
+		if err := s.repo.Update(moment); err != nil {
+			return false, err
+		}
+		
+		return false, nil // 返回 false 表示取消点赞
+	} else {
+		// 未点赞，执行点赞
+		like := &model.MomentLike{
+			MomentID: id,
+			UserID:   userID,
+			IP:       ip,
+		}
+		if err := s.repo.CreateLike(like); err != nil {
+			return false, err
+		}
+
+		// 增加点赞数
+		moment.LikeCount++
+		if err := s.repo.Update(moment); err != nil {
+			return false, err
+		}
+		
+		return true, nil // 返回 true 表示点赞成功
+	}
+}

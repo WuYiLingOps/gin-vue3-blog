@@ -4,9 +4,18 @@
       <n-card>
         <div class="about-content">
           <div class="about-header">
-            <n-avatar :size="120" :src="settings.about_avatar || undefined">
-              {{ settings.about_avatar ? '' : '头像' }}
-            </n-avatar>
+            <!-- 自定义头像显示 -->
+            <div class="about-avatar">
+              <img 
+                v-if="settings.about_avatar" 
+                :src="settings.about_avatar" 
+                alt="头像"
+                @error="handleImageError"
+              />
+              <div v-else class="avatar-placeholder">
+                <span>头像</span>
+              </div>
+            </div>
             <h1>关于我</h1>
           </div>
 
@@ -68,6 +77,13 @@ const skills = computed(() => {
   }
 })
 
+// 处理图片加载错误
+function handleImageError(e: Event) {
+  console.error('Avatar image load failed:', settings.about_avatar)
+  // 图片加载失败时隐藏图片，显示占位符
+  ;(e.target as HTMLImageElement).style.display = 'none'
+}
+
 onMounted(async () => {
   try {
     loading.value = true
@@ -77,6 +93,7 @@ onMounted(async () => {
     const data = response.data || response
     
     console.log('About settings loaded:', data)
+    console.log('Avatar URL:', data.about_avatar)
     Object.assign(settings, data)
   } catch (error) {
     console.error('Failed to load about settings:', error)
@@ -99,6 +116,62 @@ onMounted(async () => {
 .about-header {
   text-align: center;
   margin-bottom: 32px;
+}
+
+/* 自定义头像样式 */
+.about-avatar {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid rgba(8, 145, 178, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.about-avatar:hover {
+  transform: scale(1.05);
+  border-color: rgba(8, 145, 178, 0.4);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.about-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-placeholder span {
+  font-size: 18px;
+  font-weight: 600;
+  color: #0891b2;
+}
+
+html.dark .about-avatar {
+  border-color: rgba(56, 189, 248, 0.3);
+}
+
+html.dark .about-avatar:hover {
+  border-color: rgba(56, 189, 248, 0.5);
+}
+
+html.dark .avatar-placeholder {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+}
+
+html.dark .avatar-placeholder span {
+  color: #38bdf8;
 }
 
 .about-header h1 {

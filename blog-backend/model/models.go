@@ -125,7 +125,17 @@ type Moment struct {
 	UpdatedAt time.Time `json:"updated_at"`
 
 	// 关联关系
-	User User `json:"user" gorm:"foreignKey:UserID"`
+	User  User `json:"user" gorm:"foreignKey:UserID"`
+	Liked bool `json:"liked" gorm:"-"` // 当前用户是否点赞（不存储到数据库）
+}
+
+// MomentLike 说说点赞记录模型
+type MomentLike struct {
+	ID        uint      `json:"id" gorm:"primaryKey"`
+	MomentID  uint      `json:"moment_id" gorm:"index;not null"`
+	UserID    *uint     `json:"user_id" gorm:"index"` // 已登录用户ID，可为空
+	IP        string    `json:"ip" gorm:"size:45;index"` // 访客IP地址
+	CreatedAt time.Time `json:"created_at"`
 }
 
 // TableName 指定表名
@@ -163,4 +173,8 @@ func (PostView) TableName() string {
 
 func (Moment) TableName() string {
 	return "moments"
+}
+
+func (MomentLike) TableName() string {
+	return "moment_likes"
 }

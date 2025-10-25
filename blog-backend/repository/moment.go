@@ -112,3 +112,62 @@ func (r *MomentRepository) GetRecent(limit int) ([]model.Moment, error) {
 	return moments, err
 }
 
+// CreateLike 创建点赞记录
+func (r *MomentRepository) CreateLike(like *model.MomentLike) error {
+	return db.DB.Create(like).Error
+}
+
+// DeleteLike 删除点赞记录
+func (r *MomentRepository) DeleteLike(momentID uint, userID *uint, ip string) error {
+	query := db.DB.Where("moment_id = ?", momentID)
+	
+	if userID != nil && *userID > 0 {
+		query = query.Where("user_id = ?", *userID)
+	} else {
+		query = query.Where("ip = ? AND user_id IS NULL", ip)
+	}
+	
+	return query.Delete(&model.MomentLike{}).Error
+}
+
+// CheckLiked 检查是否已点赞（通过用户ID或IP）
+func (r *MomentRepository) CheckLiked(momentID uint, userID *uint, ip string) (bool, error) {
+	var count int64
+	query := db.DB.Model(&model.MomentLike{}).Where("moment_id = ?", momentID)
+	
+	if userID != nil && *userID > 0 {
+		// 已登录用户，通过用户ID查询
+		query = query.Where("user_id = ?", *userID)
+	} else {
+		// 匿名用户，通过IP查询
+		query = query.Where("ip = ? AND user_id IS NULL", ip)
+	}
+	
+	err := query.Count(&count).Error
+	return count > 0, err
+}
+
+// GetLikedMomentIDs 获取用户点赞过的说说ID列表
+func (r *MomentRepository) GetLikedMomentIDs(momentIDs []uint, userID *uint, ip string) ([]uint, error) {
+	var likes []model.MomentLike
+	query := db.DB.Where("moment_id IN ?", momentIDs)
+	
+	if userID != nil && *userID > 0 {
+		query = query.Where("user_id = ?", *userID)
+	} else {
+		query = query.Where("ip = ? AND user_id IS NULL", ip)
+	}
+	
+	err := query.Find(&likes).Error
+	if err != nil {
+		return nil, err
+	}
+	
+	likedIDs := make([]uint, 0, len(likes))
+	for _, like := range likes {
+		likedIDs = append(likedIDs, like.MomentID)
+	}
+	
+	return likedIDs, nil
+}
+

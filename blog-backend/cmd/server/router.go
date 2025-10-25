@@ -189,6 +189,7 @@ func setupMomentRoutes(api *gin.RouterGroup, h *handler.MomentHandler) {
 		moments.GET("", h.List)
 		moments.GET("/:id", h.GetByID)
 		moments.GET("/recent", h.GetRecent)
+		moments.POST("/:id/like", h.Like)
 
 		// 需要认证的接口
 		momentsAuth := moments.Group("")

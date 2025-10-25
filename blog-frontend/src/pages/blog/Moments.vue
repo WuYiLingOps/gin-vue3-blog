@@ -34,8 +34,8 @@
 
             <div class="moment-footer">
               <n-space :size="16">
-                <span class="stat-item">
-                  <n-icon :component="HeartOutline" />
+                <span class="stat-item like-button" @click="handleLike(moment)">
+                  <n-icon :component="moment.liked ? Heart : HeartOutline" :class="{ liked: moment.liked }" />
                   {{ moment.like_count }}
                 </span>
               </n-space>
@@ -64,10 +64,13 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { HeartOutline } from '@vicons/ionicons5'
-import { getMoments } from '@/api/moment'
+import { useMessage } from 'naive-ui'
+import { HeartOutline, Heart } from '@vicons/ionicons5'
+import { getMoments, likeMoment } from '@/api/moment'
 import type { Moment } from '@/api/moment'
 import { formatDate } from '@/utils/format'
+
+const message = useMessage()
 
 const loading = ref(false)
 const moments = ref<Moment[]>([])
@@ -117,6 +120,38 @@ function handlePageSizeChange(size: number) {
   pageSize.value = size
   currentPage.value = 1
   fetchMoments()
+}
+
+// 点赞/取消点赞说说
+async function handleLike(moment: Moment) {
+  try {
+    const wasLiked = moment.liked
+    
+    // 乐观更新 UI
+    if (wasLiked) {
+      // 取消点赞
+      moment.like_count--
+      moment.liked = false
+    } else {
+      // 点赞
+      moment.like_count++
+      moment.liked = true
+    }
+    
+    // 调用后端 API
+    await likeMoment(moment.id)
+  } catch (error) {
+    // 失败时回滚
+    if (wasLiked) {
+      moment.like_count++
+      moment.liked = true
+    } else {
+      moment.like_count--
+      moment.liked = false
+    }
+    console.error('操作失败:', error)
+    message.error('操作失败，请重试')
+  }
 }
 
 onMounted(() => {
@@ -231,20 +266,46 @@ html.dark .moment-footer {
   gap: 6px;
   font-size: 14px;
   color: #64748b;
-  cursor: pointer;
   transition: all 0.3s;
 }
 
-.stat-item:hover {
-  color: #0891b2;
+.like-button {
+  cursor: pointer;
+  user-select: none;
+}
+
+.like-button:hover {
+  color: #ef4444;
+  transform: scale(1.1);
+}
+
+.like-button:active {
+  transform: scale(0.95);
+}
+
+.like-button .liked {
+  color: #ef4444;
+  animation: likeAnimation 0.3s ease;
+}
+
+@keyframes likeAnimation {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.3);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 html.dark .stat-item {
   color: #94a3b8;
 }
 
-html.dark .stat-item:hover {
-  color: #38bdf8;
+html.dark .like-button:hover {
+  color: #f87171;
 }
 
 .pagination-wrapper {

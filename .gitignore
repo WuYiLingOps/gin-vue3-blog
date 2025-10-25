@@ -145,6 +145,7 @@ blog-backend/uploads/avatars/*
 *.sql.gz
 *.sql.bak
 dump.sql
+add*.sql
 
 # Database backups with real data (keep init.sql)
 blog-backend/sql/blogdb.sql

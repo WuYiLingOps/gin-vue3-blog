@@ -133,7 +133,15 @@ func (h *MomentHandler) List(c *gin.Context) {
 		status = &publicStatus
 	}
 
-	moments, total, err := h.service.List(page, pageSize, status, keyword)
+	// 获取用户ID和IP
+	var userID *uint
+	if uid, exists := c.Get("user_id"); exists {
+		id := uid.(uint)
+		userID = &id
+	}
+	ip := util.GetClientIP(c)
+
+	moments, total, err := h.service.List(page, pageSize, status, keyword, userID, ip)
 	if err != nil {
 		util.Error(c, 500, err.Error())
 		return
@@ -173,7 +181,15 @@ func (h *MomentHandler) AdminList(c *gin.Context) {
 		status = &statusVal
 	}
 
-	moments, total, err := h.service.List(page, pageSize, status, keyword)
+	// 获取用户ID和IP
+	var userID *uint
+	if uid, exists := c.Get("user_id"); exists {
+		id := uid.(uint)
+		userID = &id
+	}
+	ip := util.GetClientIP(c)
+
+	moments, total, err := h.service.List(page, pageSize, status, keyword, userID, ip)
 	if err != nil {
 		util.Error(c, 500, err.Error())
 		return
@@ -184,6 +200,34 @@ func (h *MomentHandler) AdminList(c *gin.Context) {
 		"total":     total,
 		"page":      page,
 		"page_size": pageSize,
+	})
+}
+
+// Like 点赞/取消点赞说说
+func (h *MomentHandler) Like(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		util.BadRequest(c, "无效的ID")
+		return
+	}
+
+	// 获取用户ID和IP
+	var userID *uint
+	if uid, exists := c.Get("user_id"); exists {
+		id := uid.(uint)
+		userID = &id
+	}
+	ip := util.GetClientIP(c)
+
+	liked, err := h.service.Like(uint(id), userID, ip)
+	if err != nil {
+		util.Error(c, 500, err.Error())
+		return
+	}
+
+	// 返回点赞状态
+	util.Success(c, gin.H{
+		"liked": liked,
 	})
 }
 
