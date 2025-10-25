@@ -1,4 +1,4 @@
-package main
+package router
 
 import (
 	"blog-backend/handler"
@@ -6,8 +6,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// setupRouter 配置路由
-func setupRouter() *gin.Engine {
+// SetupRouter 配置路由
+func SetupRouter() *gin.Engine {
 	r := gin.New()
 
 	// 使用中间件

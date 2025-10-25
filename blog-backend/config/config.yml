@@ -1,6 +1,6 @@
 # 环境配置：dev 或 prod
 # 开发环境使用 dev，生产环境使用 prod
-env: dev
+env: env
 
 # 其他配置会根据 env 自动加载对应的 config-dev.yml 或 config-prod.yml
 

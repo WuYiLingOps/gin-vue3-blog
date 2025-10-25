@@ -7,6 +7,7 @@ import (
 	"blog-backend/config"
 	"blog-backend/db"
 	"blog-backend/logger"
+	"blog-backend/router"
 	"blog-backend/util"
 
 	"github.com/gin-gonic/gin"
@@ -40,7 +41,7 @@ func main() {
 	gin.SetMode(config.Cfg.Server.Mode)
 
 	// 配置路由
-	r := setupRouter()
+	r := router.SetupRouter()
 
 	// 启动服务器
 	addr := fmt.Sprintf(":%d", config.Cfg.App.Port)
