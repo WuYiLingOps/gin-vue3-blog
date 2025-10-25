@@ -40,7 +40,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useMessage } from 'naive-ui'
-import { useAuthStore } from '@/stores'
+import { uploadAvatar } from '@/api/upload'
 
 interface Props {
   modelValue?: string
@@ -64,7 +64,6 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<Emits>()
 
 const message = useMessage()
-const authStore = useAuthStore()
 
 const uploading = ref(false)
 const currentAvatar = ref(props.modelValue)
@@ -118,35 +117,17 @@ async function uploadFile(file: File) {
   uploading.value = true
   
   try {
-    const formData = new FormData()
-    formData.append('file', file)
+    const result = await uploadAvatar(file)
     
-    const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
-    const uploadURL = `${baseURL}/api/upload/avatar`
-    
-    const response = await fetch(uploadURL, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${authStore.token}`
-      },
-      body: formData
-    })
-    
-    const result = await response.json()
-    
-    if (result.code === 200 && result.data?.url) {
-      const fullURL = baseURL + result.data.url
-      
-      currentAvatar.value = fullURL
-      emit('update:modelValue', fullURL)
-      emit('success', fullURL)
+    if (result.data?.url) {
+      currentAvatar.value = result.data.url
+      emit('update:modelValue', result.data.url)
+      emit('success', result.data.url)
       message.success('头像上传成功')
-    } else {
-      message.error(result.message || '上传失败')
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Upload error:', error)
-    message.error('上传失败，请重试')
+    message.error(error.message || '上传失败，请重试')
   } finally {
     uploading.value = false
   }

@@ -28,13 +28,10 @@
 
     <n-upload
       v-else
-      :action="uploadUrl"
-      :headers="uploadHeaders"
+      :custom-request="customRequest"
       :show-file-list="false"
       accept="image/*"
       @before-upload="handleBeforeUpload"
-      @finish="handleFinish"
-      @error="handleError"
     >
       <n-upload-dragger>
         <div class="upload-area" :style="{ width: width + 'px', height: height + 'px' }">
@@ -62,11 +59,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, watch } from 'vue'
 import { useMessage } from 'naive-ui'
-import type { UploadFileInfo } from 'naive-ui'
+import type { UploadFileInfo, UploadCustomRequestOptions } from 'naive-ui'
 import { CloudUploadOutline, EyeOutline, TrashOutline } from '@vicons/ionicons5'
-import { useAuthStore } from '@/stores/auth'
+import { uploadImage } from '@/api/upload'
 
 interface Props {
   modelValue?: string
@@ -92,7 +89,6 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<Emits>()
 const message = useMessage()
-const authStore = useAuthStore()
 
 const imageUrl = ref(props.modelValue)
 const showPreview = ref(false)
@@ -102,35 +98,13 @@ watch(() => props.modelValue, (newVal) => {
   imageUrl.value = newVal
 })
 
-const uploadUrl = computed(() => {
-  return `${import.meta.env.VITE_API_BASE_URL}/api/upload/image`
-})
-
-const uploadHeaders = computed(() => {
-  const token = authStore.token
-  if (!token) {
-    console.warn('未找到认证 token')
-    return { Authorization: '' }
-  }
-  return { Authorization: `Bearer ${token}` }
-})
-
 function handleBeforeUpload(data: { file: UploadFileInfo }) {
   const file = data.file.file
-  
-  // 检查是否有 token
-  if (!authStore.token) {
-    message.error('请先登录')
-    return false
-  }
   
   if (!file) {
     message.error('文件读取失败')
     return false
   }
-  
-  console.log('准备上传文件:', file.name, file.type, file.size)
-  console.log('使用 token:', authStore.token ? '已设置' : '未设置')
   
   // 检查文件类型
   if (!file.type.startsWith('image/')) {
@@ -148,42 +122,25 @@ function handleBeforeUpload(data: { file: UploadFileInfo }) {
   return true
 }
 
-function handleFinish({ event }: any) {
+// 使用自定义上传请求
+async function customRequest(options: UploadCustomRequestOptions) {
+  const { file, onFinish, onError } = options
+  
   try {
-    const responseText = (event?.target as XMLHttpRequest).response
-    console.log('上传响应:', responseText)
+    const result = await uploadImage(file.file as File)
     
-    const response = JSON.parse(responseText)
-    console.log('解析后的响应:', response)
-    
-    // 后端返回 code 200 表示成功
-    if (response.code === 200 && response.data?.url) {
-      let url = response.data.url
-      
-      // 如果是相对路径，补充完整 URL
-      if (url.startsWith('/')) {
-        url = `${import.meta.env.VITE_API_BASE_URL}${url}`
-      }
-      
-      console.log('最终图片 URL:', url)
-      
-      imageUrl.value = url
-      emit('update:modelValue', url)
-      emit('success', url)
+    if (result.data?.url) {
+      imageUrl.value = result.data.url
+      emit('update:modelValue', result.data.url)
+      emit('success', result.data.url)
       message.success('图片上传成功')
-    } else {
-      console.error('上传失败，响应:', response)
-      message.error(response.message || '上传失败')
+      onFinish()
     }
-  } catch (error) {
-    console.error('解析上传响应失败:', error)
-    message.error('上传失败')
+  } catch (error: any) {
+    console.error('上传失败:', error)
+    message.error(error.message || '上传失败，请重试')
+    onError()
   }
-}
-
-function handleError(error: any) {
-  console.error('上传失败:', error)
-  message.error('上传失败，请重试')
 }
 
 function handlePreview() {

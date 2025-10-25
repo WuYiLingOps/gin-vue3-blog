@@ -93,5 +93,24 @@ export const request = {
   }
 }
 
+/**
+ * 获取完整的静态文件 URL
+ * 用于拼接上传后返回的相对路径
+ * @param path 相对路径，如 /uploads/avatars/xxx.jpg
+ * @returns 完整 URL，如 http://localhost:8080/uploads/avatars/xxx.jpg
+ */
+export function getFileUrl(path: string): string {
+  if (!path) return ''
+  
+  // 如果已经是完整 URL，直接返回
+  if (path.startsWith('http://') || path.startsWith('https://')) {
+    return path
+  }
+  
+  // 拼接基础 URL
+  const baseURL = import.meta.env.VITE_API_BASE_URL || ''
+  return baseURL + path
+}
+
 export default service
 

@@ -1,25 +1,3 @@
-# ==================== Operating System ====================
-# macOS
-.DS_Store
-.AppleDouble
-.LSOverride
-._*
-
-# Windows
-Thumbs.db
-Thumbs.db:encryptable
-ehthumbs.db
-ehthumbs_vista.db
-*.stackdump
-[Dd]esktop.ini
-$RECYCLE.BIN/
-*.lnk
-
-# Linux
-*~
-.directory
-.Trash-*
-
 # ==================== IDEs and Editors ====================
 # Visual Studio Code
 .vscode/*
@@ -35,22 +13,9 @@ $RECYCLE.BIN/
 *.iws
 out/
 
-# Vim
-*.swp
-*.swo
-*~
-.netrwhist
 
 # Emacs
-*~
-\#*\#
-/.emacs.desktop
-/.emacs.desktop.lock
-*.elc
 
-# Sublime Text
-*.sublime-workspace
-*.sublime-project
 
 # ==================== Go Backend ====================
 # Binaries
@@ -61,14 +26,12 @@ out/
 *.dylib
 blog-backend/main
 blog-backend/server
+blog-backend/cmd/server/blog-backend
+blog-backend/blog-backend.exe
 
 # Test binary, built with `go test -c`
 *.test
 
-# Output of the go coverage tool
-*.out
-coverage.txt
-coverage.html
 
 # Go workspace file
 go.work
@@ -84,7 +47,6 @@ tmp/
 # ==================== Node.js / Frontend ====================
 # Dependencies
 node_modules/
-jspm_packages/
 
 # Build outputs
 dist/
@@ -169,55 +131,13 @@ docker-compose.override.yml
 logs/
 log/
 
-# ==================== Temporary Files ====================
-# Temporary directories
-tmp/
-temp/
-.tmp/
-.temp/
-
-# Backup files
-*.bak
-*.backup
-*.old
-*.orig
-
 # ==================== Build Artifacts ====================
 # Compiled binaries
 bin/
 build/
 dist/
 
-# ==================== Security ====================
-# Private keys
-*.pem
-*.key
-*.cert
-*.crt
-id_rsa
-id_rsa.pub
-
 # JWT secrets
 secrets/
 
-# ==================== Documentation (if auto-generated) ====================
-# Uncomment if you have auto-generated docs you want to ignore
-# docs/generated/
-# docs/.vuepress/dist/
-
-# ==================== Miscellaneous ====================
-# System files
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-
-# Debug files
-debug/
-*.dSYM/
-
-# profiling data
-*.prof
-*.trace
 

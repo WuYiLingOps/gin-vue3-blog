@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # PostgreSQL 数据库
   postgres:
@@ -7,26 +5,12 @@ services:
     container_name: blog-postgres
     restart: always
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_PASSWORD: haoa215119
       POSTGRES_DB: blogdb
     ports:
-      - "5432:5432"
+      - "5632:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
-      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
-    networks:
-      - blog-network
-
-  # Redis（可选）
-  redis:
-    image: redis:7-alpine
-    container_name: blog-redis
-    restart: always
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis-data:/data
     networks:
       - blog-network
 
@@ -39,24 +23,14 @@ services:
       - "8080:8080"
     depends_on:
       - postgres
-      - redis
-    environment:
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_USER: postgres
-      DB_PASSWORD: postgres
-      DB_NAME: blogdb
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
     volumes:
-      - ./config:/root/config
-      - ./uploads:/root/uploads
+      # 使用本地目录挂载，方便管理和排查问题
+      - ./uploads:/app/uploads
     networks:
       - blog-network
 
 volumes:
   postgres-data:
-  redis-data:
 
 networks:
   blog-network:

@@ -1,39 +1,40 @@
-# 构建阶段
-FROM golang:1.21-alpine AS builder
+# 直接使用已编译的二进制文件
+# 使用前请先在本地编译 Linux 二进制文件：
+# Windows PowerShell: 
+#   cd blog-backend
+#   $env:GOOS="linux"; $env:GOARCH="amd64"; go build -o blog-backend ./cmd/server
+# Windows CMD:
+#   set GOOS=linux && set GOARCH=amd64 && go build -o blog-backend ./cmd/server
+# Linux/Mac: 
+#   GOOS=linux GOARCH=amd64 go build -o blog-backend ./cmd/server
 
-# 设置工作目录
-WORKDIR /app
-
-# 安装依赖
-RUN apk add --no-cache git
-
-# 复制 go.mod 和 go.sum
-COPY go.mod go.sum ./
-
-# 下载依赖
-RUN go mod download
-
-# 复制源代码
-COPY . .
-
-# 构建应用
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main ./cmd/server
-
-# 运行阶段
 FROM alpine:latest
 
-# 安装 ca-certificates
-RUN apk --no-cache add ca-certificates
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories && \
+    apk --no-cache add ca-certificates tzdata
 
-WORKDIR /root/
+# 设置时区为上海
+ENV TZ=Asia/Shanghai
 
-# 从构建阶段复制二进制文件
-COPY --from=builder /app/main .
-COPY --from=builder /app/config ./config
+WORKDIR /app
 
-# 暴露端口
+# 复制已编译的二进制文件（从 blog-backend 目录的根目录）
+COPY blog-backend .
+
+# 复制配置文件
+COPY config ./config
+
+# 创建上传目录
+RUN mkdir -p ./uploads/avatars
+
+# 给二进制文件执行权限
+RUN chmod +x ./blog-backend
+
+# 暴露端口（根据配置文件修改）
 EXPOSE 8080
 
 # 运行应用
-CMD ["./main"]
+CMD ["./blog-backend"]
+
+
 

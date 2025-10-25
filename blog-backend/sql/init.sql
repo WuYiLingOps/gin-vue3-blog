@@ -279,7 +279,87 @@ COMMENT ON COLUMN settings."group" IS '配置分组：site-网站，about-关于
 COMMENT ON COLUMN settings.label IS '配置标签（显示名称）';
 
 -- =============================================================================
--- 8. 初始化默认数据
+-- 8. 点赞系统
+-- =============================================================================
+
+-- 创建文章点赞记录表
+CREATE TABLE IF NOT EXISTS post_likes (
+    id SERIAL PRIMARY KEY,
+    post_id INTEGER NOT NULL,
+    user_id INTEGER,
+    ip VARCHAR(45),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    CONSTRAINT fk_post_likes_post FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
+    CONSTRAINT fk_post_likes_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- 文章点赞记录表索引
+CREATE INDEX IF NOT EXISTS idx_post_likes_post_id ON post_likes(post_id);
+CREATE INDEX IF NOT EXISTS idx_post_likes_user_id ON post_likes(user_id);
+CREATE INDEX IF NOT EXISTS idx_post_likes_ip ON post_likes(ip);
+
+-- 创建唯一约束，防止同一用户/IP重复点赞
+CREATE UNIQUE INDEX IF NOT EXISTS idx_post_likes_unique_user ON post_likes(post_id, user_id) WHERE user_id IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_post_likes_unique_ip ON post_likes(post_id, ip) WHERE user_id IS NULL;
+
+-- 文章点赞记录表注释
+COMMENT ON TABLE post_likes IS '文章点赞记录表';
+COMMENT ON COLUMN post_likes.post_id IS '文章ID';
+COMMENT ON COLUMN post_likes.user_id IS '用户ID（已登录用户）';
+COMMENT ON COLUMN post_likes.ip IS 'IP地址（匿名用户）';
+
+-- 创建说说点赞记录表
+CREATE TABLE IF NOT EXISTS moment_likes (
+    id SERIAL PRIMARY KEY,
+    moment_id BIGINT NOT NULL,
+    user_id BIGINT,
+    ip VARCHAR(45) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(moment_id, user_id),
+    UNIQUE(moment_id, ip)
+);
+
+-- 说说点赞记录表索引
+CREATE INDEX IF NOT EXISTS idx_moment_likes_moment_id ON moment_likes(moment_id);
+CREATE INDEX IF NOT EXISTS idx_moment_likes_user_id ON moment_likes(user_id);
+CREATE INDEX IF NOT EXISTS idx_moment_likes_ip ON moment_likes(ip);
+
+-- 说说点赞记录表注释
+COMMENT ON TABLE moment_likes IS '说说点赞记录表';
+COMMENT ON COLUMN moment_likes.moment_id IS '说说ID';
+COMMENT ON COLUMN moment_likes.user_id IS '用户ID（匿名用户为NULL）';
+COMMENT ON COLUMN moment_likes.ip IS '用户IP地址';
+COMMENT ON COLUMN moment_likes.created_at IS '点赞时间';
+
+-- =============================================================================
+-- 9. IP 黑名单系统
+-- =============================================================================
+
+-- 创建IP黑名单表
+CREATE TABLE IF NOT EXISTS ip_blacklist (
+    id SERIAL PRIMARY KEY,
+    ip VARCHAR(45) UNIQUE NOT NULL,
+    reason VARCHAR(255),
+    ban_type SMALLINT DEFAULT 1,
+    expire_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- IP黑名单表索引
+CREATE INDEX IF NOT EXISTS idx_ip_blacklist_ip ON ip_blacklist(ip);
+CREATE INDEX IF NOT EXISTS idx_ip_blacklist_expire_at ON ip_blacklist(expire_at);
+
+-- IP黑名单表注释
+COMMENT ON TABLE ip_blacklist IS 'IP黑名单表';
+COMMENT ON COLUMN ip_blacklist.ip IS 'IP地址';
+COMMENT ON COLUMN ip_blacklist.reason IS '封禁原因';
+COMMENT ON COLUMN ip_blacklist.ban_type IS '封禁类型：1-自动封禁，2-手动封禁';
+COMMENT ON COLUMN ip_blacklist.expire_at IS '过期时间，NULL表示永久封禁';
+
+-- =============================================================================
+-- 10. 初始化默认数据
 -- =============================================================================
 
 -- 插入默认管理员用户
@@ -337,7 +417,7 @@ SELECT
 ON CONFLICT (date) DO NOTHING;
 
 -- =============================================================================
--- 9. 更新现有数据的全文搜索向量
+-- 11. 更新现有数据的全文搜索向量
 -- =============================================================================
 
 -- 更新文章的全文搜索向量（组合标题和内容，标题权重更高）

@@ -18,6 +18,7 @@ import { useMessage, NButton, NTag, NSpace, NAvatar } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
 import { getUsers, updateUserStatus } from '@/api/user'
 import { formatDate } from '@/utils/format'
+import { normalizeImageUrl } from '@/utils/url'
 import type { User } from '@/types/auth'
 
 const message = useMessage()
@@ -115,7 +116,11 @@ async function fetchUsers() {
     })
 
     if (res.data) {
-      users.value = res.data.list
+      // 标准化用户头像 URL
+      users.value = res.data.list.map(user => ({
+        ...user,
+        avatar: normalizeImageUrl(user.avatar)
+      }))
       total.value = res.data.total
     }
   } catch (error: any) {

@@ -133,10 +133,9 @@ async function handleUploadImage(
     const file = files[0]
     if (!file) return
 
-    // 上传图片
+    // 上传图片（已在 API 中自动拼接完整 URL）
     const res = await uploadImage(file)
-    const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
-    const imageUrl = baseURL + res.data?.url
+    const imageUrl = res.data?.url || ''
 
     // 插入图片到编辑器
     insertImage({

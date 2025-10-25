@@ -24,14 +24,11 @@
       <!-- 上传按钮 -->
       <n-upload
         v-if="imageList.length < maxCount"
-        :action="uploadUrl"
-        :headers="uploadHeaders"
+        :custom-request="customRequest"
         :show-file-list="false"
         accept="image/*"
         :multiple="false"
         @before-upload="handleBeforeUpload"
-        @finish="handleFinish"
-        @error="handleError"
       >
         <div class="upload-button">
           <n-icon size="32" :component="CloudUploadOutline" />
@@ -52,11 +49,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, watch } from 'vue'
 import { useMessage } from 'naive-ui'
-import type { UploadFileInfo } from 'naive-ui'
+import type { UploadFileInfo, UploadCustomRequestOptions } from 'naive-ui'
 import { CloudUploadOutline, TrashOutline } from '@vicons/ionicons5'
-import { useAuthStore } from '@/stores/auth'
+import { uploadImage } from '@/api/upload'
 
 interface Props {
   modelValue?: string | string[]
@@ -75,7 +72,6 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<Emits>()
 const message = useMessage()
-const authStore = useAuthStore()
 
 const imageList = ref<string[]>([])
 
@@ -97,23 +93,6 @@ watch(
   },
   { immediate: true }
 )
-
-// 上传地址
-const uploadUrl = computed(() => {
-  return `${import.meta.env.VITE_API_BASE_URL}/api/upload/image`
-})
-
-// 上传请求头
-const uploadHeaders = computed(() => {
-  const token = authStore.token
-  if (!token) {
-    console.warn('未找到认证 token')
-    return { Authorization: '' }
-  }
-  return {
-    Authorization: `Bearer ${token}`
-  }
-})
 
 // 上传前验证
 function handleBeforeUpload(data: { file: UploadFileInfo }): boolean {
@@ -143,35 +122,26 @@ function handleBeforeUpload(data: { file: UploadFileInfo }): boolean {
   return true
 }
 
-// 上传完成
-function handleFinish({ event }: any) {
+// 使用自定义上传请求
+async function customRequest(options: UploadCustomRequestOptions) {
+  const { file, onFinish, onError } = options
+  
   try {
-    const responseText = (event?.target as XMLHttpRequest).response
-    const response = JSON.parse(responseText)
+    const result = await uploadImage(file.file as File)
     
-    if (response.code === 200 && response.data?.url) {
-      let url = response.data.url
-      if (url.startsWith('/')) {
-        url = `${import.meta.env.VITE_API_BASE_URL}${url}`
-      }
-      
-      imageList.value.push(url)
+    if (result.data?.url) {
+      imageList.value.push(result.data.url)
       const jsonStr = JSON.stringify(imageList.value)
       emit('update:modelValue', jsonStr)
       emit('success', imageList.value)
       message.success('图片上传成功')
-    } else {
-      message.error(response.message || '上传失败')
+      onFinish()
     }
-  } catch (error) {
-    console.error('解析上传响应失败:', error)
-    message.error('上传失败')
+  } catch (error: any) {
+    console.error('上传失败:', error)
+    message.error(error.message || '上传失败，请重试')
+    onError()
   }
-}
-
-// 上传失败
-function handleError() {
-  message.error('图片上传失败，请重试')
 }
 
 // 删除图片
