@@ -146,6 +146,10 @@ blog-backend/uploads/avatars/*
 *.sql.bak
 dump.sql
 
+# Database backups with real data (keep init.sql)
+blog-backend/sql/blogdb.sql
+blog-backend/sql/backup_*.sql
+
 # Docker volumes
 postgres-data/
 redis-data/
