@@ -80,7 +80,12 @@ const rules = {
 }
 
 const columns: DataTableColumns<Category> = [
-  { title: 'ID', key: 'id', width: 60 },
+  { 
+    title: 'ID', 
+    key: 'id', 
+    width: 60,
+    render: (row, index) => index + 1
+  },
   { title: '名称', key: 'name' },
   {
     title: '颜色',

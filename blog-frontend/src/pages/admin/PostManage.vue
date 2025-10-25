@@ -157,7 +157,14 @@ const pagination = computed(() => ({
 }))
 
 const columns: DataTableColumns<Post> = [
-  { title: 'ID', key: 'id', width: 60 },
+  { 
+    title: 'ID', 
+    key: 'id', 
+    width: 60,
+    render: (row, index) => {
+      return (currentPage.value - 1) * pageSize.value + index + 1
+    }
+  },
   { title: '标题', key: 'title', ellipsis: { tooltip: true } },
   {
     title: '分类',

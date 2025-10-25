@@ -37,7 +37,14 @@ const pagination = computed(() => ({
 }))
 
 const columns: DataTableColumns<Comment> = [
-  { title: 'ID', key: 'id', width: 60 },
+  { 
+    title: 'ID', 
+    key: 'id', 
+    width: 60,
+    render: (row, index) => {
+      return (currentPage.value - 1) * pageSize.value + index + 1
+    }
+  },
   {
     title: '内容',
     key: 'content',
