@@ -150,7 +150,7 @@ func (h *PostHandler) GetByTag(c *gin.Context) {
 	util.PageSuccess(c, posts, total, page, pageSize)
 }
 
-// Like 点赞文章
+// Like 点赞/取消点赞文章
 func (h *PostHandler) Like(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
@@ -158,12 +158,29 @@ func (h *PostHandler) Like(c *gin.Context) {
 		return
 	}
 
-	if err := h.service.Like(uint(id)); err != nil {
+	// 获取用户ID和IP
+	var userID *uint
+	if uid, exists := c.Get("user_id"); exists {
+		id := uid.(uint)
+		userID = &id
+	}
+	ip := util.GetClientIP(c)
+
+	liked, err := h.service.Like(uint(id), userID, ip)
+	if err != nil {
 		util.Error(c, 400, err.Error())
 		return
 	}
 
-	util.SuccessWithMessage(c, "点赞成功", nil)
+	// 返回点赞状态
+	message := "点赞成功"
+	if !liked {
+		message = "取消点赞"
+	}
+	util.Success(c, gin.H{
+		"liked":   liked,
+		"message": message,
+	})
 }
 
 // GetArchives 获取归档

@@ -41,6 +41,7 @@ type Post struct {
 	Category Category  `json:"category" gorm:"foreignKey:CategoryID"`
 	Tags     []Tag     `json:"tags" gorm:"many2many:post_tags;"`
 	Comments []Comment `json:"comments,omitempty" gorm:"foreignKey:PostID"`
+	Liked    bool      `json:"liked" gorm:"-"` // 当前用户是否点赞（不存储到数据库）
 }
 
 // Category 分类模型
@@ -133,6 +134,15 @@ type Moment struct {
 type MomentLike struct {
 	ID        uint      `json:"id" gorm:"primaryKey"`
 	MomentID  uint      `json:"moment_id" gorm:"index;not null"`
+	UserID    *uint     `json:"user_id" gorm:"index"` // 已登录用户ID，可为空
+	IP        string    `json:"ip" gorm:"size:45;index"` // 访客IP地址
+	CreatedAt time.Time `json:"created_at"`
+}
+
+// PostLike 文章点赞记录模型
+type PostLike struct {
+	ID        uint      `json:"id" gorm:"primaryKey"`
+	PostID    uint      `json:"post_id" gorm:"index;not null"`
 	UserID    *uint     `json:"user_id" gorm:"index"` // 已登录用户ID，可为空
 	IP        string    `json:"ip" gorm:"size:45;index"` // 访客IP地址
 	CreatedAt time.Time `json:"created_at"`

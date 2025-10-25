@@ -115,6 +115,10 @@ func (s *PostService) GetByID(id uint, userID *uint, ip string) (*model.Post, er
 		}
 	}
 
+	// 检查是否已点赞
+	liked, _ := s.postRepo.CheckLiked(id, userID, ip)
+	post.Liked = liked
+
 	return post, nil
 }
 
@@ -236,9 +240,50 @@ func (s *PostService) GetByTag(tagID uint, page, pageSize int) ([]model.Post, in
 	return s.postRepo.GetByTag(tagID, page, pageSize)
 }
 
-// Like 点赞文章
-func (s *PostService) Like(id uint) error {
-	return s.postRepo.IncrementLikeCount(id)
+// Like 点赞/取消点赞文章
+func (s *PostService) Like(id uint, userID *uint, ip string) (bool, error) {
+	// 检查文章是否存在
+	_, err := s.postRepo.GetByID(id)
+	if err != nil {
+		return false, errors.New("文章不存在")
+	}
+
+	// 检查是否已点赞
+	liked, err := s.postRepo.CheckLiked(id, userID, ip)
+	if err != nil {
+		return false, err
+	}
+
+	if liked {
+		// 已点赞，执行取消点赞
+		if err := s.postRepo.DeleteLike(id, userID, ip); err != nil {
+			return false, err
+		}
+		
+		// 减少点赞数
+		if err := s.postRepo.DecrementLikeCount(id); err != nil {
+			return false, err
+		}
+		
+		return false, nil // 返回 false 表示取消点赞
+	} else {
+		// 未点赞，执行点赞
+		like := &model.PostLike{
+			PostID: id,
+			UserID: userID,
+			IP:     ip,
+		}
+		if err := s.postRepo.CreateLike(like); err != nil {
+			return false, err
+		}
+
+		// 增加点赞数
+		if err := s.postRepo.IncrementLikeCount(id); err != nil {
+			return false, err
+		}
+		
+		return true, nil // 返回 true 表示点赞成功
+	}
 }
 
 // GetArchives 获取归档

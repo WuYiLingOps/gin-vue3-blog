@@ -76,9 +76,9 @@
               type="info"
               closable
               style="margin-bottom: 12px"
-              @close="replyToComment = null; commentContent = ''"
+              @close="replyToComment = null; replyToUser = null; commentContent = ''"
             >
-              正在回复 <strong>@{{ replyToComment.user.nickname }}</strong> 的评论
+              正在回复 <strong>@{{ (replyToUser || replyToComment).user.nickname }}</strong> 的评论
             </n-alert>
             
             <n-input
@@ -111,10 +111,27 @@
                   <p>{{ comment.content }}</p>
                   <div class="comment-actions">
                     <n-button text size="small" @click="handleReply(comment)">回复</n-button>
+                    <n-button 
+                      v-if="comment.children && comment.children.length > 0"
+                      text 
+                      size="small" 
+                      @click="toggleExpand(comment.id)"
+                    >
+                      {{ expandedComments.has(comment.id) ? '收起' : `展开 ${comment.children.length} 条回复` }}
+                    </n-button>
+                    <n-popconfirm
+                      v-if="canDeleteComment(comment)"
+                      @positive-click="handleDeleteComment(comment.id)"
+                    >
+                      <template #trigger>
+                        <n-button text size="small" type="error">删除</n-button>
+                      </template>
+                      确定要删除这条评论吗？
+                    </n-popconfirm>
                   </div>
 
                   <!-- 子评论 -->
-                  <div v-if="comment.children && comment.children.length > 0" class="reply-list">
+                  <div v-if="comment.children && comment.children.length > 0 && expandedComments.has(comment.id)" class="reply-list">
                     <div
                       v-for="reply in comment.children"
                       :key="reply.id"
@@ -125,12 +142,24 @@
                         <div class="reply-content">
                           <div class="reply-header">
                             <strong>{{ reply.user.nickname }}</strong>
-                            <span class="reply-to">回复 @{{ comment.user.nickname }}</span>
+                            <span class="reply-to">回复 @{{ getReplyTargetName(reply, comment) }}</span>
                             <span class="comment-time">{{
                               formatRelativeTime(reply.created_at)
                             }}</span>
                           </div>
-                          <p>{{ reply.content }}</p>
+                          <p>{{ removeAtMention(reply.content) }}</p>
+                          <div class="comment-actions">
+                            <n-button text size="small" @click="handleReply(comment, reply)">回复</n-button>
+                            <n-popconfirm
+                              v-if="canDeleteComment(reply)"
+                              @positive-click="handleDeleteComment(reply.id)"
+                            >
+                              <template #trigger>
+                                <n-button text size="small" type="error">删除</n-button>
+                              </template>
+                              确定要删除这条回复吗？
+                            </n-popconfirm>
+                          </div>
                         </div>
                       </n-space>
                     </div>
@@ -194,7 +223,7 @@ import {
   ArrowUpOutline
 } from '@vicons/ionicons5'
 import { getPostById, likePost } from '@/api/post'
-import { getCommentsByPostId, createComment } from '@/api/comment'
+import { getCommentsByPostId, createComment, deleteComment } from '@/api/comment'
 import { formatDate, formatRelativeTime } from '@/utils/format'
 import { useAuthStore } from '@/stores'
 import type { Post, Comment } from '@/types/blog'
@@ -212,7 +241,9 @@ const comments = ref<Comment[]>([])
 const commentContent = ref('')
 const liked = ref(false)
 const scrollContainer = ref<HTMLElement | null>(null)
-const replyToComment = ref<Comment | null>(null) // 记录正在回复的评论
+const replyToComment = ref<Comment | null>(null) // 记录正在回复的主评论
+const replyToUser = ref<Comment | null>(null) // 记录正在回复的具体用户
+const expandedComments = ref<Set<number>>(new Set()) // 记录展开的评论ID
 
 // TOC 相关
 interface TocItem {
@@ -267,6 +298,7 @@ async function fetchPost() {
     const res = await getPostById(postId.value)
     if (res.data) {
       post.value = res.data
+      liked.value = res.data.liked || false
       // 等待 DOM 更新后生成目录
       nextTick(() => {
         generateToc()
@@ -298,14 +330,23 @@ async function handleLike() {
   }
 
   try {
-    await likePost(postId.value)
-    liked.value = true
-    if (post.value) {
-      post.value.like_count++
+    const res = await likePost(postId.value)
+    if (res.data) {
+      const isLiked = res.data.liked
+      liked.value = isLiked
+      if (post.value) {
+        // 根据返回的状态更新点赞数
+        if (isLiked) {
+          post.value.like_count++
+          message.success('点赞成功')
+        } else {
+          post.value.like_count--
+          message.success('取消点赞')
+        }
+      }
     }
-    message.success('点赞成功')
   } catch (error: any) {
-    message.error(error.message || '点赞失败')
+    message.error(error.message || '操作失败')
   }
 }
 
@@ -339,9 +380,12 @@ async function handleSubmitComment() {
   }
 }
 
-function handleReply(comment: Comment) {
-  replyToComment.value = comment
-  commentContent.value = `@${comment.user.nickname} `
+function handleReply(parentComment: Comment, targetUser?: Comment) {
+  // parentComment 是主评论（顶级评论）
+  // targetUser 是要回复的具体用户（可能是主评论作者，也可能是回复者）
+  replyToComment.value = parentComment
+  replyToUser.value = targetUser || parentComment
+  commentContent.value = `@${(targetUser || parentComment).user.nickname} `
   // 滚动到评论框
   nextTick(() => {
     const commentForm = document.querySelector('.comment-form textarea')
@@ -349,6 +393,49 @@ function handleReply(comment: Comment) {
       (commentForm as HTMLElement).focus()
     }
   })
+}
+
+// 获取回复目标的名称
+function getReplyTargetName(reply: Comment, parentComment: Comment): string {
+  // 如果回复的内容以 @xxx 开头，尝试提取用户名
+  const match = reply.content.match(/^@(\S+)\s/)
+  if (match) {
+    return match[1]
+  }
+  // 否则默认显示主评论作者
+  return parentComment.user.nickname
+}
+
+// 移除评论内容开头的 @xxx
+function removeAtMention(content: string): string {
+  return content.replace(/^@\S+\s/, '')
+}
+
+// 切换评论展开/收起
+function toggleExpand(commentId: number) {
+  if (expandedComments.value.has(commentId)) {
+    expandedComments.value.delete(commentId)
+  } else {
+    expandedComments.value.add(commentId)
+  }
+}
+
+// 判断是否可以删除评论
+function canDeleteComment(comment: Comment): boolean {
+  if (!authStore.isLoggedIn) return false
+  // 管理员可以删除所有评论，普通用户只能删除自己的评论
+  return authStore.isAdmin || comment.user_id === authStore.user?.id
+}
+
+// 删除评论
+async function handleDeleteComment(commentId: number) {
+  try {
+    await deleteComment(commentId)
+    message.success('删除成功')
+    fetchComments()
+  } catch (error: any) {
+    message.error(error.message || '删除失败')
+  }
 }
 
 function handleEdit() {
@@ -667,6 +754,8 @@ html.dark .comment-item {
 
 .comment-actions {
   margin-top: 8px;
+  display: flex;
+  gap: 16px;
 }
 
 .reply-list {

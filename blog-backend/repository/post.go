@@ -125,6 +125,44 @@ func (r *PostRepository) IncrementLikeCount(id uint) error {
 	return db.DB.Model(&model.Post{}).Where("id = ?", id).UpdateColumn("like_count", db.DB.Raw("like_count + 1")).Error
 }
 
+// DecrementLikeCount 减少点赞数
+func (r *PostRepository) DecrementLikeCount(id uint) error {
+	return db.DB.Model(&model.Post{}).Where("id = ?", id).UpdateColumn("like_count", db.DB.Raw("CASE WHEN like_count > 0 THEN like_count - 1 ELSE 0 END")).Error
+}
+
+// CreateLike 创建点赞记录
+func (r *PostRepository) CreateLike(like *model.PostLike) error {
+	return db.DB.Create(like).Error
+}
+
+// DeleteLike 删除点赞记录
+func (r *PostRepository) DeleteLike(postID uint, userID *uint, ip string) error {
+	query := db.DB.Where("post_id = ?", postID)
+	
+	if userID != nil && *userID > 0 {
+		query = query.Where("user_id = ?", *userID)
+	} else {
+		query = query.Where("ip = ? AND user_id IS NULL", ip)
+	}
+	
+	return query.Delete(&model.PostLike{}).Error
+}
+
+// CheckLiked 检查是否已点赞
+func (r *PostRepository) CheckLiked(postID uint, userID *uint, ip string) (bool, error) {
+	var count int64
+	query := db.DB.Model(&model.PostLike{}).Where("post_id = ?", postID)
+	
+	if userID != nil && *userID > 0 {
+		query = query.Where("user_id = ?", *userID)
+	} else {
+		query = query.Where("ip = ? AND user_id IS NULL", ip)
+	}
+	
+	err := query.Count(&count).Error
+	return count > 0, err
+}
+
 // GetArchives 获取归档列表
 func (r *PostRepository) GetArchives() ([]map[string]interface{}, error) {
 	var results []map[string]interface{}
