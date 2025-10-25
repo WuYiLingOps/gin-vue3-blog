@@ -1,38 +1,46 @@
 <template>
   <div class="avatar-upload">
-    <n-upload
-      :action="uploadAction"
-      :headers="uploadHeaders"
-      :max="1"
-      :show-file-list="false"
-      :on-before-upload="beforeUpload"
-      :on-finish="handleFinish"
-      :on-error="handleError"
-      @change="handleChange"
-    >
-      <n-avatar
-        round
-        :size="size"
-        :src="currentAvatar"
-        class="avatar-preview"
+    <div class="avatar-container" @click="triggerFileInput">
+      <!-- 自定义圆形头像 -->
+      <div 
+        class="avatar-preview" 
+        :style="{ 
+          width: size + 'px', 
+          height: size + 'px',
+          backgroundImage: currentAvatar ? `url(${currentAvatar})` : 'none'
+        }"
       >
-        {{ defaultText }}
-      </n-avatar>
-      <div class="upload-overlay">
-        <n-icon size="24" :component="CameraOutline" />
-        <span>{{ uploading ? '上传中...' : '点击上传' }}</span>
+        <!-- 显示默认文字（当没有头像时） -->
+        <span v-if="!currentAvatar" class="avatar-text">{{ defaultText }}</span>
       </div>
-    </n-upload>
+      
+      <!-- 悬停遮罩层 -->
+      <div class="upload-overlay" :style="{ width: size + 'px', height: size + 'px' }">
+        <!-- 相机图标 -->
+        <svg class="camera-icon" viewBox="0 0 512 512" width="24" height="24">
+          <path fill="currentColor" d="M512 144v288c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V144c0-26.5 21.5-48 48-48h88l12.3-32.9c7-18.7 24.9-31.1 44.9-31.1h125.5c20 0 37.9 12.4 44.9 31.1L376 96h88c26.5 0 48 21.5 48 48zM376 288c0-66.2-53.8-120-120-120s-120 53.8-120 120 53.8 120 120 120 120-53.8 120-120zm-32 0c0 48.5-39.5 88-88 88s-88-39.5-88-88 39.5-88 88-88 88 39.5 88 88z"/>
+        </svg>
+        <span class="upload-text">{{ uploading ? '上传中...' : '点击上传' }}</span>
+      </div>
+    </div>
+    
+    <!-- 隐藏的文件输入框 -->
+    <input
+      ref="fileInputRef"
+      type="file"
+      accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+      style="display: none"
+      @change="handleFileChange"
+    />
+    
     <div v-if="tip" class="upload-tip">{{ tip }}</div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, watch } from 'vue'
 import { useMessage } from 'naive-ui'
-import { CameraOutline } from '@vicons/ionicons5'
 import { useAuthStore } from '@/stores'
-import type { UploadFileInfo } from 'naive-ui'
 
 interface Props {
   modelValue?: string
@@ -60,6 +68,7 @@ const authStore = useAuthStore()
 
 const uploading = ref(false)
 const currentAvatar = ref(props.modelValue)
+const fileInputRef = ref<HTMLInputElement | null>(null)
 
 // 监听 modelValue 变化
 watch(
@@ -69,70 +78,78 @@ watch(
   }
 )
 
-const uploadAction = computed(() => {
-  const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
-  return `${baseURL}/api/upload/avatar`
-})
-
-const uploadHeaders = computed(() => {
-  return {
-    Authorization: `Bearer ${authStore.token}`
+// 触发文件选择
+function triggerFileInput() {
+  if (!uploading.value) {
+    fileInputRef.value?.click()
   }
-})
+}
 
-function beforeUpload(data: { file: UploadFileInfo; fileList: UploadFileInfo[] }) {
-  const file = data.file.file
-  if (!file) return false
-
+// 处理文件选择
+async function handleFileChange(event: Event) {
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+  
+  if (!file) return
+  
   // 检查文件类型
   const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
   if (!allowedTypes.includes(file.type)) {
     message.error('只支持上传 jpg、png、gif、webp 格式的图片')
-    return false
+    target.value = '' // 重置 input
+    return
   }
-
+  
   // 检查文件大小（5MB）
   const maxSize = 5 * 1024 * 1024
   if (file.size > maxSize) {
     message.error('图片大小不能超过 5MB')
-    return false
+    target.value = '' // 重置 input
+    return
   }
+  
+  // 开始上传
+  await uploadFile(file)
+  target.value = '' // 重置 input，允许重复上传同一文件
+}
 
+// 上传文件
+async function uploadFile(file: File) {
   uploading.value = true
-  return true
-}
-
-function handleChange() {
-  // 可以在这里添加额外的逻辑
-}
-
-function handleFinish({ event }: { file: UploadFileInfo; event?: ProgressEvent }) {
-  uploading.value = false
-
+  
   try {
-    const response = JSON.parse((event?.target as XMLHttpRequest).response)
+    const formData = new FormData()
+    formData.append('file', file)
     
-    if (response.code === 200 && response.data?.url) {
-      const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
-      const fullURL = baseURL + response.data.url
+    const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
+    const uploadURL = `${baseURL}/api/upload/avatar`
+    
+    const response = await fetch(uploadURL, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${authStore.token}`
+      },
+      body: formData
+    })
+    
+    const result = await response.json()
+    
+    if (result.code === 200 && result.data?.url) {
+      const fullURL = baseURL + result.data.url
       
       currentAvatar.value = fullURL
       emit('update:modelValue', fullURL)
       emit('success', fullURL)
       message.success('头像上传成功')
     } else {
-      message.error(response.message || '上传失败')
+      message.error(result.message || '上传失败')
     }
   } catch (error) {
-    console.error('Upload response parse error:', error)
-    message.error('上传失败')
+    console.error('Upload error:', error)
+    message.error('上传失败，请重试')
+  } finally {
+    uploading.value = false
   }
-}
-
-function handleError({ event }: { file: UploadFileInfo; event?: ProgressEvent }) {
-  uploading.value = false
-  console.error('Upload error:', event)
-  message.error('上传失败，请重试')
 }
 </script>
 
@@ -142,47 +159,72 @@ function handleError({ event }: { file: UploadFileInfo; event?: ProgressEvent })
   text-align: center;
 }
 
-.avatar-upload :deep(.n-upload) {
+.avatar-container {
   position: relative;
   display: inline-block;
+  cursor: pointer;
 }
 
 .avatar-preview {
-  cursor: pointer;
+  border-radius: 50%;
+  background-color: #f0f0f0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
   transition: all 0.3s;
+  border: 2px solid #e0e0e0;
+}
+
+.avatar-text {
+  font-size: 36px;
+  font-weight: bold;
+  color: #999;
+  user-select: none;
 }
 
 .upload-overlay {
   position: absolute;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.6);
   color: white;
   opacity: 0;
   transition: opacity 0.3s;
   border-radius: 50%;
-  cursor: pointer;
+  pointer-events: none;
 }
 
-.avatar-upload :deep(.n-upload:hover) .upload-overlay {
+.avatar-container:hover .upload-overlay {
   opacity: 1;
 }
 
-.upload-overlay span {
-  margin-top: 4px;
+.camera-icon {
+  margin-bottom: 4px;
+}
+
+.upload-text {
   font-size: 12px;
+  white-space: nowrap;
 }
 
 .upload-tip {
   margin-top: 8px;
   font-size: 12px;
   color: #999;
+}
+
+/* 禁用状态 */
+.avatar-container.uploading {
+  cursor: not-allowed;
+  opacity: 0.7;
 }
 </style>
 
