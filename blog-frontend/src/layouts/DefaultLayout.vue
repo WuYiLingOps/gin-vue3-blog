@@ -565,12 +565,10 @@ html.dark .filing-info a:hover {
 /* 添加头像悬停效果 */
 .header-actions :deep(.n-avatar) {
   transition: all 0.3s;
-  border: 2px solid rgba(8, 145, 178, 0.2);
 }
 
 .header-actions :deep(.n-avatar:hover) {
   transform: scale(1.1);
-  border-color: rgba(8, 145, 178, 0.5);
   box-shadow: 0 4px 12px rgba(8, 145, 178, 0.3);
 }
 

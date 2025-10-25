@@ -4,41 +4,46 @@
       <n-spin :show="loading">
         <div v-if="moments.length > 0" class="moments-list">
           <div v-for="moment in moments" :key="moment.id" class="moment-card">
-            <div class="moment-header">
-              <n-space :size="12">
-                <n-avatar :src="moment.user.avatar" :size="48" round />
+            <!-- 左侧头像 -->
+            <div class="moment-avatar">
+              <n-avatar :src="moment.user.avatar" :size="56" round />
+            </div>
+
+            <!-- 右侧内容区 -->
+            <div class="moment-main">
+              <div class="moment-header">
                 <div class="user-info">
-                  <div class="username">{{ moment.user.nickname || moment.user.username }}</div>
-                  <div class="time">{{ formatDate(moment.created_at, 'YYYY-MM-DD HH:mm') }}</div>
+                  <span class="username">{{ moment.user.nickname || moment.user.username }}</span>
+                  <span class="time">{{ formatDate(moment.created_at, 'YYYY-MM-DD HH:mm') }}</span>
                 </div>
-              </n-space>
-            </div>
+              </div>
 
-            <div class="moment-content">
-              <p>{{ moment.content }}</p>
-            </div>
+              <div class="moment-content">
+                <p>{{ moment.content }}</p>
+              </div>
 
-            <div v-if="moment.images" class="moment-images">
-              <n-image-group>
-                <n-space :size="12">
-                  <n-image
-                    v-for="(img, index) in parseImages(moment.images)"
-                    :key="index"
-                    :src="img"
-                    object-fit="cover"
-                    class="moment-image"
-                  />
+              <div v-if="moment.images" class="moment-images">
+                <n-image-group>
+                  <n-space :size="12">
+                    <n-image
+                      v-for="(img, index) in parseImages(moment.images)"
+                      :key="index"
+                      :src="img"
+                      object-fit="cover"
+                      class="moment-image"
+                    />
+                  </n-space>
+                </n-image-group>
+              </div>
+
+              <div class="moment-footer">
+                <n-space :size="16">
+                  <span class="stat-item like-button" @click="handleLike(moment)">
+                    <n-icon :component="moment.liked ? Heart : HeartOutline" :class="{ liked: moment.liked }" />
+                    <span class="like-text">{{ moment.like_count > 0 ? moment.like_count : '点赞' }}</span>
+                  </span>
                 </n-space>
-              </n-image-group>
-            </div>
-
-            <div class="moment-footer">
-              <n-space :size="16">
-                <span class="stat-item like-button" @click="handleLike(moment)">
-                  <n-icon :component="moment.liked ? Heart : HeartOutline" :class="{ liked: moment.liked }" />
-                  {{ moment.like_count }}
-                </span>
-              </n-space>
+              </div>
             </div>
           </div>
         </div>
@@ -95,11 +100,11 @@ async function fetchMoments() {
       page: currentPage.value,
       page_size: pageSize.value,
       status: 1
-    })
+    }) as any
 
-    if (res.data) {
-      moments.value = res.data.list
-      total.value = res.data.total
+    if (res && res.data) {
+      moments.value = res.data.list || []
+      total.value = res.data.total || 0
     }
   } catch (error) {
     console.error('获取说说列表失败:', error)
@@ -124,9 +129,9 @@ function handlePageSizeChange(size: number) {
 
 // 点赞/取消点赞说说
 async function handleLike(moment: Moment) {
+  const wasLiked = moment.liked
+  
   try {
-    const wasLiked = moment.liked
-    
     // 乐观更新 UI
     if (wasLiked) {
       // 取消点赞
@@ -166,7 +171,7 @@ onMounted(() => {
 }
 
 .moments-container {
-  max-width: 800px;
+  max-width: 900px;
   margin: 0 auto;
   padding: 0 24px;
 }
@@ -174,19 +179,23 @@ onMounted(() => {
 .moments-list {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
 }
 
+/* 卡片布局 - 左侧头像，右侧内容 */
 .moment-card {
   background: white;
   border-radius: 12px;
   padding: 24px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   transition: all 0.3s;
+  display: flex;
+  gap: 16px;
 }
 
 .moment-card:hover {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
 }
 
 html.dark .moment-card {
@@ -198,20 +207,46 @@ html.dark .moment-card:hover {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
 }
 
+/* 左侧头像区域 */
+.moment-avatar {
+  flex-shrink: 0;
+}
+
+.moment-avatar :deep(.n-avatar) {
+  transition: all 0.3s;
+}
+
+.moment-card:hover .moment-avatar :deep(.n-avatar) {
+  transform: scale(1.05);
+}
+
+/* 右侧主内容区域 */
+.moment-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
 .moment-header {
-  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .user-info {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .username {
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 700;
   color: #1a202c;
+  letter-spacing: -0.01em;
 }
 
 html.dark .username {
@@ -221,10 +256,16 @@ html.dark .username {
 .time {
   font-size: 13px;
   color: #94a3b8;
+  font-weight: 400;
 }
 
+html.dark .time {
+  color: #64748b;
+}
+
+/* 说说内容 */
 .moment-content {
-  margin-bottom: 16px;
+  line-height: 1.8;
 }
 
 .moment-content p {
@@ -240,8 +281,9 @@ html.dark .moment-content p {
   color: #cbd5e1;
 }
 
+/* 图片展示区域 */
 .moment-images {
-  margin-bottom: 16px;
+  margin-top: 8px;
 }
 
 .moment-image {
@@ -249,11 +291,24 @@ html.dark .moment-content p {
   height: 200px;
   border-radius: 8px;
   cursor: pointer;
+  transition: all 0.3s;
+  border: 1px solid rgba(0, 0, 0, 0.06);
 }
 
+.moment-image:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+html.dark .moment-image {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* 底部互动区域 */
 .moment-footer {
   padding-top: 12px;
   border-top: 1px solid #e5e7eb;
+  margin-top: 4px;
 }
 
 html.dark .moment-footer {
@@ -272,20 +327,29 @@ html.dark .moment-footer {
 .like-button {
   cursor: pointer;
   user-select: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  background: transparent;
+  transition: all 0.3s;
 }
 
 .like-button:hover {
   color: #ef4444;
-  transform: scale(1.1);
+  background: rgba(239, 68, 68, 0.08);
+  transform: translateY(-1px);
 }
 
 .like-button:active {
-  transform: scale(0.95);
+  transform: translateY(0) scale(0.98);
 }
 
 .like-button .liked {
   color: #ef4444;
   animation: likeAnimation 0.3s ease;
+}
+
+.like-text {
+  font-weight: 500;
 }
 
 @keyframes likeAnimation {
@@ -306,13 +370,66 @@ html.dark .stat-item {
 
 html.dark .like-button:hover {
   color: #f87171;
+  background: rgba(248, 113, 113, 0.12);
 }
 
+/* 分页 */
 .pagination-wrapper {
   display: flex;
   justify-content: center;
   margin-top: 40px;
   padding: 24px 0;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .moment-card {
+    padding: 16px;
+    gap: 12px;
+  }
+
+  .moment-avatar :deep(.n-avatar) {
+    width: 44px !important;
+    height: 44px !important;
+  }
+
+  .username {
+    font-size: 15px;
+  }
+
+  .time {
+    font-size: 12px;
+  }
+
+  .moment-content p {
+    font-size: 14px;
+  }
+
+  .moment-image {
+    width: 150px;
+    height: 150px;
+  }
+}
+
+@media (max-width: 480px) {
+  .moments-container {
+    padding: 0 16px;
+  }
+
+  .moment-card {
+    padding: 12px;
+  }
+
+  .moment-image {
+    width: 120px;
+    height: 120px;
+  }
+
+  .user-info {
+    flex-direction: column;
+    gap: 4px;
+    align-items: flex-start;
+  }
 }
 </style>
 

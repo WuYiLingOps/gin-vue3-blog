@@ -136,7 +136,17 @@
 
     <!-- 右侧目录 - 独立于 spin -->
     <div class="post-toc" v-if="post && tocItems.length > 0">
-      <n-card title="目录" size="small">
+      <n-card size="small">
+        <template #header>
+          <div class="toc-header">
+            <span class="toc-title">目录</span>
+            <span class="toc-progress-text">{{ readingProgress }}%</span>
+          </div>
+          <!-- 阅读进度条 -->
+          <div class="reading-progress-bar">
+            <div class="reading-progress-fill" :style="{ width: `${readingProgress}%` }"></div>
+          </div>
+        </template>
         <div class="toc-list">
           <a
             v-for="item in tocItems"
@@ -200,6 +210,7 @@ interface TocItem {
 
 const tocItems = ref<TocItem[]>([])
 const activeHeading = ref('')
+const readingProgress = ref(0)
 
 const postId = computed(() => Number(route.params.id))
 
@@ -377,6 +388,19 @@ function handleScroll() {
   }
   
   if (!scrollContainer) return
+  
+  // 计算阅读进度
+  const scrollTop = scrollContainer.scrollTop
+  const scrollHeight = scrollContainer.scrollHeight
+  const clientHeight = scrollContainer.clientHeight
+  const maxScroll = scrollHeight - clientHeight
+  
+  if (maxScroll > 0) {
+    const progress = Math.round((scrollTop / maxScroll) * 100)
+    readingProgress.value = Math.min(100, Math.max(0, progress))
+  } else {
+    readingProgress.value = 100
+  }
   
   const containerRect = scrollContainer.getBoundingClientRect()
   
@@ -654,6 +678,62 @@ html.dark .post-toc :deep(.n-card) {
   background: rgba(30, 41, 59, 0.7);
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* 目录头部 */
+.toc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.toc-title {
+  font-weight: 600;
+  font-size: 16px;
+  color: #1a202c;
+}
+
+html.dark .toc-title {
+  color: #e5e5e5;
+}
+
+.toc-progress-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0891b2;
+  font-family: 'Courier New', Consolas, monospace;
+}
+
+html.dark .toc-progress-text {
+  color: #38bdf8;
+}
+
+/* 阅读进度条 */
+.reading-progress-bar {
+  width: 100%;
+  height: 4px;
+  background: rgba(8, 145, 178, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+html.dark .reading-progress-bar {
+  background: rgba(56, 189, 248, 0.15);
+}
+
+.reading-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #0891b2 0%, #059669 100%);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+  box-shadow: 0 0 8px rgba(8, 145, 178, 0.5);
+}
+
+html.dark .reading-progress-fill {
+  background: linear-gradient(90deg, #38bdf8 0%, #4ade80 100%);
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.5);
 }
 
 .toc-list {

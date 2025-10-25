@@ -6,6 +6,12 @@ export interface PaginationParams {
   page_size: number
 }
 
+// 分页参数（别名）
+export interface PageParams {
+  page?: number
+  page_size?: number
+}
+
 // 分页数据
 export interface PageData<T> {
   list: T[]
@@ -13,6 +19,15 @@ export interface PageData<T> {
   page: number
   page_size: number
   total_pages: number
+}
+
+// 分页结果（别名）
+export interface PageResult<T> {
+  list: T[]
+  total: number
+  page: number
+  page_size: number
+  total_pages?: number
 }
 
 // API 响应
