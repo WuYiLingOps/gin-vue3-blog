@@ -3,6 +3,7 @@ package repository
 import (
 	"blog-backend/db"
 	"blog-backend/model"
+	"gorm.io/gorm"
 )
 
 type CommentRepository struct{}
@@ -36,7 +37,12 @@ func (r *CommentRepository) Delete(id uint) error {
 // GetByPostID 根据文章ID获取评论列表
 func (r *CommentRepository) GetByPostID(postID uint) ([]model.Comment, error) {
 	var comments []model.Comment
-	err := db.DB.Preload("User").Preload("Children.User").
+	// 主评论按时间倒序，子评论按时间正序
+	err := db.DB.Preload("User").
+		Preload("Children", func(tx *gorm.DB) *gorm.DB {
+			return tx.Where("status = 1").Order("created_at ASC")
+		}).
+		Preload("Children.User").
 		Where("post_id = ? AND parent_id IS NULL AND status = 1", postID).
 		Order("created_at DESC").
 		Find(&comments).Error

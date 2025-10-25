@@ -68,6 +68,9 @@ func (r *MomentRepository) List(page, pageSize int, status *int, keyword string)
 	// 如果指定了状态，则过滤
 	if status != nil {
 		query = query.Where("status = ?", *status)
+	} else {
+		// 默认排除已删除的说说（status = -1）
+		query = query.Where("status != ?", -1)
 	}
 
 	// 关键词搜索

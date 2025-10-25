@@ -70,6 +70,17 @@
 
           <!-- 评论表单 -->
           <n-card v-if="authStore.isLoggedIn" class="comment-form">
+            <!-- 回复提示 -->
+            <n-alert
+              v-if="replyToComment"
+              type="info"
+              closable
+              style="margin-bottom: 12px"
+              @close="replyToComment = null; commentContent = ''"
+            >
+              正在回复 <strong>@{{ replyToComment.user.nickname }}</strong> 的评论
+            </n-alert>
+            
             <n-input
               v-model:value="commentContent"
               type="textarea"
@@ -78,7 +89,7 @@
             />
             <div style="margin-top: 12px; text-align: right">
               <n-button type="primary" :loading="submitting" @click="handleSubmitComment">
-                发表评论
+                {{ replyToComment ? '发表回复' : '发表评论' }}
               </n-button>
             </div>
           </n-card>
@@ -114,6 +125,7 @@
                         <div class="reply-content">
                           <div class="reply-header">
                             <strong>{{ reply.user.nickname }}</strong>
+                            <span class="reply-to">回复 @{{ comment.user.nickname }}</span>
                             <span class="comment-time">{{
                               formatRelativeTime(reply.created_at)
                             }}</span>
@@ -200,6 +212,7 @@ const comments = ref<Comment[]>([])
 const commentContent = ref('')
 const liked = ref(false)
 const scrollContainer = ref<HTMLElement | null>(null)
+const replyToComment = ref<Comment | null>(null) // 记录正在回复的评论
 
 // TOC 相关
 interface TocItem {
@@ -304,12 +317,20 @@ async function handleSubmitComment() {
 
   try {
     submitting.value = true
-    await createComment({
+    const commentData: any = {
       content: commentContent.value,
       post_id: postId.value
-    })
-    message.success('评论成功')
+    }
+    
+    // 如果是回复评论，添加 parent_id
+    if (replyToComment.value) {
+      commentData.parent_id = replyToComment.value.id
+    }
+    
+    await createComment(commentData)
+    message.success(replyToComment.value ? '回复成功' : '评论成功')
     commentContent.value = ''
+    replyToComment.value = null
     fetchComments()
   } catch (error: any) {
     message.error(error.message || '评论失败')
@@ -319,7 +340,15 @@ async function handleSubmitComment() {
 }
 
 function handleReply(comment: Comment) {
+  replyToComment.value = comment
   commentContent.value = `@${comment.user.nickname} `
+  // 滚动到评论框
+  nextTick(() => {
+    const commentForm = document.querySelector('.comment-form textarea')
+    if (commentForm) {
+      (commentForm as HTMLElement).focus()
+    }
+  })
 }
 
 function handleEdit() {
@@ -641,12 +670,32 @@ html.dark .comment-item {
 }
 
 .reply-list {
-  margin-top: 16px;
-  padding-left: 48px;
+  margin-top: 12px;
+  padding-left: 16px;
+  margin-left: 48px;
+  border-left: 3px solid rgba(16, 185, 129, 0.15);
+  background: rgba(16, 185, 129, 0.02);
+  border-radius: 0 8px 8px 0;
+  padding-top: 8px;
+  padding-bottom: 4px;
+}
+
+html.dark .reply-list {
+  border-left-color: rgba(52, 211, 153, 0.2);
+  background: rgba(52, 211, 153, 0.03);
 }
 
 .reply-item {
-  padding: 12px 0;
+  padding: 8px 0;
+  position: relative;
+}
+
+.reply-item:not(:last-child) {
+  border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+}
+
+html.dark .reply-item:not(:last-child) {
+  border-bottom-color: rgba(255, 255, 255, 0.05);
 }
 
 .reply-content {
@@ -658,6 +707,20 @@ html.dark .comment-item {
   align-items: center;
   gap: 8px;
   margin-bottom: 4px;
+}
+
+.reply-to {
+  color: #10b981;
+  font-size: 12px;
+  font-weight: 400;
+  padding: 2px 6px;
+  background: rgba(16, 185, 129, 0.08);
+  border-radius: 4px;
+}
+
+html.dark .reply-to {
+  color: #34d399;
+  background: rgba(52, 211, 153, 0.12);
 }
 
 .reply-content p {
