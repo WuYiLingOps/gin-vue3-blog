@@ -2,10 +2,12 @@ package middleware
 
 import (
 	"blog-backend/repository"
+	"strings"
+
 	"github.com/gin-gonic/gin"
 )
 
-// VisitStatMiddleware 访问量统计中间件
+// VisitStatMiddleware 访问量统计中间件（只统计有效页面访问）
 func VisitStatMiddleware() gin.HandlerFunc {
 	visitStatRepo := repository.NewVisitStatRepository()
 
@@ -13,8 +15,32 @@ func VisitStatMiddleware() gin.HandlerFunc {
 		// 先处理请求
 		c.Next()
 
-		// 只在成功响应时统计（200-299状态码）
-		if c.Writer.Status() >= 200 && c.Writer.Status() < 300 {
+		// 只统计以下情况：
+		// 1. GET 请求
+		// 2. 200-299 状态码
+		// 3. 非静态资源请求（排除 /uploads, /assets 等）
+		// 4. 非 API 请求（排除 /api）
+		path := c.Request.URL.Path
+		method := c.Request.Method
+		status := c.Writer.Status()
+
+		// 过滤条件
+		isStaticResource := strings.HasPrefix(path, "/uploads") ||
+			strings.HasPrefix(path, "/assets") ||
+			strings.HasPrefix(path, "/favicon.ico") ||
+			strings.HasSuffix(path, ".js") ||
+			strings.HasSuffix(path, ".css") ||
+			strings.HasSuffix(path, ".png") ||
+			strings.HasSuffix(path, ".jpg") ||
+			strings.HasSuffix(path, ".jpeg") ||
+			strings.HasSuffix(path, ".gif") ||
+			strings.HasSuffix(path, ".svg") ||
+			strings.HasSuffix(path, ".ico")
+
+		isAPIRequest := strings.HasPrefix(path, "/api")
+
+		// 只统计：GET 请求 + 成功状态 + 非静态资源 + 非 API
+		if method == "GET" && status >= 200 && status < 300 && !isStaticResource && !isAPIRequest {
 			// 异步记录访问量，不影响响应速度
 			go func() {
 				visitStatRepo.IncrementTodayViewCount()

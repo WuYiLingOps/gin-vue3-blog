@@ -8,15 +8,22 @@
             <h2>{{ siteSettings.site_name || '我的博客' }}</h2>
           </div>
 
+          <!-- 桌面端导航菜单 -->
           <n-menu
             v-model:value="activeKey"
             mode="horizontal"
             :options="menuOptions"
-            class="nav-menu"
+            class="nav-menu desktop-only"
             @update:value="handleMenuSelect"
           />
 
           <div class="header-actions">
+            <!-- 移动端菜单按钮 -->
+            <n-button text class="mobile-menu-btn" @click="showMobileMenu = true">
+              <template #icon>
+                <n-icon :component="MenuOutline" size="24" />
+              </template>
+            </n-button>
             <!-- 搜索按钮 -->
             <n-button text @click="showSearchModal = true">
               <template #icon>
@@ -67,6 +74,60 @@
         </div>
       </n-layout-content>
     </n-layout>
+
+    <!-- 移动端侧边抽屉菜单 -->
+    <n-drawer v-model:show="showMobileMenu" :width="280" placement="left">
+      <n-drawer-content title="菜单" closable>
+        <n-menu
+          v-model:value="activeKey"
+          :options="menuOptions"
+          @update:value="handleMobileMenuSelect"
+        />
+        
+        <n-divider style="margin: 24px 0" />
+        
+        <!-- 用户信息 -->
+        <div v-if="authStore.isLoggedIn" class="mobile-user-info">
+          <n-space vertical :size="12">
+            <div class="user-profile">
+              <n-avatar :src="authStore.user?.avatar" :size="48" round />
+              <div class="user-details">
+                <div class="user-nickname">{{ authStore.user?.nickname }}</div>
+                <div class="user-role">{{ authStore.isAdmin ? '管理员' : '普通用户' }}</div>
+              </div>
+            </div>
+            
+            <n-button block @click="handleMobileUserAction('profile')">
+              <template #icon>
+                <n-icon :component="PersonOutline" />
+              </template>
+              个人资料
+            </n-button>
+            
+            <n-button v-if="authStore.isAdmin" block type="info" @click="handleMobileUserAction('admin')">
+              <template #icon>
+                <n-icon :component="SettingsOutline" />
+              </template>
+              管理后台
+            </n-button>
+            
+            <n-button block type="error" @click="handleMobileUserAction('logout')">
+              <template #icon>
+                <n-icon :component="LogOutOutline" />
+              </template>
+              退出登录
+            </n-button>
+          </n-space>
+        </div>
+        
+        <!-- 未登录状态 -->
+        <div v-else class="mobile-login">
+          <n-button block type="primary" @click="handleMobileLogin">
+            登录 / 注册
+          </n-button>
+        </div>
+      </n-drawer-content>
+    </n-drawer>
 
     <!-- 搜索对话框 -->
     <n-modal
@@ -131,7 +192,7 @@
 <script setup lang="ts">
 import { ref, computed, h, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { MoonOutline, SunnyOutline, PersonOutline, LogOutOutline, SettingsOutline, SearchOutline } from '@vicons/ionicons5'
+import { MoonOutline, SunnyOutline, PersonOutline, LogOutOutline, SettingsOutline, SearchOutline, MenuOutline } from '@vicons/ionicons5'
 import { useAuthStore, useAppStore } from '@/stores'
 import { NIcon } from 'naive-ui'
 import { getPublicSettings } from '@/api/setting'
@@ -152,6 +213,7 @@ const siteSettings = ref<SiteSettings>({})
 const runningTime = ref('')
 const searchKeyword = ref('')
 const showSearchModal = ref(false)
+const showMobileMenu = ref(false)
 const searchResults = ref<Post[]>([])
 const searchLoading = ref(false)
 let searchTimer: number | null = null
@@ -214,6 +276,25 @@ const userMenuOptions = computed(() => {
 function handleMenuSelect(key: string) {
   activeKey.value = key
   router.push({ name: key })
+}
+
+// 处理移动端菜单选择
+function handleMobileMenuSelect(key: string) {
+  activeKey.value = key
+  showMobileMenu.value = false
+  router.push({ name: key })
+}
+
+// 处理移动端用户操作
+function handleMobileUserAction(action: string) {
+  showMobileMenu.value = false
+  handleUserMenu(action)
+}
+
+// 处理移动端登录
+function handleMobileLogin() {
+  showMobileMenu.value = false
+  router.push('/auth/login')
 }
 
 // 切换主题
@@ -727,6 +808,117 @@ html.dark .running-time :deep(.time-number) {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+/* ===== 移动端适配 ===== */
+
+/* 移动端菜单按钮 - 默认隐藏 */
+.mobile-menu-btn {
+  display: none;
+}
+
+/* 平板以下显示移动端菜单按钮，隐藏桌面导航 */
+@media (max-width: 768px) {
+  .mobile-menu-btn {
+    display: inline-flex;
+  }
+  
+  .desktop-only {
+    display: none !important;
+  }
+  
+  .header {
+    padding: 0 16px;
+    height: 60px;
+  }
+  
+  .logo h2 {
+    font-size: 20px;
+  }
+  
+  .header-actions {
+    gap: 8px;
+  }
+  
+  .main-content {
+    padding: 16px 12px 0 12px;
+    height: calc(100vh - 60px);
+  }
+  
+  .content-wrapper {
+    min-height: calc(100vh - 60px - 160px);
+  }
+  
+  .footer {
+    padding: 16px 12px;
+    margin-top: 24px;
+  }
+  
+  .footer-content p {
+    font-size: 12px;
+  }
+  
+  .running-time {
+    font-size: 11px !important;
+  }
+}
+
+/* 移动端用户信息样式 */
+.mobile-user-info {
+  padding: 16px 0;
+}
+
+.user-profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(8, 145, 178, 0.05);
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+
+html.dark .user-profile {
+  background: rgba(56, 189, 248, 0.1);
+}
+
+.user-details {
+  flex: 1;
+}
+
+.user-nickname {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a202c;
+  margin-bottom: 4px;
+}
+
+html.dark .user-nickname {
+  color: #e5e5e5;
+}
+
+.user-role {
+  font-size: 13px;
+  color: #64748b;
+}
+
+html.dark .user-role {
+  color: #94a3b8;
+}
+
+.mobile-login {
+  padding: 16px 0;
+}
+
+/* 小屏幕优化 */
+@media (max-width: 480px) {
+  .logo h2 {
+    font-size: 18px;
+  }
+  
+  .header-actions :deep(.n-button .n-button__content > span) {
+    display: none;
+  }
 }
 </style>
 

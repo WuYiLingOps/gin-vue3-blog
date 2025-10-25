@@ -151,6 +151,7 @@ import { useMessage } from 'naive-ui'
 import { getAdminMoments, createMoment, updateMoment, deleteMoment } from '@/api/moment'
 import type { Moment, MomentForm } from '@/api/moment'
 import { formatDate } from '@/utils/format'
+import { normalizeImageUrl, normalizeImageUrls } from '@/utils/url'
 import MultiImageUpload from '@/components/MultiImageUpload.vue'
 
 const message = useMessage()
@@ -209,9 +210,18 @@ async function fetchMoments() {
     }
 
     const res = await getAdminMoments(params)
-    if (res.data && res.data.data) {
-      moments.value = res.data.data.list
-      total.value = res.data.data.total
+    if (res.data) {
+      // 标准化图片 URL
+      const list = (res.data.list || []).map((moment: Moment) => ({
+        ...moment,
+        user: {
+          ...moment.user,
+          avatar: normalizeImageUrl(moment.user.avatar)
+        },
+        images: moment.images ? JSON.stringify(normalizeImageUrls(moment.images)) : ''
+      }))
+      moments.value = list
+      total.value = res.data.total || 0
     }
   } catch (error) {
     message.error('获取说说列表失败')
