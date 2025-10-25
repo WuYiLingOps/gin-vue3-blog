@@ -14,6 +14,7 @@ func setupRouter() *gin.Engine {
 	r.Use(gin.Recovery())
 	r.Use(middleware.Logger())
 	r.Use(middleware.CORS())
+	r.Use(middleware.IPBlacklistMiddleware()) // IP黑名单和频率限制
 	r.Use(middleware.VisitStatMiddleware())
 
 	// 静态文件服务（用于访问上传的文件）
@@ -30,6 +31,7 @@ func setupRouter() *gin.Engine {
 	settingHandler := handler.NewSettingHandler()
 	dashboardHandler := handler.NewDashboardHandler()
 	momentHandler := handler.NewMomentHandler()
+	ipBlacklistHandler := handler.NewIPBlacklistHandler()
 
 	// 健康检查接口
 	r.GET("/health", func(c *gin.Context) {
@@ -47,7 +49,7 @@ func setupRouter() *gin.Engine {
 		setupUploadRoutes(api, uploadHandler)
 		setupSettingRoutes(api, settingHandler)
 		setupMomentRoutes(api, momentHandler)
-		setupAdminRoutes(api, userHandler, postHandler, commentHandler, dashboardHandler, momentHandler)
+		setupAdminRoutes(api, userHandler, postHandler, commentHandler, dashboardHandler, momentHandler, ipBlacklistHandler)
 	}
 
 	return r
@@ -203,7 +205,7 @@ func setupMomentRoutes(api *gin.RouterGroup, h *handler.MomentHandler) {
 }
 
 // setupAdminRoutes 管理后台路由
-func setupAdminRoutes(api *gin.RouterGroup, userHandler *handler.UserHandler, postHandler *handler.PostHandler, commentHandler *handler.CommentHandler, dashboardHandler *handler.DashboardHandler, momentHandler *handler.MomentHandler) {
+func setupAdminRoutes(api *gin.RouterGroup, userHandler *handler.UserHandler, postHandler *handler.PostHandler, commentHandler *handler.CommentHandler, dashboardHandler *handler.DashboardHandler, momentHandler *handler.MomentHandler, ipBlacklistHandler *handler.IPBlacklistHandler) {
 	admin := api.Group("/admin")
 	admin.Use(middleware.AuthMiddleware(), middleware.AdminMiddleware())
 	{
@@ -227,6 +229,13 @@ func setupAdminRoutes(api *gin.RouterGroup, userHandler *handler.UserHandler, po
 
 		// 说说管理
 		admin.GET("/moments", momentHandler.AdminList)
+
+		// IP黑名单管理
+		admin.GET("/ip-blacklist", ipBlacklistHandler.List)
+		admin.POST("/ip-blacklist", ipBlacklistHandler.Add)
+		admin.DELETE("/ip-blacklist/:id", ipBlacklistHandler.Delete)
+		admin.GET("/ip-blacklist/check", ipBlacklistHandler.Check)
+		admin.POST("/ip-blacklist/clean-expired", ipBlacklistHandler.CleanExpired)
 	}
 }
 

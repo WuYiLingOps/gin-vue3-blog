@@ -37,8 +37,13 @@ func GetClientIP(c *gin.Context) string {
 	return "unknown"
 }
 
-// isValidIP 验证IP地址是否有效
+// isValidIP 验证IP地址是否有效（内部使用）
 func isValidIP(ip string) bool {
+	return net.ParseIP(ip) != nil
+}
+
+// IsValidIP 验证IP地址是否有效（导出供外部使用）
+func IsValidIP(ip string) bool {
 	return net.ParseIP(ip) != nil
 }
 

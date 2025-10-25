@@ -138,6 +138,17 @@ type MomentLike struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
+// IPBlacklist IP黑名单模型
+type IPBlacklist struct {
+	ID        uint       `json:"id" gorm:"primaryKey"`
+	IP        string     `json:"ip" gorm:"uniqueIndex;not null;size:45"`
+	Reason    string     `json:"reason" gorm:"size:255"`
+	BanType   int        `json:"ban_type" gorm:"default:1"` // 1:自动封禁 2:手动封禁
+	ExpireAt  *time.Time `json:"expire_at"`                 // 过期时间，NULL表示永久封禁
+	CreatedAt time.Time  `json:"created_at"`
+	UpdatedAt time.Time  `json:"updated_at"`
+}
+
 // TableName 指定表名
 func (User) TableName() string {
 	return "users"
@@ -177,4 +188,8 @@ func (Moment) TableName() string {
 
 func (MomentLike) TableName() string {
 	return "moment_likes"
+}
+
+func (IPBlacklist) TableName() string {
+	return "ip_blacklist"
 }
