@@ -59,14 +59,25 @@ func (h *UserHandler) UpdateStatus(c *gin.Context) {
 	}
 
 	var req struct {
-		Status int `json:"status" binding:"required"`
+		Status *int `json:"status" binding:"required"` // 使用指针类型，避免 0 值被认为是空
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		util.BadRequest(c, "请求参数错误")
 		return
 	}
 
-	if err := h.service.UpdateStatus(uint(id), req.Status); err != nil {
+	if req.Status == nil {
+		util.BadRequest(c, "status 参数不能为空")
+		return
+	}
+
+	// 验证 status 值（0:禁用 1:启用）
+	if *req.Status != 0 && *req.Status != 1 {
+		util.BadRequest(c, "status 参数值无效，必须为 0 或 1")
+		return
+	}
+
+	if err := h.service.UpdateStatus(uint(id), *req.Status); err != nil {
 		util.Error(c, 400, err.Error())
 		return
 	}
