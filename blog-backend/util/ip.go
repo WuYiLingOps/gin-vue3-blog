@@ -1,0 +1,44 @@
+package util
+
+import (
+	"net"
+	"strings"
+
+	"github.com/gin-gonic/gin"
+)
+
+// GetClientIP 获取客户端真实IP地址
+func GetClientIP(c *gin.Context) string {
+	// 优先从 X-Forwarded-For 获取（适用于使用了代理的情况）
+	ip := c.GetHeader("X-Forwarded-For")
+	if ip != "" {
+		// X-Forwarded-For 可能包含多个IP，取第一个
+		ips := strings.Split(ip, ",")
+		if len(ips) > 0 {
+			ip = strings.TrimSpace(ips[0])
+			if isValidIP(ip) {
+				return ip
+			}
+		}
+	}
+
+	// 从 X-Real-IP 获取
+	ip = c.GetHeader("X-Real-IP")
+	if ip != "" && isValidIP(ip) {
+		return ip
+	}
+
+	// 从 RemoteAddr 获取
+	ip = c.ClientIP()
+	if ip != "" && isValidIP(ip) {
+		return ip
+	}
+
+	return "unknown"
+}
+
+// isValidIP 验证IP地址是否有效
+func isValidIP(ip string) bool {
+	return net.ParseIP(ip) != nil
+}
+

@@ -1,0 +1,214 @@
+# ==================== Operating System ====================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Linux
+*~
+.directory
+.Trash-*
+
+# ==================== IDEs and Editors ====================
+# Visual Studio Code
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+
+# JetBrains IDEs (IntelliJ IDEA, GoLand, WebStorm, etc.)
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+# Vim
+*.swp
+*.swo
+*~
+.netrwhist
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+
+# Sublime Text
+*.sublime-workspace
+*.sublime-project
+
+# ==================== Go Backend ====================
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+blog-backend/main
+blog-backend/server
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool
+*.out
+coverage.txt
+coverage.html
+
+# Go workspace file
+go.work
+go.work.sum
+
+# Dependency directories
+vendor/
+
+# Air (live reload)
+tmp/
+.air.toml
+
+# ==================== Node.js / Frontend ====================
+# Dependencies
+node_modules/
+jspm_packages/
+
+# Build outputs
+dist/
+dist-ssr/
+build/
+.cache/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Package manager lock files (keep pnpm-lock.yaml as it's already in the project)
+# Uncomment if you want to ignore lock files:
+# package-lock.json
+# yarn.lock
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Testing
+coverage/
+.nyc_output/
+
+# Vite
+*.local
+
+# ==================== Configuration Files ====================
+# Backend configuration with sensitive data
+blog-backend/config/config.yml
+!blog-backend/config/config.example.yml
+
+# ==================== Uploads and User Content ====================
+# Uploaded files
+blog-backend/uploads/*
+!blog-backend/uploads/.gitkeep
+
+# Keep avatar directory structure but ignore contents
+blog-backend/uploads/avatars/*
+!blog-backend/uploads/avatars/.gitkeep
+
+# ==================== Database ====================
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Database dumps
+*.sql.gz
+*.sql.bak
+dump.sql
+
+# Docker volumes
+postgres-data/
+redis-data/
+
+# ==================== Docker ====================
+# Docker override files
+docker-compose.override.yml
+
+# ==================== Logs ====================
+# Application logs
+*.log
+logs/
+log/
+
+# ==================== Temporary Files ====================
+# Temporary directories
+tmp/
+temp/
+.tmp/
+.temp/
+
+# Backup files
+*.bak
+*.backup
+*.old
+*.orig
+
+# ==================== Build Artifacts ====================
+# Compiled binaries
+bin/
+build/
+dist/
+
+# ==================== Security ====================
+# Private keys
+*.pem
+*.key
+*.cert
+*.crt
+id_rsa
+id_rsa.pub
+
+# JWT secrets
+secrets/
+
+# ==================== Documentation (if auto-generated) ====================
+# Uncomment if you have auto-generated docs you want to ignore
+# docs/generated/
+# docs/.vuepress/dist/
+
+# ==================== Miscellaneous ====================
+# System files
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Debug files
+debug/
+*.dSYM/
+
+# profiling data
+*.prof
+*.trace
+
