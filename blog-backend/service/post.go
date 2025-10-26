@@ -82,6 +82,13 @@ func (s *PostService) Create(userID uint, req *CreatePostRequest) (*model.Post, 
 		if err := s.postRepo.UpdateTags(post.ID, req.TagIDs); err != nil {
 			return nil, errors.New("标签关联失败")
 		}
+		
+		// 增加标签文章数（仅发布状态）
+		if req.Status == 1 {
+			for _, tagID := range req.TagIDs {
+				s.tagRepo.IncrementPostCount(tagID)
+			}
+		}
 	}
 
 	// 增加分类文章数
@@ -136,6 +143,14 @@ func (s *PostService) Update(id, userID uint, role string, req *UpdatePostReques
 
 	oldCategoryID := post.CategoryID
 	oldStatus := post.Status
+	
+	// 获取旧的标签列表（在更新之前）
+	oldTagIDs := make([]uint, 0)
+	if len(post.Tags) > 0 {
+		for _, tag := range post.Tags {
+			oldTagIDs = append(oldTagIDs, tag.ID)
+		}
+	}
 
 	// 更新字段
 	if req.Title != "" {
@@ -175,6 +190,60 @@ func (s *PostService) Update(id, userID uint, role string, req *UpdatePostReques
 		if err := s.postRepo.UpdateTags(post.ID, req.TagIDs); err != nil {
 			return nil, errors.New("标签关联失败")
 		}
+		
+		// 更新标签文章数
+		if oldStatus == 1 || post.Status == 1 {
+			// 找出需要减少计数的标签（旧标签中有但新标签中没有的）
+			for _, oldTagID := range oldTagIDs {
+				found := false
+				for _, newTagID := range req.TagIDs {
+					if oldTagID == newTagID {
+						found = true
+						break
+					}
+				}
+				if !found && oldStatus == 1 {
+					s.tagRepo.DecrementPostCount(oldTagID)
+				}
+			}
+			
+			// 找出需要增加计数的标签（新标签中有但旧标签中没有的）
+			for _, newTagID := range req.TagIDs {
+				found := false
+				for _, oldTagID := range oldTagIDs {
+					if newTagID == oldTagID {
+						found = true
+						break
+					}
+				}
+				if !found && post.Status == 1 {
+					s.tagRepo.IncrementPostCount(newTagID)
+				}
+			}
+			
+			// 如果状态从草稿变为发布，所有新标签都要增加计数
+			if oldStatus == 0 && post.Status == 1 {
+				for _, tagID := range req.TagIDs {
+					alreadyCounted := false
+					for _, oldTagID := range oldTagIDs {
+						if tagID == oldTagID {
+							alreadyCounted = true
+							break
+						}
+					}
+					if alreadyCounted {
+						s.tagRepo.IncrementPostCount(tagID)
+					}
+				}
+			}
+			
+			// 如果状态从发布变为草稿，所有旧标签都要减少计数
+			if oldStatus == 1 && post.Status == 0 {
+				for _, oldTagID := range oldTagIDs {
+					s.tagRepo.DecrementPostCount(oldTagID)
+				}
+			}
+		}
 	}
 
 	// 更新分类文章数
@@ -211,6 +280,13 @@ func (s *PostService) Delete(id, userID uint, role string) error {
 	// 减少分类文章数
 	if post.Status == 1 {
 		s.categoryRepo.DecrementPostCount(post.CategoryID)
+		
+		// 减少标签文章数
+		if len(post.Tags) > 0 {
+			for _, tag := range post.Tags {
+				s.tagRepo.DecrementPostCount(tag.ID)
+			}
+		}
 	}
 
 	return s.postRepo.Delete(id)
