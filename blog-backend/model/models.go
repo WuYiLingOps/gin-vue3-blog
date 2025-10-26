@@ -61,6 +61,8 @@ type Tag struct {
 	ID        uint      `json:"id" gorm:"primaryKey"`
 	Name      string    `json:"name" gorm:"uniqueIndex;not null;size:50"`
 	Color     string    `json:"color" gorm:"size:20"`
+	TextColor *string   `json:"text_color" gorm:"size:20"` // 文字颜色，可选
+	FontSize  *int      `json:"font_size"`                 // 文字大小，可选
 	PostCount int       `json:"post_count" gorm:"default:0"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`

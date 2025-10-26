@@ -19,6 +19,8 @@ export interface Tag {
   id: number
   name: string
   color: string
+  text_color?: string
+  font_size?: number
   post_count: number
   created_at: string
   updated_at: string
@@ -90,6 +92,8 @@ export interface CategoryForm {
 export interface TagForm {
   name: string
   color: string
+  text_color?: string
+  font_size?: number
 }
 
 // 评论表单

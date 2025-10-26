@@ -19,8 +19,24 @@
           <n-input v-model:value="formData.name" placeholder="请输入标签名称" />
         </n-form-item>
 
-        <n-form-item label="颜色">
-          <n-color-picker v-model:value="formData.color" :swatches="colorSwatches" />
+        <n-form-item label="背景颜色">
+          <n-color-picker v-model:value="formData.color" :swatches="colorSwatches" :modes="['hex']" />
+        </n-form-item>
+
+        <n-form-item label="文字颜色">
+          <n-color-picker v-model:value="formData.text_color" :swatches="colorSwatches" :modes="['hex']" />
+          <template #feedback>
+            <span style="font-size: 12px; color: #999;">不设置则默认为白色</span>
+          </template>
+        </n-form-item>
+
+        <n-form-item label="文字大小">
+          <n-input-number v-model:value="formData.font_size" :min="12" :max="32" placeholder="16" style="width: 100%">
+            <template #suffix>px</template>
+          </n-input-number>
+          <template #feedback>
+            <span style="font-size: 12px; color: #999;">不设置则根据文章数量自动调整（16-20px）</span>
+          </template>
         </n-form-item>
       </n-form>
 
@@ -38,7 +54,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, h } from 'vue'
-import { useMessage, NButton, NTag, NSpace } from 'naive-ui'
+import { useMessage, useDialog, NButton, NTag, NSpace } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
 import { AddOutline } from '@vicons/ionicons5'
 import { getTags, createTag, updateTag, deleteTag } from '@/api/tag'
@@ -46,6 +62,7 @@ import type { Tag, TagForm } from '@/types/blog'
 import { DEFAULT_COLORS } from '@/utils/constants'
 
 const message = useMessage()
+const dialog = useDialog()
 
 const loading = ref(false)
 const submitting = ref(false)
@@ -55,7 +72,9 @@ const editingId = ref<number | null>(null)
 
 const formData = reactive<TagForm>({
   name: '',
-  color: '#2196F3'
+  color: '#2196F3',
+  text_color: undefined,
+  font_size: undefined
 })
 
 const colorSwatches = DEFAULT_COLORS
@@ -124,6 +143,8 @@ function handleEdit(tag: Tag) {
   editingId.value = tag.id
   formData.name = tag.name
   formData.color = tag.color
+  formData.text_color = tag.text_color
+  formData.font_size = tag.font_size
   showModal.value = true
 }
 
@@ -147,20 +168,36 @@ async function handleSubmit() {
   }
 }
 
-async function handleDelete(id: number) {
-  try {
-    await deleteTag(id)
-    message.success('删除成功')
-    fetchTags()
-  } catch (error: any) {
-    message.error(error.message || '删除失败')
-  }
+function handleDelete(id: number) {
+  const tag = tags.value.find(t => t.id === id)
+  const tagName = tag?.name || '该标签'
+  const postCount = tag?.post_count || 0
+  
+  dialog.warning({
+    title: '确认删除',
+    content: postCount > 0 
+      ? `确定要删除标签"${tagName}"吗？该标签下还有 ${postCount} 篇文章！` 
+      : `确定要删除标签"${tagName}"吗？`,
+    positiveText: '确定',
+    negativeText: '取消',
+    onPositiveClick: async () => {
+      try {
+        await deleteTag(id)
+        message.success('删除成功')
+        fetchTags()
+      } catch (error: any) {
+        message.error(error.message || '删除失败')
+      }
+    }
+  })
 }
 
 function resetForm() {
   editingId.value = null
   formData.name = ''
   formData.color = '#2196F3'
+  formData.text_color = undefined
+  formData.font_size = undefined
 }
 </script>
 

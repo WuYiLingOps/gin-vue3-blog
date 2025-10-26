@@ -20,14 +20,18 @@ func NewTagService() *TagService {
 
 // CreateTagRequest 创建标签请求
 type CreateTagRequest struct {
-	Name  string `json:"name" binding:"required"`
-	Color string `json:"color"`
+	Name      string  `json:"name" binding:"required"`
+	Color     string  `json:"color"`
+	TextColor *string `json:"text_color"`
+	FontSize  *int    `json:"font_size"`
 }
 
 // UpdateTagRequest 更新标签请求
 type UpdateTagRequest struct {
-	Name  string `json:"name"`
-	Color string `json:"color"`
+	Name      string  `json:"name"`
+	Color     string  `json:"color"`
+	TextColor *string `json:"text_color"`
+	FontSize  *int    `json:"font_size"`
 }
 
 // Create 创建标签
@@ -38,8 +42,10 @@ func (s *TagService) Create(req *CreateTagRequest) (*model.Tag, error) {
 	}
 
 	tag := &model.Tag{
-		Name:  req.Name,
-		Color: req.Color,
+		Name:      req.Name,
+		Color:     req.Color,
+		TextColor: req.TextColor,
+		FontSize:  req.FontSize,
 	}
 
 	if err := s.repo.Create(tag); err != nil {
@@ -79,6 +85,10 @@ func (s *TagService) Update(id uint, req *UpdateTagRequest) (*model.Tag, error) 
 	if req.Color != "" {
 		tag.Color = req.Color
 	}
+
+	// 更新文字颜色和字体大小（即使是 nil 也要更新，以支持清空操作）
+	tag.TextColor = req.TextColor
+	tag.FontSize = req.FontSize
 
 	if err := s.repo.Update(tag); err != nil {
 		return nil, errors.New("标签更新失败")
