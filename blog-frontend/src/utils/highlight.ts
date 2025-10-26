@@ -20,6 +20,47 @@ export function highlightKeyword(text: string, keyword: string): string {
 }
 
 /**
+ * 清理 Markdown 语法标记
+ * @param text Markdown 文本
+ * @returns 纯文本
+ */
+export function stripMarkdown(text: string): string {
+  if (!text) return ''
+  
+  return text
+    // 提取代码块内容（保留代码内容，只移除```标记）
+    .replace(/```[a-z]*\n?([\s\S]*?)```/g, ' $1 ')
+    // 提取行内代码内容（保留代码内容，只移除`标记）
+    .replace(/`([^`]+)`/g, ' $1 ')
+    // 移除标题标记
+    .replace(/#{1,6}\s+/g, '')
+    // 移除粗体和斜体
+    .replace(/\*\*\*(.+?)\*\*\*/g, '$1')
+    .replace(/\*\*(.+?)\*\*/g, '$1')
+    .replace(/\*(.+?)\*/g, '$1')
+    .replace(/___(.+?)___/g, '$1')
+    .replace(/__(.+?)__/g, '$1')
+    .replace(/_(.+?)_/g, '$1')
+    // 移除删除线
+    .replace(/~~(.+?)~~/g, '$1')
+    // 移除链接，保留文本
+    .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1')
+    // 移除图片
+    .replace(/!\[([^\]]*)\]\([^\)]+\)/g, '')
+    // 移除引用标记
+    .replace(/^\s*>\s+/gm, '')
+    // 移除列表标记
+    .replace(/^\s*[-*+]\s+/gm, '')
+    .replace(/^\s*\d+\.\s+/gm, '')
+    // 移除水平线
+    .replace(/^\s*[-*_]{3,}\s*$/gm, '')
+    // 移除多余的空白字符
+    .replace(/\n{2,}/g, ' ')
+    .replace(/\s{2,}/g, ' ')
+    .trim()
+}
+
+/**
  * 截取包含关键词的文本片段
  * @param text 原始文本
  * @param keyword 搜索关键词
@@ -31,27 +72,30 @@ export function extractHighlightSnippet(text: string, keyword: string, maxLength
     return text?.slice(0, maxLength) || ''
   }
 
-  const lowerText = text.toLowerCase()
+  // 先清理 Markdown 语法
+  const cleanText = stripMarkdown(text)
+  
+  const lowerText = cleanText.toLowerCase()
   const lowerKeyword = keyword.toLowerCase()
   const index = lowerText.indexOf(lowerKeyword)
 
   if (index === -1) {
     // 如果没找到关键词，返回开头部分
-    return text.slice(0, maxLength)
+    return cleanText.slice(0, maxLength)
   }
 
   // 计算截取的起始位置（关键词前后各留一些字符）
   const halfLength = Math.floor(maxLength / 2)
   const start = Math.max(0, index - halfLength)
-  const end = Math.min(text.length, index + keyword.length + halfLength)
+  const end = Math.min(cleanText.length, index + keyword.length + halfLength)
 
-  let snippet = text.slice(start, end)
+  let snippet = cleanText.slice(start, end)
 
   // 添加省略号
   if (start > 0) {
     snippet = '...' + snippet
   }
-  if (end < text.length) {
+  if (end < cleanText.length) {
     snippet = snippet + '...'
   }
 

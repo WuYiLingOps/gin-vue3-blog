@@ -20,7 +20,7 @@
                     <span v-html="getHighlightedTitle(post.title)"></span>
                   </h2>
 
-                  <p class="post-summary" v-html="getHighlightedSummary(post.summary)"></p>
+                  <p class="post-summary" v-html="getHighlightedSummary(post)"></p>
                 </div>
 
                 <!-- 封面图 -->
@@ -92,7 +92,7 @@ import { useMessage } from 'naive-ui'
 import { TimeOutline, EyeOutline } from '@vicons/ionicons5'
 import { getPosts } from '@/api'
 import { formatDate } from '@/utils/format'
-import { highlightKeyword } from '@/utils/highlight'
+import { highlightKeyword, extractHighlightSnippet } from '@/utils/highlight'
 import { useBlogStore } from '@/stores'
 import type { Post } from '@/types/blog'
 
@@ -169,11 +169,31 @@ function getHighlightedTitle(title: string): string {
 }
 
 // 高亮摘要
-function getHighlightedSummary(summary: string): string {
-  if (!searchKeyword.value || !summary) {
-    return summary || ''
+function getHighlightedSummary(post: Post): string {
+  const summary = post.summary || ''
+  
+  if (!searchKeyword.value) {
+    return summary
   }
-  return highlightKeyword(summary, searchKeyword.value)
+  
+  // 检查摘要中是否包含关键词
+  const lowerSummary = summary.toLowerCase()
+  const lowerKeyword = searchKeyword.value.toLowerCase()
+  
+  if (lowerSummary.includes(lowerKeyword)) {
+    // 如果摘要中包含关键词，直接高亮
+    return highlightKeyword(summary, searchKeyword.value)
+  } else if (post.content) {
+    // 如果摘要中不包含关键词，但内容存在，从内容中提取包含关键词的片段
+    const snippet = extractHighlightSnippet(post.content, searchKeyword.value, 150)
+    // 如果提取到了包含关键词的片段，就使用它；否则使用原摘要
+    if (snippet && snippet.toLowerCase().includes(lowerKeyword)) {
+      return highlightKeyword(snippet, searchKeyword.value)
+    }
+  }
+  
+  // 默认返回原摘要（可能不包含关键词，但至少显示文章的原始摘要）
+  return summary
 }
 </script>
 

@@ -167,7 +167,7 @@
                 <n-divider vertical />
                 <span>{{ post.view_count }} 阅读</span>
               </div>
-              <div v-if="post.summary" class="result-summary" v-html="highlightText(post.summary)"></div>
+              <div class="result-summary" v-html="getHighlightedSummary(post)"></div>
             </div>
             <n-empty v-if="searchKeyword && !searchLoading && searchResults.length === 0" description="未找到相关文章" style="margin: 32px 0" />
           </n-spin>
@@ -182,7 +182,9 @@
         <!-- 提示信息 -->
         <div v-if="searchResults.length > 0" class="search-footer">
           <span class="search-count">找到 {{ searchResults.length }} 篇文章</span>
-          <span class="search-hint">点击文章标题查看详情</span>
+          <n-button type="primary" size="small" @click="handleSearch">
+            查看全部搜索结果
+          </n-button>
         </div>
       </div>
     </n-modal>
@@ -199,7 +201,7 @@ import { getPublicSettings } from '@/api/setting'
 import type { SiteSettings } from '@/api/setting'
 import { getPosts } from '@/api/post'
 import { formatDate } from '@/utils/format'
-import { highlightKeyword } from '@/utils/highlight'
+import { highlightKeyword, extractHighlightSnippet } from '@/utils/highlight'
 import type { Post } from '@/types/blog'
 
 const router = useRouter()
@@ -424,6 +426,35 @@ function highlightText(text: string): string {
     return text || ''
   }
   return highlightKeyword(text, searchKeyword.value)
+}
+
+// 高亮摘要（如果摘要中没有关键词，则从内容中提取）
+function getHighlightedSummary(post: Post): string {
+  const summary = post.summary || ''
+  const keyword = searchKeyword.value
+  
+  if (!keyword) {
+    return summary
+  }
+  
+  // 检查摘要中是否包含关键词
+  const lowerSummary = summary.toLowerCase()
+  const lowerKeyword = keyword.toLowerCase()
+  
+  if (lowerSummary.includes(lowerKeyword)) {
+    // 如果摘要中包含关键词，直接高亮
+    return highlightKeyword(summary, keyword)
+  } else if (post.content) {
+    // 如果摘要中不包含关键词，但内容存在，从内容中提取包含关键词的片段
+    const snippet = extractHighlightSnippet(post.content, keyword, 150)
+    // 如果提取到了包含关键词的片段，就使用它；否则使用原摘要
+    if (snippet && snippet.toLowerCase().includes(lowerKeyword)) {
+      return highlightKeyword(snippet, keyword)
+    }
+  }
+  
+  // 默认返回原摘要
+  return summary
 }
 
 // 处理用户菜单
