@@ -194,7 +194,7 @@
 <script setup lang="ts">
 import { ref, computed, h, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { MoonOutline, SunnyOutline, PersonOutline, LogOutOutline, SettingsOutline, SearchOutline, MenuOutline } from '@vicons/ionicons5'
+import { MoonOutline, SunnyOutline, PersonOutline, LogOutOutline, SettingsOutline, SearchOutline, MenuOutline, HomeOutline, ArchiveOutline, ChatbubblesOutline, InformationCircleOutline } from '@vicons/ionicons5'
 import { useAuthStore, useAppStore } from '@/stores'
 import { NIcon } from 'naive-ui'
 import { getPublicSettings } from '@/api/setting'
@@ -228,11 +228,13 @@ const menuOptions = [
   {
     label: '首页',
     key: 'Home',
-    path: '/'
+    path: '/',
+    icon: () => h(NIcon, null, { default: () => h(HomeOutline) })
   },
   {
     label: '文章归档',
     key: 'ArchiveMenu',
+    icon: () => h(NIcon, null, { default: () => h(ArchiveOutline) }),
     children: [
       {
         label: '归档',
@@ -254,12 +256,14 @@ const menuOptions = [
   {
     label: '说说',
     key: 'Moments',
-    path: '/moments'
+    path: '/moments',
+    icon: () => h(NIcon, null, { default: () => h(ChatbubblesOutline) })
   },
   {
     label: '关于',
     key: 'About',
-    path: '/about'
+    path: '/about',
+    icon: () => h(NIcon, null, { default: () => h(InformationCircleOutline) })
   }
 ]
 
@@ -577,7 +581,8 @@ html.dark .logo h2 {
 .nav-menu {
   flex: 1;
   margin: 0 48px;
-  max-width: 400px;
+  max-width: 500px;
+  min-width: 400px;
 }
 
 /* 自定义导航菜单样式 */
@@ -588,6 +593,43 @@ html.dark .logo h2 {
 
 .nav-menu :deep(.n-menu-item:hover) {
   color: #0891b2;
+}
+
+/* 确保菜单文字完整显示 */
+.nav-menu :deep(.n-menu-item-content) {
+  overflow: visible !important;
+  white-space: nowrap;
+}
+
+.nav-menu :deep(.n-menu-item-content-header) {
+  overflow: visible !important;
+  white-space: nowrap;
+}
+
+.nav-menu :deep(.n-menu-item-content__icon) {
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.nav-menu :deep(.n-submenu-children .n-menu-item-content-header) {
+  overflow: visible !important;
+  white-space: nowrap;
+}
+
+/* 菜单项文本 */
+.nav-menu :deep(.n-menu-item-content-header__title) {
+  overflow: visible !important;
+  text-overflow: clip !important;
+  white-space: nowrap;
+}
+
+/* 子菜单样式 */
+.nav-menu :deep(.n-submenu) {
+  overflow: visible !important;
+}
+
+.nav-menu :deep(.n-submenu-children) {
+  overflow: visible !important;
 }
 
 .header-actions {
