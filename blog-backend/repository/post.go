@@ -72,8 +72,12 @@ func (r *PostRepository) List(page, pageSize int, categoryID uint, keyword strin
 		query = query.Where("category_id = ?", categoryID)
 	}
 	if keyword != "" {
-		// 使用PostgreSQL全文搜索
-		query = query.Where("search_tsv @@ plainto_tsquery('english', ?)", keyword)
+		// 使用PostgreSQL全文搜索（优先）+ ILIKE后备
+		// 如果search_tsv字段不存在或为NULL，查询会忽略该条件，只使用ILIKE
+		query = query.Where(
+			"(search_tsv IS NOT NULL AND search_tsv @@ plainto_tsquery('english', ?)) OR title ILIKE ? OR content ILIKE ?",
+			keyword, "%"+keyword+"%", "%"+keyword+"%",
+		)
 	}
 
 	if err := query.Count(&total).Error; err != nil {
