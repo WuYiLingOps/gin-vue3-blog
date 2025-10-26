@@ -96,6 +96,81 @@ watch(() => props.content, () => {
 
 .markdown-preview :deep(.vuepress-markdown-body) {
   padding: 16px 0;
+  background: transparent !important;
+}
+
+/* 暗黑模式下的 markdown 内容样式 */
+html.dark .markdown-preview :deep(.vuepress-markdown-body) {
+  background: transparent !important;
+  color: #d1d5db !important;
+}
+
+/* 暗黑模式下的标题颜色 */
+html.dark .markdown-preview :deep(.vuepress-markdown-body h1),
+html.dark .markdown-preview :deep(.vuepress-markdown-body h2),
+html.dark .markdown-preview :deep(.vuepress-markdown-body h3),
+html.dark .markdown-preview :deep(.vuepress-markdown-body h4),
+html.dark .markdown-preview :deep(.vuepress-markdown-body h5),
+html.dark .markdown-preview :deep(.vuepress-markdown-body h6) {
+  color: #e5e5e5 !important;
+  border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* 暗黑模式下的链接颜色 */
+html.dark .markdown-preview :deep(.vuepress-markdown-body a) {
+  color: #38bdf8 !important;
+}
+
+/* 暗黑模式下的引用块 */
+html.dark .markdown-preview :deep(.vuepress-markdown-body blockquote) {
+  color: #9ca3af !important;
+  border-left-color: rgba(56, 189, 248, 0.5) !important;
+  background: rgba(56, 189, 248, 0.05) !important;
+}
+
+/* 暗黑模式下的表格 */
+html.dark .markdown-preview :deep(.vuepress-markdown-body table) {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+html.dark .markdown-preview :deep(.vuepress-markdown-body th),
+html.dark .markdown-preview :deep(.vuepress-markdown-body td) {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+html.dark .markdown-preview :deep(.vuepress-markdown-body tr) {
+  background: transparent !important;
+  border-top-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+html.dark .markdown-preview :deep(.vuepress-markdown-body tr:nth-child(2n)) {
+  background: rgba(255, 255, 255, 0.02) !important;
+}
+
+html.dark .markdown-preview :deep(.vuepress-markdown-body th) {
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* 暗黑模式下的分隔线 */
+html.dark .markdown-preview :deep(.vuepress-markdown-body hr) {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* 暗黑模式下的列表 */
+html.dark .markdown-preview :deep(.vuepress-markdown-body li) {
+  color: #d1d5db !important;
+}
+
+/* 暗黑模式下的强调文本 */
+html.dark .markdown-preview :deep(.vuepress-markdown-body strong) {
+  color: #e5e5e5 !important;
+}
+
+/* 暗黑模式下的图片 */
+html.dark .markdown-preview :deep(.vuepress-markdown-body img) {
+  opacity: 0.9;
+  border-radius: 8px;
 }
 
 /* 代码块样式优化 */
@@ -103,6 +178,12 @@ watch(() => props.content, () => {
   position: relative;
   border-radius: 6px;
   margin: 16px 0;
+}
+
+/* 暗黑模式下的代码块背景 */
+html.dark .markdown-preview :deep(pre) {
+  background: rgba(15, 23, 42, 0.8) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .markdown-preview :deep(pre code) {
@@ -119,6 +200,12 @@ watch(() => props.content, () => {
   font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
   font-size: 0.9em;
   color: #e83e8c;
+}
+
+/* 暗黑模式下的行内代码 */
+html.dark .markdown-preview :deep(code:not(pre code)) {
+  background: rgba(56, 189, 248, 0.15) !important;
+  color: #38bdf8 !important;
 }
 
 /* 复制按钮样式 */
@@ -148,19 +235,17 @@ watch(() => props.content, () => {
   opacity: 1;
 }
 
-/* 暗色主题下的按钮样式 */
-@media (prefers-color-scheme: dark) {
-  .markdown-preview :deep(.copy-code-btn) {
-    background: rgba(40, 40, 40, 0.9);
-    border-color: #555;
-    color: #ccc;
-  }
+/* 暗黑模式下的复制按钮样式 */
+html.dark .markdown-preview :deep(.copy-code-btn) {
+  background: rgba(30, 41, 59, 0.9) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  color: #d1d5db !important;
+}
 
-  .markdown-preview :deep(.copy-code-btn:hover) {
-    background: #333;
-    border-color: #18a058;
-    color: #18a058;
-  }
+html.dark .markdown-preview :deep(.copy-code-btn:hover) {
+  background: rgba(51, 65, 85, 0.95) !important;
+  border-color: #38bdf8 !important;
+  color: #38bdf8 !important;
 }
 </style>
 
