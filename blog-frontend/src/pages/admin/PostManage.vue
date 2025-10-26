@@ -103,7 +103,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, h } from 'vue'
 import { useRouter } from 'vue-router'
-import { useMessage, NButton, NTag, NSpace } from 'naive-ui'
+import { useMessage, useDialog, NButton, NTag, NSpace } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
 import { AddOutline } from '@vicons/ionicons5'
 import { getPosts, createPost, deletePost } from '@/api/post'
@@ -114,6 +114,7 @@ import MarkdownEditor from '@/components/MarkdownEditor.vue'
 
 const router = useRouter()
 const message = useMessage()
+const dialog = useDialog()
 const blogStore = useBlogStore()
 
 const loading = ref(false)
@@ -267,14 +268,22 @@ async function handleSubmit() {
   }
 }
 
-async function handleDelete(id: number) {
-  try {
-    await deletePost(id)
-    message.success('删除成功')
-    fetchPosts()
-  } catch (error: any) {
-    message.error(error.message || '删除失败')
-  }
+function handleDelete(id: number) {
+  dialog.warning({
+    title: '确认删除',
+    content: '确定要删除这篇文章吗？删除后无法恢复！',
+    positiveText: '确定',
+    negativeText: '取消',
+    onPositiveClick: async () => {
+      try {
+        await deletePost(id)
+        message.success('删除成功')
+        fetchPosts()
+      } catch (error: any) {
+        message.error(error.message || '删除失败')
+      }
+    }
+  })
 }
 </script>
 
