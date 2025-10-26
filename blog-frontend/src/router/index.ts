@@ -54,16 +54,28 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '文章详情' }
       },
       {
-        path: 'category/:id',
+        path: 'category',
         name: 'Category',
         component: Category,
         meta: { title: '分类' }
       },
       {
-        path: 'tag/:id',
+        path: 'category/:id',
+        name: 'CategoryDetail',
+        component: Category,
+        meta: { title: '分类详情' }
+      },
+      {
+        path: 'tag',
         name: 'Tag',
         component: Tag,
         meta: { title: '标签' }
+      },
+      {
+        path: 'tag/:id',
+        name: 'TagDetail',
+        component: Tag,
+        meta: { title: '标签详情' }
       },
       {
         path: 'archive',

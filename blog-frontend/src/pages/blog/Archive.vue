@@ -1,37 +1,28 @@
 <template>
   <div class="archive-page">
-    <div class="archive-header">
-      <h1>文章归档</h1>
-      <p class="archive-subtitle">共 {{ posts.length }} 篇文章</p>
-    </div>
-
     <n-spin :show="loading">
       <div class="timeline-container">
         <div v-for="(group, index) in groupedPosts" :key="index" class="timeline-group">
-          <div class="timeline-date">
-            <div class="date-circle"></div>
-            <h2>{{ group.date }}</h2>
-            <span class="post-count">{{ group.posts.length }} 篇</span>
+          <!-- 年份标题 -->
+          <div class="year-header">
+            <h2 class="year-title">{{ group.date }}</h2>
           </div>
           
+          <!-- 文章列表 -->
           <div class="posts-list">
             <div
               v-for="post in group.posts"
               :key="post.id"
-              class="post-card"
+              class="post-item"
               @click="router.push(`/post/${post.id}`)"
             >
-              <div class="post-card-content">
+              <div class="post-date-box">
+                <span class="date-month">{{ formatDate(post.created_at, 'M月') }}</span>
+                <span class="date-day">{{ formatDate(post.created_at, 'DD') }}</span>
+              </div>
+              <div class="post-content">
                 <h3 class="post-title">{{ post.title }}</h3>
-                <p class="post-summary">{{ post.summary }}</p>
-                <div class="post-meta">
-                  <n-tag size="small" :bordered="false" :color="{ color: post.category.color, textColor: '#fff' }">
-                    {{ post.category.name }}
-                  </n-tag>
-                  <span class="post-date">
-                    {{ formatDate(post.created_at, 'MM-DD') }}
-                  </span>
-                </div>
+                <p v-if="post.summary" class="post-summary">{{ post.summary }}</p>
               </div>
             </div>
           </div>
@@ -50,37 +41,12 @@ import { useMessage } from 'naive-ui'
 import { getPosts } from '@/api/post'
 import { formatDate } from '@/utils/format'
 import type { Post } from '@/types/blog'
-import dayjs from 'dayjs'
 
 const router = useRouter()
 const message = useMessage()
 
 const loading = ref(false)
 const posts = ref<Post[]>([])
-
-const groupedPosts = computed(() => {
-  const groups: { date: string; posts: Post[] }[] = []
-  const postsByMonth: Record<string, Post[]> = {}
-
-  posts.value.forEach(post => {
-    const month = dayjs(post.created_at).format('YYYY年MM月')
-    if (!postsByMonth[month]) {
-      postsByMonth[month] = []
-    }
-    postsByMonth[month].push(post)
-  })
-
-  Object.keys(postsByMonth)
-    .sort((a, b) => b.localeCompare(a))
-    .forEach(month => {
-      groups.push({
-        date: month,
-        posts: postsByMonth[month]
-      })
-    })
-
-  return groups
-})
 
 onMounted(() => {
   fetchPosts()
@@ -104,6 +70,26 @@ async function fetchPosts() {
     loading.value = false
   }
 }
+
+// 按年份分组
+const groupedPosts = computed(() => {
+  const groups: { [key: string]: Post[] } = {}
+
+  posts.value.forEach(post => {
+    const year = new Date(post.created_at).getFullYear().toString()
+    if (!groups[year]) {
+      groups[year] = []
+    }
+    groups[year].push(post)
+  })
+
+  return Object.keys(groups)
+    .sort((a, b) => parseInt(b) - parseInt(a))
+    .map(year => ({
+      date: year,
+      posts: groups[year].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    }))
+})
 </script>
 
 <style scoped>
@@ -113,143 +99,147 @@ async function fetchPosts() {
   padding: 40px 20px;
 }
 
-.archive-header {
-  text-align: center;
-  margin-bottom: 60px;
-}
-
-.archive-header h1 {
-  font-size: 48px;
-  font-weight: 800;
-  margin: 0 0 16px 0;
-  background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.archive-subtitle {
-  font-size: 16px;
-  color: #94a3b8;
-  margin: 0;
-}
-
 .timeline-container {
   position: relative;
 }
 
 .timeline-group {
   position: relative;
-  margin-bottom: 60px;
-}
-
-.timeline-group::before {
-  content: '';
-  position: absolute;
-  left: 19px;
-  top: 40px;
-  bottom: -40px;
-  width: 2px;
-  background: linear-gradient(180deg, #10b981 0%, #06b6d4 100%);
-  opacity: 0.3;
-}
-
-.timeline-group:last-child::before {
-  display: none;
-}
-
-.timeline-date {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 24px;
+  margin-bottom: 48px;
   padding-left: 60px;
+  border-left: 3px solid #0891b2;
 }
 
-.date-circle {
-  position: absolute;
-  left: 0;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+html.dark .timeline-group {
+  border-left-color: #38bdf8;
 }
 
-.date-circle::after {
-  content: '';
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: white;
+/* 年份标题 */
+.year-header {
+  position: relative;
+  margin-bottom: 32px;
+  margin-left: -60px;
+  padding-left: 20px;
 }
 
-.timeline-date h2 {
-  font-size: 28px;
+.year-title {
+  font-size: 32px;
   font-weight: 700;
   margin: 0;
+  padding-left: 20px;
   color: #1a202c;
+  display: inline-block;
 }
 
-html.dark .timeline-date h2 {
+html.dark .year-title {
   color: #e5e5e5;
 }
 
-.post-count {
-  font-size: 14px;
-  color: #10b981;
-  padding: 4px 12px;
-  background: rgba(16, 185, 129, 0.1);
-  border-radius: 12px;
+/* 年份标题左侧的横线装饰 */
+.year-header::before {
+  content: '';
+  position: absolute;
+  left: -3px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 30px;
+  height: 3px;
+  background: #0891b2;
 }
 
+html.dark .year-header::before {
+  background: #38bdf8;
+}
+
+/* 文章列表 */
 .posts-list {
-  display: grid;
-  gap: 16px;
-  padding-left: 60px;
-}
-
-.post-card {
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  border-radius: 16px;
-  padding: 24px;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-}
-
-html.dark .post-card {
-  background: rgba(30, 41, 59, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-.post-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 24px rgba(16, 185, 129, 0.2);
-  border-color: rgba(16, 185, 129, 0.3);
-}
-
-html.dark .post-card:hover {
-  box-shadow: 0 12px 24px rgba(16, 185, 129, 0.15);
-}
-
-.post-card-content {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 20px;
+}
+
+.post-item {
+  display: flex;
+  gap: 24px;
+  padding: 20px 24px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(8, 145, 178, 0.1);
+}
+
+html.dark .post-item {
+  background: rgba(30, 41, 59, 0.8);
+  border-color: rgba(56, 189, 248, 0.1);
+}
+
+.post-item:hover {
+  transform: translateX(8px);
+  box-shadow: 0 4px 16px rgba(8, 145, 178, 0.15);
+  border-color: #0891b2;
+}
+
+html.dark .post-item:hover {
+  box-shadow: 0 4px 16px rgba(56, 189, 248, 0.2);
+  border-color: #38bdf8;
+}
+
+/* 日期框 */
+.post-date-box {
+  flex-shrink: 0;
+  width: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 8px;
+  padding: 12px;
+  border: 1px solid rgba(8, 145, 178, 0.2);
+}
+
+html.dark .post-date-box {
+  background: rgba(15, 23, 42, 0.8);
+  border-color: rgba(56, 189, 248, 0.2);
+}
+
+.date-month {
+  font-size: 13px;
+  color: #0891b2;
+  font-weight: 600;
+}
+
+html.dark .date-month {
+  color: #38bdf8;
+}
+
+.date-day {
+  font-size: 28px;
+  font-weight: 700;
+  color: #0e7490;
+  line-height: 1;
+  margin-top: 4px;
+}
+
+html.dark .date-day {
+  color: #0ea5e9;
+}
+
+/* 文章内容 */
+.post-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .post-title {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 600;
-  margin: 0;
+  margin: 0 0 8px 0;
   color: #1a202c;
   line-height: 1.4;
 }
@@ -259,13 +249,13 @@ html.dark .post-title {
 }
 
 .post-summary {
-  font-size: 14px;
   color: #64748b;
-  margin: 0;
   line-height: 1.6;
+  margin: 0;
+  font-size: 14px;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   overflow: hidden;
 }
 
@@ -273,45 +263,34 @@ html.dark .post-summary {
   color: #94a3b8;
 }
 
-.post-meta {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.post-date {
-  font-size: 13px;
-  color: #94a3b8;
-}
-
+/* 响应式 */
 @media (max-width: 768px) {
   .archive-page {
     padding: 24px 16px;
   }
 
-  .archive-header h1 {
-    font-size: 36px;
+  .timeline-group {
+    padding-left: 40px;
   }
 
-  .timeline-date {
-    padding-left: 50px;
+  .year-header {
+    margin-left: -40px;
   }
 
-  .timeline-date h2 {
-    font-size: 22px;
+  .year-title {
+    font-size: 24px;
   }
 
-  .posts-list {
-    padding-left: 50px;
+  .post-item {
+    flex-direction: column;
+    gap: 16px;
   }
 
-  .post-card {
-    padding: 20px;
-  }
-
-  .post-title {
-    font-size: 18px;
+  .post-date-box {
+    width: 100%;
+    flex-direction: row;
+    justify-content: center;
+    gap: 8px;
   }
 }
 </style>
-

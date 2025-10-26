@@ -231,9 +231,25 @@ const menuOptions = [
     path: '/'
   },
   {
-    label: '归档',
-    key: 'Archive',
-    path: '/archive'
+    label: '文章归档',
+    key: 'ArchiveMenu',
+    children: [
+      {
+        label: '归档',
+        key: 'Archive',
+        path: '/archive'
+      },
+      {
+        label: '分类',
+        key: 'Category',
+        path: '/category'
+      },
+      {
+        label: '标签',
+        key: 'Tag',
+        path: '/tag'
+      }
+    ]
   },
   {
     label: '说说',
@@ -276,12 +292,22 @@ const userMenuOptions = computed(() => {
 
 // 处理菜单选择
 function handleMenuSelect(key: string) {
+  // 如果是父菜单（ArchiveMenu），不做任何操作
+  if (key === 'ArchiveMenu') {
+    return
+  }
+  
   activeKey.value = key
   router.push({ name: key })
 }
 
 // 处理移动端菜单选择
 function handleMobileMenuSelect(key: string) {
+  // 如果是父菜单（ArchiveMenu），不做任何操作
+  if (key === 'ArchiveMenu') {
+    return
+  }
+  
   activeKey.value = key
   showMobileMenu.value = false
   router.push({ name: key })
