@@ -124,6 +124,7 @@ func setupTagRoutes(api *gin.RouterGroup, h *handler.TagHandler) {
 		// 公开接口
 		tags.GET("", h.List)
 		tags.GET("/:id", h.GetByID)
+		tags.GET("/:id/posts", h.GetPostsByTag)
 
 		// 需要认证的接口
 		tagsAuth := tags.Group("")

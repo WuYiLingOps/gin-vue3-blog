@@ -35,45 +35,71 @@
       </div>
 
       <!-- 标签详情视图 -->
-      <div v-else>
-        <n-card v-if="tag">
-          <div class="tag-header">
-            <n-tag :color="{ color: tag.color || '#2196F3', textColor: '#fff' }" size="large">
-              # {{ tag.name }}
-            </n-tag>
-            <p style="margin-top: 16px; color: #666">{{ tag.post_count }} 篇文章</p>
+      <div v-else class="tag-detail">
+        <!-- 标签头部卡片 -->
+        <div v-if="tag" class="tag-detail-header">
+          <div class="tag-info-card">
+            <div class="tag-badge" :style="{ backgroundColor: tag.color || '#2196F3' }">
+              <span class="tag-badge-text">{{ tag.name }}</span>
+            </div>
+            <div class="tag-stats-row">
+              <div class="stat-box">
+                <span class="stat-value">{{ tag.post_count }}</span>
+                <span class="stat-desc">篇文章</span>
+              </div>
+            </div>
           </div>
-        </n-card>
+        </div>
 
         <!-- 文章列表 -->
-        <n-space vertical :size="16" style="margin-top: 24px">
-          <n-card
+        <div class="posts-container">
+          <div
             v-for="post in posts"
             :key="post.id"
-            hoverable
-            class="post-card"
+            class="post-item"
             @click="router.push(`/post/${post.id}`)"
           >
-            <h2 class="post-title">{{ post.title }}</h2>
-            <p class="post-summary">{{ post.summary }}</p>
-            <div class="post-meta">
-              <n-space>
-                <n-tag :bordered="false" type="info">{{ post.category.name }}</n-tag>
-                <n-divider vertical />
-                <span>{{ formatDate(post.created_at, 'YYYY-MM-DD') }}</span>
-              </n-space>
+            <div class="post-item-header">
+              <h2 class="post-item-title">{{ post.title }}</h2>
+              <n-tag 
+                :color="{ color: post.category.color || '#2196F3', textColor: '#fff' }" 
+                size="small"
+                class="post-category-tag"
+              >
+                {{ post.category.name }}
+              </n-tag>
             </div>
-          </n-card>
+            <p class="post-item-summary">{{ post.summary || '暂无摘要' }}</p>
+            <div class="post-item-footer">
+              <span class="post-date">{{ formatDate(post.created_at, 'YYYY年MM月DD日') }}</span>
+              <div class="post-actions">
+                <span class="post-action-item">
+                  <i class="icon">👁️</i>
+                  {{ post.view_count || 0 }}
+                </span>
+                <span class="post-action-item">
+                  <i class="icon">❤️</i>
+                  {{ post.like_count || 0 }}
+                </span>
+              </div>
+            </div>
+          </div>
 
-          <n-empty v-if="!loading && posts.length === 0" description="该标签下暂无文章" />
-
-          <n-pagination
-            v-if="total > 0"
-            v-model:page="currentPage"
-            :page-count="totalPages"
-            @update:page="handlePageChange"
+          <n-empty 
+            v-if="!loading && posts.length === 0" 
+            description="该标签下暂无文章" 
+            style="margin: 80px 0"
           />
-        </n-space>
+
+          <div v-if="total > 0" class="pagination-wrapper">
+            <n-pagination
+              v-model:page="currentPage"
+              :page-count="totalPages"
+              :page-slot="7"
+              @update:page="handlePageChange"
+            />
+          </div>
+        </div>
       </div>
     </n-spin>
   </div>
@@ -528,48 +554,314 @@ html.dark .stats-number {
   font-weight: 600;
 }
 
-/* 标签详情样式 */
-.tag-header {
+/* 标签详情页样式 */
+.tag-detail {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.tag-detail-header {
+  margin-bottom: 48px;
+}
+
+.tag-info-card {
+  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+  border-radius: 20px;
+  padding: 40px;
   text-align: center;
-  padding: 24px 0;
+  box-shadow: 
+    0 10px 40px rgba(0, 0, 0, 0.08),
+    0 2px 8px rgba(0, 0, 0, 0.04);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.06);
 }
 
-.post-card {
-  cursor: pointer;
-  transition: all 0.3s;
+html.dark .tag-info-card {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  box-shadow: 
+    0 10px 40px rgba(0, 0, 0, 0.4),
+    0 2px 8px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.post-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+/* 装饰性背景 */
+.tag-info-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(8, 145, 178, 0.08) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
 }
 
-html.dark .post-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+.tag-info-card::after {
+  content: '';
+  position: absolute;
+  bottom: -30%;
+  left: -15%;
+  width: 250px;
+  height: 250px;
+  background: radial-gradient(circle, rgba(5, 150, 105, 0.08) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
 }
 
-.post-title {
-  font-size: 20px;
-  margin: 0 0 12px 0;
-  color: #1a202c;
+html.dark .tag-info-card::before {
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.15) 0%, transparent 70%);
 }
 
-html.dark .post-title {
-  color: #e5e5e5;
+html.dark .tag-info-card::after {
+  background: radial-gradient(circle, rgba(74, 222, 128, 0.15) 0%, transparent 70%);
 }
 
-.post-summary {
+.tag-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 14px 32px;
+  border-radius: 50px;
+  box-shadow: 
+    0 8px 24px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  margin-bottom: 32px;
+  position: relative;
+  z-index: 1;
+  animation: badgePulse 3s ease-in-out infinite;
+}
+
+@keyframes badgePulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 
+      0 8px 24px rgba(0, 0, 0, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 
+      0 12px 32px rgba(0, 0, 0, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+}
+
+.tag-badge-text {
+  font-size: 28px;
+  font-weight: 800;
+  color: white;
+  letter-spacing: 0.5px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.tag-stats-row {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  position: relative;
+  z-index: 1;
+}
+
+.stat-box {
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 20px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+}
+
+html.dark .stat-box {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.stat-box:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+html.dark .stat-box:hover {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+}
+
+.stat-value {
+  font-size: 36px;
+  font-weight: 900;
+  background: linear-gradient(135deg, #0891b2 0%, #059669 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
+}
+
+html.dark .stat-value {
+  background: linear-gradient(135deg, #38bdf8 0%, #4ade80 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.stat-desc {
+  font-size: 14px;
   color: #64748b;
-  line-height: 1.6;
-  margin: 0 0 12px 0;
+  font-weight: 600;
+  letter-spacing: 0.5px;
 }
 
-html.dark .post-summary {
+html.dark .stat-desc {
   color: #94a3b8;
 }
 
-.post-meta {
+/* 文章列表容器 */
+.posts-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.post-item {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.05),
+    0 1px 4px rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+html.dark .post-item {
+  background: #1a1a1a;
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.3),
+    0 1px 4px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.post-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 
+    0 12px 32px rgba(0, 0, 0, 0.12),
+    0 4px 12px rgba(0, 0, 0, 0.08);
+  border-color: rgba(8, 145, 178, 0.3);
+}
+
+html.dark .post-item:hover {
+  box-shadow: 
+    0 12px 32px rgba(0, 0, 0, 0.5),
+    0 4px 12px rgba(0, 0, 0, 0.3);
+  border-color: rgba(56, 189, 248, 0.3);
+}
+
+.post-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.post-item-title {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0;
+  color: #1a202c;
+  line-height: 1.4;
+  flex: 1;
+  transition: color 0.2s;
+}
+
+html.dark .post-item-title {
+  color: #e5e5e5;
+}
+
+.post-item:hover .post-item-title {
+  color: #0891b2;
+}
+
+html.dark .post-item:hover .post-item-title {
+  color: #38bdf8;
+}
+
+.post-category-tag {
+  flex-shrink: 0;
+  font-weight: 600;
+}
+
+.post-item-summary {
+  color: #64748b;
+  line-height: 1.7;
+  margin: 0 0 16px 0;
+  font-size: 15px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+html.dark .post-item-summary {
+  color: #94a3b8;
+}
+
+.post-item-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 16px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+html.dark .post-item-footer {
+  border-top-color: rgba(255, 255, 255, 0.06);
+}
+
+.post-date {
   font-size: 14px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+html.dark .post-date {
+  color: #64748b;
+}
+
+.post-actions {
+  display: flex;
+  gap: 20px;
+}
+
+.post-action-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+html.dark .post-action-item {
+  color: #64748b;
+}
+
+.post-action-item .icon {
+  font-style: normal;
+  font-size: 16px;
+}
+
+.pagination-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-top: 48px;
+  padding: 24px 0;
 }
 
 /* 响应式 */
@@ -635,5 +927,54 @@ html.dark .post-summary {
     font-size: 15px !important;
     padding: 10px 20px !important;
   }
+  
+  /* 标签详情页响应式 */
+  .tag-info-card {
+    padding: 32px 20px;
+  }
+  
+  .tag-badge {
+    padding: 12px 24px;
+    margin-bottom: 24px;
+  }
+  
+  .tag-badge-text {
+    font-size: 22px;
+  }
+  
+  .stat-box {
+    padding: 16px 28px;
+  }
+  
+  .stat-value {
+    font-size: 28px;
+  }
+  
+  .stat-desc {
+    font-size: 13px;
+  }
+  
+  .post-item {
+    padding: 20px;
+  }
+  
+  .post-item-title {
+    font-size: 18px;
+  }
+  
+  .post-item-summary {
+    font-size: 14px;
+  }
+  
+  .post-item-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .post-category-tag {
+    align-self: flex-start;
+  }
 }
 </style>
+

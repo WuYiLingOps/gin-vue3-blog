@@ -102,3 +102,24 @@ func (h *TagHandler) List(c *gin.Context) {
 	util.Success(c, tags)
 }
 
+// GetPostsByTag 获取标签下的文章列表
+func (h *TagHandler) GetPostsByTag(c *gin.Context) {
+	tagID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		util.BadRequest(c, "无效的标签ID")
+		return
+	}
+
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "10"))
+
+	// 使用 PostService 获取文章列表
+	postService := service.NewPostService()
+	posts, total, err := postService.GetByTag(uint(tagID), page, pageSize)
+	if err != nil {
+		util.ServerError(c, "获取文章列表失败")
+		return
+	}
+
+	util.PageSuccess(c, posts, total, page, pageSize)
+}
