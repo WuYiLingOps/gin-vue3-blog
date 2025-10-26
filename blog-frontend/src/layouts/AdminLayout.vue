@@ -1,5 +1,8 @@
 <template>
   <div class="admin-layout">
+    <n-loading-bar-provider>
+      <loading-bar-handler />
+    </n-loading-bar-provider>
     <n-layout has-sider>
       <!-- 侧边栏 -->
       <n-layout-sider
@@ -64,7 +67,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, h } from 'vue'
+import { ref, computed, h, defineComponent } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import {
   HomeOutline,
@@ -80,7 +83,30 @@ import {
   SettingsOutline
 } from '@vicons/ionicons5'
 import { useAuthStore } from '@/stores'
-import { NIcon } from 'naive-ui'
+import { NIcon, useLoadingBar } from 'naive-ui'
+
+// LoadingBar 处理组件
+const LoadingBarHandler = defineComponent({
+  name: 'LoadingBarHandler',
+  setup() {
+    const loadingBar = useLoadingBar()
+    const router = useRouter()
+
+    router.beforeEach(() => {
+      loadingBar.start()
+    })
+
+    router.afterEach(() => {
+      loadingBar.finish()
+    })
+
+    router.onError(() => {
+      loadingBar.error()
+    })
+
+    return () => null
+  }
+})
 
 const router = useRouter()
 const route = useRoute()
