@@ -51,7 +51,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, h } from 'vue'
-import { useMessage, NButton, NTag, NSpace } from 'naive-ui'
+import { useMessage, useDialog, NButton, NTag, NSpace } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
 import { AddOutline } from '@vicons/ionicons5'
 import { getCategories, createCategory, updateCategory, deleteCategory } from '@/api/category'
@@ -59,6 +59,7 @@ import type { Category, CategoryForm } from '@/types/blog'
 import { DEFAULT_COLORS } from '@/utils/constants'
 
 const message = useMessage()
+const dialog = useDialog()
 
 const loading = ref(false)
 const submitting = ref(false)
@@ -165,14 +166,28 @@ async function handleSubmit() {
   }
 }
 
-async function handleDelete(id: number) {
-  try {
-    await deleteCategory(id)
-    message.success('删除成功')
-    fetchCategories()
-  } catch (error: any) {
-    message.error(error.message || '删除失败')
-  }
+function handleDelete(id: number) {
+  const category = categories.value.find(c => c.id === id)
+  const categoryName = category?.name || '该分类'
+  const postCount = category?.post_count || 0
+  
+  dialog.warning({
+    title: '确认删除',
+    content: postCount > 0 
+      ? `确定要删除分类"${categoryName}"吗？该分类下还有 ${postCount} 篇文章！` 
+      : `确定要删除分类"${categoryName}"吗？`,
+    positiveText: '确定',
+    negativeText: '取消',
+    onPositiveClick: async () => {
+      try {
+        await deleteCategory(id)
+        message.success('删除成功')
+        fetchCategories()
+      } catch (error: any) {
+        message.error(error.message || '删除失败')
+      }
+    }
+  })
 }
 
 function resetForm() {

@@ -14,7 +14,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, h } from 'vue'
-import { useMessage, NButton, NTag, NSpace, NAvatar } from 'naive-ui'
+import { useMessage, useDialog, NButton, NTag, NSpace, NAvatar } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
 import { getUsers, updateUserStatus } from '@/api/user'
 import { formatDate } from '@/utils/format'
@@ -22,6 +22,7 @@ import { normalizeImageUrl } from '@/utils/url'
 import type { User } from '@/types/auth'
 
 const message = useMessage()
+const dialog = useDialog()
 
 const loading = ref(false)
 const users = ref<User[]>([])
@@ -135,15 +136,28 @@ function handlePageChange(page: number) {
   fetchUsers()
 }
 
-async function handleToggleStatus(user: User) {
-  try {
-    const newStatus = user.status === 1 ? 0 : 1
-    await updateUserStatus(user.id, newStatus)
-    message.success('状态更新成功')
-    fetchUsers()
-  } catch (error: any) {
-    message.error(error.message || '操作失败')
-  }
+function handleToggleStatus(user: User) {
+  const newStatus = user.status === 1 ? 0 : 1
+  const action = newStatus === 0 ? '禁用' : '启用'
+  const actionType = newStatus === 0 ? 'warning' : 'info'
+  
+  dialog[actionType]({
+    title: `确认${action}`,
+    content: newStatus === 0 
+      ? `确定要禁用用户"${user.nickname || user.username}"吗？禁用后该用户将无法登录！` 
+      : `确定要启用用户"${user.nickname || user.username}"吗？`,
+    positiveText: '确定',
+    negativeText: '取消',
+    onPositiveClick: async () => {
+      try {
+        await updateUserStatus(user.id, newStatus)
+        message.success(`${action}成功`)
+        fetchUsers()
+      } catch (error: any) {
+        message.error(error.message || '操作失败')
+      }
+    }
+  })
 }
 </script>
 

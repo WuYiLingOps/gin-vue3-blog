@@ -14,13 +14,14 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, h } from 'vue'
-import { useMessage, NButton, NTag, NSpace, NEllipsis } from 'naive-ui'
+import { useMessage, useDialog, NButton, NTag, NSpace, NEllipsis } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
 import { getAllComments, updateCommentStatus, deleteComment } from '@/api/comment'
 import { formatDate } from '@/utils/format'
 import type { Comment } from '@/types/blog'
 
 const message = useMessage()
+const dialog = useDialog()
 
 const loading = ref(false)
 const comments = ref<Comment[]>([])
@@ -151,14 +152,26 @@ async function handleToggleStatus(comment: Comment) {
   }
 }
 
-async function handleDelete(id: number) {
-  try {
-    await deleteComment(id)
-    message.success('删除成功')
-    fetchComments()
-  } catch (error: any) {
-    message.error(error.message || '删除失败')
-  }
+function handleDelete(id: number) {
+  const comment = comments.value.find(c => c.id === id)
+  const userName = comment?.user.nickname || '该用户'
+  const contentPreview = comment?.content.substring(0, 20) || ''
+  
+  dialog.warning({
+    title: '确认删除',
+    content: `确定要删除 ${userName} 的评论吗？\n"${contentPreview}${comment && comment.content.length > 20 ? '...' : ''}"\n删除后无法恢复！`,
+    positiveText: '确定',
+    negativeText: '取消',
+    onPositiveClick: async () => {
+      try {
+        await deleteComment(id)
+        message.success('删除成功')
+        fetchComments()
+      } catch (error: any) {
+        message.error(error.message || '删除失败')
+      }
+    }
+  })
 }
 </script>
 
