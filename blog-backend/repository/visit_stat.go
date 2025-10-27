@@ -13,25 +13,55 @@ func NewVisitStatRepository() *VisitStatRepository {
 	return &VisitStatRepository{}
 }
 
-// IncrementTodayViewCount 增加今天的浏览量
-func (r *VisitStatRepository) IncrementTodayViewCount() error {
+// RecordVisit 记录访问（基于 IP 的 UV 统计）
+func (r *VisitStatRepository) RecordVisit(ip string) error {
 	today := time.Now().Truncate(24 * time.Hour)
 
-	// 查找今天的记录
-	var stat model.VisitStat
-	err := db.DB.Where("date = ?", today).First(&stat).Error
-
-	if err != nil {
-		// 如果记录不存在，创建新记录
-		stat = model.VisitStat{
-			Date:      today,
-			ViewCount: 1,
-		}
-		return db.DB.Create(&stat).Error
+	// 先尝试插入访问记录，如果该 IP 今天已经访问过，则会因为唯一索引而失败
+	visitRecord := model.VisitRecord{
+		Date:      today,
+		IP:        ip,
+		CreatedAt: time.Now(),
 	}
 
-	// 如果记录存在，增加计数
-	return db.DB.Model(&stat).UpdateColumn("view_count", db.DB.Raw("view_count + 1")).Error
+	// 使用事务确保数据一致性
+	tx := db.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	// 尝试插入访问记录
+	result := tx.Create(&visitRecord)
+	
+	// 如果插入成功，说明这是该 IP 今天第一次访问，需要增加 UV 计数
+	if result.Error == nil {
+		// 查找今天的统计记录
+		var stat model.VisitStat
+		err := tx.Where("date = ?", today).First(&stat).Error
+
+		if err != nil {
+			// 如果记录不存在，创建新记录
+			stat = model.VisitStat{
+				Date:      today,
+				ViewCount: 1,
+			}
+			if err := tx.Create(&stat).Error; err != nil {
+				tx.Rollback()
+				return err
+			}
+		} else {
+			// 如果记录存在，增加计数
+			if err := tx.Model(&stat).UpdateColumn("view_count", db.DB.Raw("view_count + 1")).Error; err != nil {
+				tx.Rollback()
+				return err
+			}
+		}
+	}
+	// 如果插入失败（唯一索引冲突），说明该 IP 今天已经访问过，不增加 UV 计数，忽略错误
+
+	return tx.Commit().Error
 }
 
 // GetLast7DaysStats 获取最近7天的访问量统计

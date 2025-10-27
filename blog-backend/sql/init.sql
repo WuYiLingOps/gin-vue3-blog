@@ -230,7 +230,28 @@ CREATE INDEX IF NOT EXISTS idx_visit_stats_date ON visit_stats(date DESC);
 -- 访问量统计表注释
 COMMENT ON TABLE visit_stats IS '访问量统计表（按日期）';
 COMMENT ON COLUMN visit_stats.date IS '统计日期';
-COMMENT ON COLUMN visit_stats.view_count IS '当日访问量';
+COMMENT ON COLUMN visit_stats.view_count IS '当日独立访客数（UV）';
+
+-- 创建访问记录表（用于 UV 统计去重）
+CREATE TABLE IF NOT EXISTS visit_records (
+    id SERIAL PRIMARY KEY,
+    date DATE NOT NULL,
+    ip VARCHAR(45) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 访问记录表索引
+CREATE INDEX IF NOT EXISTS idx_visit_records_date ON visit_records(date);
+CREATE INDEX IF NOT EXISTS idx_visit_records_ip ON visit_records(ip);
+
+-- 创建唯一索引，防止同一 IP 在同一天重复记录
+CREATE UNIQUE INDEX IF NOT EXISTS idx_visit_records_date_ip ON visit_records(date, ip);
+
+-- 访问记录表注释
+COMMENT ON TABLE visit_records IS '访问记录表（用于 UV 统计去重）';
+COMMENT ON COLUMN visit_records.date IS '访问日期';
+COMMENT ON COLUMN visit_records.ip IS '访客IP地址';
+COMMENT ON COLUMN visit_records.created_at IS '首次访问时间';
 
 -- 创建文章阅读记录表
 CREATE TABLE IF NOT EXISTS post_views (

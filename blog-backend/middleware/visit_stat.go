@@ -2,12 +2,13 @@ package middleware
 
 import (
 	"blog-backend/repository"
+	"blog-backend/util"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 )
 
-// VisitStatMiddleware 访问量统计中间件（只统计有效页面访问）
+// VisitStatMiddleware 访问量统计中间件（统计独立访客 UV）
 func VisitStatMiddleware() gin.HandlerFunc {
 	visitStatRepo := repository.NewVisitStatRepository()
 
@@ -41,9 +42,12 @@ func VisitStatMiddleware() gin.HandlerFunc {
 
 		// 只统计：GET 请求 + 成功状态 + 非静态资源 + 非 API
 		if method == "GET" && status >= 200 && status < 300 && !isStaticResource && !isAPIRequest {
-			// 异步记录访问量，不影响响应速度
+			// 获取访客 IP 地址
+			ip := util.GetClientIP(c)
+			
+			// 异步记录访问量（基于 IP 的 UV 统计），不影响响应速度
 			go func() {
-				visitStatRepo.IncrementTodayViewCount()
+				visitStatRepo.RecordVisit(ip)
 			}()
 		}
 	}
