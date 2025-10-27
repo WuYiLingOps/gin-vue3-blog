@@ -40,7 +40,15 @@
     />
 
     <!-- 创建/编辑文章对话框 -->
-    <n-modal v-model:show="showCreateModal" preset="card" title="创建文章" style="width: 800px">
+    <n-modal 
+      v-model:show="showCreateModal" 
+      preset="card" 
+      title="创建文章" 
+      style="width: 800px"
+      :mask-closable="false"
+      :close-on-esc="false"
+      @close="handleModalClose"
+    >
       <n-form ref="formRef" :model="formData" :rules="rules">
         <n-form-item label="标题" path="title">
           <n-input v-model:value="formData.title" placeholder="请输入文章标题" />
@@ -90,7 +98,7 @@
 
       <template #footer>
         <n-space justify="end">
-          <n-button @click="showCreateModal = false">取消</n-button>
+          <n-button @click="handleCancel">取消</n-button>
           <n-button type="primary" :loading="submitting" @click="handleSubmit">
             保存
           </n-button>
@@ -132,7 +140,7 @@ const formData = reactive<PostForm>({
   content: '',
   summary: '',
   cover: '',
-  category_id: 0,
+  category_id: null,
   tag_ids: [],
   status: 1,
   is_top: false
@@ -216,7 +224,19 @@ const columns: DataTableColumns<Post> = [
 const rules = {
   title: [{ required: true, message: '请输入标题', trigger: 'blur' }],
   content: [{ required: true, message: '请输入内容', trigger: 'blur' }],
-  category_id: [{ required: true, message: '请选择分类', trigger: 'change' }]
+  category_id: [
+    { 
+      required: true, 
+      message: '请选择分类', 
+      trigger: ['blur', 'change'],
+      validator: (_rule: any, value: any) => {
+        if (value === null || value === undefined || value === 0) {
+          return new Error('请选择分类')
+        }
+        return true
+      }
+    }
+  ]
 }
 
 onMounted(() => {
@@ -259,6 +279,7 @@ async function handleSubmit() {
     submitting.value = true
     await createPost(formData)
     message.success('文章创建成功')
+    clearForm()
     showCreateModal.value = false
     fetchPosts()
   } catch (error: any) {
@@ -285,13 +306,94 @@ function handleDelete(id: number) {
     }
   })
 }
+
+// 检查是否有未保存的内容
+function hasUnsavedContent(): boolean {
+  return !!(
+    formData.title.trim() ||
+    formData.content.trim() ||
+    formData.summary.trim() ||
+    formData.cover ||
+    (formData.category_id !== null && formData.category_id !== 0) ||
+    formData.tag_ids.length > 0
+  )
+}
+
+// 保存为草稿
+async function saveAsDraft() {
+  try {
+    // 验证必填字段
+    if (!formData.title.trim()) {
+      message.error('标题不能为空')
+      return
+    }
+    if (!formData.content.trim()) {
+      message.error('内容不能为空')
+      return
+    }
+    if (!formData.category_id || formData.category_id === 0) {
+      message.error('请选择分类')
+      return
+    }
+
+    submitting.value = true
+    
+    // 设置为草稿状态
+    const draftData = { ...formData, status: 0 }
+    await createPost(draftData)
+    message.success('已保存为草稿')
+    clearForm()
+    showCreateModal.value = false
+    fetchPosts()
+  } catch (error: any) {
+    message.error(error.message || '保存草稿失败')
+  } finally {
+    submitting.value = false
+  }
+}
+
+// 清空表单
+function clearForm() {
+  formData.title = ''
+  formData.content = ''
+  formData.summary = ''
+  formData.cover = ''
+  formData.category_id = null
+  formData.tag_ids = []
+  formData.status = 1
+  formData.is_top = false
+}
+
+// 处理取消操作
+function handleCancel() {
+  // 如果有未保存的内容，弹出确认框
+  if (hasUnsavedContent()) {
+    dialog.warning({
+      title: '提示',
+      content: '检测到您有未保存的内容，是否要保存为草稿？',
+      positiveText: '保存草稿',
+      negativeText: '直接离开',
+      onPositiveClick: async () => {
+        await saveAsDraft()
+      },
+      onNegativeClick: () => {
+        clearForm()
+        showCreateModal.value = false
+      }
+    })
+  } else {
+    showCreateModal.value = false
+  }
+}
+
+// 处理模态框关闭事件（点击 X 号）
+function handleModalClose() {
+  // 和取消按钮逻辑一样
+  handleCancel()
+}
 </script>
 
 <style scoped>
-.post-manage-page {
-  /* 样式 */
-}
-
 .header {
   display: flex;
   justify-content: space-between;

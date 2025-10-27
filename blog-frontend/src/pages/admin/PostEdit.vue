@@ -123,7 +123,7 @@ const formData = reactive<PostForm>({
   content: '',
   summary: '',
   cover: '',
-  category_id: 0,
+  category_id: null,
   tag_ids: [],
   status: 1,
   is_top: false
@@ -132,7 +132,19 @@ const formData = reactive<PostForm>({
 const rules: FormRules = {
   title: [{ required: true, message: '请输入文章标题', trigger: 'blur' }],
   content: [{ required: true, message: '请输入文章内容', trigger: 'blur' }],
-  category_id: [{ required: true, type: 'number', message: '请选择分类', trigger: 'change' }]
+  category_id: [
+    { 
+      required: true, 
+      message: '请选择分类', 
+      trigger: ['blur', 'change'],
+      validator: (_rule, value) => {
+        if (value === null || value === undefined || value === 0) {
+          return new Error('请选择分类')
+        }
+        return true
+      }
+    }
+  ]
 }
 
 const categoryOptions = computed<SelectOption[]>(() => {

@@ -74,7 +74,7 @@ export interface PostForm {
   content: string
   summary: string
   cover: string
-  category_id: number
+  category_id: number | null
   tag_ids: number[]
   status: number
   is_top: boolean
