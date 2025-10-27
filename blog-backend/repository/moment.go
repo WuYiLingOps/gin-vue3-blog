@@ -3,6 +3,7 @@ package repository
 import (
 	"blog-backend/db"
 	"blog-backend/model"
+	"gorm.io/gorm"
 )
 
 type MomentRepository struct{}
@@ -172,5 +173,44 @@ func (r *MomentRepository) GetLikedMomentIDs(momentIDs []uint, userID *uint, ip 
 	}
 	
 	return likedIDs, nil
+}
+
+// Transaction 执行事务
+func (r *MomentRepository) Transaction(fn func(tx *gorm.DB) error) error {
+	return db.DB.Transaction(fn)
+}
+
+// CreateLikeTx 在事务中创建点赞记录
+func (r *MomentRepository) CreateLikeTx(tx *gorm.DB, like *model.MomentLike) error {
+	return tx.Create(like).Error
+}
+
+// DeleteLikeTx 在事务中删除点赞记录
+func (r *MomentRepository) DeleteLikeTx(tx *gorm.DB, momentID uint, userID *uint, ip string) error {
+	query := tx.Where("moment_id = ?", momentID)
+	
+	if userID != nil && *userID > 0 {
+		query = query.Where("user_id = ?", *userID)
+	} else {
+		query = query.Where("ip = ? AND user_id IS NULL", ip)
+	}
+	
+	return query.Delete(&model.MomentLike{}).Error
+}
+
+// UpdateTx 在事务中更新说说
+func (r *MomentRepository) UpdateTx(tx *gorm.DB, moment *model.Moment) error {
+	err := tx.Save(moment).Error
+	if err != nil {
+		return err
+	}
+	
+	// 更新全文搜索向量
+	tx.Exec(
+		"UPDATE moments SET content_tsv = to_tsvector('english', coalesce(content, '')) WHERE id = ?",
+		moment.ID,
+	)
+	
+	return nil
 }
 

@@ -73,27 +73,41 @@ func (s *PostService) Create(userID uint, req *CreatePostRequest) (*model.Post, 
 		post.PublishedAt = &now
 	}
 
-	if err := s.postRepo.Create(post); err != nil {
-		return nil, errors.New("文章创建失败")
-	}
-
-	// 更新标签关联
-	if len(req.TagIDs) > 0 {
-		if err := s.postRepo.UpdateTags(post.ID, req.TagIDs); err != nil {
-			return nil, errors.New("标签关联失败")
+	// 使用事务确保数据一致性
+	err := s.postRepo.Transaction(func(tx *gorm.DB) error {
+		// 创建文章
+		if err := s.postRepo.CreateTx(tx, post); err != nil {
+			return err
 		}
-		
-		// 增加标签文章数（仅发布状态）
-		if req.Status == 1 {
-			for _, tagID := range req.TagIDs {
-				s.tagRepo.IncrementPostCount(tagID)
+
+		// 更新标签关联
+		if len(req.TagIDs) > 0 {
+			if err := s.postRepo.UpdateTagsTx(tx, post.ID, req.TagIDs); err != nil {
+				return err
+			}
+			
+			// 增加标签文章数（仅发布状态）
+			if req.Status == 1 {
+				for _, tagID := range req.TagIDs {
+					if err := s.tagRepo.IncrementPostCountTx(tx, tagID); err != nil {
+						return err
+					}
+				}
 			}
 		}
-	}
 
-	// 增加分类文章数
-	if req.Status == 1 {
-		s.categoryRepo.IncrementPostCount(req.CategoryID)
+		// 增加分类文章数
+		if req.Status == 1 {
+			if err := s.categoryRepo.IncrementPostCountTx(tx, req.CategoryID); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, errors.New("文章创建失败")
 	}
 
 	return s.postRepo.GetByID(post.ID)
@@ -181,85 +195,111 @@ func (s *PostService) Update(id, userID uint, role string, req *UpdatePostReques
 		post.PublishedAt = &now
 	}
 
-	if err := s.postRepo.Update(post); err != nil {
-		return nil, errors.New("文章更新失败")
-	}
-
-	// 更新标签关联
-	if len(req.TagIDs) > 0 {
-		if err := s.postRepo.UpdateTags(post.ID, req.TagIDs); err != nil {
-			return nil, errors.New("标签关联失败")
+	// 使用事务确保数据一致性
+	err = s.postRepo.Transaction(func(tx *gorm.DB) error {
+		// 更新文章
+		if err := s.postRepo.UpdateTx(tx, post); err != nil {
+			return err
 		}
-		
-		// 更新标签文章数
-		if oldStatus == 1 || post.Status == 1 {
-			// 找出需要减少计数的标签（旧标签中有但新标签中没有的）
-			for _, oldTagID := range oldTagIDs {
-				found := false
-				for _, newTagID := range req.TagIDs {
-					if oldTagID == newTagID {
-						found = true
-						break
-					}
-				}
-				if !found && oldStatus == 1 {
-					s.tagRepo.DecrementPostCount(oldTagID)
-				}
+
+		// 更新标签关联
+		if len(req.TagIDs) > 0 {
+			if err := s.postRepo.UpdateTagsTx(tx, post.ID, req.TagIDs); err != nil {
+				return err
 			}
 			
-			// 找出需要增加计数的标签（新标签中有但旧标签中没有的）
-			for _, newTagID := range req.TagIDs {
-				found := false
+			// 更新标签文章数
+			if oldStatus == 1 || post.Status == 1 {
+				// 找出需要减少计数的标签（旧标签中有但新标签中没有的）
 				for _, oldTagID := range oldTagIDs {
-					if newTagID == oldTagID {
-						found = true
-						break
-					}
-				}
-				if !found && post.Status == 1 {
-					s.tagRepo.IncrementPostCount(newTagID)
-				}
-			}
-			
-			// 如果状态从草稿变为发布，所有新标签都要增加计数
-			if oldStatus == 0 && post.Status == 1 {
-				for _, tagID := range req.TagIDs {
-					alreadyCounted := false
-					for _, oldTagID := range oldTagIDs {
-						if tagID == oldTagID {
-							alreadyCounted = true
+					found := false
+					for _, newTagID := range req.TagIDs {
+						if oldTagID == newTagID {
+							found = true
 							break
 						}
 					}
-					if alreadyCounted {
-						s.tagRepo.IncrementPostCount(tagID)
+					if !found && oldStatus == 1 {
+						if err := s.tagRepo.DecrementPostCountTx(tx, oldTagID); err != nil {
+							return err
+						}
+					}
+				}
+				
+				// 找出需要增加计数的标签（新标签中有但旧标签中没有的）
+				for _, newTagID := range req.TagIDs {
+					found := false
+					for _, oldTagID := range oldTagIDs {
+						if newTagID == oldTagID {
+							found = true
+							break
+						}
+					}
+					if !found && post.Status == 1 {
+						if err := s.tagRepo.IncrementPostCountTx(tx, newTagID); err != nil {
+							return err
+						}
+					}
+				}
+				
+				// 如果状态从草稿变为发布，所有新标签都要增加计数
+				if oldStatus == 0 && post.Status == 1 {
+					for _, tagID := range req.TagIDs {
+						alreadyCounted := false
+						for _, oldTagID := range oldTagIDs {
+							if tagID == oldTagID {
+								alreadyCounted = true
+								break
+							}
+						}
+						if alreadyCounted {
+							if err := s.tagRepo.IncrementPostCountTx(tx, tagID); err != nil {
+								return err
+							}
+						}
+					}
+				}
+				
+				// 如果状态从发布变为草稿，所有旧标签都要减少计数
+				if oldStatus == 1 && post.Status == 0 {
+					for _, oldTagID := range oldTagIDs {
+						if err := s.tagRepo.DecrementPostCountTx(tx, oldTagID); err != nil {
+							return err
+						}
 					}
 				}
 			}
-			
-			// 如果状态从发布变为草稿，所有旧标签都要减少计数
-			if oldStatus == 1 && post.Status == 0 {
-				for _, oldTagID := range oldTagIDs {
-					s.tagRepo.DecrementPostCount(oldTagID)
+		}
+
+		// 更新分类文章数
+		if oldCategoryID != post.CategoryID {
+			if oldStatus == 1 {
+				if err := s.categoryRepo.DecrementPostCountTx(tx, oldCategoryID); err != nil {
+					return err
+				}
+			}
+			if post.Status == 1 {
+				if err := s.categoryRepo.IncrementPostCountTx(tx, post.CategoryID); err != nil {
+					return err
+				}
+			}
+		} else if oldStatus != post.Status {
+			if post.Status == 1 {
+				if err := s.categoryRepo.IncrementPostCountTx(tx, post.CategoryID); err != nil {
+					return err
+				}
+			} else {
+				if err := s.categoryRepo.DecrementPostCountTx(tx, post.CategoryID); err != nil {
+					return err
 				}
 			}
 		}
-	}
 
-	// 更新分类文章数
-	if oldCategoryID != post.CategoryID {
-		if oldStatus == 1 {
-			s.categoryRepo.DecrementPostCount(oldCategoryID)
-		}
-		if post.Status == 1 {
-			s.categoryRepo.IncrementPostCount(post.CategoryID)
-		}
-	} else if oldStatus != post.Status {
-		if post.Status == 1 {
-			s.categoryRepo.IncrementPostCount(post.CategoryID)
-		} else {
-			s.categoryRepo.DecrementPostCount(post.CategoryID)
-		}
+		return nil
+	})
+
+	if err != nil {
+		return nil, errors.New("文章更新失败")
 	}
 
 	return s.postRepo.GetByID(post.ID)
@@ -277,19 +317,27 @@ func (s *PostService) Delete(id, userID uint, role string) error {
 		return errors.New("无权限删除此文章")
 	}
 
-	// 减少分类文章数
-	if post.Status == 1 {
-		s.categoryRepo.DecrementPostCount(post.CategoryID)
-		
-		// 减少标签文章数
-		if len(post.Tags) > 0 {
-			for _, tag := range post.Tags {
-				s.tagRepo.DecrementPostCount(tag.ID)
+	// 使用事务确保数据一致性
+	return s.postRepo.Transaction(func(tx *gorm.DB) error {
+		// 减少分类文章数
+		if post.Status == 1 {
+			if err := s.categoryRepo.DecrementPostCountTx(tx, post.CategoryID); err != nil {
+				return err
+			}
+			
+			// 减少标签文章数
+			if len(post.Tags) > 0 {
+				for _, tag := range post.Tags {
+					if err := s.tagRepo.DecrementPostCountTx(tx, tag.ID); err != nil {
+						return err
+					}
+				}
 			}
 		}
-	}
 
-	return s.postRepo.Delete(id)
+		// 删除文章
+		return s.postRepo.DeleteTx(tx, id)
+	})
 }
 
 // List 获取文章列表
@@ -330,36 +378,47 @@ func (s *PostService) Like(id uint, userID *uint, ip string) (bool, error) {
 		return false, err
 	}
 
-	if liked {
-		// 已点赞，执行取消点赞
-		if err := s.postRepo.DeleteLike(id, userID, ip); err != nil {
-			return false, err
-		}
-		
-		// 减少点赞数
-		if err := s.postRepo.DecrementLikeCount(id); err != nil {
-			return false, err
-		}
-		
-		return false, nil // 返回 false 表示取消点赞
-	} else {
-		// 未点赞，执行点赞
-		like := &model.PostLike{
-			PostID: id,
-			UserID: userID,
-			IP:     ip,
-		}
-		if err := s.postRepo.CreateLike(like); err != nil {
-			return false, err
-		}
+	// 使用事务确保数据一致性
+	var isLiked bool
+	err = s.postRepo.Transaction(func(tx *gorm.DB) error {
+		if liked {
+			// 已点赞，执行取消点赞
+			if err := s.postRepo.DeleteLikeTx(tx, id, userID, ip); err != nil {
+				return err
+			}
+			
+			// 减少点赞数
+			if err := s.postRepo.DecrementLikeCountTx(tx, id); err != nil {
+				return err
+			}
+			
+			isLiked = false
+		} else {
+			// 未点赞，执行点赞
+			like := &model.PostLike{
+				PostID: id,
+				UserID: userID,
+				IP:     ip,
+			}
+			if err := s.postRepo.CreateLikeTx(tx, like); err != nil {
+				return err
+			}
 
-		// 增加点赞数
-		if err := s.postRepo.IncrementLikeCount(id); err != nil {
-			return false, err
+			// 增加点赞数
+			if err := s.postRepo.IncrementLikeCountTx(tx, id); err != nil {
+				return err
+			}
+			
+			isLiked = true
 		}
-		
-		return true, nil // 返回 true 表示点赞成功
+		return nil
+	})
+
+	if err != nil {
+		return false, err
 	}
+
+	return isLiked, nil
 }
 
 // GetArchives 获取归档

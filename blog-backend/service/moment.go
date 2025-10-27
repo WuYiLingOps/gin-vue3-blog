@@ -5,6 +5,7 @@ import (
 	"blog-backend/repository"
 
 	"errors"
+	"gorm.io/gorm"
 )
 
 type MomentService struct {
@@ -116,38 +117,49 @@ func (s *MomentService) Like(id uint, userID *uint, ip string) (bool, error) {
 		return false, err
 	}
 
-	if liked {
-		// 已点赞，执行取消点赞
-		if err := s.repo.DeleteLike(id, userID, ip); err != nil {
-			return false, err
-		}
-		
-		// 减少点赞数
-		if moment.LikeCount > 0 {
-			moment.LikeCount--
-		}
-		if err := s.repo.Update(moment); err != nil {
-			return false, err
-		}
-		
-		return false, nil // 返回 false 表示取消点赞
-	} else {
-		// 未点赞，执行点赞
-		like := &model.MomentLike{
-			MomentID: id,
-			UserID:   userID,
-			IP:       ip,
-		}
-		if err := s.repo.CreateLike(like); err != nil {
-			return false, err
-		}
+	// 使用事务确保数据一致性
+	var isLiked bool
+	err = s.repo.Transaction(func(tx *gorm.DB) error {
+		if liked {
+			// 已点赞，执行取消点赞
+			if err := s.repo.DeleteLikeTx(tx, id, userID, ip); err != nil {
+				return err
+			}
+			
+			// 减少点赞数
+			if moment.LikeCount > 0 {
+				moment.LikeCount--
+			}
+			if err := s.repo.UpdateTx(tx, moment); err != nil {
+				return err
+			}
+			
+			isLiked = false
+		} else {
+			// 未点赞，执行点赞
+			like := &model.MomentLike{
+				MomentID: id,
+				UserID:   userID,
+				IP:       ip,
+			}
+			if err := s.repo.CreateLikeTx(tx, like); err != nil {
+				return err
+			}
 
-		// 增加点赞数
-		moment.LikeCount++
-		if err := s.repo.Update(moment); err != nil {
-			return false, err
+			// 增加点赞数
+			moment.LikeCount++
+			if err := s.repo.UpdateTx(tx, moment); err != nil {
+				return err
+			}
+			
+			isLiked = true
 		}
-		
-		return true, nil // 返回 true 表示点赞成功
+		return nil
+	})
+
+	if err != nil {
+		return false, err
 	}
+
+	return isLiked, nil
 }

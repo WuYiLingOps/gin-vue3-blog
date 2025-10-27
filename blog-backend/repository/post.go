@@ -3,6 +3,7 @@ package repository
 import (
 	"blog-backend/db"
 	"blog-backend/model"
+	"gorm.io/gorm"
 )
 
 type PostRepository struct{}
@@ -208,5 +209,90 @@ func (r *PostRepository) UpdateTags(postID uint, tagIDs []uint) error {
 	}
 
 	return db.DB.Model(&post).Association("Tags").Replace(tags)
+}
+
+// Transaction 执行事务
+func (r *PostRepository) Transaction(fn func(tx *gorm.DB) error) error {
+	return db.DB.Transaction(fn)
+}
+
+// DeleteTx 在事务中删除文章
+func (r *PostRepository) DeleteTx(tx *gorm.DB, id uint) error {
+	return tx.Delete(&model.Post{}, id).Error
+}
+
+// CreateTx 在事务中创建文章
+func (r *PostRepository) CreateTx(tx *gorm.DB, post *model.Post) error {
+	err := tx.Create(post).Error
+	if err != nil {
+		return err
+	}
+	
+	// 更新全文搜索向量
+	tx.Exec(
+		"UPDATE posts SET search_tsv = setweight(to_tsvector('english', coalesce(title, '')), 'A') || setweight(to_tsvector('english', coalesce(content, '')), 'B') WHERE id = ?",
+		post.ID,
+	)
+	
+	return nil
+}
+
+// UpdateTx 在事务中更新文章
+func (r *PostRepository) UpdateTx(tx *gorm.DB, post *model.Post) error {
+	err := tx.Save(post).Error
+	if err != nil {
+		return err
+	}
+	
+	// 更新全文搜索向量
+	tx.Exec(
+		"UPDATE posts SET search_tsv = setweight(to_tsvector('english', coalesce(title, '')), 'A') || setweight(to_tsvector('english', coalesce(content, '')), 'B') WHERE id = ?",
+		post.ID,
+	)
+	
+	return nil
+}
+
+// UpdateTagsTx 在事务中更新文章标签
+func (r *PostRepository) UpdateTagsTx(tx *gorm.DB, postID uint, tagIDs []uint) error {
+	var post model.Post
+	if err := tx.First(&post, postID).Error; err != nil {
+		return err
+	}
+
+	var tags []model.Tag
+	if err := tx.Find(&tags, tagIDs).Error; err != nil {
+		return err
+	}
+
+	return tx.Model(&post).Association("Tags").Replace(tags)
+}
+
+// CreateLikeTx 在事务中创建点赞记录
+func (r *PostRepository) CreateLikeTx(tx *gorm.DB, like *model.PostLike) error {
+	return tx.Create(like).Error
+}
+
+// DeleteLikeTx 在事务中删除点赞记录
+func (r *PostRepository) DeleteLikeTx(tx *gorm.DB, postID uint, userID *uint, ip string) error {
+	query := tx.Where("post_id = ?", postID)
+	
+	if userID != nil && *userID > 0 {
+		query = query.Where("user_id = ?", *userID)
+	} else {
+		query = query.Where("ip = ? AND user_id IS NULL", ip)
+	}
+	
+	return query.Delete(&model.PostLike{}).Error
+}
+
+// IncrementLikeCountTx 在事务中增加点赞数
+func (r *PostRepository) IncrementLikeCountTx(tx *gorm.DB, id uint) error {
+	return tx.Model(&model.Post{}).Where("id = ?", id).UpdateColumn("like_count", gorm.Expr("like_count + 1")).Error
+}
+
+// DecrementLikeCountTx 在事务中减少点赞数
+func (r *PostRepository) DecrementLikeCountTx(tx *gorm.DB, id uint) error {
+	return tx.Model(&model.Post{}).Where("id = ?", id).UpdateColumn("like_count", gorm.Expr("CASE WHEN like_count > 0 THEN like_count - 1 ELSE 0 END")).Error
 }
 

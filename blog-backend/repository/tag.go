@@ -3,6 +3,7 @@ package repository
 import (
 	"blog-backend/db"
 	"blog-backend/model"
+	"gorm.io/gorm"
 )
 
 type TagRepository struct{}
@@ -71,5 +72,15 @@ func (r *TagRepository) IncrementPostCount(id uint) error {
 // DecrementPostCount 减少文章数量
 func (r *TagRepository) DecrementPostCount(id uint) error {
 	return db.DB.Model(&model.Tag{}).Where("id = ?", id).UpdateColumn("post_count", db.DB.Raw("post_count - 1")).Error
+}
+
+// IncrementPostCountTx 在事务中增加文章数量
+func (r *TagRepository) IncrementPostCountTx(tx *gorm.DB, id uint) error {
+	return tx.Model(&model.Tag{}).Where("id = ?", id).UpdateColumn("post_count", gorm.Expr("post_count + 1")).Error
+}
+
+// DecrementPostCountTx 在事务中减少文章数量
+func (r *TagRepository) DecrementPostCountTx(tx *gorm.DB, id uint) error {
+	return tx.Model(&model.Tag{}).Where("id = ?", id).UpdateColumn("post_count", gorm.Expr("CASE WHEN post_count > 0 THEN post_count - 1 ELSE 0 END")).Error
 }
 
