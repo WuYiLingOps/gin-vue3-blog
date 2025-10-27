@@ -68,6 +68,8 @@ CREATE TABLE IF NOT EXISTS tags (
     id SERIAL PRIMARY KEY,
     name VARCHAR(50) UNIQUE NOT NULL,
     color VARCHAR(20),
+    text_color VARCHAR(20),
+    font_size INTEGER,
     post_count INT DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -77,6 +79,8 @@ CREATE TABLE IF NOT EXISTS tags (
 COMMENT ON TABLE tags IS '标签表';
 COMMENT ON COLUMN tags.name IS '标签名称';
 COMMENT ON COLUMN tags.color IS '标签颜色';
+COMMENT ON COLUMN tags.text_color IS '文字颜色';
+COMMENT ON COLUMN tags.font_size IS '文字大小(px)';
 COMMENT ON COLUMN tags.post_count IS '文章数量';
 
 -- =============================================================================
@@ -381,13 +385,13 @@ VALUES
 ON CONFLICT (name) DO NOTHING;
 
 -- 插入默认标签
-INSERT INTO tags (name, color, post_count, created_at, updated_at)
+INSERT INTO tags (name, color, text_color, font_size, post_count, created_at, updated_at)
 VALUES 
-('Go', '#00ADD8', 0, NOW(), NOW()),
-('Vue', '#42b883', 0, NOW(), NOW()),
-('TypeScript', '#3178c6', 0, NOW(), NOW()),
-('PostgreSQL', '#336791', 0, NOW(), NOW()),
-('Docker', '#2496ED', 0, NOW(), NOW())
+('Go', '#00ADD8', NULL, NULL, 0, NOW(), NOW()),
+('Vue', '#42b883', NULL, NULL, 0, NOW(), NOW()),
+('TypeScript', '#3178c6', NULL, NULL, 0, NOW(), NOW()),
+('PostgreSQL', '#336791', NULL, NULL, 0, NOW(), NOW()),
+('Docker', '#2496ED', NULL, NULL, 0, NOW(), NOW())
 ON CONFLICT (name) DO NOTHING;
 
 -- 插入网站配置（关于页面）
