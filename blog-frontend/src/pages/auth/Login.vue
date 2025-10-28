@@ -1,7 +1,7 @@
 <template>
   <div class="login-page">
     <h2>登录</h2>
-    <n-form ref="formRef" :model="formData" :rules="rules" size="large">
+    <n-form ref="formRef" :model="formData" :rules="rules" size="large" >
       <n-form-item path="username" label="用户名">
         <n-input
           v-model:value="formData.username"
@@ -113,11 +113,16 @@ async function handleLogin() {
   width: 100%;
 }
 
+.login-page :deep(.n-form-item) {
+  margin-bottom: 18px;
+}
+
 h2 {
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 24px;
   color: #333;
-  font-size: 24px;
+  font-size: 26px;
+  font-weight: 600;
 }
 
 .footer-links {

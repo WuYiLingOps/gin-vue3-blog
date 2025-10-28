@@ -188,11 +188,20 @@ onUnmounted(() => {
   width: 100%;
 }
 
+.register-page :deep(.n-form-item) {
+  margin-bottom: 14px;
+}
+
+.register-page :deep(.n-form-item-label) {
+  padding-bottom: 6px;
+}
+
 h2 {
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
   color: #333;
-  font-size: 24px;
+  font-size: 26px;
+  font-weight: 600;
 }
 
 .code-input-wrapper {
@@ -211,7 +220,7 @@ h2 {
 }
 
 .footer-links {
-  margin-top: 24px;
+  margin-top: 20px;
   text-align: center;
   color: #666;
 }

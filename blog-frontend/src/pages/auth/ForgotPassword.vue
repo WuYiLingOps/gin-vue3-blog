@@ -222,16 +222,21 @@ onUnmounted(() => {
   width: 100%;
 }
 
+.forgot-password-page :deep(.n-form-item) {
+  margin-bottom: 1px;
+}
+
 h2 {
   text-align: center;
-  margin-bottom: 10px;
+  margin-bottom: 6px;
   color: #333;
-  font-size: 24px;
+  font-size: 26px;
+  font-weight: 600;
 }
 
 .subtitle {
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 24px;
   color: #666;
   font-size: 14px;
 }
