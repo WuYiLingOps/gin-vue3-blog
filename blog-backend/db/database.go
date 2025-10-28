@@ -2,9 +2,9 @@ package db
 
 import (
 	"fmt"
-	"log"
 
 	"blog-backend/config"
+	blogLogger "blog-backend/logger"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -22,13 +22,13 @@ func InitDB() error {
 
 	var err error
 	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Info),
+		Logger: logger.Default.LogMode(logger.Silent), // 关闭 SQL 日志
 	})
 
 	if err != nil {
-		return fmt.Errorf("failed to connect database: %w", err)
+		return err
 	}
 
-	log.Println("Database connected successfully")
+	blogLogger.Info("Database connected successfully")
 	return nil
 }

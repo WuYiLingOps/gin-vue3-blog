@@ -10,7 +10,8 @@ import (
 var Logger *zap.Logger
 
 // InitLogger 初始化日志系统
-func InitLogger(level string) error {
+// isDev: true 表示开发环境（彩色输出），false 表示生产环境（JSON格式）
+func InitLogger(level string, isDev bool) error {
 	// 设置日志级别
 	var zapLevel zapcore.Level
 	switch level {
@@ -26,25 +27,47 @@ func InitLogger(level string) error {
 		zapLevel = zapcore.InfoLevel
 	}
 
-	// 配置编码器
-	encoderConfig := zapcore.EncoderConfig{
-		TimeKey:        "time",
-		LevelKey:       "level",
-		NameKey:        "logger",
-		CallerKey:      "caller",
-		FunctionKey:    zapcore.OmitKey,
-		MessageKey:     "msg",
-		StacktraceKey:  "stacktrace",
-		LineEnding:     zapcore.DefaultLineEnding,
-		EncodeLevel:    zapcore.CapitalLevelEncoder,
-		EncodeTime:     zapcore.ISO8601TimeEncoder,
-		EncodeDuration: zapcore.SecondsDurationEncoder,
-		EncodeCaller:   zapcore.ShortCallerEncoder,
+	var encoder zapcore.Encoder
+
+	if isDev {
+		// 开发环境：彩色输出，易读格式
+		encoderConfig := zapcore.EncoderConfig{
+			TimeKey:        "T",
+			LevelKey:       "L",
+			NameKey:        "N",
+			CallerKey:      "C",
+			FunctionKey:    zapcore.OmitKey,
+			MessageKey:     "M",
+			StacktraceKey:  "S",
+			LineEnding:     zapcore.DefaultLineEnding,
+			EncodeLevel:    zapcore.CapitalColorLevelEncoder, // 彩色级别
+			EncodeTime:     zapcore.TimeEncoderOfLayout("2006-01-02 15:04:05"), // 简洁时间格式
+			EncodeDuration: zapcore.StringDurationEncoder,
+			EncodeCaller:   zapcore.ShortCallerEncoder,
+		}
+		encoder = zapcore.NewConsoleEncoder(encoderConfig)
+	} else {
+		// 生产环境：JSON格式，便于日志收集
+		encoderConfig := zapcore.EncoderConfig{
+			TimeKey:        "ts",
+			LevelKey:       "level",
+			NameKey:        "logger",
+			CallerKey:      "caller",
+			FunctionKey:    zapcore.OmitKey,
+			MessageKey:     "msg",
+			StacktraceKey:  "stacktrace",
+			LineEnding:     zapcore.DefaultLineEnding,
+			EncodeLevel:    zapcore.LowercaseLevelEncoder, // 小写级别
+			EncodeTime:     zapcore.ISO8601TimeEncoder,    // ISO8601 时间格式
+			EncodeDuration: zapcore.SecondsDurationEncoder,
+			EncodeCaller:   zapcore.ShortCallerEncoder,
+		}
+		encoder = zapcore.NewJSONEncoder(encoderConfig)
 	}
 
 	// 创建核心
 	core := zapcore.NewCore(
-		zapcore.NewConsoleEncoder(encoderConfig),
+		encoder,
 		zapcore.AddSync(os.Stdout),
 		zapLevel,
 	)
@@ -84,4 +107,3 @@ func Fatal(msg string, fields ...zap.Field) {
 func Sync() {
 	Logger.Sync()
 }
-

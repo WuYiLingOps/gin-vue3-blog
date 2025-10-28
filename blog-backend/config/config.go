@@ -5,6 +5,7 @@ import (
 )
 
 type Config struct {
+	Env string // 当前环境：dev 或 prod
 	App struct {
 		Port int `mapstructure:"port"`
 	} `mapstructure:"app"`
@@ -62,5 +63,11 @@ func LoadConfigByEnv() error {
 
 	// 根据环境加载对应的配置文件
 	configPath := "./config/config-" + env + ".yml"
-	return LoadConfig(configPath)
+	if err := LoadConfig(configPath); err != nil {
+		return err
+	}
+
+	// 保存环境变量到配置中
+	Cfg.Env = env
+	return nil
 }
