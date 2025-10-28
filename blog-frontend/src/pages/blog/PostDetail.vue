@@ -16,12 +16,12 @@
               <n-divider vertical />
               <span>
                 <n-icon :component="EyeOutline" />
-                {{ post.view_count }} 阅读
+                {{ post.view_count }}
               </span>
               <n-divider vertical />
               <span>
                 <n-icon :component="HeartOutline" />
-                {{ post.like_count }} 点赞
+                {{ post.like_count }}
               </span>
             </n-space>
           </div>
@@ -51,7 +51,7 @@
               <template #icon>
                 <n-icon :component="liked ? Heart : HeartOutline" />
               </template>
-              {{ liked ? '已点赞' : '点赞' }} ({{ post.like_count }})
+              {{ post.like_count }}
             </n-button>
             <n-button v-if="canEdit" @click="handleEdit">
               <template #icon>
@@ -626,6 +626,59 @@ html.dark .post-toc::-webkit-scrollbar-thumb:hover {
   
   .post-detail-page {
     max-width: 100%;
+  }
+}
+
+/* 移动端优化 */
+@media (max-width: 768px) {
+  .post-detail-container {
+    padding: 0 8px;
+  }
+  
+  .post-title {
+    font-size: 24px;
+  }
+  
+  .post-meta {
+    font-size: 13px;
+  }
+  
+  .post-meta :deep(.n-space) {
+    flex-wrap: wrap;
+    row-gap: 8px;
+  }
+  
+  .post-content {
+    font-size: 15px;
+  }
+  
+  .comments-section h3 {
+    font-size: 18px;
+  }
+  
+  .comment-item {
+    padding: 12px 0;
+  }
+  
+  .reply-list {
+    margin-left: 24px;
+    padding-left: 12px;
+  }
+  
+  /* 减小卡片内边距，增加内容区域 */
+  .post-detail-page :deep(.n-card .n-card__content) {
+    padding: 16px 12px !important;
+  }
+}
+
+/* 极小屏幕优化 */
+@media (max-width: 480px) {
+  .post-detail-container {
+    padding: 0 6px;
+  }
+  
+  .post-detail-page :deep(.n-card .n-card__content) {
+    padding: 14px 10px !important;
   }
 }
 
