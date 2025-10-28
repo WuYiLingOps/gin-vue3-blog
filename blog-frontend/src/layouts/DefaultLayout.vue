@@ -188,18 +188,69 @@
         </div>
       </div>
     </n-modal>
+
+    <!-- 修改密码对话框 -->
+    <n-modal
+      v-model:show="showPasswordModal"
+      preset="card"
+      title="修改密码"
+      style="width: 500px; max-width: 90vw"
+      :bordered="false"
+      :segmented="false"
+    >
+      <n-form ref="passwordFormRef" :model="passwordForm" :rules="passwordRules">
+        <n-form-item path="old_password" label="当前密码">
+          <n-input
+            v-model:value="passwordForm.old_password"
+            type="password"
+            show-password-on="click"
+            placeholder="请输入当前密码"
+          />
+        </n-form-item>
+
+        <n-form-item path="new_password" label="新密码">
+          <n-input
+            v-model:value="passwordForm.new_password"
+            type="password"
+            show-password-on="click"
+            placeholder="至少6个字符"
+          />
+        </n-form-item>
+
+        <n-form-item path="confirm_password" label="确认新密码">
+          <n-input
+            v-model:value="passwordForm.confirm_password"
+            type="password"
+            show-password-on="click"
+            placeholder="再次输入新密码"
+          />
+        </n-form-item>
+      </n-form>
+
+      <template #footer>
+        <n-space justify="end">
+          <n-button @click="showPasswordModal = false">取消</n-button>
+          <n-button type="primary" :loading="passwordSubmitting" @click="handlePasswordSubmit">
+            确定
+          </n-button>
+        </n-space>
+      </template>
+    </n-modal>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, h, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, h, onMounted, onBeforeUnmount, reactive } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { MoonOutline, SunnyOutline, PersonOutline, LogOutOutline, SettingsOutline, SearchOutline, MenuOutline, HomeOutline, ArchiveOutline, ChatbubblesOutline } from '@vicons/ionicons5'
 import { useAuthStore, useAppStore } from '@/stores'
-import { NIcon } from 'naive-ui'
+import { NIcon, useMessage, useDialog } from 'naive-ui'
+import type { FormInst, FormRules } from 'naive-ui'
 import { getPublicSettings } from '@/api/setting'
 import type { SiteSettings } from '@/api/setting'
 import { getPosts } from '@/api/post'
+import { updatePassword } from '@/api/auth'
+import type { PasswordForm } from '@/types/auth'
 import { formatDate } from '@/utils/format'
 import { highlightKeyword, extractHighlightSnippet } from '@/utils/highlight'
 import type { Post } from '@/types/blog'
@@ -208,6 +259,8 @@ const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
 const appStore = useAppStore()
+const message = useMessage()
+const dialog = useDialog()
 
 const activeKey = ref(route.name as string)
 const isDark = computed(() => appStore.theme === 'dark')
@@ -219,6 +272,34 @@ const showMobileMenu = ref(false)
 const searchResults = ref<Post[]>([])
 const searchLoading = ref(false)
 let searchTimer: number | null = null
+
+// 修改密码相关
+const showPasswordModal = ref(false)
+const passwordFormRef = ref<FormInst | null>(null)
+const passwordSubmitting = ref(false)
+const passwordForm = reactive<PasswordForm>({
+  old_password: '',
+  new_password: '',
+  confirm_password: ''
+})
+
+const passwordRules: FormRules = {
+  old_password: [
+    { required: true, message: '请输入当前密码', trigger: 'blur' }
+  ],
+  new_password: [
+    { required: true, message: '请输入新密码', trigger: 'blur' },
+    { min: 6, message: '密码至少6个字符', trigger: 'blur' }
+  ],
+  confirm_password: [
+    { required: true, message: '请再次输入新密码', trigger: 'blur' },
+    {
+      validator: (_rule, value) => value === passwordForm.new_password,
+      message: '两次密码不一致',
+      trigger: ['blur', 'input']
+    }
+  ]
+}
 
 // 网站启动时间（可以在这里设置你的网站上线日期）
 const siteStartDate = new Date('2025-10-25 00:00:00')
@@ -268,6 +349,11 @@ const userMenuOptions = computed(() => {
       label: '个人资料',
       key: 'profile',
       icon: () => h(NIcon, null, { default: () => h(PersonOutline) })
+    },
+    {
+      label: '修改密码',
+      key: 'change-password',
+      icon: () => h(NIcon, null, { default: () => h(SettingsOutline) })
     }
   ]
 
@@ -487,13 +573,57 @@ function handleUserMenu(key: string) {
     case 'profile':
       router.push('/profile')
       break
+    case 'change-password':
+      showPasswordModal.value = true
+      break
     case 'admin':
       router.push('/admin')
       break
     case 'logout':
-      authStore.logout()
-      router.push('/')
+      handleLogout()
       break
+  }
+}
+
+// 处理退出登录
+function handleLogout() {
+  dialog.warning({
+    title: '退出登录',
+    content: '确定要退出登录吗？',
+    positiveText: '确定',
+    negativeText: '取消',
+    onPositiveClick: () => {
+      authStore.logout()
+      message.success('已退出登录')
+      router.push('/')
+    }
+  })
+}
+
+// 提交修改密码
+async function handlePasswordSubmit() {
+  try {
+    await passwordFormRef.value?.validate()
+    passwordSubmitting.value = true
+
+    await updatePassword(passwordForm)
+    message.success('密码修改成功，请重新登录')
+    
+    // 重置表单
+    passwordForm.old_password = ''
+    passwordForm.new_password = ''
+    passwordForm.confirm_password = ''
+    showPasswordModal.value = false
+    
+    // 退出登录
+    authStore.logout()
+    router.push('/auth/login')
+  } catch (error: any) {
+    if (error.message) {
+      message.error(error.message)
+    }
+  } finally {
+    passwordSubmitting.value = false
   }
 }
 </script>
