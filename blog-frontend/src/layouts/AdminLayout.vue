@@ -10,7 +10,9 @@
         :collapsed-width="64"
         :width="240"
         :collapsed="collapsed"
-        show-trigger
+        :show-trigger="!isMobile"
+        :native-scrollbar="false"
+        bordered
         @collapse="collapsed = true"
         @expand="collapsed = false"
       >
@@ -32,23 +34,40 @@
         <!-- 头部 -->
         <n-layout-header class="admin-header">
           <div class="header-content">
-            <n-breadcrumb>
-              <n-breadcrumb-item>管理后台</n-breadcrumb-item>
+            <!-- 移动端菜单按钮 -->
+            <n-button
+              v-if="isMobile"
+              text
+              class="mobile-menu-btn"
+              @click="mobileMenuVisible = true"
+            >
+              <template #icon>
+                <n-icon :component="MenuOutline" size="24" />
+              </template>
+            </n-button>
+
+            <n-breadcrumb class="breadcrumb-wrapper">
+              <n-breadcrumb-item v-if="!isMobile">管理后台</n-breadcrumb-item>
               <n-breadcrumb-item>{{ currentTitle }}</n-breadcrumb-item>
             </n-breadcrumb>
 
             <div class="header-actions">
-              <n-button text @click="router.push('/')">
+              <n-button v-if="!isMobile" text @click="router.push('/')">
                 <template #icon>
                   <n-icon :component="HomeOutline" />
                 </template>
                 返回首页
               </n-button>
+              <n-button v-else circle text @click="router.push('/')">
+                <template #icon>
+                  <n-icon :component="HomeOutline" />
+                </template>
+              </n-button>
 
               <n-dropdown :options="userMenuOptions" @select="handleUserMenu">
                 <n-button text>
                   <n-avatar round size="small" :src="authStore.user?.avatar" />
-                  <span class="ml-2">{{ authStore.user?.nickname }}</span>
+                  <span v-if="!isMobile" class="ml-2">{{ authStore.user?.nickname }}</span>
                 </n-button>
               </n-dropdown>
             </div>
@@ -63,11 +82,24 @@
         </n-layout-content>
       </n-layout>
     </n-layout>
+
+    <!-- 移动端抽屉菜单 -->
+    <n-drawer v-model:show="mobileMenuVisible" :width="240" placement="left">
+      <n-drawer-content title="管理后台" :native-scrollbar="false">
+        <div class="mobile-menu">
+          <n-menu
+            v-model:value="activeKey"
+            :options="menuOptions"
+            @update:value="handleMobileMenuSelect"
+          />
+        </div>
+      </n-drawer-content>
+    </n-drawer>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, h, defineComponent } from 'vue'
+import { ref, computed, h, defineComponent, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import {
   HomeOutline,
@@ -80,7 +112,8 @@ import {
   PeopleOutline,
   PersonOutline,
   LogOutOutline,
-  SettingsOutline
+  SettingsOutline,
+  MenuOutline
 } from '@vicons/ionicons5'
 import { useAuthStore } from '@/stores'
 import { NIcon, useLoadingBar } from 'naive-ui'
@@ -114,9 +147,28 @@ const authStore = useAuthStore()
 
 const collapsed = ref(false)
 const activeKey = ref(route.name as string)
+const mobileMenuVisible = ref(false)
+const isMobile = ref(false)
 
 const currentTitle = computed(() => {
   return route.meta.title || ''
+})
+
+// 检测是否为移动设备
+function checkMobile() {
+  isMobile.value = window.innerWidth <= 768
+  if (isMobile.value) {
+    collapsed.value = true
+  }
+}
+
+onMounted(() => {
+  checkMobile()
+  window.addEventListener('resize', checkMobile)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', checkMobile)
 })
 
 // 渲染图标
@@ -188,6 +240,13 @@ function handleMenuSelect(key: string) {
   router.push({ name: key })
 }
 
+// 处理移动端菜单选择
+function handleMobileMenuSelect(key: string) {
+  activeKey.value = key
+  mobileMenuVisible.value = false
+  router.push({ name: key })
+}
+
 // 处理用户菜单
 function handleUserMenu(key: string) {
   switch (key) {
@@ -220,6 +279,13 @@ html.dark .admin-layout :deep(.n-layout-sider) {
   background: rgba(15, 23, 42, 0.9);
   border-right: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 4px 0 24px rgba(0, 0, 0, 0.3);
+}
+
+/* 移动端隐藏侧边栏 */
+@media (max-width: 768px) {
+  .admin-layout :deep(.n-layout-sider) {
+    display: none;
+  }
 }
 
 .logo {
@@ -273,12 +339,38 @@ html.dark .admin-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
+}
+
+.mobile-menu-btn {
+  margin-right: 8px;
+}
+
+.breadcrumb-wrapper {
+  flex: 1;
+  min-width: 0;
 }
 
 .header-actions {
   display: flex;
   align-items: center;
   gap: 16px;
+}
+
+/* 移动端头部样式 */
+@media (max-width: 768px) {
+  .admin-header {
+    padding: 0 12px;
+    height: 56px;
+  }
+
+  .header-actions {
+    gap: 8px;
+  }
+  
+  .breadcrumb-wrapper {
+    font-size: 14px;
+  }
 }
 
 .admin-content {
@@ -296,6 +388,23 @@ html.dark .admin-header {
 
 .ml-2 {
   margin-left: 8px;
+}
+
+/* 移动端内容区域样式 */
+@media (max-width: 768px) {
+  .admin-content {
+    padding: 12px;
+    height: calc(100vh - 56px);
+  }
+
+  .content-wrapper {
+    min-height: calc(100vh - 80px);
+  }
+}
+
+/* 移动端抽屉菜单样式 */
+.mobile-menu {
+  height: 100%;
 }
 </style>
 

@@ -1,19 +1,21 @@
 <template>
   <div class="comment-manage-page">
-    <h1 style="margin-bottom: 16px">评论管理</h1>
+    <h1 class="page-title">评论管理</h1>
 
     <n-data-table
       :columns="columns"
       :data="comments"
       :loading="loading"
       :pagination="pagination"
+      :scroll-x="isMobile ? 1000 : undefined"
+      :single-line="false"
       @update:page="handlePageChange"
     />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, h } from 'vue'
+import { ref, computed, onMounted, onUnmounted, h } from 'vue'
 import { useMessage, useDialog, NButton, NTag, NSpace, NEllipsis } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
 import { getAllComments, updateCommentStatus, deleteComment } from '@/api/comment'
@@ -28,6 +30,12 @@ const comments = ref<Comment[]>([])
 const total = ref(0)
 const currentPage = ref(1)
 const pageSize = ref(10)
+const isMobile = ref(false)
+
+// 检测移动设备
+function checkMobile() {
+  isMobile.value = window.innerWidth <= 768
+}
 
 const pagination = computed(() => ({
   page: currentPage.value,
@@ -114,7 +122,13 @@ const columns: DataTableColumns<Comment> = [
 ]
 
 onMounted(() => {
+  checkMobile()
+  window.addEventListener('resize', checkMobile)
   fetchComments()
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', checkMobile)
 })
 
 async function fetchComments() {
@@ -174,4 +188,22 @@ function handleDelete(id: number) {
   })
 }
 </script>
+
+<style scoped>
+.page-title {
+  margin-bottom: 16px;
+  font-size: 24px;
+}
+
+/* 移动端样式 */
+@media (max-width: 768px) {
+  .page-title {
+    font-size: 20px;
+  }
+  
+  .comment-manage-page :deep(.n-data-table) {
+    font-size: 13px;
+  }
+}
+</style>
 

@@ -2,32 +2,33 @@
   <div class="post-manage-page">
     <div class="header">
       <h1>文章管理</h1>
-      <n-button type="primary" @click="showCreateModal = true">
+      <n-button type="primary" :size="isMobile ? 'small' : 'medium'" @click="showCreateModal = true">
         <template #icon>
           <n-icon :component="AddOutline" />
         </template>
-        新建文章
+        <span v-if="!isMobile">新建文章</span>
+        <span v-else>新建</span>
       </n-button>
     </div>
 
     <!-- 筛选 -->
-    <n-space style="margin: 16px 0">
+    <n-space :vertical="isMobile" style="margin: 16px 0" :wrap="!isMobile">
       <n-input
         v-model:value="searchKeyword"
         placeholder="搜索文章..."
         clearable
-        style="width: 250px"
+        :style="{ width: isMobile ? '100%' : '250px' }"
         @keyup.enter="fetchPosts"
       />
       <n-select
         v-model:value="filterStatus"
         placeholder="状态"
         clearable
-        style="width: 120px"
+        :style="{ width: isMobile ? '100%' : '120px' }"
         :options="statusOptions"
         @update:value="fetchPosts"
       />
-      <n-button @click="fetchPosts">搜索</n-button>
+      <n-button :block="isMobile" @click="fetchPosts">搜索</n-button>
     </n-space>
 
     <!-- 文章列表 -->
@@ -36,6 +37,8 @@
       :data="posts"
       :loading="loading"
       :pagination="pagination"
+      :scroll-x="isMobile ? 800 : undefined"
+      :single-line="false"
       @update:page="handlePageChange"
     />
 
@@ -44,7 +47,7 @@
       v-model:show="showCreateModal" 
       preset="card" 
       title="创建文章" 
-      style="width: 800px"
+      :style="{ width: isMobile ? '95%' : '800px', maxWidth: isMobile ? '95vw' : '800px' }"
       :mask-closable="false"
       :close-on-esc="false"
       @close="handleModalClose"
@@ -109,7 +112,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, h } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted, h } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMessage, useDialog, NButton, NTag, NSpace } from 'naive-ui'
 import type { DataTableColumns, FormInst } from 'naive-ui'
@@ -135,6 +138,12 @@ const currentPage = ref(1)
 const pageSize = ref(10)
 const searchKeyword = ref('')
 const filterStatus = ref<number | null>(null)
+const isMobile = ref(false)
+
+// 检测移动设备
+function checkMobile() {
+  isMobile.value = window.innerWidth <= 768
+}
 
 const formData = reactive<PostForm>({
   title: '',
@@ -241,8 +250,14 @@ const rules = {
 }
 
 onMounted(() => {
+  checkMobile()
+  window.addEventListener('resize', checkMobile)
   blogStore.init()
   fetchPosts()
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', checkMobile)
 })
 
 async function fetchPosts() {
@@ -416,10 +431,23 @@ function handleModalClose() {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 16px;
+  gap: 12px;
 }
 
 .header h1 {
   margin: 0;
+  font-size: 24px;
+}
+
+/* 移动端样式 */
+@media (max-width: 768px) {
+  .header h1 {
+    font-size: 20px;
+  }
+  
+  .post-manage-page :deep(.n-data-table) {
+    font-size: 13px;
+  }
 }
 </style>
 

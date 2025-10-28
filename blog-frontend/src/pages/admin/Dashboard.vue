@@ -3,7 +3,7 @@
     <h1 style="margin-bottom: 24px">仪表盘</h1>
 
     <!-- 统计卡片 -->
-    <n-grid :cols="4" :x-gap="16" :y-gap="16">
+    <n-grid :cols="statsColumns" :x-gap="16" :y-gap="16" responsive="screen">
       <n-gi>
         <n-card>
           <n-statistic label="文章总数" :value="stats.posts">
@@ -43,22 +43,22 @@
     </n-grid>
 
     <!-- 图表区域 -->
-    <n-grid :cols="2" :x-gap="16" :y-gap="16" style="margin-top: 24px">
+    <n-grid :cols="chartColumns" :x-gap="16" :y-gap="16" style="margin-top: 24px" responsive="screen">
       <n-gi>
         <n-card title="文章分类统计">
-          <div ref="categoryChartRef" style="width: 100%; height: 300px"></div>
+          <div ref="categoryChartRef" :style="chartStyle"></div>
         </n-card>
       </n-gi>
       <n-gi>
         <n-card title="最近7天访问量">
-          <div ref="visitChartRef" style="width: 100%; height: 300px"></div>
+          <div ref="visitChartRef" :style="chartStyle"></div>
         </n-card>
       </n-gi>
     </n-grid>
 
     <!-- 快捷操作 -->
     <n-card title="快捷操作" style="margin-top: 24px">
-      <n-space>
+      <n-space :wrap="true">
         <n-button type="primary" @click="router.push('/admin/posts')">
           <template #icon>
             <n-icon :component="AddOutline" />
@@ -82,7 +82,7 @@
 
     <!-- 系统信息 -->
     <n-card title="系统信息" style="margin-top: 24px">
-      <n-descriptions :column="2">
+      <n-descriptions :column="isMobile ? 1 : 2">
         <n-descriptions-item label="系统版本">v1.0.0</n-descriptions-item>
         <n-descriptions-item label="Vue版本">3.3.4</n-descriptions-item>
         <n-descriptions-item label="数据库">PostgreSQL</n-descriptions-item>
@@ -93,7 +93,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMessage } from 'naive-ui'
 import * as echarts from 'echarts'
@@ -131,6 +131,29 @@ let categoryChart: ECharts | null = null
 let visitChart: ECharts | null = null
 
 const loading = ref(false)
+const isMobile = ref(false)
+
+// 响应式列数
+const statsColumns = computed(() => {
+  if (window.innerWidth <= 480) return 1
+  if (window.innerWidth <= 768) return 2
+  return 4
+})
+
+const chartColumns = computed(() => {
+  if (window.innerWidth <= 768) return 1
+  return 2
+})
+
+const chartStyle = computed(() => ({
+  width: '100%',
+  height: isMobile.value ? '250px' : '300px'
+}))
+
+// 检测移动设备
+function checkMobile() {
+  isMobile.value = window.innerWidth <= 768
+}
 
 // 获取统计数据
 async function fetchStats() {
@@ -185,6 +208,9 @@ async function fetchVisitStats() {
 }
 
 onMounted(async () => {
+  // 检测移动设备
+  checkMobile()
+  
   // 获取统计数据
   await fetchStats()
   await fetchCategoryStats()
@@ -201,6 +227,7 @@ onUnmounted(() => {
 })
 
 function handleResize() {
+  checkMobile()
   categoryChart?.resize()
   visitChart?.resize()
 }
@@ -362,6 +389,18 @@ function initVisitChart() {
   padding: 0;
   position: relative;
   z-index: 1;
+}
+
+.dashboard-page h1 {
+  font-size: 28px;
+}
+
+/* 移动端样式 */
+@media (max-width: 768px) {
+  .dashboard-page h1 {
+    font-size: 22px;
+    margin-bottom: 16px !important;
+  }
 }
 
 /* 优化统计卡片样式 */

@@ -63,7 +63,7 @@
           </n-form-item>
 
           <n-form-item label="文章内容" path="content">
-            <markdown-editor v-model="formData.content" height="600px" />
+            <markdown-editor v-model="formData.content" :height="isMobile ? '400px' : '600px'" />
           </n-form-item>
 
           <n-form-item label="状态" path="status">
@@ -77,11 +77,11 @@
             <n-switch v-model:value="formData.is_top" />
           </n-form-item>
 
-          <n-space>
-            <n-button type="primary" size="large" :loading="submitting" @click="handleSubmit">
+          <n-space :vertical="isMobile">
+            <n-button type="primary" :size="isMobile ? 'medium' : 'large'" :block="isMobile" :loading="submitting" @click="handleSubmit">
               {{ isEdit ? '保存修改' : '发布文章' }}
             </n-button>
-            <n-button size="large" @click="handleBack">取消</n-button>
+            <n-button :size="isMobile ? 'medium' : 'large'" :block="isMobile" @click="handleBack">取消</n-button>
           </n-space>
         </n-form>
       </n-spin>
@@ -90,7 +90,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useMessage } from 'naive-ui'
 import type { FormInst, FormRules, SelectOption } from 'naive-ui'
@@ -108,8 +108,14 @@ const blogStore = useBlogStore()
 const formRef = ref<FormInst | null>(null)
 const loading = ref(false)
 const submitting = ref(false)
+const isMobile = ref(false)
 
 const isEdit = computed(() => !!route.params.id)
+
+// 检测移动设备
+function checkMobile() {
+  isMobile.value = window.innerWidth <= 768
+}
 
 const formData = reactive<PostForm>({
   title: '',
@@ -155,6 +161,9 @@ const tagOptions = computed<SelectOption[]>(() => {
 })
 
 onMounted(async () => {
+  checkMobile()
+  window.addEventListener('resize', checkMobile)
+  
   // 加载分类和标签
   await blogStore.fetchCategories()
   await blogStore.fetchTags()
@@ -239,6 +248,10 @@ async function handleSubmit() {
 function handleBack() {
   router.push({ name: 'PostManage' })
 }
+
+onUnmounted(() => {
+  window.removeEventListener('resize', checkMobile)
+})
 </script>
 
 <style scoped>
@@ -249,6 +262,21 @@ function handleBack() {
 .edit-card {
   max-width: 1200px;
   margin: 0 auto;
+}
+
+/* 移动端样式 */
+@media (max-width: 768px) {
+  .post-edit-page :deep(.n-page-header) {
+    padding: 12px;
+  }
+  
+  .edit-card {
+    margin: 0;
+  }
+  
+  .post-edit-page :deep(.n-form-item) {
+    margin-bottom: 20px;
+  }
 }
 </style>
 

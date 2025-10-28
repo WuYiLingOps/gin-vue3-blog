@@ -4,8 +4,8 @@
       <n-form
         ref="formRef"
         :model="formData"
-        label-placement="left"
-        label-width="120"
+        :label-placement="isMobile ? 'top' : 'left'"
+        :label-width="isMobile ? 'auto' : '120'"
         require-mark-placement="right-hanging"
       >
         <n-form-item label="网站名称" path="site_name">
@@ -60,7 +60,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useMessage } from 'naive-ui'
 import { getSiteSettings, updateSiteSettings } from '@/api/setting'
 
@@ -74,6 +74,12 @@ const formData = ref({
 
 const originalData = ref({...formData.value})
 const loading = ref(false)
+const isMobile = ref(false)
+
+// 检测移动设备
+function checkMobile() {
+  isMobile.value = window.innerWidth <= 768
+}
 
 // 获取网站设置
 async function fetchSettings() {
@@ -113,7 +119,13 @@ function handleReset() {
 }
 
 onMounted(() => {
+  checkMobile()
+  window.addEventListener('resize', checkMobile)
   fetchSettings()
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', checkMobile)
 })
 </script>
 
@@ -148,6 +160,17 @@ html.dark .site-settings-page :deep(.n-card) {
 .site-settings-page p {
   margin: 8px 0;
   line-height: 1.6;
+}
+
+/* 移动端样式 */
+@media (max-width: 768px) {
+  .site-settings-page :deep(.n-form-item) {
+    margin-bottom: 20px;
+  }
+  
+  .site-settings-page p {
+    font-size: 14px;
+  }
 }
 </style>
 

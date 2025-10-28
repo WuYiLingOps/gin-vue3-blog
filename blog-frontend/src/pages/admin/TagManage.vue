@@ -2,18 +2,30 @@
   <div class="tag-manage-page">
     <div class="header">
       <h1>标签管理</h1>
-      <n-button type="primary" @click="showModal = true">
+      <n-button type="primary" :size="isMobile ? 'small' : 'medium'" @click="showModal = true">
         <template #icon>
           <n-icon :component="AddOutline" />
         </template>
-        新建标签
+        <span v-if="!isMobile">新建标签</span>
+        <span v-else>新建</span>
       </n-button>
     </div>
 
-    <n-data-table :columns="columns" :data="tags" :loading="loading" />
+    <n-data-table 
+      :columns="columns" 
+      :data="tags" 
+      :loading="loading"
+      :scroll-x="isMobile ? 600 : undefined"
+      :single-line="false"
+    />
 
     <!-- 创建/编辑对话框 -->
-    <n-modal v-model:show="showModal" preset="card" :title="editingId ? '编辑标签' : '新建标签'" style="width: 500px">
+    <n-modal 
+      v-model:show="showModal" 
+      preset="card" 
+      :title="editingId ? '编辑标签' : '新建标签'" 
+      :style="{ width: isMobile ? '95%' : '500px', maxWidth: isMobile ? '95vw' : '500px' }"
+    >
       <n-form ref="formRef" :model="formData" :rules="rules">
         <n-form-item label="名称" path="name">
           <n-input v-model:value="formData.name" placeholder="请输入标签名称" />
@@ -53,7 +65,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, h } from 'vue'
+import { ref, reactive, onMounted, onUnmounted, h } from 'vue'
 import { useMessage, useDialog, NButton, NTag, NSpace } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
 import { AddOutline } from '@vicons/ionicons5'
@@ -69,6 +81,12 @@ const submitting = ref(false)
 const showModal = ref(false)
 const tags = ref<Tag[]>([])
 const editingId = ref<number | null>(null)
+const isMobile = ref(false)
+
+// 检测移动设备
+function checkMobile() {
+  isMobile.value = window.innerWidth <= 768
+}
 
 const formData = reactive<TagForm>({
   name: '',
@@ -122,7 +140,13 @@ const columns: DataTableColumns<Tag> = [
 ]
 
 onMounted(() => {
+  checkMobile()
+  window.addEventListener('resize', checkMobile)
   fetchTags()
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', checkMobile)
 })
 
 async function fetchTags() {
@@ -207,10 +231,23 @@ function resetForm() {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 16px;
+  gap: 12px;
 }
 
 .header h1 {
   margin: 0;
+  font-size: 24px;
+}
+
+/* 移动端样式 */
+@media (max-width: 768px) {
+  .header h1 {
+    font-size: 20px;
+  }
+  
+  .tag-manage-page :deep(.n-data-table) {
+    font-size: 13px;
+  }
 }
 </style>
 

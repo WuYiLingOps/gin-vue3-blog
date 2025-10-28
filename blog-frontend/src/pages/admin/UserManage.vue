@@ -1,19 +1,21 @@
 <template>
   <div class="user-manage-page">
-    <h1 style="margin-bottom: 16px">用户管理</h1>
+    <h1 class="page-title">用户管理</h1>
 
     <n-data-table
       :columns="columns"
       :data="users"
       :loading="loading"
       :pagination="pagination"
+      :scroll-x="isMobile ? 900 : undefined"
+      :single-line="false"
       @update:page="handlePageChange"
     />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, h } from 'vue'
+import { ref, computed, onMounted, onUnmounted, h } from 'vue'
 import { useMessage, useDialog, NButton, NTag, NSpace, NAvatar } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
 import { getUsers, updateUserStatus } from '@/api/user'
@@ -29,6 +31,12 @@ const users = ref<User[]>([])
 const total = ref(0)
 const currentPage = ref(1)
 const pageSize = ref(10)
+const isMobile = ref(false)
+
+// 检测移动设备
+function checkMobile() {
+  isMobile.value = window.innerWidth <= 768
+}
 
 const pagination = computed(() => ({
   page: currentPage.value,
@@ -105,7 +113,13 @@ const columns: DataTableColumns<User> = [
 ]
 
 onMounted(() => {
+  checkMobile()
+  window.addEventListener('resize', checkMobile)
   fetchUsers()
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', checkMobile)
 })
 
 async function fetchUsers() {
@@ -160,4 +174,22 @@ function handleToggleStatus(user: User) {
   })
 }
 </script>
+
+<style scoped>
+.page-title {
+  margin-bottom: 16px;
+  font-size: 24px;
+}
+
+/* 移动端样式 */
+@media (max-width: 768px) {
+  .page-title {
+    font-size: 20px;
+  }
+  
+  .user-manage-page :deep(.n-data-table) {
+    font-size: 13px;
+  }
+}
+</style>
 

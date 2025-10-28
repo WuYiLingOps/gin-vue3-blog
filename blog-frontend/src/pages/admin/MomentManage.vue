@@ -2,11 +2,12 @@
   <div class="moment-manage-page">
     <n-card title="说说管理" :bordered="false">
       <template #header-extra>
-        <n-button type="primary" @click="showCreateModal = true">
+        <n-button type="primary" :size="isMobile ? 'small' : 'medium'" @click="showCreateModal = true">
           <template #icon>
             <n-icon :component="AddOutline" />
           </template>
-          发布说说
+          <span v-if="!isMobile">发布说说</span>
+          <span v-else>发布</span>
         </n-button>
       </template>
 
@@ -16,7 +17,7 @@
           v-model:value="filterStatus"
           :options="statusOptions"
           placeholder="选择状态"
-          style="width: 150px"
+          :style="{ width: isMobile ? '100%' : '150px' }"
           @update:value="handleSearch"
         />
       </n-space>
@@ -101,7 +102,7 @@
       v-model:show="showCreateModal"
       preset="card"
       :title="editingMoment ? '编辑说说' : '发布说说'"
-      style="width: 600px; max-width: 90vw"
+      :style="{ width: isMobile ? '95%' : '600px', maxWidth: isMobile ? '95vw' : '600px' }"
       :bordered="false"
     >
       <n-form ref="formRef" :model="formData" :rules="rules" label-placement="top">
@@ -145,7 +146,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { AddOutline, HeartOutline } from '@vicons/ionicons5'
 import { useMessage } from 'naive-ui'
 import { getAdminMoments, createMoment, updateMoment, deleteMoment } from '@/api/moment'
@@ -164,6 +165,12 @@ const currentPage = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
 const filterStatus = ref<number | null>(null)
+const isMobile = ref(false)
+
+// 检测移动设备
+function checkMobile() {
+  isMobile.value = window.innerWidth <= 768
+}
 
 const statusOptions = [
   { label: '全部', value: null as any },
@@ -195,6 +202,16 @@ function parseImages(images: string): string[] {
     return []
   }
 }
+
+onMounted(() => {
+  checkMobile()
+  window.addEventListener('resize', checkMobile)
+  fetchMoments()
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', checkMobile)
+})
 
 // 获取说说列表
 async function fetchMoments() {
@@ -390,6 +407,27 @@ html.dark .moment-footer {
   gap: 4px;
   font-size: 13px;
   color: #64748b;
+}
+
+/* 移动端样式 */
+@media (max-width: 768px) {
+  .moment-item {
+    padding: 12px;
+  }
+  
+  .moment-header {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .moment-content {
+    font-size: 13px;
+  }
+  
+  .moment-footer {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
 }
 </style>
 
