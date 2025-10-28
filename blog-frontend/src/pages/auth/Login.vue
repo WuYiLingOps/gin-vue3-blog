@@ -114,8 +114,11 @@ async function handleLogin() {
 }
 
 .login-page :deep(.n-form-item) {
-  margin-bottom: 18px;
+  margin-bottom: 13px;
 }
+
+
+
 
 h2 {
   text-align: center;

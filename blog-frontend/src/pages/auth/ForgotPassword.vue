@@ -56,7 +56,7 @@
         </n-input>
       </n-form-item>
 
-      <n-form-item path="confirm_password">
+      <n-form-item path="confirm_password" class="last-item">
         <n-input
           v-model:value="formData.confirm_password"
           type="password"
@@ -222,10 +222,6 @@ onUnmounted(() => {
   width: 100%;
 }
 
-.forgot-password-page :deep(.n-form-item) {
-  margin-bottom: 1px;
-}
-
 h2 {
   text-align: center;
   margin-bottom: 6px;
@@ -244,6 +240,10 @@ h2 {
 .footer-links {
   margin-top: 24px;
   text-align: center;
+}
+
+.last-item {
+  margin-bottom: 9px;
 }
 </style>
 
