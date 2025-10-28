@@ -68,17 +68,15 @@
           <n-empty v-if="!loading && posts.length === 0" description="暂无文章" />
 
           <!-- 分页 -->
-          <n-pagination
-            v-if="total > 0"
-            v-model:page="currentPage"
-            :page-count="totalPages"
-            :page-size="pageSize"
-            show-size-picker
-            :page-sizes="[10, 20, 30]"
-            :page-slot="7"
-            @update:page="handlePageChange"
-            @update:page-size="handlePageSizeChange"
-          />
+          <div v-if="total > 0" class="pagination-wrapper">
+            <n-pagination
+              v-model:page="currentPage"
+              :page-count="totalPages"
+              :page-size="pageSize"
+              :page-slot="7"
+              @update:page="handlePageChange"
+            />
+          </div>
         </n-space>
       </n-spin>
     </n-space>
@@ -422,6 +420,13 @@ html.dark .home-page :deep(.n-card):hover {
 html.dark .post-card:hover {
   box-shadow: 0 20px 48px rgba(0, 0, 0, 0.6);
   border-color: rgba(56, 189, 248, 0.4);
+}
+
+/* 分页居中 */
+.pagination-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-top: 8px;
 }
 </style>
 
