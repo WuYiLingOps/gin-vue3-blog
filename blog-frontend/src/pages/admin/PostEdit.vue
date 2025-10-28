@@ -74,14 +74,7 @@
           </n-form-item>
 
           <n-form-item label="置顶" path="is_top">
-            <n-switch v-model:value="formData.is_top">
-              <template #checked>
-                置顶
-              </template>
-              <template #unchecked>
-                不置顶
-              </template>
-            </n-switch>
+            <n-switch v-model:value="formData.is_top" />
           </n-form-item>
 
           <n-space>
