@@ -38,11 +38,13 @@ async function refreshCaptcha() {
   try {
     loading.value = true
     const res = await getCaptcha()
-    captchaId.value = res.data.captcha_id
-    imageData.value = res.data.image_data
-    captchaValue.value = ''
-    emit('update:captchaId', captchaId.value)
-    emit('update:captcha', '')
+    if (res.data) {
+      captchaId.value = res.data.captcha_id
+      imageData.value = res.data.image_data
+      captchaValue.value = ''
+      emit('update:captchaId', captchaId.value)
+      emit('update:captcha', '')
+    }
   } catch (error: any) {
     message.error(error.message || '获取验证码失败')
   } finally {

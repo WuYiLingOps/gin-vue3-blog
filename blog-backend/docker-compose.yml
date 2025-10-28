@@ -14,6 +14,19 @@ services:
     networks:
       - blog-network
 
+  # Redis 缓存
+  redis:
+    image: redis:7-alpine
+    container_name: blog-redis
+    restart: always
+    environment:
+      REDIS_PASSWORD: hhaa21111pp
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes --requirepass hhaa21111pp
+    networks:
+      - blog-network
+
   # 博客后端
   backend:
     build: .
@@ -23,6 +36,7 @@ services:
       - "8080:8080"
     depends_on:
       - postgres
+      - redis
     volumes:
       # 使用本地目录挂载，方便管理和排查问题
       - ./uploads:/app/uploads
@@ -31,6 +45,7 @@ services:
 
 volumes:
   postgres-data:
+  redis-data:
 
 networks:
   blog-network:
