@@ -9,7 +9,7 @@ export function setupRouterGuards(router: Router) {
     const authStore = useAuthStore()
 
     // 设置页面标题
-    document.title = to.meta.title ? `${to.meta.title} - 我的博客` : '我的博客'
+    document.title = to.meta.title ? `${to.meta.title} - 情迁阁` : '情迁阁'
 
     // 检查是否需要认证
     if (to.meta.requiresAuth && !authStore.isLoggedIn) {

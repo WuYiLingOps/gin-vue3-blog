@@ -228,5 +228,22 @@ h2 {
 .footer-links span {
   margin-right: 8px;
 }
+
+@media (max-width: 768px) {
+  h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
+  
+  .register-page :deep(.n-form-item) {
+    margin-bottom: 16px;
+  }
+  
+  .code-input-wrapper .n-button {
+    min-width: 100px;
+    font-size: 13px;
+    padding: 0 12px;
+  }
+}
 </style>
 

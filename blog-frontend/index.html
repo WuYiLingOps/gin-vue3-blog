@@ -5,11 +5,35 @@
     <link rel="icon" type="image/svg+xml" href="/logo.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>情迁阁</title>
+    <style>
+      /* Live2D 看板娘在移动端隐藏 */
+      @media (max-width: 768px) {
+        #live2d-widget,
+        .live2d-widget,
+        #live2d,
+        canvas[id*="live2d"],
+        canvas[class*="live2d"],
+        div[id*="live2d"],
+        div[class*="live2d"] {
+          display: none !important;
+          visibility: hidden !important;
+          opacity: 0 !important;
+          pointer-events: none !important;
+        }
+      }
+    </style>
   </head>
   <body>
     <div id="app"></div>
     <script type="module" src="/src/main.ts"></script>
-    <script src="https://fastly.jsdelivr.net/npm/live2d-widgets@1.0.0-rc.7/dist/autoload.js"></script>
+    <!-- 只在 PC 端加载 Live2D -->
+    <script>
+      if (window.innerWidth > 768) {
+        const script = document.createElement('script');
+        script.src = 'https://fastly.jsdelivr.net/npm/live2d-widgets@1.0.0-rc.7/dist/autoload.js';
+        document.body.appendChild(script);
+      }
+    </script>
   </body>
 </html>
 

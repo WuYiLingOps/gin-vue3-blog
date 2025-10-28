@@ -245,5 +245,24 @@ h2 {
 .last-item {
   margin-bottom: 9px;
 }
+
+@media (max-width: 768px) {
+  h2 {
+    font-size: 24px;
+    margin-bottom: 8px;
+  }
+  
+  .subtitle {
+    margin-bottom: 20px;
+  }
+  
+  .forgot-password-page :deep(.n-form-item) {
+    margin-bottom: 16px;
+  }
+  
+  .last-item {
+    margin-bottom: 12px;
+  }
+}
 </style>
 

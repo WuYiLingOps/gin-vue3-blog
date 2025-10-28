@@ -58,8 +58,13 @@
 
 
 @media (max-width: 768px) {
+  .auth-container {
+    max-width: 100%;
+    padding: 16px;
+  }
+  
   .auth-content {
-    padding: 32px 24px;
+    padding: 24px 28px;
   }
 }
 

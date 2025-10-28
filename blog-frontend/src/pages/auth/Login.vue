@@ -137,5 +137,16 @@ h2 {
 .footer-links span {
   margin-right: 8px;
 }
+
+@media (max-width: 768px) {
+  h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
+  
+  .login-page :deep(.n-form-item) {
+    margin-bottom: 16px;
+  }
+}
 </style>
 
