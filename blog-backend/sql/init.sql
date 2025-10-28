@@ -300,7 +300,7 @@ COMMENT ON TABLE settings IS '系统配置表';
 COMMENT ON COLUMN settings.key IS '配置键（唯一）';
 COMMENT ON COLUMN settings.value IS '配置值';
 COMMENT ON COLUMN settings.type IS '配置类型：text-文本，json-JSON，image-图片';
-COMMENT ON COLUMN settings."group" IS '配置分组：site-网站，about-关于';
+COMMENT ON COLUMN settings."group" IS '配置分组：site-网站';
 COMMENT ON COLUMN settings.label IS '配置标签（显示名称）';
 
 -- =============================================================================
@@ -415,18 +415,9 @@ VALUES
 ('Docker', '#2496ED', NULL, NULL, 0, NOW(), NOW())
 ON CONFLICT (name) DO NOTHING;
 
--- 插入网站配置（关于页面）
+-- 插入网站配置
 INSERT INTO settings (key, value, type, "group", label, created_at, updated_at)
 VALUES 
-('about_title', '👋 你好', 'text', 'about', '关于标题', NOW(), NOW()),
-('about_intro', '欢迎来到我的个人博客！这里记录了我在技术学习旅程中的点点滴滴。', 'text', 'about', '个人简介', NOW(), NOW()),
-('about_avatar', '', 'image', 'about', '个人头像', NOW(), NOW()),
-('about_skills', '["Vue 3","Go","TypeScript","PostgreSQL","Docker"]', 'json', 'about', '技术栈', NOW(), NOW()),
-('about_email', 'your-email@example.com', 'text', 'about', '联系邮箱', NOW(), NOW()),
-('about_github', 'github.com/yourname', 'text', 'about', 'GitHub', NOW(), NOW()),
-('about_site_intro', '本站基于 Vue 3 + Go 构建，采用前后端分离架构。使用 Naive UI 组件库，支持 Markdown 写作。
-
-如果你觉得这个博客不错，欢迎 Star 或 Fork 源码！', 'text', 'about', '关于本站', NOW(), NOW()),
 ('site_name', '我的博客', 'text', 'site', '网站名称', NOW(), NOW()),
 ('site_icp', '', 'text', 'site', 'ICP备案号', NOW(), NOW()),
 ('site_police', '', 'text', 'site', '公安备案号', NOW(), NOW())

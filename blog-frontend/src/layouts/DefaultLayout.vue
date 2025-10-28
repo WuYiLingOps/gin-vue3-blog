@@ -194,7 +194,7 @@
 <script setup lang="ts">
 import { ref, computed, h, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { MoonOutline, SunnyOutline, PersonOutline, LogOutOutline, SettingsOutline, SearchOutline, MenuOutline, HomeOutline, ArchiveOutline, ChatbubblesOutline, InformationCircleOutline } from '@vicons/ionicons5'
+import { MoonOutline, SunnyOutline, PersonOutline, LogOutOutline, SettingsOutline, SearchOutline, MenuOutline, HomeOutline, ArchiveOutline, ChatbubblesOutline } from '@vicons/ionicons5'
 import { useAuthStore, useAppStore } from '@/stores'
 import { NIcon } from 'naive-ui'
 import { getPublicSettings } from '@/api/setting'
@@ -258,12 +258,6 @@ const menuOptions = [
     key: 'Moments',
     path: '/moments',
     icon: () => h(NIcon, null, { default: () => h(ChatbubblesOutline) })
-  },
-  {
-    label: '关于',
-    key: 'About',
-    path: '/about',
-    icon: () => h(NIcon, null, { default: () => h(InformationCircleOutline) })
   }
 ]
 

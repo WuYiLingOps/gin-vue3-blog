@@ -16,36 +16,6 @@ func NewSettingService() *SettingService {
 	}
 }
 
-// GetAboutSettings 获取关于页面的所有配置
-func (s *SettingService) GetAboutSettings() (map[string]string, error) {
-	settings, err := s.repo.GetByGroup("about")
-	if err != nil {
-		return nil, err
-	}
-
-	result := make(map[string]string)
-	for _, setting := range settings {
-		result[setting.Key] = setting.Value
-	}
-
-	return result, nil
-}
-
-// UpdateAboutSettings 更新关于页面配置
-func (s *SettingService) UpdateAboutSettings(data map[string]string) error {
-	var settings []model.Setting
-
-	for key, value := range data {
-		settings = append(settings, model.Setting{
-			Key:       key,
-			Value:     value,
-			UpdatedAt: time.Now(),
-		})
-	}
-
-	return s.repo.BatchUpdate(settings)
-}
-
 // GetSiteSettings 获取网站配置
 func (s *SettingService) GetSiteSettings() (map[string]string, error) {
 	settings, err := s.repo.GetByGroup("site")

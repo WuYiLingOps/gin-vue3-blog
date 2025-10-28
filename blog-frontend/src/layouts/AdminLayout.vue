@@ -162,11 +162,6 @@ const menuOptions = [
     icon: renderIcon(PeopleOutline)
   },
   {
-    label: '系统配置',
-    key: 'SettingManage',
-    icon: renderIcon(SettingsOutline)
-  },
-  {
     label: '网站设置',
     key: 'SiteSettings',
     icon: renderIcon(SettingsOutline)

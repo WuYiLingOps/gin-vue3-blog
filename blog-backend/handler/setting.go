@@ -17,33 +17,6 @@ func NewSettingHandler() *SettingHandler {
 	}
 }
 
-// GetAboutSettings 获取关于页面配置
-func (h *SettingHandler) GetAboutSettings(c *gin.Context) {
-	settings, err := h.service.GetAboutSettings()
-	if err != nil {
-		util.Error(c, 500, "获取配置失败")
-		return
-	}
-
-	util.Success(c, settings)
-}
-
-// UpdateAboutSettings 更新关于页面配置（仅管理员）
-func (h *SettingHandler) UpdateAboutSettings(c *gin.Context) {
-	var req map[string]string
-	if err := c.ShouldBindJSON(&req); err != nil {
-		util.BadRequest(c, "参数错误")
-		return
-	}
-
-	if err := h.service.UpdateAboutSettings(req); err != nil {
-		util.Error(c, 500, "更新配置失败")
-		return
-	}
-
-	util.SuccessWithMessage(c, "更新成功", nil)
-}
-
 // GetSiteSettings 获取网站配置（仅管理员）
 func (h *SettingHandler) GetSiteSettings(c *gin.Context) {
 	settings, err := h.service.GetSiteSettings()

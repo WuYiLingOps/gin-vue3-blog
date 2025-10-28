@@ -15,7 +15,6 @@ const PostDetail = () => import('@/pages/blog/PostDetail.vue')
 const Category = () => import('@/pages/blog/Category.vue')
 const Tag = () => import('@/pages/blog/Tag.vue')
 const Archive = () => import('@/pages/blog/Archive.vue')
-const About = () => import('@/pages/blog/About.vue')
 const Moments = () => import('@/pages/blog/Moments.vue')
 
 // 认证页面
@@ -31,7 +30,6 @@ const CategoryManage = () => import('@/pages/admin/CategoryManage.vue')
 const TagManage = () => import('@/pages/admin/TagManage.vue')
 const CommentManage = () => import('@/pages/admin/CommentManage.vue')
 const UserManage = () => import('@/pages/admin/UserManage.vue')
-const SettingManage = () => import('@/pages/admin/SettingManage.vue')
 const SiteSettings = () => import('@/pages/admin/SiteSettings.vue')
 const MomentManage = () => import('@/pages/admin/MomentManage.vue')
 
@@ -82,12 +80,6 @@ const routes: RouteRecordRaw[] = [
         name: 'Archive',
         component: Archive,
         meta: { title: '归档' }
-      },
-      {
-        path: 'about',
-        name: 'About',
-        component: About,
-        meta: { title: '关于' }
       },
       {
         path: 'moments',
@@ -184,12 +176,6 @@ const routes: RouteRecordRaw[] = [
         name: 'UserManage',
         component: UserManage,
         meta: { title: '用户管理', requiresAuth: true, requiresAdmin: true }
-      },
-      {
-        path: 'settings',
-        name: 'SettingManage',
-        component: SettingManage,
-        meta: { title: '系统配置', requiresAuth: true, requiresAdmin: true }
       },
       {
         path: 'site',

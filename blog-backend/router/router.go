@@ -180,14 +180,12 @@ func setupSettingRoutes(api *gin.RouterGroup, h *handler.SettingHandler) {
 	settings := api.Group("/settings")
 	{
 		// 公开接口
-		settings.GET("/about", h.GetAboutSettings)
 		settings.GET("/public", h.GetPublicSettings)
 
 		// 需要管理员权限
 		settingsAdmin := settings.Group("")
 		settingsAdmin.Use(middleware.AuthMiddleware(), middleware.AdminMiddleware())
 		{
-			settingsAdmin.PUT("/about", h.UpdateAboutSettings)
 			settingsAdmin.GET("/site", h.GetSiteSettings)
 			settingsAdmin.PUT("/site", h.UpdateSiteSettings)
 		}
