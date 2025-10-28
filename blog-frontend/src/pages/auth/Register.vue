@@ -10,6 +10,25 @@
         <n-input v-model:value="formData.email" placeholder="请输入邮箱" />
       </n-form-item>
 
+      <n-form-item path="code" label="邮箱验证码">
+        <div class="code-input-wrapper">
+          <n-input
+            v-model:value="formData.code"
+            placeholder="请输入邮箱验证码"
+            :maxlength="6"
+            @keyup.enter="handleRegister"
+          />
+          <n-button
+            type="primary"
+            :disabled="sendCodeDisabled || countdown > 0"
+            :loading="sendingCode"
+            @click="handleSendCode"
+          >
+            {{ countdown > 0 ? `${countdown}秒后重试` : '发送验证码' }}
+          </n-button>
+        </div>
+      </n-form-item>
+
       <n-form-item path="password" label="密码">
         <n-input
           v-model:value="formData.password"
@@ -28,15 +47,6 @@
         />
       </n-form-item>
 
-      <n-form-item path="captcha" label="验证码">
-        <captcha-input
-          ref="captchaRef"
-          v-model:captcha-id="formData.captcha_id"
-          v-model:captcha="formData.captcha"
-          @enter="handleRegister"
-        />
-      </n-form-item>
-
       <n-button type="primary" block size="large" :loading="loading" @click="handleRegister">
         注册
       </n-button>
@@ -52,30 +62,35 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMessage } from 'naive-ui'
 import type { FormInst, FormRules } from 'naive-ui'
 import { useAuthStore } from '@/stores'
 import { validateEmail, validateUsername, validatePassword } from '@/utils/validator'
 import type { RegisterForm } from '@/types/auth'
-import CaptchaInput from '@/components/CaptchaInput.vue'
+import { sendRegisterCode } from '@/api/auth'
 
 const router = useRouter()
 const message = useMessage()
 const authStore = useAuthStore()
 
 const formRef = ref<FormInst | null>(null)
-const captchaRef = ref<InstanceType<typeof CaptchaInput> | null>(null)
 const loading = ref(false)
+const sendingCode = ref(false)
+const countdown = ref(0)
+let timer: ReturnType<typeof setInterval> | null = null
 
 const formData = reactive<RegisterForm>({
   username: '',
   email: '',
   password: '',
   confirmPassword: '',
-  captcha_id: '',
-  captcha: ''
+  code: ''
+})
+
+const sendCodeDisabled = computed(() => {
+  return !formData.email || !validateEmail(formData.email)
 })
 
 const rules: FormRules = {
@@ -90,6 +105,10 @@ const rules: FormRules = {
   email: [
     { required: true, message: '请输入邮箱', trigger: 'blur' },
     { validator: (_rule, value) => validateEmail(value), message: '邮箱格式不正确', trigger: 'blur' }
+  ],
+  code: [
+    { required: true, message: '请输入邮箱验证码', trigger: 'blur' },
+    { len: 6, message: '验证码为6位数字', trigger: 'blur' }
   ],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
@@ -106,8 +125,39 @@ const rules: FormRules = {
       message: '两次密码不一致',
       trigger: ['blur', 'input']
     }
-  ],
-  captcha: [{ required: true, message: '请输入验证码', trigger: 'blur' }]
+  ]
+}
+
+async function handleSendCode() {
+  if (!formData.email) {
+    message.warning('请先输入邮箱')
+    return
+  }
+
+  if (!validateEmail(formData.email)) {
+    message.warning('请输入正确的邮箱格式')
+    return
+  }
+
+  try {
+    sendingCode.value = true
+    await sendRegisterCode({ email: formData.email })
+    message.success('验证码已发送，请查收邮箱')
+    
+    // 开始倒计时
+    countdown.value = 60
+    timer = setInterval(() => {
+      countdown.value--
+      if (countdown.value <= 0 && timer) {
+        clearInterval(timer)
+        timer = null
+      }
+    }, 1000)
+  } catch (error: any) {
+    message.error(error.message || '发送失败，请稍后重试')
+  } finally {
+    sendingCode.value = false
+  }
 }
 
 async function handleRegister() {
@@ -120,12 +170,17 @@ async function handleRegister() {
     router.push('/auth/login')
   } catch (error: any) {
     message.error(error.message || '注册失败')
-    // 注册失败后刷新验证码
-    captchaRef.value?.refresh()
   } finally {
     loading.value = false
   }
 }
+
+// 组件卸载时清理定时器
+onUnmounted(() => {
+  if (timer) {
+    clearInterval(timer)
+  }
+})
 </script>
 
 <style scoped>
@@ -138,6 +193,21 @@ h2 {
   margin-bottom: 30px;
   color: #333;
   font-size: 24px;
+}
+
+.code-input-wrapper {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+.code-input-wrapper :deep(.n-input) {
+  flex: 1;
+}
+
+.code-input-wrapper .n-button {
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .footer-links {

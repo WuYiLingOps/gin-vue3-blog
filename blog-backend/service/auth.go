@@ -29,11 +29,10 @@ func NewAuthService() *AuthService {
 
 // RegisterRequest 注册请求
 type RegisterRequest struct {
-	Username  string `json:"username" binding:"required"`
-	Email     string `json:"email" binding:"required,email"`
-	Password  string `json:"password" binding:"required,min=6"`
-	CaptchaID string `json:"captcha_id" binding:"required"`
-	Captcha   string `json:"captcha" binding:"required"`
+	Username string `json:"username" binding:"required"`
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required,min=6"`
+	Code     string `json:"code" binding:"required,len=6"`
 }
 
 // LoginRequest 登录请求
@@ -52,9 +51,14 @@ type LoginResponse struct {
 
 // Register 用户注册
 func (s *AuthService) Register(req *RegisterRequest, ip string) (*model.User, error) {
-	// 验证验证码
-	if err := util.VerifyCaptcha(req.CaptchaID, req.Captcha, ip); err != nil {
-		return nil, err
+	// 验证邮箱验证码
+	resetToken, err := s.resetTokenRepo.GetValidToken(req.Email, req.Code)
+	if err != nil {
+		return nil, errors.New("验证码无效或已过期")
+	}
+
+	if resetToken.IsUsed {
+		return nil, errors.New("验证码已被使用")
 	}
 
 	// 验证用户名格式
@@ -101,6 +105,10 @@ func (s *AuthService) Register(req *RegisterRequest, ip string) (*model.User, er
 	if err := s.userRepo.Create(user); err != nil {
 		return nil, errors.New("用户创建失败")
 	}
+
+	// 标记验证码为已使用
+	resetToken.IsUsed = true
+	s.resetTokenRepo.Update(resetToken)
 
 	return user, nil
 }
@@ -258,8 +266,9 @@ func (s *AuthService) ForgotPassword(req *ForgotPasswordRequest, ip string) erro
 	token := util.GenerateRandomString(32)
 
 	// 保存到数据库
+	userID := user.ID
 	resetToken := &model.PasswordResetToken{
-		UserID:   user.ID,
+		UserID:   &userID,
 		Email:    req.Email,
 		Token:    token,
 		Code:     code,
@@ -308,8 +317,12 @@ func (s *AuthService) ResetPassword(req *ResetPasswordRequest) error {
 		return errors.New("新密码长度至少为6个字符")
 	}
 
-	// 获取用户
-	user, err := s.userRepo.GetByID(resetToken.UserID)
+	// 获取用户（密码重置时UserID不为空）
+	if resetToken.UserID == nil {
+		return errors.New("无效的重置令牌")
+	}
+
+	user, err := s.userRepo.GetByID(*resetToken.UserID)
 	if err != nil {
 		return errors.New("用户不存在")
 	}
@@ -396,4 +409,67 @@ func (s *AuthService) UpdateEmail(userID uint, req *UpdateEmailRequest) error {
 // GetEmailChangeCount 获取用户一年内的邮箱修改次数
 func (s *AuthService) GetEmailChangeCount(userID uint) (int64, error) {
 	return s.emailChangeRepo.CountByUserIDInYear(userID)
+}
+
+// SendRegisterCodeRequest 发送注册验证码请求
+type SendRegisterCodeRequest struct {
+	Email string `json:"email" binding:"required,email"`
+}
+
+// SendRegisterCode 发送注册验证码
+func (s *AuthService) SendRegisterCode(req *SendRegisterCodeRequest, ip string) error {
+	// 验证邮箱格式
+	if !util.ValidateEmail(req.Email) {
+		return errors.New("邮箱格式不正确")
+	}
+
+	// 检查邮箱是否已被注册
+	if _, err := s.userRepo.GetByEmail(req.Email); err == nil {
+		return errors.New("该邮箱已被注册")
+	}
+
+	// 检查发送频率限制（1分钟内只能发送一次）
+	if recent, err := s.resetTokenRepo.GetRecentByEmail(req.Email, 1*60*1000000000); err == nil && recent != nil {
+		remainingTime := 60 - int(time.Since(recent.CreatedAt).Seconds())
+		if remainingTime > 0 {
+			return errors.New(fmt.Sprintf("验证码发送过于频繁，请%d秒后再试", remainingTime))
+		}
+	}
+
+	// 生成验证码和令牌
+	code := util.GenerateVerificationCode()
+	token := util.GenerateRandomString(32)
+
+	// 保存到数据库（注册验证码不需要关联用户ID，使用nil）
+	resetToken := &model.PasswordResetToken{
+		UserID:   nil, // 注册时还没有用户ID
+		Email:    req.Email,
+		Token:    token,
+		Code:     code,
+		ExpireAt: util.GetTimeAfterMinutes(15), // 15分钟有效期
+		IsUsed:   false,
+	}
+
+	if err := s.resetTokenRepo.Create(resetToken); err != nil {
+		return errors.New("系统错误，请稍后重试")
+	}
+
+	// 获取邮箱配置
+	emailConfig := util.EmailConfig{
+		Host:     config.Cfg.Email.Host,
+		Port:     config.Cfg.Email.Port,
+		Username: config.Cfg.Email.Username,
+		Password: config.Cfg.Email.Password,
+		FromName: config.Cfg.Email.FromName,
+	}
+
+	// 异步发送邮件，避免阻塞请求
+	go func(config util.EmailConfig, email string, verificationCode string) {
+		if err := util.SendRegisterVerificationEmail(config, email, verificationCode); err != nil {
+			// 记录错误日志，但不影响主流程
+			fmt.Printf("发送注册验证码邮件失败: %v\n", err)
+		}
+	}(emailConfig, req.Email, code)
+
+	return nil
 }

@@ -358,20 +358,20 @@ COMMENT ON COLUMN moment_likes.ip IS '用户IP地址';
 COMMENT ON COLUMN moment_likes.created_at IS '点赞时间';
 
 -- =============================================================================
--- 9. 密码重置和邮箱修改系统
+-- 9. 密码重置和注册验证码系统
 -- =============================================================================
 
--- 创建密码重置令牌表
+-- 创建密码重置和注册验证码令牌表
+-- 用途：1. 密码重置验证码  2. 注册邮箱验证码
 CREATE TABLE IF NOT EXISTS password_reset_tokens (
     id SERIAL PRIMARY KEY,
-    user_id INTEGER NOT NULL,
+    user_id INTEGER,  -- 注册时为NULL，密码重置时为实际用户ID
     email VARCHAR(100) NOT NULL,
     token VARCHAR(100) NOT NULL UNIQUE,
     code VARCHAR(6) NOT NULL,
     expire_at TIMESTAMP NOT NULL,
     is_used BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 密码重置令牌表索引
@@ -379,13 +379,14 @@ CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_email ON password_reset_tok
 CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_token ON password_reset_tokens(token);
 CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_expire ON password_reset_tokens(expire_at);
 CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_user_id ON password_reset_tokens(user_id);
+CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_email_code ON password_reset_tokens(email, code);
 
 -- 密码重置令牌表注释
-COMMENT ON TABLE password_reset_tokens IS '密码重置令牌表';
-COMMENT ON COLUMN password_reset_tokens.user_id IS '用户ID';
+COMMENT ON TABLE password_reset_tokens IS '密码重置和注册验证码令牌表';
+COMMENT ON COLUMN password_reset_tokens.user_id IS '用户ID（注册时为NULL，密码重置时为实际用户ID）';
 COMMENT ON COLUMN password_reset_tokens.email IS '用户邮箱';
-COMMENT ON COLUMN password_reset_tokens.token IS '重置令牌（唯一）';
-COMMENT ON COLUMN password_reset_tokens.code IS '6位验证码';
+COMMENT ON COLUMN password_reset_tokens.token IS '令牌（唯一标识）';
+COMMENT ON COLUMN password_reset_tokens.code IS '6位数字验证码';
 COMMENT ON COLUMN password_reset_tokens.expire_at IS '过期时间（15分钟有效期）';
 COMMENT ON COLUMN password_reset_tokens.is_used IS '是否已使用';
 COMMENT ON COLUMN password_reset_tokens.created_at IS '创建时间';
@@ -510,6 +511,7 @@ WHERE content_tsv IS NULL;
 -- 2. 全文搜索使用 PostgreSQL 的 tsvector 和 GIN 索引
 -- 3. 应用层更新文章/说说时，需要同时更新 search_tsv/content_tsv 字段
 -- 4. 文章阅读记录用于去重统计，避免同一用户/IP重复计数
--- 5. 密码重置令牌有效期为15分钟，过期数据会每小时自动清理
+-- 5. 验证码有效期为15分钟，过期数据会每小时自动清理
 -- 6. 邮箱修改限制：每个用户一年内只能修改2次
+-- 7. password_reset_tokens 表同时用于注册验证码和密码重置验证码
 -- =============================================================================

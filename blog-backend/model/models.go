@@ -172,7 +172,7 @@ type IPBlacklist struct {
 // PasswordResetToken 密码重置令牌模型
 type PasswordResetToken struct {
 	ID        uint      `json:"id" gorm:"primaryKey"`
-	UserID    uint      `json:"user_id" gorm:"index;not null"`
+	UserID    *uint     `json:"user_id" gorm:"index"` // 注册时为NULL，密码重置时为实际用户ID
 	Email     string    `json:"email" gorm:"size:100;index;not null"`
 	Token     string    `json:"token" gorm:"uniqueIndex;size:100;not null"`
 	Code      string    `json:"code" gorm:"size:6;not null"` // 6位验证码

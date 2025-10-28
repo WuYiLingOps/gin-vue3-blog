@@ -223,3 +223,21 @@ func (h *AuthHandler) GetEmailChangeInfo(c *gin.Context) {
 	})
 }
 
+// SendRegisterCode 发送注册验证码
+func (h *AuthHandler) SendRegisterCode(c *gin.Context) {
+	var req service.SendRegisterCodeRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		util.BadRequest(c, "请求参数错误")
+		return
+	}
+
+	ip := util.GetClientIP(c)
+
+	if err := h.service.SendRegisterCode(&req, ip); err != nil {
+		util.Error(c, 400, err.Error())
+		return
+	}
+
+	util.SuccessWithMessage(c, "验证码已发送到您的邮箱，请查收（有效期15分钟）", nil)
+}
+

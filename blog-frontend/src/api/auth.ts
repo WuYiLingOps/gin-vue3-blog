@@ -8,6 +8,11 @@ export function getCaptcha() {
   return request.get<CaptchaResponse>('/captcha')
 }
 
+// 发送注册验证码
+export function sendRegisterCode(data: { email: string }) {
+  return request.post('/auth/send-register-code', data)
+}
+
 // 用户注册
 export function register(data: RegisterForm) {
   return request.post<User>('/auth/register', data)

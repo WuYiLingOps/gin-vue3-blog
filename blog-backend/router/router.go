@@ -62,6 +62,7 @@ func setupAuthRoutes(api *gin.RouterGroup, h *handler.AuthHandler) {
 	auth := api.Group("/auth")
 	{
 		auth.POST("/register", h.Register)
+		auth.POST("/send-register-code", h.SendRegisterCode) // 发送注册验证码
 		auth.POST("/login", h.Login)
 		auth.POST("/logout", h.Logout)
 		auth.POST("/refresh", h.RefreshToken)

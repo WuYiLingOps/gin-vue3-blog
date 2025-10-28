@@ -35,8 +35,7 @@ export interface RegisterForm {
   email: string
   password: string
   confirmPassword: string
-  captcha_id?: string
-  captcha?: string
+  code?: string
 }
 
 // 登录响应
