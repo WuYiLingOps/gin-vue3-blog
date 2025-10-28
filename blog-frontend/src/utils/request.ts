@@ -52,22 +52,41 @@ service.interceptors.response.use(
     console.error('Response error:', error)
 
     if (error.response) {
-      switch (error.response.status) {
+      const { status, data } = error.response
+      
+      switch (status) {
+        case 400:
+          // 参数错误，使用后端返回的具体错误信息
+          if (data?.message) {
+            error.message = data.message
+          } else {
+            error.message = '请求参数错误，请检查输入内容'
+          }
+          break
         case 401:
           const authStore = useAuthStore()
           authStore.logout()
           window.location.href = '/login'
+          error.message = '登录已过期，请重新登录'
           break
         case 403:
-          console.error('没有权限访问')
+          error.message = data?.message || '没有权限访问'
           break
         case 404:
-          console.error('请求的资源不存在')
+          error.message = data?.message || '请求的资源不存在'
           break
         case 500:
-          console.error('服务器错误')
+          error.message = data?.message || '服务器错误，请稍后重试'
           break
+        default:
+          error.message = data?.message || '网络错误，请稍后重试'
       }
+    } else if (error.request) {
+      // 请求已发出，但没有收到响应
+      error.message = '网络连接失败，请检查网络设置'
+    } else {
+      // 其他错误
+      error.message = error.message || '请求失败'
     }
 
     return Promise.reject(error)

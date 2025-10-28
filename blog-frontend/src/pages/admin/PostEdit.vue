@@ -199,6 +199,7 @@ function handleCoverSuccess(url: string) {
 
 async function handleSubmit() {
   try {
+    // 先进行前端表单验证
     await formRef.value?.validate()
     
     submitting.value = true
@@ -216,7 +217,20 @@ async function handleSubmit() {
 
     handleBack()
   } catch (error: any) {
-    message.error(error.message || '保存失败')
+    // 如果是表单验证错误，不显示错误提示（Naive UI 会自动显示）
+    if (error?.errors) {
+      return
+    }
+    
+    // 处理后端返回的错误
+    let errorMessage = '保存失败'
+    if (error.response?.data?.message) {
+      errorMessage = error.response.data.message
+    } else if (error.message) {
+      errorMessage = error.message
+    }
+    
+    message.error(errorMessage)
   } finally {
     submitting.value = false
   }

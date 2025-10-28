@@ -112,7 +112,7 @@
 import { ref, reactive, computed, onMounted, h } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMessage, useDialog, NButton, NTag, NSpace } from 'naive-ui'
-import type { DataTableColumns } from 'naive-ui'
+import type { DataTableColumns, FormInst } from 'naive-ui'
 import { AddOutline } from '@vicons/ionicons5'
 import { getPosts, createPost, deletePost } from '@/api/post'
 import { useBlogStore } from '@/stores'
@@ -128,6 +128,7 @@ const blogStore = useBlogStore()
 const loading = ref(false)
 const submitting = ref(false)
 const showCreateModal = ref(false)
+const formRef = ref<FormInst | null>(null)
 const posts = ref<Post[]>([])
 const total = ref(0)
 const currentPage = ref(1)
@@ -276,6 +277,9 @@ function handleEdit(id: number) {
 
 async function handleSubmit() {
   try {
+    // 先进行前端表单验证
+    await formRef.value?.validate()
+    
     submitting.value = true
     await createPost(formData)
     message.success('文章创建成功')
@@ -283,7 +287,20 @@ async function handleSubmit() {
     showCreateModal.value = false
     fetchPosts()
   } catch (error: any) {
-    message.error(error.message || '创建失败')
+    // 如果是表单验证错误，不显示错误提示（Naive UI 会自动显示）
+    if (error?.errors) {
+      return
+    }
+    
+    // 处理后端返回的错误
+    let errorMessage = '创建失败'
+    if (error.response?.data?.message) {
+      errorMessage = error.response.data.message
+    } else if (error.message) {
+      errorMessage = error.message
+    }
+    
+    message.error(errorMessage)
   } finally {
     submitting.value = false
   }
