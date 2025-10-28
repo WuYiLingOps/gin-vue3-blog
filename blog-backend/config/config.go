@@ -20,6 +20,12 @@ type Config struct {
 		DBName   string `mapstructure:"dbname"`
 		SSLMode  string `mapstructure:"sslmode"`
 	} `mapstructure:"db"`
+	Redis struct {
+		Host     string `mapstructure:"host"`
+		Port     int    `mapstructure:"port"`
+		Password string `mapstructure:"password"`
+		DB       int    `mapstructure:"db"`
+	} `mapstructure:"redis"`
 	JWT struct {
 		Secret      string `mapstructure:"secret"`
 		ExpireHours int    `mapstructure:"expire_hours"`

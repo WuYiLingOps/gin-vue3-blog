@@ -8,6 +8,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AvatarUpload: typeof import('./../components/AvatarUpload.vue')['default']
+    CaptchaInput: typeof import('./../components/CaptchaInput.vue')['default']
     ImageUpload: typeof import('./../components/ImageUpload.vue')['default']
     MarkdownEditor: typeof import('./../components/MarkdownEditor.vue')['default']
     MarkdownPreview: typeof import('./../components/MarkdownPreview.vue')['default']

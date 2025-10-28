@@ -27,6 +27,15 @@
         />
       </n-form-item>
 
+      <n-form-item path="captcha" label="验证码">
+        <captcha-input
+          ref="captchaRef"
+          v-model:captcha-id="formData.captcha_id"
+          v-model:captcha="formData.captcha"
+          @enter="handleRegister"
+        />
+      </n-form-item>
+
       <n-button type="primary" block size="large" :loading="loading" @click="handleRegister">
         注册
       </n-button>
@@ -49,19 +58,23 @@ import type { FormInst, FormRules } from 'naive-ui'
 import { useAuthStore } from '@/stores'
 import { validateEmail, validateUsername, validatePassword } from '@/utils/validator'
 import type { RegisterForm } from '@/types/auth'
+import CaptchaInput from '@/components/CaptchaInput.vue'
 
 const router = useRouter()
 const message = useMessage()
 const authStore = useAuthStore()
 
 const formRef = ref<FormInst | null>(null)
+const captchaRef = ref<InstanceType<typeof CaptchaInput> | null>(null)
 const loading = ref(false)
 
 const formData = reactive<RegisterForm>({
   username: '',
   email: '',
   password: '',
-  confirmPassword: ''
+  confirmPassword: '',
+  captcha_id: '',
+  captcha: ''
 })
 
 const rules: FormRules = {
@@ -92,7 +105,8 @@ const rules: FormRules = {
       message: '两次密码不一致',
       trigger: ['blur', 'input']
     }
-  ]
+  ],
+  captcha: [{ required: true, message: '请输入验证码', trigger: 'blur' }]
 }
 
 async function handleRegister() {
@@ -105,6 +119,8 @@ async function handleRegister() {
     router.push('/auth/login')
   } catch (error: any) {
     message.error(error.message || '注册失败')
+    // 注册失败后刷新验证码
+    captchaRef.value?.refresh()
   } finally {
     loading.value = false
   }

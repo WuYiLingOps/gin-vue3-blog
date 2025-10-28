@@ -22,15 +22,19 @@ func NewAuthService() *AuthService {
 
 // RegisterRequest 注册请求
 type RegisterRequest struct {
-	Username string `json:"username" binding:"required"`
-	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password" binding:"required,min=6"`
+	Username  string `json:"username" binding:"required"`
+	Email     string `json:"email" binding:"required,email"`
+	Password  string `json:"password" binding:"required,min=6"`
+	CaptchaID string `json:"captcha_id" binding:"required"`
+	Captcha   string `json:"captcha" binding:"required"`
 }
 
 // LoginRequest 登录请求
 type LoginRequest struct {
-	Username string `json:"username" binding:"required"`
-	Password string `json:"password" binding:"required"`
+	Username  string `json:"username" binding:"required"`
+	Password  string `json:"password" binding:"required"`
+	CaptchaID string `json:"captcha_id" binding:"required"`
+	Captcha   string `json:"captcha" binding:"required"`
 }
 
 // LoginResponse 登录响应
@@ -41,6 +45,11 @@ type LoginResponse struct {
 
 // Register 用户注册
 func (s *AuthService) Register(req *RegisterRequest) (*model.User, error) {
+	// 验证验证码
+	if err := util.VerifyCaptcha(req.CaptchaID, req.Captcha); err != nil {
+		return nil, err
+	}
+
 	// 验证用户名格式
 	if !util.ValidateUsername(req.Username) {
 		return nil, errors.New("用户名格式不正确（3-20个字符，只能包含字母、数字、下划线）")
@@ -91,6 +100,11 @@ func (s *AuthService) Register(req *RegisterRequest) (*model.User, error) {
 
 // Login 用户登录
 func (s *AuthService) Login(req *LoginRequest) (*LoginResponse, error) {
+	// 验证验证码
+	if err := util.VerifyCaptcha(req.CaptchaID, req.Captcha); err != nil {
+		return nil, err
+	}
+
 	// 获取用户
 	user, err := s.userRepo.GetByUsername(req.Username)
 	if err != nil {

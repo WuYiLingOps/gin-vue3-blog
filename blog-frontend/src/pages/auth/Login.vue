@@ -19,6 +19,15 @@
         />
       </n-form-item>
 
+      <n-form-item path="captcha" label="验证码">
+        <captcha-input
+          ref="captchaRef"
+          v-model:captcha-id="formData.captcha_id"
+          v-model:captcha="formData.captcha"
+          @enter="handleLogin"
+        />
+      </n-form-item>
+
       <n-form-item>
         <n-checkbox v-model:checked="formData.remember">记住我</n-checkbox>
       </n-form-item>
@@ -44,6 +53,7 @@ import { useMessage } from 'naive-ui'
 import type { FormInst, FormRules } from 'naive-ui'
 import { useAuthStore } from '@/stores'
 import type { LoginForm } from '@/types/auth'
+import CaptchaInput from '@/components/CaptchaInput.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -51,11 +61,14 @@ const message = useMessage()
 const authStore = useAuthStore()
 
 const formRef = ref<FormInst | null>(null)
+const captchaRef = ref<InstanceType<typeof CaptchaInput> | null>(null)
 const loading = ref(false)
 
 const formData = reactive<LoginForm>({
   username: '',
   password: '',
+  captcha_id: '',
+  captcha: '',
   remember: false
 })
 
@@ -64,7 +77,8 @@ const rules: FormRules = {
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
     { min: 6, message: '密码至少6个字符', trigger: 'blur' }
-  ]
+  ],
+  captcha: [{ required: true, message: '请输入验证码', trigger: 'blur' }]
 }
 
 async function handleLogin() {
@@ -80,6 +94,8 @@ async function handleLogin() {
     router.push(redirect)
   } catch (error: any) {
     message.error(error.message || '登录失败')
+    // 登录失败后刷新验证码
+    captchaRef.value?.refresh()
   } finally {
     loading.value = false
   }

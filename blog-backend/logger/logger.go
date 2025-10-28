@@ -28,7 +28,7 @@ func InitLogger(level string, isDev bool) error {
 	}
 
 	var encoder zapcore.Encoder
-
+	isDev = false
 	if isDev {
 		// 开发环境：彩色输出，易读格式
 		encoderConfig := zapcore.EncoderConfig{
@@ -40,7 +40,7 @@ func InitLogger(level string, isDev bool) error {
 			MessageKey:     "M",
 			StacktraceKey:  "S",
 			LineEnding:     zapcore.DefaultLineEnding,
-			EncodeLevel:    zapcore.CapitalColorLevelEncoder, // 彩色级别
+			EncodeLevel:    zapcore.CapitalColorLevelEncoder,                   // 彩色级别
 			EncodeTime:     zapcore.TimeEncoderOfLayout("2006-01-02 15:04:05"), // 简洁时间格式
 			EncodeDuration: zapcore.StringDurationEncoder,
 			EncodeCaller:   zapcore.ShortCallerEncoder,
@@ -57,9 +57,9 @@ func InitLogger(level string, isDev bool) error {
 			MessageKey:     "msg",
 			StacktraceKey:  "stacktrace",
 			LineEnding:     zapcore.DefaultLineEnding,
-			EncodeLevel:    zapcore.LowercaseLevelEncoder, // 小写级别
-			EncodeTime:     zapcore.ISO8601TimeEncoder,    // ISO8601 时间格式
-			EncodeDuration: zapcore.SecondsDurationEncoder,
+			EncodeLevel:    zapcore.CapitalLevelEncoder,
+			EncodeTime:     zapcore.TimeEncoderOfLayout("2006-01-02 15:04:05"), // ISO8601 时间格式
+			EncodeDuration: zapcore.StringDurationEncoder,
 			EncodeCaller:   zapcore.ShortCallerEncoder,
 		}
 		encoder = zapcore.NewJSONEncoder(encoderConfig)

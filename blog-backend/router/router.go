@@ -32,6 +32,7 @@ func SetupRouter() *gin.Engine {
 	dashboardHandler := handler.NewDashboardHandler()
 	momentHandler := handler.NewMomentHandler()
 	ipBlacklistHandler := handler.NewIPBlacklistHandler()
+	captchaHandler := handler.NewCaptchaHandler()
 
 	// 健康检查接口
 	r.GET("/health", func(c *gin.Context) {
@@ -42,6 +43,7 @@ func SetupRouter() *gin.Engine {
 	api := r.Group("/api")
 	{
 		setupAuthRoutes(api, authHandler)
+		setupCaptchaRoutes(api, captchaHandler)
 		setupPostRoutes(api, postHandler)
 		setupCategoryRoutes(api, categoryHandler)
 		setupTagRoutes(api, tagHandler)
@@ -72,6 +74,14 @@ func setupAuthRoutes(api *gin.RouterGroup, h *handler.AuthHandler) {
 			authRequired.PUT("/profile", h.UpdateProfile)
 			authRequired.PUT("/password", h.UpdatePassword)
 		}
+	}
+}
+
+// setupCaptchaRoutes 验证码路由
+func setupCaptchaRoutes(api *gin.RouterGroup, h *handler.CaptchaHandler) {
+	captcha := api.Group("/captcha")
+	{
+		captcha.GET("", h.GetCaptcha)
 	}
 }
 

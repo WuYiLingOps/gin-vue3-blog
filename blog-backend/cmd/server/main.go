@@ -34,6 +34,11 @@ func main() {
 		logger.Fatal(fmt.Sprintf("Failed to init database: %v", err))
 	}
 
+	// 初始化Redis
+	if err := db.InitRedis(); err != nil {
+		logger.Fatal(fmt.Sprintf("Failed to init redis: %v", err))
+	}
+
 	// 初始化上传目录
 	if err := util.InitUploadDirs(); err != nil {
 		logger.Fatal(fmt.Sprintf("Failed to init upload directories: %v", err))
@@ -48,7 +53,6 @@ func main() {
 	// 启动服务器
 	addr := fmt.Sprintf(":%d", config.Cfg.App.Port)
 	logger.Info(fmt.Sprintf("Server is running on http://localhost%s", addr))
-
 	if err := r.Run(addr); err != nil {
 		logger.Fatal(fmt.Sprintf("Failed to start server: %v", err))
 	}

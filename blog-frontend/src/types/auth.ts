@@ -14,10 +14,18 @@ export interface User {
   updated_at: string
 }
 
+// 验证码响应
+export interface CaptchaResponse {
+  captcha_id: string
+  image_data: string
+}
+
 // 登录表单
 export interface LoginForm {
   username: string
   password: string
+  captcha_id?: string
+  captcha?: string
   remember?: boolean
 }
 
@@ -27,6 +35,8 @@ export interface RegisterForm {
   email: string
   password: string
   confirmPassword: string
+  captcha_id?: string
+  captcha?: string
 }
 
 // 登录响应

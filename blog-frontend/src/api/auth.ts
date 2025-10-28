@@ -1,7 +1,12 @@
 // 认证相关 API
 
 import { request } from '@/utils/request'
-import type { LoginForm, RegisterForm, LoginResponse, User, ProfileForm, PasswordForm } from '@/types/auth'
+import type { LoginForm, RegisterForm, LoginResponse, User, ProfileForm, PasswordForm, CaptchaResponse } from '@/types/auth'
+
+// 获取验证码
+export function getCaptcha() {
+  return request.get<CaptchaResponse>('/captcha')
+}
 
 // 用户注册
 export function register(data: RegisterForm) {
