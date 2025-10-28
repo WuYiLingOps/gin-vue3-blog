@@ -358,7 +358,61 @@ COMMENT ON COLUMN moment_likes.ip IS '用户IP地址';
 COMMENT ON COLUMN moment_likes.created_at IS '点赞时间';
 
 -- =============================================================================
--- 9. IP 黑名单系统
+-- 9. 密码重置和邮箱修改系统
+-- =============================================================================
+
+-- 创建密码重置令牌表
+CREATE TABLE IF NOT EXISTS password_reset_tokens (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    token VARCHAR(100) NOT NULL UNIQUE,
+    code VARCHAR(6) NOT NULL,
+    expire_at TIMESTAMP NOT NULL,
+    is_used BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- 密码重置令牌表索引
+CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_email ON password_reset_tokens(email);
+CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_token ON password_reset_tokens(token);
+CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_expire ON password_reset_tokens(expire_at);
+CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_user_id ON password_reset_tokens(user_id);
+
+-- 密码重置令牌表注释
+COMMENT ON TABLE password_reset_tokens IS '密码重置令牌表';
+COMMENT ON COLUMN password_reset_tokens.user_id IS '用户ID';
+COMMENT ON COLUMN password_reset_tokens.email IS '用户邮箱';
+COMMENT ON COLUMN password_reset_tokens.token IS '重置令牌（唯一）';
+COMMENT ON COLUMN password_reset_tokens.code IS '6位验证码';
+COMMENT ON COLUMN password_reset_tokens.expire_at IS '过期时间（15分钟有效期）';
+COMMENT ON COLUMN password_reset_tokens.is_used IS '是否已使用';
+COMMENT ON COLUMN password_reset_tokens.created_at IS '创建时间';
+
+-- 创建邮箱修改记录表
+CREATE TABLE IF NOT EXISTS email_change_records (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    old_email VARCHAR(100) NOT NULL,
+    new_email VARCHAR(100) NOT NULL,
+    changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- 邮箱修改记录表索引
+CREATE INDEX IF NOT EXISTS idx_email_change_records_user_id ON email_change_records(user_id);
+CREATE INDEX IF NOT EXISTS idx_email_change_records_changed_at ON email_change_records(changed_at);
+
+-- 邮箱修改记录表注释
+COMMENT ON TABLE email_change_records IS '邮箱修改记录表（用于限制修改频率）';
+COMMENT ON COLUMN email_change_records.user_id IS '用户ID';
+COMMENT ON COLUMN email_change_records.old_email IS '原邮箱地址';
+COMMENT ON COLUMN email_change_records.new_email IS '新邮箱地址';
+COMMENT ON COLUMN email_change_records.changed_at IS '修改时间';
+
+-- =============================================================================
+-- 10. IP 黑名单系统
 -- =============================================================================
 
 -- 创建IP黑名单表
@@ -384,7 +438,7 @@ COMMENT ON COLUMN ip_blacklist.ban_type IS '封禁类型：1-自动封禁，2-�
 COMMENT ON COLUMN ip_blacklist.expire_at IS '过期时间，NULL表示永久封禁';
 
 -- =============================================================================
--- 10. 初始化默认数据
+-- 11. 初始化默认数据
 -- =============================================================================
 
 -- 插入默认管理员用户
@@ -433,7 +487,7 @@ SELECT
 ON CONFLICT (date) DO NOTHING;
 
 -- =============================================================================
--- 11. 更新现有数据的全文搜索向量
+-- 12. 更新现有数据的全文搜索向量
 -- =============================================================================
 
 -- 更新文章的全文搜索向量（组合标题和内容，标题权重更高）
@@ -456,4 +510,6 @@ WHERE content_tsv IS NULL;
 -- 2. 全文搜索使用 PostgreSQL 的 tsvector 和 GIN 索引
 -- 3. 应用层更新文章/说说时，需要同时更新 search_tsv/content_tsv 字段
 -- 4. 文章阅读记录用于去重统计，避免同一用户/IP重复计数
+-- 5. 密码重置令牌有效期为15分钟，过期数据会每小时自动清理
+-- 6. 邮箱修改限制：每个用户一年内只能修改2次
 -- =============================================================================
