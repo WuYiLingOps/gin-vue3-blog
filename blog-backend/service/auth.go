@@ -44,9 +44,9 @@ type LoginResponse struct {
 }
 
 // Register 用户注册
-func (s *AuthService) Register(req *RegisterRequest) (*model.User, error) {
+func (s *AuthService) Register(req *RegisterRequest, ip string) (*model.User, error) {
 	// 验证验证码
-	if err := util.VerifyCaptcha(req.CaptchaID, req.Captcha); err != nil {
+	if err := util.VerifyCaptcha(req.CaptchaID, req.Captcha, ip); err != nil {
 		return nil, err
 	}
 
@@ -99,9 +99,9 @@ func (s *AuthService) Register(req *RegisterRequest) (*model.User, error) {
 }
 
 // Login 用户登录
-func (s *AuthService) Login(req *LoginRequest) (*LoginResponse, error) {
+func (s *AuthService) Login(req *LoginRequest, ip string) (*LoginResponse, error) {
 	// 验证验证码
-	if err := util.VerifyCaptcha(req.CaptchaID, req.Captcha); err != nil {
+	if err := util.VerifyCaptcha(req.CaptchaID, req.Captcha, ip); err != nil {
 		return nil, err
 	}
 

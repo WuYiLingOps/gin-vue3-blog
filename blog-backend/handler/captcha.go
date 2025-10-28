@@ -14,9 +14,12 @@ func NewCaptchaHandler() *CaptchaHandler {
 
 // GetCaptcha 获取验证码
 func (h *CaptchaHandler) GetCaptcha(c *gin.Context) {
-	captcha, err := util.GenerateCaptcha()
+	// 获取客户端IP
+	ip := util.GetClientIP(c)
+
+	captcha, err := util.GenerateCaptcha(ip)
 	if err != nil {
-		util.Error(c, 500, "生成验证码失败")
+		util.Error(c, 429, err.Error())
 		return
 	}
 

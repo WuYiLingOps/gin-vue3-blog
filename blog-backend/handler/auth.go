@@ -25,7 +25,10 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 
-	user, err := h.service.Register(&req)
+	// 获取客户端IP
+	ip := util.GetClientIP(c)
+
+	user, err := h.service.Register(&req, ip)
 	if err != nil {
 		util.Error(c, 400, err.Error())
 		return
@@ -42,7 +45,10 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	resp, err := h.service.Login(&req)
+	// 获取客户端IP
+	ip := util.GetClientIP(c)
+
+	resp, err := h.service.Login(&req, ip)
 	if err != nil {
 		util.Error(c, 400, err.Error())
 		return
