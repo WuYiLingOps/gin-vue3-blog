@@ -7,10 +7,17 @@
 }
 
 html,
-body,
+body {
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+  position: relative;
+}
+
 #app {
   width: 100%;
   height: 100%;
+  overflow-x: hidden;
 }
 
 body {
@@ -176,5 +183,25 @@ html.dark .gradient-text {
 .n-layout-header,
 .n-layout-footer {
   background-color: transparent !important;
+}
+
+/* 防止移动端水平滚动 */
+* {
+  max-width: 100%;
+}
+
+img,
+video,
+canvas,
+svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* 确保所有容器不会溢出 */
+.n-layout,
+.n-layout-content,
+.n-config-provider {
+  overflow-x: hidden !important;
 }
 
