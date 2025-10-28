@@ -21,6 +21,14 @@ jwt:
   secret: "dGhpcyBpcyBhIHNlY3VyZSBqd3Qgc2VjcmV0IGtleSBmb3IgaHMyNTYK"
   expire_hours: 72
 
+# 邮件配置（用于找回密码功能）
+email:
+  host: smtp.qq.com
+  port: 587
+  username: 2665339398@qq.com  # 请替换为你的QQ邮箱
+  password: iqsabnwwgvuyeafe     # 请替换为你的QQ邮箱授权码
+  from_name: 情迁阁
+
 log:
   level: debug
 

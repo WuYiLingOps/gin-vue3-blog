@@ -38,8 +38,36 @@ export function updatePassword(data: PasswordForm) {
   return request.put('/auth/password', data)
 }
 
+// 修改邮箱
+export function updateEmail(data: { new_email: string }) {
+  return request.put('/auth/email', data)
+}
+
+// 获取邮箱修改信息
+export function getEmailChangeInfo() {
+  return request.get<{
+    change_count: number
+    remaining_times: number
+    can_change: boolean
+  }>('/auth/email-change-info')
+}
+
 // 刷新 Token
 export function refreshToken() {
   return request.post<{ token: string }>('/auth/refresh')
+}
+
+// 忘记密码 - 发送验证码
+export function forgotPassword(data: { email: string }) {
+  return request.post('/auth/forgot-password', data)
+}
+
+// 重置密码
+export function resetPassword(data: {
+  email: string
+  code: string
+  new_password: string
+}) {
+  return request.post('/auth/reset-password', data)
 }
 

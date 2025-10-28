@@ -30,6 +30,13 @@ type Config struct {
 		Secret      string `mapstructure:"secret"`
 		ExpireHours int    `mapstructure:"expire_hours"`
 	} `mapstructure:"jwt"`
+	Email struct {
+		Host     string `mapstructure:"host"`
+		Port     int    `mapstructure:"port"`
+		Username string `mapstructure:"username"`
+		Password string `mapstructure:"password"`
+		FromName string `mapstructure:"from_name"`
+	} `mapstructure:"email"`
 	Log struct {
 		Level string `mapstructure:"level"`
 	} `mapstructure:"log"`

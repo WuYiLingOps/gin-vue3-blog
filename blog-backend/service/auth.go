@@ -2,7 +2,10 @@ package service
 
 import (
 	"errors"
+	"fmt"
+	"time"
 
+	"blog-backend/config"
 	"blog-backend/model"
 	"blog-backend/repository"
 	"blog-backend/util"
@@ -11,12 +14,16 @@ import (
 )
 
 type AuthService struct {
-	userRepo *repository.UserRepository
+	userRepo         *repository.UserRepository
+	resetTokenRepo   *repository.PasswordResetRepository
+	emailChangeRepo  *repository.EmailChangeRepository
 }
 
 func NewAuthService() *AuthService {
 	return &AuthService{
-		userRepo: repository.NewUserRepository(),
+		userRepo:        repository.NewUserRepository(),
+		resetTokenRepo:  repository.NewPasswordResetRepository(),
+		emailChangeRepo: repository.NewEmailChangeRepository(),
 	}
 }
 
@@ -215,4 +222,178 @@ func (s *AuthService) UpdatePassword(userID uint, req *UpdatePasswordRequest) er
 	}
 
 	return nil
+}
+
+// ForgotPasswordRequest 忘记密码请求
+type ForgotPasswordRequest struct {
+	Email string `json:"email" binding:"required,email"`
+}
+
+// ResetPasswordRequest 重置密码请求
+type ResetPasswordRequest struct {
+	Email       string `json:"email" binding:"required,email"`
+	Code        string `json:"code" binding:"required,len=6"`
+	NewPassword string `json:"new_password" binding:"required,min=6"`
+}
+
+// ForgotPassword 发送重置密码邮件
+func (s *AuthService) ForgotPassword(req *ForgotPasswordRequest, ip string) error {
+	// 检查邮箱是否存在
+	user, err := s.userRepo.GetByEmail(req.Email)
+	if err != nil {
+		// 为了安全，不告诉用户邮箱是否存在，但仍然返回成功
+		return nil
+	}
+
+	// 检查发送频率限制（1分钟内只能发送一次）
+	if recent, err := s.resetTokenRepo.GetRecentByEmail(req.Email, 1*60*1000000000); err == nil && recent != nil {
+		remainingTime := 60 - int(time.Since(recent.CreatedAt).Seconds())
+		if remainingTime > 0 {
+			return errors.New(fmt.Sprintf("验证码发送过于频繁，请%d秒后再试", remainingTime))
+		}
+	}
+
+	// 生成验证码和令牌
+	code := util.GenerateVerificationCode()
+	token := util.GenerateRandomString(32)
+
+	// 保存到数据库
+	resetToken := &model.PasswordResetToken{
+		UserID:   user.ID,
+		Email:    req.Email,
+		Token:    token,
+		Code:     code,
+		ExpireAt: util.GetTimeAfterMinutes(15), // 15分钟有效期
+		IsUsed:   false,
+	}
+
+	if err := s.resetTokenRepo.Create(resetToken); err != nil {
+		return errors.New("系统错误，请稍后重试")
+	}
+
+	// 获取邮箱配置
+	emailConfig := util.EmailConfig{
+		Host:     config.Cfg.Email.Host,
+		Port:     config.Cfg.Email.Port,
+		Username: config.Cfg.Email.Username,
+		Password: config.Cfg.Email.Password,
+		FromName: config.Cfg.Email.FromName,
+	}
+
+	// 异步发送邮件，避免阻塞请求
+	go func(config util.EmailConfig, email string, verificationCode string) {
+		if err := util.SendResetPasswordEmail(config, email, verificationCode); err != nil {
+			// 记录错误日志，但不影响主流程
+			fmt.Printf("发送密码重置邮件失败: %v\n", err)
+		}
+	}(emailConfig, req.Email, code)
+
+	return nil
+}
+
+// ResetPassword 重置密码
+func (s *AuthService) ResetPassword(req *ResetPasswordRequest) error {
+	// 查找有效的重置令牌
+	resetToken, err := s.resetTokenRepo.GetValidToken(req.Email, req.Code)
+	if err != nil {
+		return errors.New("验证码无效或已过期")
+	}
+
+	if resetToken.IsUsed {
+		return errors.New("验证码已被使用")
+	}
+
+	// 验证密码强度
+	if !util.ValidatePassword(req.NewPassword) {
+		return errors.New("新密码长度至少为6个字符")
+	}
+
+	// 获取用户
+	user, err := s.userRepo.GetByID(resetToken.UserID)
+	if err != nil {
+		return errors.New("用户不存在")
+	}
+
+	// 加密新密码
+	hashedPassword, err := util.HashPassword(req.NewPassword)
+	if err != nil {
+		return errors.New("密码加密失败")
+	}
+
+	// 更新密码
+	user.Password = hashedPassword
+	if err := s.userRepo.Update(user); err != nil {
+		return errors.New("密码重置失败")
+	}
+
+	// 标记令牌为已使用
+	resetToken.IsUsed = true
+	s.resetTokenRepo.Update(resetToken)
+
+	return nil
+}
+
+// UpdateEmailRequest 修改邮箱请求
+type UpdateEmailRequest struct {
+	NewEmail string `json:"new_email" binding:"required,email"`
+}
+
+// UpdateEmail 修改邮箱
+func (s *AuthService) UpdateEmail(userID uint, req *UpdateEmailRequest) error {
+	// 获取用户信息
+	user, err := s.userRepo.GetByID(userID)
+	if err != nil {
+		return errors.New("用户不存在")
+	}
+
+	// 验证新邮箱格式
+	if !util.ValidateEmail(req.NewEmail) {
+		return errors.New("邮箱格式不正确")
+	}
+
+	// 检查新邮箱是否与当前邮箱相同
+	if user.Email == req.NewEmail {
+		return errors.New("新邮箱与当前邮箱相同")
+	}
+
+	// 检查新邮箱是否已被使用
+	if _, err := s.userRepo.GetByEmail(req.NewEmail); err == nil {
+		return errors.New("该邮箱已被其他用户使用")
+	}
+
+	// 检查一年内的修改次数
+	count, err := s.emailChangeRepo.CountByUserIDInYear(userID)
+	if err != nil {
+		return errors.New("系统错误，请稍后重试")
+	}
+	if count >= 2 {
+		return errors.New("一年内只能修改两次邮箱，您已达到上限")
+	}
+
+	// 记录旧邮箱
+	oldEmail := user.Email
+
+	// 更新邮箱
+	user.Email = req.NewEmail
+	if err := s.userRepo.Update(user); err != nil {
+		return errors.New("邮箱修改失败")
+	}
+
+	// 记录修改历史
+	record := &model.EmailChangeRecord{
+		UserID:   userID,
+		OldEmail: oldEmail,
+		NewEmail: req.NewEmail,
+	}
+	if err := s.emailChangeRepo.Create(record); err != nil {
+		// 记录失败不影响主流程，只记录日志
+		println("邮箱修改记录创建失败:", err.Error())
+	}
+
+	return nil
+}
+
+// GetEmailChangeCount 获取用户一年内的邮箱修改次数
+func (s *AuthService) GetEmailChangeCount(userID uint) (int64, error) {
+	return s.emailChangeRepo.CountByUserIDInYear(userID)
 }

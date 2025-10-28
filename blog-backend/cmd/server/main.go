@@ -8,6 +8,7 @@ import (
 	"blog-backend/db"
 	"blog-backend/logger"
 	"blog-backend/router"
+	"blog-backend/service"
 	"blog-backend/util"
 
 	"github.com/gin-gonic/gin"
@@ -43,6 +44,11 @@ func main() {
 	if err := util.InitUploadDirs(); err != nil {
 		logger.Fatal(fmt.Sprintf("Failed to init upload directories: %v", err))
 	}
+
+	// 启动定期清理任务
+	cleanupService := service.NewCleanupService()
+	cleanupService.StartCleanupTasks()
+	logger.Info("Cleanup tasks started")
 
 	// 设置 Gin 模式
 	gin.SetMode(config.Cfg.Server.Mode)

@@ -2,9 +2,6 @@
   <div class="auth-layout">
     <div class="auth-container">
       <div class="auth-content">
-        <div class="auth-header">
-          <h1 @click="router.push('/')">我的博客</h1>
-        </div>
         <router-view />
       </div>
     </div>
@@ -61,27 +58,6 @@ const router = useRouter()
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
 }
 
-.auth-header {
-  text-align: center;
-  margin-bottom: 32px;
-}
-
-.auth-header h1 {
-  font-size: 32px;
-  font-weight: bold;
-  margin: 0;
-  cursor: pointer;
-  /* 使用主题的蓝绿色渐变 */
-  background: linear-gradient(135deg, #0891b2 0%, #059669 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  transition: all 0.3s ease;
-}
-
-.auth-header h1:hover {
-  transform: scale(1.05);
-}
 
 @media (max-width: 768px) {
   .auth-content {
@@ -104,13 +80,6 @@ html.dark .auth-content {
   background: rgba(30, 30, 46, 0.9);
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-}
-
-html.dark .auth-header h1 {
-  background: linear-gradient(135deg, #38bdf8 0%, #4ade80 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
 }
 </style>
 

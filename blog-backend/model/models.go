@@ -169,6 +169,27 @@ type IPBlacklist struct {
 	UpdatedAt time.Time  `json:"updated_at"`
 }
 
+// PasswordResetToken 密码重置令牌模型
+type PasswordResetToken struct {
+	ID        uint      `json:"id" gorm:"primaryKey"`
+	UserID    uint      `json:"user_id" gorm:"index;not null"`
+	Email     string    `json:"email" gorm:"size:100;index;not null"`
+	Token     string    `json:"token" gorm:"uniqueIndex;size:100;not null"`
+	Code      string    `json:"code" gorm:"size:6;not null"` // 6位验证码
+	ExpireAt  time.Time `json:"expire_at" gorm:"not null"`
+	IsUsed    bool      `json:"is_used" gorm:"default:false"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+// EmailChangeRecord 邮箱修改记录模型
+type EmailChangeRecord struct {
+	ID        uint      `json:"id" gorm:"primaryKey"`
+	UserID    uint      `json:"user_id" gorm:"index;not null"`
+	OldEmail  string    `json:"old_email" gorm:"size:100;not null"`
+	NewEmail  string    `json:"new_email" gorm:"size:100;not null"`
+	ChangedAt time.Time `json:"changed_at" gorm:"default:CURRENT_TIMESTAMP"`
+}
+
 // TableName 指定表名
 func (User) TableName() string {
 	return "users"
@@ -216,4 +237,12 @@ func (MomentLike) TableName() string {
 
 func (IPBlacklist) TableName() string {
 	return "ip_blacklist"
+}
+
+func (PasswordResetToken) TableName() string {
+	return "password_reset_tokens"
+}
+
+func (EmailChangeRecord) TableName() string {
+	return "email_change_records"
 }

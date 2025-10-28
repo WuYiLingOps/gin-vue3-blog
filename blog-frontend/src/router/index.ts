@@ -21,6 +21,7 @@ const Moments = () => import('@/pages/blog/Moments.vue')
 const Login = () => import('@/pages/auth/Login.vue')
 const Register = () => import('@/pages/auth/Register.vue')
 const Profile = () => import('@/pages/auth/Profile.vue')
+const ForgotPassword = () => import('@/pages/auth/ForgotPassword.vue')
 
 // 管理后台页面
 const Dashboard = () => import('@/pages/admin/Dashboard.vue')
@@ -106,6 +107,12 @@ const routes: RouteRecordRaw[] = [
         name: 'Register',
         component: Register,
         meta: { title: '注册' }
+      },
+      {
+        path: 'forgot-password',
+        name: 'ForgotPassword',
+        component: ForgotPassword,
+        meta: { title: '找回密码' }
       }
     ]
   },

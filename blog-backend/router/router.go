@@ -65,6 +65,8 @@ func setupAuthRoutes(api *gin.RouterGroup, h *handler.AuthHandler) {
 		auth.POST("/login", h.Login)
 		auth.POST("/logout", h.Logout)
 		auth.POST("/refresh", h.RefreshToken)
+		auth.POST("/forgot-password", h.ForgotPassword) // 忘记密码 - 发送验证码
+		auth.POST("/reset-password", h.ResetPassword)   // 重置密码
 
 		// 需要认证的接口
 		authRequired := auth.Group("")
@@ -73,6 +75,8 @@ func setupAuthRoutes(api *gin.RouterGroup, h *handler.AuthHandler) {
 			authRequired.GET("/profile", h.GetProfile)
 			authRequired.PUT("/profile", h.UpdateProfile)
 			authRequired.PUT("/password", h.UpdatePassword)
+			authRequired.PUT("/email", h.UpdateEmail)                  // 修改邮箱
+			authRequired.GET("/email-change-info", h.GetEmailChangeInfo) // 获取邮箱修改信息
 		}
 	}
 }

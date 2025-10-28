@@ -1,5 +1,6 @@
 <template>
   <div class="login-page">
+    <h2>登录</h2>
     <n-form ref="formRef" :model="formData" :rules="rules" size="large">
       <n-form-item path="username" label="用户名">
         <n-input
@@ -29,7 +30,12 @@
       </n-form-item>
 
       <n-form-item>
-        <n-checkbox v-model:checked="formData.remember">记住我</n-checkbox>
+        <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
+          <n-checkbox v-model:checked="formData.remember">记住我</n-checkbox>
+          <n-button text type="primary" @click="router.push('/auth/forgot-password')">
+            忘记密码？
+          </n-button>
+        </div>
       </n-form-item>
 
       <n-button type="primary" block size="large" :loading="loading" @click="handleLogin">
@@ -105,6 +111,13 @@ async function handleLogin() {
 <style scoped>
 .login-page {
   width: 100%;
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 30px;
+  color: #333;
+  font-size: 24px;
 }
 
 .footer-links {

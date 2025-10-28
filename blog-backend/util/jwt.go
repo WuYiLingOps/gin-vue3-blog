@@ -68,3 +68,8 @@ func RefreshToken(tokenString string) (string, error) {
 	return GenerateToken(claims.UserID, claims.Username, claims.Role)
 }
 
+// GetTimeAfterMinutes 获取指定分钟后的时间
+func GetTimeAfterMinutes(minutes int) time.Time {
+	return time.Now().Add(time.Duration(minutes) * time.Minute)
+}
+

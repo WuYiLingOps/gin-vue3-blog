@@ -146,3 +146,80 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 	util.Success(c, gin.H{"token": newToken})
 }
 
+// ForgotPassword 忘记密码 - 发送验证码
+func (h *AuthHandler) ForgotPassword(c *gin.Context) {
+	var req service.ForgotPasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		util.BadRequest(c, "请求参数错误")
+		return
+	}
+
+	ip := util.GetClientIP(c)
+
+	if err := h.service.ForgotPassword(&req, ip); err != nil {
+		util.Error(c, 400, err.Error())
+		return
+	}
+
+	util.SuccessWithMessage(c, "验证码已发送到您的邮箱，请查收（有效期15分钟）", nil)
+}
+
+// ResetPassword 重置密码
+func (h *AuthHandler) ResetPassword(c *gin.Context) {
+	var req service.ResetPasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		util.BadRequest(c, "请求参数错误")
+		return
+	}
+
+	if err := h.service.ResetPassword(&req); err != nil {
+		util.Error(c, 400, err.Error())
+		return
+	}
+
+	util.SuccessWithMessage(c, "密码重置成功，请使用新密码登录", nil)
+}
+
+// UpdateEmail 修改邮箱
+func (h *AuthHandler) UpdateEmail(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		util.Unauthorized(c, "未登录")
+		return
+	}
+
+	var req service.UpdateEmailRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		util.BadRequest(c, "请求参数错误")
+		return
+	}
+
+	if err := h.service.UpdateEmail(userID.(uint), &req); err != nil {
+		util.Error(c, 400, err.Error())
+		return
+	}
+
+	util.SuccessWithMessage(c, "邮箱修改成功", nil)
+}
+
+// GetEmailChangeInfo 获取邮箱修改信息
+func (h *AuthHandler) GetEmailChangeInfo(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		util.Unauthorized(c, "未登录")
+		return
+	}
+
+	count, err := h.service.GetEmailChangeCount(userID.(uint))
+	if err != nil {
+		util.ServerError(c, "获取信息失败")
+		return
+	}
+
+	util.Success(c, gin.H{
+		"change_count":     count,
+		"remaining_times":  2 - count,
+		"can_change":       count < 2,
+	})
+}
+

@@ -1,5 +1,6 @@
 <template>
   <div class="register-page">
+    <h2>注册</h2>
     <n-form ref="formRef" :model="formData" :rules="rules" size="large">
       <n-form-item path="username" label="用户名">
         <n-input v-model:value="formData.username" placeholder="3-20个字符，字母数字下划线" />
@@ -130,6 +131,13 @@ async function handleRegister() {
 <style scoped>
 .register-page {
   width: 100%;
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 30px;
+  color: #333;
+  font-size: 24px;
 }
 
 .footer-links {
