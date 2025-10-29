@@ -40,7 +40,7 @@
                 <n-space :size="16">
                   <span class="stat-item like-button" @click="handleLike(moment)">
                     <n-icon :component="moment.liked ? Heart : HeartOutline" :class="{ liked: moment.liked }" />
-                    <span class="like-text">{{ moment.like_count > 0 ? moment.like_count : '点赞' }}</span>
+                    <span v-if="moment.like_count > 0" class="like-text">{{ moment.like_count }}</span>
                   </span>
                 </n-space>
               </div>
