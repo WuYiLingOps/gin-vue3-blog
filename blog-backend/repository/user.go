@@ -66,4 +66,3 @@ func (r *UserRepository) List(page, pageSize int) ([]model.User, int64, error) {
 func (r *UserRepository) UpdateStatus(id uint, status int) error {
 	return db.DB.Model(&model.User{}).Where("id = ?", id).Update("status", status).Error
 }
-

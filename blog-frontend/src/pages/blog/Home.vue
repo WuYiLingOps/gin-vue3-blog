@@ -152,12 +152,6 @@ function handlePageChange(page: number) {
   fetchPosts()
 }
 
-function handlePageSizeChange(size: number) {
-  pageSize.value = size
-  currentPage.value = 1
-  fetchPosts()
-}
-
 // 高亮标题
 function getHighlightedTitle(title: string): string {
   if (!searchKeyword.value) {
