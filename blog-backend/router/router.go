@@ -193,6 +193,8 @@ func setupSettingRoutes(api *gin.RouterGroup, h *handler.SettingHandler) {
 		{
 			settingsAdmin.GET("/site", h.GetSiteSettings)
 			settingsAdmin.PUT("/site", h.UpdateSiteSettings)
+			settingsAdmin.GET("/upload", h.GetUploadSettings)
+			settingsAdmin.PUT("/upload", h.UpdateUploadSettings)
 		}
 	}
 }

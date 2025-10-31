@@ -46,13 +46,51 @@
       </n-form>
     </n-card>
 
+    <n-card title="上传存储配置" style="margin-top: 24px;">
+      <n-form
+        ref="uploadFormRef"
+        :model="uploadFormData"
+        :label-placement="isMobile ? 'top' : 'left'"
+        :label-width="isMobile ? 'auto' : '120'"
+        require-mark-placement="right-hanging"
+      >
+        <n-form-item label="存储方式" path="storage_type">
+          <n-radio-group v-model:value="uploadFormData.storage_type">
+            <n-space>
+              <n-radio value="local">本地存储</n-radio>
+              <n-radio value="oss">阿里云 OSS</n-radio>
+            </n-space>
+          </n-radio-group>
+        </n-form-item>
+
+        <n-alert v-if="uploadFormData.storage_type === 'oss'" type="info" style="margin-bottom: 16px;">
+          OSS 配置需要在服务器配置文件中设置（config/config-dev.yml 或 config/config-prod.yml）
+        </n-alert>
+
+        <n-form-item>
+          <n-space>
+            <n-button type="primary" @click="handleUploadSubmit" :loading="uploadLoading">
+              保存配置
+            </n-button>
+            <n-button @click="handleUploadReset">
+              重置
+            </n-button>
+          </n-space>
+        </n-form-item>
+      </n-form>
+    </n-card>
+
     <n-card title="设置说明" style="margin-top: 24px;">
       <n-space vertical>
         <p><strong>网站名称：</strong>显示在网站底部的名称</p>
         <p><strong>ICP备案号：</strong>工信部备案号，点击后会跳转到 beian.miit.gov.cn</p>
         <p><strong>公安备案号：</strong>公安部备案号，点击后会跳转到 www.beian.gov.cn</p>
-        <p style="color: #999; font-size: 13px;">
-          提示：如果不需要显示备案信息，可以留空
+        <n-divider />
+        <p><strong>存储方式：</strong>选择文件上传的存储方式</p>
+        <p><strong>本地存储：</strong>文件保存在服务器本地，适合小型网站或开发环境</p>
+        <p><strong>阿里云 OSS：</strong>文件保存到阿里云对象存储，适合生产环境</p>
+        <p style="color: #f90; font-size: 13px;">
+          ⚠️ 重要：使用 OSS 存储前，请先在服务器配置文件中填写 OSS 相关参数（endpoint、access_key_id、access_key_secret、bucket_name）
         </p>
       </n-space>
     </n-card>
@@ -62,7 +100,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useMessage } from 'naive-ui'
-import { getSiteSettings, updateSiteSettings } from '@/api/setting'
+import { getSiteSettings, updateSiteSettings, getUploadSettings, updateUploadSettings } from '@/api/setting'
 
 const message = useMessage()
 
@@ -72,8 +110,14 @@ const formData = ref({
   site_police: ''
 })
 
+const uploadFormData = ref({
+  storage_type: 'local'
+})
+
 const originalData = ref({...formData.value})
+const originalUploadData = ref({...uploadFormData.value})
 const loading = ref(false)
+const uploadLoading = ref(false)
 const isMobile = ref(false)
 
 // 检测移动设备
@@ -98,6 +142,21 @@ async function fetchSettings() {
   }
 }
 
+// 获取上传配置
+async function fetchUploadSettings() {
+  try {
+    const res = await getUploadSettings()
+    if (res.data) {
+      uploadFormData.value = {
+        storage_type: res.data.storage_type || 'local'
+      }
+      originalUploadData.value = {...uploadFormData.value}
+    }
+  } catch (error: any) {
+    message.error(error.response?.data?.message || '获取上传配置失败')
+  }
+}
+
 // 提交表单
 async function handleSubmit() {
   loading.value = true
@@ -112,9 +171,29 @@ async function handleSubmit() {
   }
 }
 
+// 提交上传配置
+async function handleUploadSubmit() {
+  uploadLoading.value = true
+  try {
+    await updateUploadSettings(uploadFormData.value)
+    message.success('上传配置保存成功')
+    originalUploadData.value = {...uploadFormData.value}
+  } catch (error: any) {
+    message.error(error.response?.data?.message || '保存失败')
+  } finally {
+    uploadLoading.value = false
+  }
+}
+
 // 重置表单
 function handleReset() {
   formData.value = {...originalData.value}
+  message.info('已重置')
+}
+
+// 重置上传配置
+function handleUploadReset() {
+  uploadFormData.value = {...originalUploadData.value}
   message.info('已重置')
 }
 
@@ -122,6 +201,7 @@ onMounted(() => {
   checkMobile()
   window.addEventListener('resize', checkMobile)
   fetchSettings()
+  fetchUploadSettings()
 })
 
 onUnmounted(() => {

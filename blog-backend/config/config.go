@@ -40,6 +40,13 @@ type Config struct {
 	Log struct {
 		Level string `mapstructure:"level"`
 	} `mapstructure:"log"`
+	OSS struct {
+		Endpoint        string `mapstructure:"endpoint"`
+		AccessKeyID     string `mapstructure:"access_key_id"`
+		AccessKeySecret string `mapstructure:"access_key_secret"`
+		BucketName      string `mapstructure:"bucket_name"`
+		Domain          string `mapstructure:"domain"` // 自定义域名（可选）
+	} `mapstructure:"oss"`
 }
 
 var Cfg *Config

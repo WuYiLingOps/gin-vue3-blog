@@ -21,15 +21,14 @@ func (h *UploadHandler) UploadAvatar(c *gin.Context) {
 		return
 	}
 
-	// 保存文件
-	filePath, err := util.SaveUploadedFile(file, util.AvatarDir)
+	// 上传文件（自动根据配置选择存储方式）
+	fileURL, err := util.UploadFile(file, util.AvatarDir)
 	if err != nil {
 		util.Error(c, 400, err.Error())
 		return
 	}
 
 	// 返回文件 URL
-	fileURL := util.GetFileURL(filePath)
 	util.SuccessWithMessage(c, "上传成功", gin.H{
 		"url": fileURL,
 	})
@@ -44,15 +43,14 @@ func (h *UploadHandler) UploadImage(c *gin.Context) {
 		return
 	}
 
-	// 保存文件
-	filePath, err := util.SaveUploadedFile(file, util.UploadDir)
+	// 上传文件（自动根据配置选择存储方式）
+	fileURL, err := util.UploadFile(file, util.UploadDir)
 	if err != nil {
 		util.Error(c, 400, err.Error())
 		return
 	}
 
 	// 返回文件 URL
-	fileURL := util.GetFileURL(filePath)
 	util.SuccessWithMessage(c, "上传成功", gin.H{
 		"url": fileURL,
 	})

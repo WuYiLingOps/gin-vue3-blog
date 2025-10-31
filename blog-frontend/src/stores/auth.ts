@@ -4,7 +4,6 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { User, LoginForm, RegisterForm } from '@/types/auth'
 import { login as loginApi, register as registerApi, getProfile, logout as logoutApi } from '@/api/auth'
-import { normalizeImageUrl } from '@/utils/url'
 
 export const useAuthStore = defineStore(
   'auth',
@@ -23,10 +22,6 @@ export const useAuthStore = defineStore(
       console.log(res)
       if (res.data) {
         token.value = res.data.token
-        // 标准化用户头像 URL
-        if (res.data.user) {
-          res.data.user.avatar = normalizeImageUrl(res.data.user.avatar)
-        }
         user.value = res.data.user
       }
       return res
@@ -52,8 +47,6 @@ export const useAuthStore = defineStore(
     async function fetchUserInfo() {
       const res = await getProfile()
       if (res.data) {
-        // 标准化用户头像 URL
-        res.data.avatar = normalizeImageUrl(res.data.avatar)
         user.value = res.data
       }
       return res

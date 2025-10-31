@@ -61,3 +61,40 @@ func (s *SettingService) GetPublicSettings() (map[string]string, error) {
 	return result, nil
 }
 
+// GetUploadSettings 获取上传配置（仅返回存储类型开关）
+func (s *SettingService) GetUploadSettings() (map[string]string, error) {
+	settings, err := s.repo.GetByGroup("upload")
+	if err != nil {
+		return nil, err
+	}
+
+	result := make(map[string]string)
+	for _, setting := range settings {
+		result[setting.Key] = setting.Value
+	}
+
+	// 设置默认值
+	if result["storage_type"] == "" {
+		result["storage_type"] = "local"
+	}
+
+	return result, nil
+}
+
+// UpdateUploadSettings 更新上传配置（仅更新存储类型开关）
+func (s *SettingService) UpdateUploadSettings(data map[string]string) error {
+	var settings []model.Setting
+
+	// 只保存 storage_type，其他 OSS 配置从配置文件读取
+	if storageType, ok := data["storage_type"]; ok {
+		settings = append(settings, model.Setting{
+			Group:     "upload",
+			Key:       "storage_type",
+			Value:     storageType,
+			UpdatedAt: time.Now(),
+		})
+	}
+
+	return s.repo.BatchUpdate(settings)
+}
+
