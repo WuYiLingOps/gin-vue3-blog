@@ -4,6 +4,7 @@ import (
 	"blog-backend/model"
 	"blog-backend/repository"
 	"encoding/json"
+	"fmt"
 	"log"
 	"sync"
 	"time"
@@ -73,8 +74,8 @@ func (h *Hub) Run() {
 			// 广播用户加入消息
 			h.broadcastUserJoin(client)
 
-			// 发送在线用户列表给新用户
-			go h.sendUserList(client)
+			// 广播最新的在线用户列表给所有人
+			go h.broadcastUserList()
 
 		case client := <-h.Unregister:
 			h.mutex.Lock()
@@ -86,6 +87,9 @@ func (h *Hub) Run() {
 				h.broadcastUserLeave(client)
 			}
 			h.mutex.Unlock()
+
+			// 广播最新的在线用户列表给所有人
+			go h.broadcastUserList()
 
 		case message := <-h.Broadcast:
 			h.mutex.RLock()
@@ -175,18 +179,10 @@ func (h *Hub) broadcastUserLeave(client *Client) {
 	h.Broadcast <- data
 }
 
-// sendUserList 发送在线用户列表
+// sendUserList 发送在线用户列表给单个客户端（去重后）
 func (h *Hub) sendUserList(client *Client) {
-	h.mutex.RLock()
-	userList := make([]UserInfo, 0, len(h.Clients))
-	for c := range h.Clients {
-		userList = append(userList, UserInfo{
-			ID:       c.ID,
-			Username: c.Username,
-			Avatar:   c.Avatar,
-		})
-	}
-	h.mutex.RUnlock()
+	// 使用 GetOnlineUsers 获取去重后的用户列表
+	userList := h.GetOnlineUsers()
 
 	wsMsg := WebSocketMessage{
 		Type:      "user_list",
@@ -205,26 +201,78 @@ func (h *Hub) sendUserList(client *Client) {
 	}
 }
 
-// GetOnlineCount 获取在线人数
+// broadcastUserList 广播在线用户列表给所有客户端（去重后）
+func (h *Hub) broadcastUserList() {
+	// 使用 GetOnlineUsers 获取去重后的用户列表
+	userList := h.GetOnlineUsers()
+
+	wsMsg := WebSocketMessage{
+		Type:      "user_list",
+		Data:      userList,
+		Timestamp: time.Now().Unix(),
+	}
+
+	data, _ := json.Marshal(wsMsg)
+	h.Broadcast <- data
+}
+
+// GetOnlineCount 获取在线人数（按用户去重）
 func (h *Hub) GetOnlineCount() int {
 	h.mutex.RLock()
 	defer h.mutex.RUnlock()
-	return len(h.Clients)
+	
+	// 使用 map 去重，key 为 user_id（登录用户）或 username（匿名用户）
+	uniqueUsers := make(map[string]bool)
+	
+	for client := range h.Clients {
+		var key string
+		if client.UserID != nil {
+			// 登录用户，使用 user_id 作为唯一标识
+			key = fmt.Sprintf("user_%d", *client.UserID)
+		} else {
+			// 匿名用户，使用 username 作为唯一标识
+			key = fmt.Sprintf("anonymous_%s", client.Username)
+		}
+		uniqueUsers[key] = true
+	}
+	
+	return len(uniqueUsers)
 }
 
-// GetOnlineUsers 获取在线用户列表
+// GetOnlineUsers 获取在线用户列表（按用户去重）
 func (h *Hub) GetOnlineUsers() []UserInfo {
 	h.mutex.RLock()
 	defer h.mutex.RUnlock()
 
-	users := make([]UserInfo, 0, len(h.Clients))
+	// 使用 map 去重
+	uniqueUsersMap := make(map[string]UserInfo)
+	
 	for client := range h.Clients {
-		users = append(users, UserInfo{
-			ID:       client.ID,
-			Username: client.Username,
-			Avatar:   client.Avatar,
-		})
+		var key string
+		if client.UserID != nil {
+			// 登录用户，使用 user_id 作为唯一标识
+			key = fmt.Sprintf("user_%d", *client.UserID)
+		} else {
+			// 匿名用户，使用 username 作为唯一标识
+			key = fmt.Sprintf("anonymous_%s", client.Username)
+		}
+		
+		// 如果已存在，保留第一个连接的信息（或者可以更新为最新的）
+		if _, exists := uniqueUsersMap[key]; !exists {
+			uniqueUsersMap[key] = UserInfo{
+				ID:       client.ID,
+				Username: client.Username,
+				Avatar:   client.Avatar,
+			}
+		}
 	}
+	
+	// 转换为数组
+	users := make([]UserInfo, 0, len(uniqueUsersMap))
+	for _, user := range uniqueUsersMap {
+		users = append(users, user)
+	}
+	
 	return users
 }
 

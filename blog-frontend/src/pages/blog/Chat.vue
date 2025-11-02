@@ -425,22 +425,17 @@ const connectWebSocket = () => {
     scrollToBottom()
   })
 
-  // 用户加入
-  ws.on('user_join', (data: OnlineUser) => {
-    onlineUsers.value.push(data)
-    onlineCount.value++
+  // 用户加入（不再自己维护计数，等待 user_list 更新）
+  ws.on('user_join', () => {
+    // 不做任何操作，等待后端发送完整的 user_list
   })
 
-  // 用户离开
-  ws.on('user_leave', (data: OnlineUser) => {
-    const index = onlineUsers.value.findIndex(u => u.id === data.id)
-    if (index > -1) {
-      onlineUsers.value.splice(index, 1)
-      onlineCount.value--
-    }
+  // 用户离开（不再自己维护计数，等待 user_list 更新）
+  ws.on('user_leave', () => {
+    // 不做任何操作，等待后端发送完整的 user_list
   })
 
-  // 在线用户列表
+  // 在线用户列表（唯一的在线数据来源）
   ws.on('user_list', (data: OnlineUser[]) => {
     onlineUsers.value = data
     onlineCount.value = data.length
