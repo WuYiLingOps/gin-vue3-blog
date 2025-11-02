@@ -347,13 +347,19 @@ const getAvatarColor = (username: string) => {
 
 // 判断是否是自己的消息
 const isOwnMessage = (msg: ChatMessage) => {
-  // 如果用户已登录，比较user_id
+  // 如果用户已登录，同时比较 user_id 和 username
   if (authStore.isLoggedIn && authStore.user?.id) {
-    // 确保类型一致再比较
-    return msg.user_id !== null && msg.user_id !== undefined && Number(msg.user_id) === Number(authStore.user.id)
+    // 先比较 user_id（登录用户的消息）
+    if (msg.user_id !== null && msg.user_id !== undefined && Number(msg.user_id) === Number(authStore.user.id)) {
+      return true
+    }
+    // 再比较 username（可能是同一个用户在另一个设备上匿名发的）
+    if (authStore.user.username && msg.username === authStore.user.username) {
+      return true
+    }
   }
   
-  // 如果是匿名用户，比较用户名
+  // 如果是匿名用户，只比较用户名
   if (userSetup.value.username) {
     return msg.username === userSetup.value.username
   }

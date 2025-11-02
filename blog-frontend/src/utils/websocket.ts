@@ -180,11 +180,29 @@ export class ChatWebSocket {
 
 // 创建聊天WebSocket连接
 export function createChatWebSocket(username?: string, avatar?: string, token?: string): ChatWebSocket {
+  // 优先使用专门的 WebSocket URL
+  let wsBaseUrl = import.meta.env.VITE_WS_BASE_URL
+  
+  if (!wsBaseUrl) {
+    // 如果没有配置 WS URL，则从 API URL 自动转换
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL
+    if (apiBaseUrl) {
+      // 从 API URL 提取 host（移除协议）
+      wsBaseUrl = apiBaseUrl.replace(/^https?:\/\//, '')
+    } else {
+      // 如果都没配置，使用当前页面的 host
+      wsBaseUrl = window.location.host
+    }
+  } else {
+    // 移除 WebSocket URL 中的协议前缀（如果有）
+    wsBaseUrl = wsBaseUrl.replace(/^wss?:\/\//, '')
+  }
+  
+  // 根据当前页面协议决定使用 ws 还是 wss
   const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-  const host = import.meta.env.VITE_API_BASE_URL?.replace(/^https?:\/\//, '') || window.location.host
   
   // 构建WebSocket URL
-  let wsUrl = `${protocol}//${host}/api/chat/ws`
+  let wsUrl = `${protocol}//${wsBaseUrl}/api/chat/ws`
   
   // 添加查询参数
   const params = new URLSearchParams()
@@ -202,6 +220,8 @@ export function createChatWebSocket(username?: string, avatar?: string, token?: 
   if (params.toString()) {
     wsUrl += `?${params.toString()}`
   }
+
+  console.log('WebSocket URL:', wsUrl) // 调试用，方便查看实际连接的URL
 
   return new ChatWebSocket(wsUrl)
 }
