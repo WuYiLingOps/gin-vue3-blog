@@ -769,5 +769,116 @@ onUnmounted(() => {
 .chat-messages::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
+
+/* ===== 移动端响应式适配 ===== */
+@media screen and (max-width: 768px) {
+  .chat-page {
+    padding: 0;
+    max-width: 100%;
+    height: 100vh;
+  }
+
+  .chat-container {
+    border-radius: 0;
+    height: 100vh;
+  }
+
+  .chat-container :deep(.n-card) {
+    border-radius: 0;
+  }
+
+  .chat-container :deep(.n-card__content) {
+    padding: 12px;
+    height: calc(100vh - 60px);
+  }
+
+  .chat-messages {
+    padding: 12px;
+    border-radius: 0;
+    margin-bottom: 12px;
+  }
+
+  .message-item {
+    gap: 8px;
+  }
+
+  .message-avatar :deep(.n-avatar) {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 14px;
+  }
+
+  .message-content {
+    max-width: 75%;
+  }
+
+  .message-header {
+    font-size: 11px;
+  }
+
+  .message-text {
+    padding: 8px 10px;
+    font-size: 14px;
+  }
+
+  .chat-input {
+    padding: 12px;
+    border-radius: 0;
+  }
+
+  .input-wrapper :deep(.n-input) {
+    font-size: 14px;
+  }
+
+  .emoji-btn {
+    padding: 4px 8px;
+  }
+
+  .emoji-btn :deep(.n-icon) {
+    font-size: 24px !important;
+  }
+
+  .emoji-picker {
+    grid-template-columns: repeat(6, 1fr);
+    max-width: 280px;
+  }
+
+  .emoji-item {
+    font-size: 20px;
+  }
+
+  /* 在线人数徽章 */
+  .chat-container :deep(.n-card-header) {
+    padding: 12px;
+    font-size: 16px;
+  }
+
+  .chat-container :deep(.n-card-header__extra) {
+    font-size: 12px;
+  }
+}
+
+/* 小屏手机优化 (iPhone SE 等) */
+@media screen and (max-width: 375px) {
+  .message-avatar :deep(.n-avatar) {
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 12px;
+  }
+
+  .message-content {
+    max-width: 70%;
+  }
+
+  .message-text {
+    padding: 6px 8px;
+    font-size: 13px;
+  }
+
+  .emoji-picker {
+    grid-template-columns: repeat(5, 1fr);
+    max-width: 240px;
+  }
+}
 </style>
 
