@@ -242,7 +242,7 @@
 <script setup lang="ts">
 import { ref, computed, h, onMounted, onBeforeUnmount, reactive } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { MoonOutline, SunnyOutline, PersonOutline, LogOutOutline, SettingsOutline, SearchOutline, MenuOutline, HomeOutline, ArchiveOutline, ChatbubblesOutline } from '@vicons/ionicons5'
+import { MoonOutline, SunnyOutline, PersonOutline, LogOutOutline, SettingsOutline, SearchOutline, MenuOutline, HomeOutline, ArchiveOutline, ChatbubblesOutline, ChatboxEllipsesOutline } from '@vicons/ionicons5'
 import { useAuthStore, useAppStore } from '@/stores'
 import { NIcon, useMessage, useDialog } from 'naive-ui'
 import type { FormInst, FormRules } from 'naive-ui'
@@ -339,6 +339,12 @@ const menuOptions = [
     key: 'Moments',
     path: '/moments',
     icon: () => h(NIcon, null, { default: () => h(ChatbubblesOutline) })
+  },
+  {
+    label: '聊天室',
+    key: 'Chat',
+    path: '/chat',
+    icon: () => h(NIcon, null, { default: () => h(ChatboxEllipsesOutline) })
   }
 ]
 

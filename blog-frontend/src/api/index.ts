@@ -7,4 +7,5 @@ export * from './tag'
 export * from './comment'
 export * from './user'
 export * from './dashboard'
+export * from './chat'
 

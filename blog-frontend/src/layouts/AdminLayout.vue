@@ -113,7 +113,8 @@ import {
   PersonOutline,
   LogOutOutline,
   SettingsOutline,
-  MenuOutline
+  MenuOutline,
+  ChatbubbleEllipsesOutline
 } from '@vicons/ionicons5'
 import { useAuthStore } from '@/stores'
 import { NIcon, useLoadingBar } from 'naive-ui'
@@ -192,6 +193,11 @@ const menuOptions = [
     label: '说说管理',
     key: 'MomentManage',
     icon: renderIcon(ChatboxEllipsesOutline)
+  },
+  {
+    label: '聊天室管理',
+    key: 'ChatManage',
+    icon: renderIcon(ChatbubbleEllipsesOutline)
   },
   {
     label: '分类管理',

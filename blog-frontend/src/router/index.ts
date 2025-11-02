@@ -16,6 +16,7 @@ const Category = () => import('@/pages/blog/Category.vue')
 const Tag = () => import('@/pages/blog/Tag.vue')
 const Archive = () => import('@/pages/blog/Archive.vue')
 const Moments = () => import('@/pages/blog/Moments.vue')
+const Chat = () => import('@/pages/blog/Chat.vue')
 
 // 认证页面
 const Login = () => import('@/pages/auth/Login.vue')
@@ -33,6 +34,7 @@ const CommentManage = () => import('@/pages/admin/CommentManage.vue')
 const UserManage = () => import('@/pages/admin/UserManage.vue')
 const SiteSettings = () => import('@/pages/admin/SiteSettings.vue')
 const MomentManage = () => import('@/pages/admin/MomentManage.vue')
+const ChatManage = () => import('@/pages/admin/ChatManage.vue')
 
 const routes: RouteRecordRaw[] = [
   // 博客前台路由
@@ -87,6 +89,12 @@ const routes: RouteRecordRaw[] = [
         name: 'Moments',
         component: Moments,
         meta: { title: '说说' }
+      },
+      {
+        path: 'chat',
+        name: 'Chat',
+        component: Chat,
+        meta: { title: '聊天室' }
       }
     ]
   },
@@ -195,6 +203,12 @@ const routes: RouteRecordRaw[] = [
         name: 'MomentManage',
         component: MomentManage,
         meta: { title: '说说管理', requiresAuth: true, requiresAdmin: true }
+      },
+      {
+        path: 'chat',
+        name: 'ChatManage',
+        component: ChatManage,
+        meta: { title: '聊天室管理', requiresAuth: true, requiresAdmin: true }
       }
     ]
   },

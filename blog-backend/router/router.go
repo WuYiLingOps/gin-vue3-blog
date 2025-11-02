@@ -3,6 +3,7 @@ package router
 import (
 	"blog-backend/handler"
 	"blog-backend/middleware"
+	"blog-backend/service"
 	"github.com/gin-gonic/gin"
 )
 
@@ -20,6 +21,10 @@ func SetupRouter() *gin.Engine {
 	// 静态文件服务（用于访问上传的文件）
 	r.Static("/uploads", "./uploads")
 
+	// 初始化WebSocket Hub
+	chatHub := service.NewHub()
+	go chatHub.Run() // 启动Hub
+
 	// 初始化处理器
 	authHandler := handler.NewAuthHandler()
 	postHandler := handler.NewPostHandler()
@@ -33,6 +38,7 @@ func SetupRouter() *gin.Engine {
 	momentHandler := handler.NewMomentHandler()
 	ipBlacklistHandler := handler.NewIPBlacklistHandler()
 	captchaHandler := handler.NewCaptchaHandler()
+	chatHandler := handler.NewChatHandler(chatHub)
 
 	// 健康检查接口
 	r.GET("/health", func(c *gin.Context) {
@@ -51,7 +57,8 @@ func SetupRouter() *gin.Engine {
 		setupUploadRoutes(api, uploadHandler)
 		setupSettingRoutes(api, settingHandler)
 		setupMomentRoutes(api, momentHandler)
-		setupAdminRoutes(api, userHandler, postHandler, commentHandler, dashboardHandler, momentHandler, ipBlacklistHandler)
+		setupChatRoutes(api, chatHandler)
+		setupAdminRoutes(api, userHandler, postHandler, commentHandler, dashboardHandler, momentHandler, ipBlacklistHandler, chatHandler)
 	}
 
 	return r
@@ -220,8 +227,21 @@ func setupMomentRoutes(api *gin.RouterGroup, h *handler.MomentHandler) {
 	}
 }
 
+// setupChatRoutes 聊天室路由
+func setupChatRoutes(api *gin.RouterGroup, h *handler.ChatHandler) {
+	chat := api.Group("/chat")
+	{
+		// WebSocket连接（支持认证和匿名，使用可选认证中间件）
+		chat.GET("/ws", middleware.OptionalAuthMiddleware(), h.HandleWebSocket)
+
+		// 公开接口
+		chat.GET("/messages", h.GetMessages)
+		chat.GET("/online", h.GetOnlineInfo)
+	}
+}
+
 // setupAdminRoutes 管理后台路由
-func setupAdminRoutes(api *gin.RouterGroup, userHandler *handler.UserHandler, postHandler *handler.PostHandler, commentHandler *handler.CommentHandler, dashboardHandler *handler.DashboardHandler, momentHandler *handler.MomentHandler, ipBlacklistHandler *handler.IPBlacklistHandler) {
+func setupAdminRoutes(api *gin.RouterGroup, userHandler *handler.UserHandler, postHandler *handler.PostHandler, commentHandler *handler.CommentHandler, dashboardHandler *handler.DashboardHandler, momentHandler *handler.MomentHandler, ipBlacklistHandler *handler.IPBlacklistHandler, chatHandler *handler.ChatHandler) {
 	admin := api.Group("/admin")
 	admin.Use(middleware.AuthMiddleware(), middleware.AdminMiddleware())
 	{
@@ -252,6 +272,13 @@ func setupAdminRoutes(api *gin.RouterGroup, userHandler *handler.UserHandler, po
 		admin.DELETE("/ip-blacklist/:id", ipBlacklistHandler.Delete)
 		admin.GET("/ip-blacklist/check", ipBlacklistHandler.Check)
 		admin.POST("/ip-blacklist/clean-expired", ipBlacklistHandler.CleanExpired)
+
+		// 聊天室管理
+		admin.GET("/chat/messages", chatHandler.AdminListMessages)
+		admin.DELETE("/chat/messages/:id", chatHandler.DeleteMessage)
+		admin.POST("/chat/broadcast", chatHandler.BroadcastSystemMessage)
+		admin.POST("/chat/kick", chatHandler.KickUser)        // 踢出用户
+		admin.POST("/chat/ban", chatHandler.BanIP)            // 封禁IP
 	}
 }
 

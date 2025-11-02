@@ -17,6 +17,11 @@ export function formatRelativeTime(date: string | Date): string {
   return dayjs(date).fromNow()
 }
 
+// 格式化距离现在的时间（别名）
+export function formatDistanceToNow(date: string | Date): string {
+  return dayjs(date).fromNow()
+}
+
 // 格式化数字
 export function formatNumber(num: number): string {
   if (num >= 10000) {

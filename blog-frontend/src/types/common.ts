@@ -30,6 +30,15 @@ export interface PageResult<T> {
   total_pages?: number
 }
 
+// 分页结果（别名2）
+export interface PaginationResult<T> {
+  list: T[]
+  total: number
+  page: number
+  page_size: number
+  total_pages?: number
+}
+
 // API 响应
 export interface ApiResponse<T = any> {
   code: number
