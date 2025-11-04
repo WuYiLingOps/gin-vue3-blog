@@ -182,7 +182,82 @@ email:
 
 ## 📦 生产部署
 
-### 前端构建
+### 方式一：Docker Compose 部署（推荐）
+
+使用 Docker Compose 一键部署后端服务（包含 PostgreSQL、Redis、后端应用）：
+
+#### 1. 编译后端程序
+
+```bash
+cd blog-backend
+
+# Windows PowerShell
+$env:GOOS="linux"; $env:GOARCH="amd64"; go build -o blog-backend ./cmd/server
+
+# Linux/Mac
+GOOS=linux GOARCH=amd64 go build -o blog-backend ./cmd/server
+```
+
+#### 2. 配置环境变量（可选）
+
+创建 `docker-compose.yml` 同级的 `.env` 文件：
+
+```env
+# PostgreSQL 配置
+POSTGRES_PASSWORD=your_postgres_password
+POSTGRES_DB=blogdb
+
+# Redis 配置
+REDIS_PASSWORD=your_redis_password
+```
+
+或直接修改 `docker-compose.yml` 中的环境变量。
+
+#### 3. 启动所有服务
+
+```bash
+# 构建并启动所有服务
+docker-compose up -d --build
+
+# 查看服务状态
+docker-compose ps
+
+# 查看日志
+docker-compose logs -f backend
+```
+
+#### 4. 初始化数据库
+
+```bash
+# 进入数据库容器
+docker exec -it blog-postgres psql -U postgres -d blogdb
+
+# 或从外部导入 SQL
+docker exec -i blog-postgres psql -U postgres -d blogdb < sql/init.sql
+```
+
+#### 5. 服务管理
+
+```bash
+# 停止所有服务
+docker-compose down
+
+# 停止并删除数据卷（谨慎使用！）
+docker-compose down -v
+
+# 重启服务
+docker-compose restart backend
+
+# 查看日志
+docker-compose logs -f backend
+```
+
+#### 服务访问地址：
+- **后端 API**: `http://localhost:8080`
+- **PostgreSQL**: `localhost:5632`
+- **Redis**: `localhost:6379`
+
+### 方式二：前端构建
 
 ```bash
 cd blog-frontend
@@ -191,26 +266,21 @@ pnpm build
 
 构建产物在 `dist` 目录，可部署到任何静态服务器（Nginx、Vercel、Netlify 等）。
 
-### 后端编译
+### 方式三：传统部署
+
+#### 后端编译
 
 ```bash
 cd blog-backend
 go build -o blog-backend cmd/server/main.go
+
+# 运行
+./blog-backend
 ```
 
-### Docker 部署
+#### 数据库
 
-```bash
-# 后端
-cd blog-backend
-docker build -t blog-backend .
-docker run -p 8080:8080 blog-backend
-
-# 前端（需要先构建）
-cd blog-frontend
-pnpm build
-# 使用 Nginx 等服务器部署 dist 目录
-```
+手动安装 PostgreSQL 和 Redis，并配置 `config/config-prod.yml`。
 
 ## 🎨 主要功能模块
 
