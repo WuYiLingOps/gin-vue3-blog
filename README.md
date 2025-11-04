@@ -7,6 +7,14 @@
 ![Go](https://img.shields.io/badge/Go-1.21+-blue.svg)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-blue.svg)
 
+## 🌐 在线演示
+
+**网站地址**: [https://blog.leadcode.top/](https://blog.leadcode.top/)
+
+- 📱 支持 PC、平板、手机访问
+- 💬 可以访问聊天室与其他用户实时交流
+- 👤 支持匿名访问或注册登录
+
 ## ✨ 特性
 
 ### 🎯 核心功能
