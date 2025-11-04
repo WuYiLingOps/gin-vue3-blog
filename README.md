@@ -78,7 +78,7 @@ myBlog/
 ### 1️⃣ 克隆项目
 
 ```bash
-git clone <repository-url>
+git clone https://gitee.com/qssq9398/go-vue3-blog.git
 cd myBlog
 ```
 
