@@ -217,13 +217,13 @@ REDIS_PASSWORD=your_redis_password
 
 ```bash
 # 构建并启动所有服务
-docker-compose up -d --build
+docker compose up -d --build
 
 # 查看服务状态
-docker-compose ps
+docker compose ps
 
 # 查看日志
-docker-compose logs -f backend
+docker compose logs -f backend
 ```
 
 #### 4. 初始化数据库
@@ -240,16 +240,16 @@ docker exec -i blog-postgres psql -U postgres -d blogdb < sql/init.sql
 
 ```bash
 # 停止所有服务
-docker-compose down
+docker compose down
 
 # 停止并删除数据卷（谨慎使用！）
-docker-compose down -v
+docker compose down -v
 
 # 重启服务
-docker-compose restart backend
+docker compose restart backend
 
 # 查看日志
-docker-compose logs -f backend
+docker compose logs -f backend
 ```
 
 #### 服务访问地址：
