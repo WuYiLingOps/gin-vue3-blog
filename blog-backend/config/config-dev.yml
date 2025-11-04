@@ -25,18 +25,18 @@ jwt:
 email:
   host: smtp.qq.com
   port: 587
-  username: 2665339398@qq.com  # 请替换为你的QQ邮箱
-  password: iqsabnwwgvuyeafe     # 请替换为你的QQ邮箱授权码
-  from_name: 情迁阁
+  username: xxxxxxx@qq.com  # 请替换为你的QQ邮箱
+  password: xxxxxxx     # 请替换为你的QQ邮箱授权码
+  from_name: xxxx
 
 log:
   level: debug
 
 # 阿里云 OSS 配置（可选，如果不使用可以留空）
 oss:
-  endpoint: "oss-cn-hangzhou.aliyuncs.com"  # 例如: oss-cn-hangzhou.aliyuncs.com
-  access_key_id: "LTAI5t9UZ9QeMVc9C7xEcBoR"
-  access_key_secret: "k1BdBjMPFzeURsRTqTWj3tA6ftXsBs"
-  bucket_name: "blogpic1"
+  endpoint: "xxxxxxx"  # 例如: oss-cn-hangzhou.aliyuncs.com
+  access_key_id: "xxxxxxx"
+  access_key_secret: "xxxxxxx"
+  bucket_name: "xxxxxxx"
 
 
