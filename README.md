@@ -14,6 +14,7 @@
 - 🏷️ **分类标签** - 灵活的分类和标签系统
 - 💬 **评论系统** - 支持嵌套回复的评论功能
 - 💭 **说说动态** - 类似朋友圈的动态发布
+- 💬 **实时聊天室** - WebSocket 实时通信，支持登录用户和匿名访问
 - 👤 **用户系统** - 完整的用户注册、登录、权限管理
 - 🔐 **安全认证** - 密码重置、邮箱修改、邮件验证码
 - 🔒 **权限控制** - 基于角色的访问控制（RBAC）
@@ -23,8 +24,9 @@
 ### 🛠️ 技术特性
 - 🚀 **现代化技术栈** - Vue 3 + TypeScript + Go + PostgreSQL
 - 🎨 **优雅 UI** - Naive UI 组件库 + 玻璃态设计
-- 📱 **响应式设计** - 完美适配各种设备
+- 📱 **响应式设计** - 完美适配各种设备（PC/平板/手机）
 - ⚡ **高性能** - Vite 构建 + Pinia 状态管理 + 异步邮件发送
+- 💬 **实时通信** - WebSocket 长连接 + 自动重连 + 心跳检测
 - 🔐 **安全可靠** - JWT 认证 + 密码加密 + 邮箱验证 + IP 黑名单
 - 🧹 **自动清理** - 定时清理过期数据，保持数据库整洁
 - 📦 **易于部署** - Docker 支持 + 详细部署文档
@@ -240,12 +242,29 @@ pnpm build
 - 忘记密码（邮箱验证码）
 - 邮箱修改（限制一年2次）
 
+### 💬 聊天室功能
+- 实时 WebSocket 通信
+- 支持登录用户和匿名访问
+- 在线人数统计（按用户去重）
+- 消息历史记录（最近50条）
+- 表情符号选择器
+- 管理员右键菜单功能：
+  - 右键消息删除
+  - 右键头像踢出用户
+- 管理后台功能：
+  - 批量删除消息
+  - 发送系统广播
+  - 踢出在线用户
+  - 封禁IP地址
+- 移动端响应式适配
+
 ### 🔧 管理后台
 - 📊 仪表盘数据统计（访问统计、分类统计）
 - 📝 文章管理
 - 🏷️ 分类标签管理
 - 💬 评论管理
 - 💭 说说管理
+- 💬 聊天室管理（消息管理、用户管理）
 - 👥 用户管理
 - ⚙️ 网站设置
 - 🚫 IP 黑名单管理
@@ -269,7 +288,9 @@ pnpm build
 - **Web 框架**: Gin
 - **ORM**: GORM
 - **数据库**: PostgreSQL
+- **缓存**: Redis
 - **认证**: JWT
+- **WebSocket**: Gorilla WebSocket
 - **邮件发送**: SMTP (支持QQ邮箱、163邮箱等)
 - **日志**: 自定义日志中间件
 - **配置**: Viper (YAML)
@@ -344,6 +365,11 @@ pnpm build
 ### 验证码相关
 - `GET /api/captcha` - 获取图形验证码
 
+### 聊天室相关
+- `WS /api/chat/ws` - WebSocket 连接（支持登录用户和匿名访问）
+- `GET /api/chat/messages` - 获取消息列表
+- `GET /api/chat/online` - 获取在线信息
+
 ### 管理后台相关
 - `GET /api/admin/dashboard/stats` - 仪表盘统计
 - `GET /api/admin/dashboard/category-stats` - 分类统计
@@ -360,6 +386,11 @@ pnpm build
 - `DELETE /api/admin/ip-blacklist/:id` - 删除IP黑名单
 - `GET /api/admin/ip-blacklist/check` - 检查IP状态
 - `POST /api/admin/ip-blacklist/clean-expired` - 清理过期IP
+- `GET /api/admin/chat/messages` - 聊天消息列表（管理员）
+- `DELETE /api/admin/chat/messages/:id` - 删除消息（管理员）
+- `POST /api/admin/chat/broadcast` - 发送系统广播（管理员）
+- `POST /api/admin/chat/kick` - 踢出用户（管理员）
+- `POST /api/admin/chat/ban` - 封禁IP（管理员）
 
 更多详细说明请参考 [后端文档](./blog-backend/README.md)
 
@@ -387,6 +418,24 @@ pnpm build
 5. 提交 Pull Request
 
 ## 📝 更新日志
+
+### v1.2.0 (2025-11-04)
+- ✨ 新增实时聊天室功能
+  - 💬 WebSocket 实时通信
+  - 👥 支持登录用户和匿名访问
+  - 📊 在线人数统计（按用户去重）
+  - 🔄 自动重连机制
+  - ❤️ 心跳检测保持连接
+  - 📜 消息历史记录
+  - 😀 表情符号选择器
+- 🛡️ 管理员权限功能
+  - 右键消息删除
+  - 右键头像踢出用户
+  - 批量删除消息
+  - 发送系统广播
+  - IP 封禁管理
+- 📱 移动端完美适配
+- 🐛 修复在线人数统计bug
 
 ### v1.1.0 (2025-10-28)
 - ✨ 新增忘记密码功能（邮箱验证码）

@@ -439,7 +439,42 @@ COMMENT ON COLUMN ip_blacklist.ban_type IS '封禁类型：1-自动封禁，2-�
 COMMENT ON COLUMN ip_blacklist.expire_at IS '过期时间，NULL表示永久封禁';
 
 -- =============================================================================
--- 11. 初始化默认数据
+-- 11. 聊天室系统
+-- =============================================================================
+
+-- 创建聊天消息表
+CREATE TABLE IF NOT EXISTS chat_messages (
+    id SERIAL PRIMARY KEY,
+    content TEXT NOT NULL,
+    user_id INTEGER,
+    username VARCHAR(50) NOT NULL,
+    avatar VARCHAR(255),
+    ip VARCHAR(45),
+    status INTEGER NOT NULL DEFAULT 1,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+-- 聊天消息表索引
+CREATE INDEX IF NOT EXISTS idx_chat_messages_user_id ON chat_messages(user_id);
+CREATE INDEX IF NOT EXISTS idx_chat_messages_status ON chat_messages(status);
+CREATE INDEX IF NOT EXISTS idx_chat_messages_created_at ON chat_messages(created_at DESC);
+
+-- 聊天消息表注释
+COMMENT ON TABLE chat_messages IS '聊天消息表';
+COMMENT ON COLUMN chat_messages.id IS '主键ID';
+COMMENT ON COLUMN chat_messages.content IS '消息内容';
+COMMENT ON COLUMN chat_messages.user_id IS '用户ID（NULL表示匿名用户）';
+COMMENT ON COLUMN chat_messages.username IS '用户名（登录用户为真实用户名，匿名用户为临时昵称）';
+COMMENT ON COLUMN chat_messages.avatar IS '头像URL';
+COMMENT ON COLUMN chat_messages.ip IS 'IP地址';
+COMMENT ON COLUMN chat_messages.status IS '状态：1-正常，0-删除';
+COMMENT ON COLUMN chat_messages.created_at IS '创建时间';
+COMMENT ON COLUMN chat_messages.updated_at IS '更新时间';
+
+-- =============================================================================
+-- 12. 初始化默认数据
 -- =============================================================================
 
 -- 插入默认管理员用户
@@ -489,7 +524,7 @@ SELECT
 ON CONFLICT (date) DO NOTHING;
 
 -- =============================================================================
--- 12. 更新现有数据的全文搜索向量
+-- 13. 更新现有数据的全文搜索向量
 -- =============================================================================
 
 -- 更新文章的全文搜索向量（组合标题和内容，标题权重更高）
