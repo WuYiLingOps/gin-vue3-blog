@@ -66,7 +66,8 @@
               <a v-if="siteSettings.site_icp" href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">
                 {{ siteSettings.site_icp }}
               </a>
-              <a v-if="siteSettings.site_police" href="https://www.beian.gov.cn/" target="_blank" rel="noopener noreferrer">
+              <a v-if="siteSettings.site_police" href="https://www.beian.gov.cn/" target="_blank" rel="noopener noreferrer" class="police-filing">
+                <img src="/备案图标.png" alt="公安备案" class="police-icon" />
                 {{ siteSettings.site_police }}
               </a>
             </div>
@@ -866,6 +867,18 @@ html.dark .filing-info a {
 
 html.dark .filing-info a:hover {
   color: rgba(56, 189, 248, 1);
+}
+
+.police-filing {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.police-icon {
+  width: 16px;
+  height: 16px;
+  vertical-align: middle;
 }
 
 .ml-2 {
