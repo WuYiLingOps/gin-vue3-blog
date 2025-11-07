@@ -98,23 +98,6 @@ type Setting struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-// VisitStat 访问量统计模型
-type VisitStat struct {
-	ID        uint      `json:"id" gorm:"primaryKey"`
-	Date      time.Time `json:"date" gorm:"uniqueIndex;not null"` // 日期（只保留年月日）
-	ViewCount int       `json:"view_count" gorm:"default:0"`      // 当天独立访客数（UV）
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-}
-
-// VisitRecord 访问记录模型（用于 UV 统计去重）
-type VisitRecord struct {
-	ID        uint      `json:"id" gorm:"primaryKey"`
-	Date      time.Time `json:"date" gorm:"index;not null"`    // 访问日期
-	IP        string    `json:"ip" gorm:"size:45;index"`       // 访客IP地址
-	CreatedAt time.Time `json:"created_at"`
-}
-
 // PostView 文章阅读记录模型
 type PostView struct {
 	ID        uint      `json:"id" gorm:"primaryKey"`
@@ -229,14 +212,6 @@ func (Comment) TableName() string {
 
 func (Setting) TableName() string {
 	return "settings"
-}
-
-func (VisitStat) TableName() string {
-	return "visit_stats"
-}
-
-func (VisitRecord) TableName() string {
-	return "visit_records"
 }
 
 func (PostView) TableName() string {

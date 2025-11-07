@@ -16,7 +16,6 @@ func SetupRouter() *gin.Engine {
 	r.Use(middleware.Logger())
 	r.Use(middleware.CORS())
 	r.Use(middleware.IPBlacklistMiddleware()) // IP黑名单和频率限制
-	r.Use(middleware.VisitStatMiddleware())
 
 	// 静态文件服务（用于访问上传的文件）
 	r.Static("/uploads", "./uploads")
@@ -248,7 +247,6 @@ func setupAdminRoutes(api *gin.RouterGroup, userHandler *handler.UserHandler, po
 		// 仪表盘
 		admin.GET("/dashboard/stats", dashboardHandler.GetStats)
 		admin.GET("/dashboard/category-stats", dashboardHandler.GetCategoryStats)
-		admin.GET("/dashboard/visit-stats", dashboardHandler.GetVisitStats)
 
 		// 用户管理
 		admin.GET("/users", userHandler.List)

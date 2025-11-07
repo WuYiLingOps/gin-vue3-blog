@@ -24,7 +24,7 @@ func Logger() gin.HandlerFunc {
 			zap.String("path", path),
 			zap.String("query", query),
 			zap.Int("status", c.Writer.Status()),
-			zap.String("ip", c.ClientIP()),
+			zap.String("ip", c.GetHeader("EO-Connecting-IP")),
 			zap.Duration("cost", cost),
 			zap.String("user-agent", c.Request.UserAgent()),
 		)

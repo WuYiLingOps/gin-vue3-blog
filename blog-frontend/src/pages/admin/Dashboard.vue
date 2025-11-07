@@ -43,18 +43,9 @@
     </n-grid>
 
     <!-- 图表区域 -->
-    <n-grid :cols="chartColumns" :x-gap="16" :y-gap="16" style="margin-top: 24px" responsive="screen">
-      <n-gi>
-        <n-card title="文章分类统计">
-          <div ref="categoryChartRef" :style="chartStyle"></div>
-        </n-card>
-      </n-gi>
-      <n-gi>
-        <n-card title="最近7天访问量">
-          <div ref="visitChartRef" :style="chartStyle"></div>
-        </n-card>
-      </n-gi>
-    </n-grid>
+    <n-card title="文章分类统计" style="margin-top: 24px">
+      <div ref="categoryChartRef" :style="chartStyle"></div>
+    </n-card>
 
     <!-- 快捷操作 -->
     <n-card title="快捷操作" style="margin-top: 24px">
@@ -108,8 +99,8 @@ import {
   PricetagsOutline
 } from '@vicons/ionicons5'
 import { useAppStore } from '@/stores'
-import { getDashboardStats, getCategoryStats, getVisitStats } from '@/api'
-import type { DashboardStats, CategoryStat, VisitStat } from '@/api'
+import { getDashboardStats, getCategoryStats } from '@/api'
+import type { DashboardStats, CategoryStat } from '@/api'
 
 const router = useRouter()
 const appStore = useAppStore()
@@ -123,12 +114,9 @@ const stats = ref<DashboardStats>({
 })
 
 const categoryStats = ref<CategoryStat[]>([])
-const visitStats = ref<VisitStat[]>([])
 
 const categoryChartRef = ref<HTMLElement>()
-const visitChartRef = ref<HTMLElement>()
 let categoryChart: ECharts | null = null
-let visitChart: ECharts | null = null
 
 const loading = ref(false)
 const isMobile = ref(false)
@@ -138,11 +126,6 @@ const statsColumns = computed(() => {
   if (window.innerWidth <= 480) return 1
   if (window.innerWidth <= 768) return 2
   return 4
-})
-
-const chartColumns = computed(() => {
-  if (window.innerWidth <= 768) return 1
-  return 2
 })
 
 const chartStyle = computed(() => ({
@@ -190,23 +173,6 @@ async function fetchCategoryStats() {
   }
 }
 
-// 获取访问量统计数据
-async function fetchVisitStats() {
-  try {
-    const res = await getVisitStats()
-    if (res.data) {
-      visitStats.value = res.data
-      // 更新访问量图表
-      nextTick(() => {
-        initVisitChart()
-      })
-    }
-  } catch (error) {
-    message.error('获取访问量统计失败')
-    console.error(error)
-  }
-}
-
 onMounted(async () => {
   // 检测移动设备
   checkMobile()
@@ -214,7 +180,6 @@ onMounted(async () => {
   // 获取统计数据
   await fetchStats()
   await fetchCategoryStats()
-  await fetchVisitStats()
 
   // 监听窗口大小变化
   window.addEventListener('resize', handleResize)
@@ -223,13 +188,11 @@ onMounted(async () => {
 onUnmounted(() => {
   window.removeEventListener('resize', handleResize)
   categoryChart?.dispose()
-  visitChart?.dispose()
 })
 
 function handleResize() {
   checkMobile()
   categoryChart?.resize()
-  visitChart?.resize()
 }
 
 // 初始化分类统计饼图
@@ -296,91 +259,6 @@ function initCategoryChart() {
   }
 
   categoryChart.setOption(option)
-}
-
-// 初始化访问量折线图
-function initVisitChart() {
-  if (!visitChartRef.value) return
-
-  if (!visitChart) {
-    visitChart = echarts.init(visitChartRef.value)
-  }
-
-  // 提取日期和访问量数据
-  const dates = visitStats.value.map(item => item.date)
-  const counts = visitStats.value.map(item => item.count)
-
-  const option = {
-    tooltip: {
-      trigger: 'axis',
-      axisPointer: {
-        type: 'shadow'
-      }
-    },
-    grid: {
-      left: '3%',
-      right: '4%',
-      bottom: '3%',
-      containLabel: true
-    },
-    xAxis: {
-      type: 'category',
-      data: dates,
-      axisLine: {
-        lineStyle: {
-          color: appStore.theme === 'dark' ? '#666' : '#ccc'
-        }
-      },
-      axisLabel: {
-        color: appStore.theme === 'dark' ? '#fff' : '#333'
-      }
-    },
-    yAxis: {
-      type: 'value',
-      axisLine: {
-        lineStyle: {
-          color: appStore.theme === 'dark' ? '#666' : '#ccc'
-        }
-      },
-      axisLabel: {
-        color: appStore.theme === 'dark' ? '#fff' : '#333'
-      },
-      splitLine: {
-        lineStyle: {
-          color: appStore.theme === 'dark' ? '#333' : '#f0f0f0'
-        }
-      }
-    },
-    series: [
-      {
-        name: '访问量',
-        type: 'line',
-        data: counts,
-        smooth: true,
-        areaStyle: {
-          color: {
-            type: 'linear',
-            x: 0,
-            y: 0,
-            x2: 0,
-            y2: 1,
-            colorStops: [
-              { offset: 0, color: 'rgba(24, 160, 88, 0.3)' },
-              { offset: 1, color: 'rgba(24, 160, 88, 0.05)' }
-            ]
-          }
-        },
-        itemStyle: {
-          color: '#18a058'
-        },
-        lineStyle: {
-          width: 3
-        }
-      }
-    ]
-  }
-
-  visitChart.setOption(option)
 }
 </script>
 

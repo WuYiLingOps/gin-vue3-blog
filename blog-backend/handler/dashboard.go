@@ -38,14 +38,3 @@ func (h *DashboardHandler) GetCategoryStats(c *gin.Context) {
 	util.Success(c, stats)
 }
 
-// GetVisitStats 获取最近7天访问量统计
-func (h *DashboardHandler) GetVisitStats(c *gin.Context) {
-	stats, err := h.service.GetLast7DaysVisitStats()
-	if err != nil {
-		util.ServerError(c, "获取访问量统计失败")
-		return
-	}
-
-	util.Success(c, stats)
-}
-

@@ -215,44 +215,6 @@ COMMENT ON COLUMN moments.content_tsv IS '全文搜索向量';
 -- 6. 统计系统
 -- =============================================================================
 
--- 创建访问量统计表
-CREATE TABLE IF NOT EXISTS visit_stats (
-    id SERIAL PRIMARY KEY,
-    date DATE UNIQUE NOT NULL,
-    view_count INT DEFAULT 0,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- 访问量统计表索引
-CREATE INDEX IF NOT EXISTS idx_visit_stats_date ON visit_stats(date DESC);
-
--- 访问量统计表注释
-COMMENT ON TABLE visit_stats IS '访问量统计表（按日期）';
-COMMENT ON COLUMN visit_stats.date IS '统计日期';
-COMMENT ON COLUMN visit_stats.view_count IS '当日独立访客数（UV）';
-
--- 创建访问记录表（用于 UV 统计去重）
-CREATE TABLE IF NOT EXISTS visit_records (
-    id SERIAL PRIMARY KEY,
-    date DATE NOT NULL,
-    ip VARCHAR(45) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- 访问记录表索引
-CREATE INDEX IF NOT EXISTS idx_visit_records_date ON visit_records(date);
-CREATE INDEX IF NOT EXISTS idx_visit_records_ip ON visit_records(ip);
-
--- 创建唯一索引，防止同一 IP 在同一天重复记录
-CREATE UNIQUE INDEX IF NOT EXISTS idx_visit_records_date_ip ON visit_records(date, ip);
-
--- 访问记录表注释
-COMMENT ON TABLE visit_records IS '访问记录表（用于 UV 统计去重）';
-COMMENT ON COLUMN visit_records.date IS '访问日期';
-COMMENT ON COLUMN visit_records.ip IS '访客IP地址';
-COMMENT ON COLUMN visit_records.created_at IS '首次访问时间';
-
 -- 创建文章阅读记录表
 CREATE TABLE IF NOT EXISTS post_views (
     id SERIAL PRIMARY KEY,
@@ -513,15 +475,6 @@ VALUES
 ('site_police', '', 'text', 'site', '公安备案号', NOW(), NOW()),
 ('storage_type', 'local', 'text', 'upload', '存储类型', NOW(), NOW())
 ON CONFLICT (key) DO NOTHING;
-
--- 插入最近7天的访问统计初始记录
-INSERT INTO visit_stats (date, view_count, created_at, updated_at)
-SELECT 
-    CURRENT_DATE - INTERVAL '1 day' * generate_series(0, 6) AS date,
-    0 AS view_count,
-    NOW() AS created_at,
-    NOW() AS updated_at
-ON CONFLICT (date) DO NOTHING;
 
 -- =============================================================================
 -- 13. 更新现有数据的全文搜索向量

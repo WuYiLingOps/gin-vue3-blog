@@ -23,19 +23,18 @@ var (
 	ipMapMutex  sync.RWMutex
 
 	// 配置参数
-	maxRequestsPerMinute = 60   // 每分钟最大请求数
-	maxRequestsPer10Min  = 300  // 10分钟最大请求数
-	banDuration          = 1    // 自动封禁时长（小时）
+	maxRequestsPerMinute = 60  // 每分钟最大请求数
+	maxRequestsPer10Min  = 300 // 10分钟最大请求数
+	banDuration          = 1   // 自动封禁时长（小时）
 )
 
 // IPBlacklistMiddleware IP黑名单检查中间件
 func IPBlacklistMiddleware() gin.HandlerFunc {
 	// 启动定时清理过期记录的协程
 	go cleanupExpiredRecords()
-	
+
 	return func(c *gin.Context) {
 		ip := util.GetClientIP(c)
-
 		// 1. 检查是否在黑名单中
 		if isIPBanned(ip) {
 			util.Error(c, 403, "您的IP已被封禁，请联系管理员")
@@ -63,7 +62,7 @@ func IPBlacklistMiddleware() gin.HandlerFunc {
 func isIPBanned(ip string) bool {
 	var blacklist model.IPBlacklist
 	err := db.DB.Where("ip = ?", ip).First(&blacklist).Error
-	
+
 	if err != nil {
 		return false
 	}
@@ -84,7 +83,7 @@ func recordAccess(ip string) {
 	defer ipMapMutex.Unlock()
 
 	now := time.Now()
-	
+
 	if record, exists := ipAccessMap[ip]; exists {
 		// 如果距离首次访问超过10分钟，重置计数
 		if now.Sub(record.firstTime) > 10*time.Minute {
@@ -134,7 +133,7 @@ func shouldBanIP(ip string) bool {
 // banIP 封禁IP
 func banIP(ip string, reason string, banType int) {
 	expireAt := time.Now().Add(time.Duration(banDuration) * time.Hour)
-	
+
 	blacklist := model.IPBlacklist{
 		IP:       ip,
 		Reason:   reason,
@@ -173,4 +172,3 @@ func cleanupExpiredRecords() {
 		db.DB.Where("expire_at IS NOT NULL AND expire_at < ?", now).Delete(&model.IPBlacklist{})
 	}
 }
-

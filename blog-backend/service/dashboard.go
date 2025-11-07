@@ -5,20 +5,18 @@ import (
 )
 
 type DashboardService struct {
-	postRepo      *repository.PostRepository
-	userRepo      *repository.UserRepository
-	commentRepo   *repository.CommentRepository
-	categoryRepo  *repository.CategoryRepository
-	visitStatRepo *repository.VisitStatRepository
+	postRepo     *repository.PostRepository
+	userRepo     *repository.UserRepository
+	commentRepo  *repository.CommentRepository
+	categoryRepo *repository.CategoryRepository
 }
 
 func NewDashboardService() *DashboardService {
 	return &DashboardService{
-		postRepo:      repository.NewPostRepository(),
-		userRepo:      repository.NewUserRepository(),
-		commentRepo:   repository.NewCommentRepository(),
-		categoryRepo:  repository.NewCategoryRepository(),
-		visitStatRepo: repository.NewVisitStatRepository(),
+		postRepo:     repository.NewPostRepository(),
+		userRepo:     repository.NewUserRepository(),
+		commentRepo:  repository.NewCommentRepository(),
+		categoryRepo: repository.NewCategoryRepository(),
 	}
 }
 
@@ -35,12 +33,6 @@ type CategoryStats struct {
 	Name  string `json:"name"`
 	Value int    `json:"value"`
 	Color string `json:"color"`
-}
-
-// VisitStatData 访问量统计数据
-type VisitStatData struct {
-	Date  string `json:"date"`  // 日期，格式：MM-DD
-	Count int    `json:"count"` // 访问量
 }
 
 // GetStats 获取统计数据
@@ -97,29 +89,4 @@ func (s *DashboardService) GetCategoryStats() ([]CategoryStats, error) {
 	}
 
 	return stats, nil
-}
-
-// GetLast7DaysVisitStats 获取最近7天的访问量统计
-func (s *DashboardService) GetLast7DaysVisitStats() ([]VisitStatData, error) {
-	// 确保最近7天都有记录
-	if err := s.visitStatRepo.EnsureLast7DaysRecords(); err != nil {
-		return nil, err
-	}
-
-	// 获取最近7天的统计数据
-	stats, err := s.visitStatRepo.GetLast7DaysStats()
-	if err != nil {
-		return nil, err
-	}
-
-	// 转换为前端需要的格式
-	var result []VisitStatData
-	for _, stat := range stats {
-		result = append(result, VisitStatData{
-			Date:  stat.Date.Format("01-02"), // 格式化为 MM-DD
-			Count: stat.ViewCount,
-		})
-	}
-
-	return result, nil
 }
