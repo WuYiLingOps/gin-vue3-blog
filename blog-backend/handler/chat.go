@@ -5,6 +5,7 @@ import (
 	"blog-backend/service"
 	"blog-backend/util"
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -41,9 +42,12 @@ func (h *ChatHandler) HandleWebSocket(c *gin.Context) {
 	// 升级HTTP连接为WebSocket
 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
+		log.Printf("WebSocket升级失败: %v, IP: %s", err, util.GetClientIP(c))
 		util.ServerError(c, "WebSocket升级失败")
 		return
 	}
+
+	log.Printf("WebSocket连接成功, IP: %s", util.GetClientIP(c))
 
 	// 获取用户信息
 	var userID *uint
@@ -54,14 +58,14 @@ func (h *ChatHandler) HandleWebSocket(c *gin.Context) {
 	if userIDInterface, exists := c.Get("user_id"); exists {
 		if uid, ok := userIDInterface.(uint); ok {
 			userID = &uid
-			
+
 			// 从JWT获取用户信息
 			if usernameInterface, exists := c.Get("username"); exists {
 				if uname, ok := usernameInterface.(string); ok {
 					username = uname
 				}
 			}
-			
+
 			// 从JWT获取头像（如果有的话，也可以从数据库查询）
 			// 这里简化处理
 		}
@@ -158,7 +162,7 @@ func (h *ChatHandler) GetOnlineInfo(c *gin.Context) {
 // GetStats 获取聊天室统计信息
 func (h *ChatHandler) GetStats(c *gin.Context) {
 	onlineCount := h.service.GetOnlineCount()
-	
+
 	// 这里可以添加更多统计信息
 	util.Success(c, gin.H{
 		"online_count": onlineCount,
@@ -304,4 +308,3 @@ func (h *ChatHandler) BanIP(c *gin.Context) {
 		"ip": client.IP,
 	})
 }
-
