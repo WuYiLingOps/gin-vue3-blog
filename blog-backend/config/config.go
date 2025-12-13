@@ -47,6 +47,9 @@ type Config struct {
 		BucketName      string `mapstructure:"bucket_name"`
 		Domain          string `mapstructure:"domain"` // 自定义域名（可选）
 	} `mapstructure:"oss"`
+	Security struct {
+		AdminIPWhitelist []string `mapstructure:"admin_ip_whitelist"` // 管理员IP白名单
+	} `mapstructure:"security"`
 }
 
 var Cfg *Config
