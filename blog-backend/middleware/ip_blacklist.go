@@ -1,9 +1,12 @@
 package middleware
 
 import (
+	"blog-backend/config"
 	"blog-backend/db"
 	"blog-backend/model"
 	"blog-backend/util"
+	"net"
+	"strings"
 	"sync"
 	"time"
 
@@ -34,7 +37,21 @@ func IPBlacklistMiddleware() gin.HandlerFunc {
 	go cleanupExpiredRecords()
 
 	return func(c *gin.Context) {
+		// 排除静态文件路径，不进行频率限制和黑名单检查
+		path := c.Request.URL.Path
+		if strings.HasPrefix(path, "/uploads") {
+			c.Next()
+			return
+		}
+
 		ip := util.GetClientIP(c)
+
+		// 0. 优先检查：如果是管理员或白名单IP，跳过所有限制
+		if shouldSkipRateLimit(c, ip) {
+			c.Next()
+			return
+		}
+
 		// 1. 检查是否在黑名单中
 		if isIPBanned(ip) {
 			util.Error(c, 403, "您的IP已被封禁，请联系管理员")
@@ -150,6 +167,82 @@ func banIP(ip string, reason string, banType int) {
 		record.banned = true
 	}
 	ipMapMutex.Unlock()
+}
+
+// shouldSkipRateLimit 判断是否应该跳过频率限制
+// 返回 true 表示应该跳过（管理员或白名单IP）
+func shouldSkipRateLimit(c *gin.Context, ip string) bool {
+	// 方案一：检查是否是管理员用户（通过解析 Token）
+	if isAdminUser(c) {
+		return true
+	}
+
+	// 方案二：检查 IP 是否在配置的白名单中
+	if isIPInWhitelist(ip) {
+		return true
+	}
+
+	return false
+}
+
+// isAdminUser 检查当前用户是否是管理员
+// 通过解析 JWT Token 获取用户角色
+func isAdminUser(c *gin.Context) bool {
+	// 优先从上下文获取（如果 OptionalAuthMiddleware 已执行）
+	if role, exists := c.Get("role"); exists {
+		return role == "admin"
+	}
+
+	// 如果上下文中没有，尝试从 Header 解析 Token
+	authHeader := c.GetHeader("Authorization")
+	if authHeader == "" {
+		return false
+	}
+
+	// 格式: Bearer <token>
+	parts := strings.SplitN(authHeader, " ", 2)
+	if len(parts) != 2 || parts[0] != "Bearer" {
+		return false
+	}
+
+	// 解析 Token
+	claims, err := util.ParseToken(parts[1])
+	if err != nil {
+		return false
+	}
+
+	// 检查是否是管理员
+	return claims.Role == "admin"
+}
+
+// isIPInWhitelist 检查 IP 是否在配置的白名单中
+func isIPInWhitelist(ip string) bool {
+	if config.Cfg == nil || len(config.Cfg.Security.AdminIPWhitelist) == 0 {
+		return false
+	}
+
+	clientIP := net.ParseIP(ip)
+	if clientIP == nil {
+		return false
+	}
+
+	for _, whitelistIP := range config.Cfg.Security.AdminIPWhitelist {
+		// 支持 CIDR 格式（如：192.168.1.0/24）
+		if strings.Contains(whitelistIP, "/") {
+			_, ipNet, err := net.ParseCIDR(whitelistIP)
+			if err == nil && ipNet.Contains(clientIP) {
+				return true
+			}
+		} else {
+			// 精确匹配
+			whitelistIPParsed := net.ParseIP(whitelistIP)
+			if whitelistIPParsed != nil && whitelistIPParsed.Equal(clientIP) {
+				return true
+			}
+		}
+	}
+
+	return false
 }
 
 // cleanupExpiredRecords 定时清理过期的访问记录和黑名单
