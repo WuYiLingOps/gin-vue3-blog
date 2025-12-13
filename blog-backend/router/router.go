@@ -4,6 +4,8 @@ import (
 	"blog-backend/handler"
 	"blog-backend/middleware"
 	"blog-backend/service"
+	"path/filepath"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -18,7 +20,9 @@ func SetupRouter() *gin.Engine {
 	r.Use(middleware.IPBlacklistMiddleware()) // IP黑名单和频率限制
 
 	// 静态文件服务（用于访问上传的文件）
-	r.Static("/uploads", "./uploads")
+	// 使用绝对路径，确保无论从哪个目录运行都能找到 uploads 目录
+	uploadsPath, _ := filepath.Abs("./uploads")
+	r.Static("/uploads", uploadsPath)
 
 	// 初始化WebSocket Hub
 	chatHub := service.NewHub()
@@ -82,7 +86,7 @@ func setupAuthRoutes(api *gin.RouterGroup, h *handler.AuthHandler) {
 			authRequired.GET("/profile", h.GetProfile)
 			authRequired.PUT("/profile", h.UpdateProfile)
 			authRequired.PUT("/password", h.UpdatePassword)
-			authRequired.PUT("/email", h.UpdateEmail)                  // 修改邮箱
+			authRequired.PUT("/email", h.UpdateEmail)                    // 修改邮箱
 			authRequired.GET("/email-change-info", h.GetEmailChangeInfo) // 获取邮箱修改信息
 		}
 	}
@@ -275,8 +279,7 @@ func setupAdminRoutes(api *gin.RouterGroup, userHandler *handler.UserHandler, po
 		admin.GET("/chat/messages", chatHandler.AdminListMessages)
 		admin.DELETE("/chat/messages/:id", chatHandler.DeleteMessage)
 		admin.POST("/chat/broadcast", chatHandler.BroadcastSystemMessage)
-		admin.POST("/chat/kick", chatHandler.KickUser)        // 踢出用户
-		admin.POST("/chat/ban", chatHandler.BanIP)            // 封禁IP
+		admin.POST("/chat/kick", chatHandler.KickUser) // 踢出用户
+		admin.POST("/chat/ban", chatHandler.BanIP)     // 封禁IP
 	}
 }
-
