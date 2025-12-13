@@ -114,7 +114,8 @@ import {
   LogOutOutline,
   SettingsOutline,
   MenuOutline,
-  ChatbubbleEllipsesOutline
+  ChatbubbleEllipsesOutline,
+  ShieldCheckmarkOutline
 } from '@vicons/ionicons5'
 import { useAuthStore } from '@/stores'
 import { NIcon, useLoadingBar } from 'naive-ui'
@@ -218,6 +219,11 @@ const menuOptions = [
     label: '用户管理',
     key: 'UserManage',
     icon: renderIcon(PeopleOutline)
+  },
+  {
+    label: 'IP黑名单',
+    key: 'IPBlacklistManage',
+    icon: renderIcon(ShieldCheckmarkOutline)
   },
   {
     label: '网站设置',
