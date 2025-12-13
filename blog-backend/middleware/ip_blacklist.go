@@ -37,9 +37,9 @@ func IPBlacklistMiddleware() gin.HandlerFunc {
 	go cleanupExpiredRecords()
 
 	return func(c *gin.Context) {
-		// 排除静态文件路径，不进行频率限制和黑名单检查
+		// 排除静态文件路径和 WebSocket 路径，不进行频率限制和黑名单检查
 		path := c.Request.URL.Path
-		if strings.HasPrefix(path, "/uploads") {
+		if strings.HasPrefix(path, "/uploads") || strings.HasPrefix(path, "/api/chat/ws") {
 			c.Next()
 			return
 		}
