@@ -4,17 +4,17 @@ server:
   mode: release
 
 db:
-  host: localhost
+  host: 10.0.0.10
   port: 5432
   user: postgres
-  password: 153247
+  password: 123456ok!
   dbname: blogdb
   sslmode: disable
 
 redis:
   host: localhost
   port: 6379
-  password: ""
+  password: "123456"
   db: 0
 
 jwt:
@@ -25,9 +25,9 @@ jwt:
 email:
   host: smtp.qq.com
   port: 587
-  username: xxxxxxx@qq.com  # 请替换为你的QQ邮箱
-  password: xxxxxxx     # 请替换为你的QQ邮箱授权码
-  from_name: xxxx
+  username: 2794998160@qq.com  # 请替换为你的QQ邮箱
+  password: boczpilgktkwdedj     # 请替换为你的QQ邮箱授权码
+  from_name: 無以菱
 
 log:
   level: debug
@@ -38,5 +38,14 @@ oss:
   access_key_id: "xxxxxxx"
   access_key_secret: "xxxxxxx"
   bucket_name: "xxxxxxx"
+
+# 安全配置
+security:
+  # 管理员IP白名单（这些IP将跳过频率限制和黑名单检查）
+  # 支持 IPv4 和 IPv6，支持 CIDR 格式（如：192.168.1.0/24）
+  admin_ip_whitelist:
+    - "127.0.0.1"      # 本地回环地址
+    - "::1"            # IPv6 本地回环地址
+    # - "192.168.1.100" # 示例：添加管理员固定IP
 
 
