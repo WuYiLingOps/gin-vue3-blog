@@ -49,13 +49,18 @@ export class ChatWebSocket {
         }
 
         this.ws.onerror = (error) => {
-          console.error('WebSocket错误:', error)
+          console.error('WebSocket连接错误:', error)
+          console.error('WebSocket URL:', this.url)
           this.emit('error', error)
           reject(error)
         }
 
-        this.ws.onclose = () => {
-          console.log('WebSocket连接关闭')
+        this.ws.onclose = (event) => {
+          console.log('WebSocket连接关闭', {
+            code: event.code,
+            reason: event.reason,
+            wasClean: event.wasClean
+          })
           this.stopHeartbeat()
           this.emit('close', null)
 
@@ -184,14 +189,21 @@ export function createChatWebSocket(username?: string, avatar?: string, token?: 
   let wsBaseUrl = import.meta.env.VITE_WS_BASE_URL
   
   if (!wsBaseUrl) {
-    // 如果没有配置 WS URL，则从 API URL 自动转换
-    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL
-    if (apiBaseUrl) {
-      // 从 API URL 提取 host（移除协议）
-      wsBaseUrl = apiBaseUrl.replace(/^https?:\/\//, '')
-    } else {
-      // 如果都没配置，使用当前页面的 host
+    // 开发环境：使用当前页面的 host（通过 Vite 代理）
+    // 生产环境：从 API URL 自动转换
+    if (import.meta.env.DEV) {
+      // 开发环境，使用当前页面 host，通过 Vite 代理转发
       wsBaseUrl = window.location.host
+    } else {
+      // 生产环境，从 API URL 提取 host
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL
+      if (apiBaseUrl) {
+        // 从 API URL 提取 host（移除协议）
+        wsBaseUrl = apiBaseUrl.replace(/^https?:\/\//, '')
+      } else {
+        // 如果都没配置，使用当前页面的 host
+        wsBaseUrl = window.location.host
+      }
     }
   } else {
     // 移除 WebSocket URL 中的协议前缀（如果有）
