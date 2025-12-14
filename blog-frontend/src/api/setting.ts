@@ -6,6 +6,13 @@ export interface SiteSettings {
   site_name?: string
   site_icp?: string
   site_police?: string
+  // 社交链接
+  social_github?: string
+  social_gitee?: string
+  social_email?: string
+  social_rss?: string
+  social_qq?: string
+  social_wechat?: string
 }
 
 export interface UploadSettings {
