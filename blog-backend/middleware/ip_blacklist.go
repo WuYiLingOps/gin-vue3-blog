@@ -215,29 +215,53 @@ func isAdminUser(c *gin.Context) bool {
 	return claims.Role == "admin"
 }
 
-// isIPInWhitelist 检查 IP 是否在配置的白名单中
+// isIPInWhitelist 检查 IP 是否在白名单中（配置文件 + 数据库）
 func isIPInWhitelist(ip string) bool {
-	if config.Cfg == nil || len(config.Cfg.Security.AdminIPWhitelist) == 0 {
-		return false
-	}
-
 	clientIP := net.ParseIP(ip)
 	if clientIP == nil {
 		return false
 	}
 
-	for _, whitelistIP := range config.Cfg.Security.AdminIPWhitelist {
-		// 支持 CIDR 格式（如：192.168.1.0/24）
-		if strings.Contains(whitelistIP, "/") {
-			_, ipNet, err := net.ParseCIDR(whitelistIP)
-			if err == nil && ipNet.Contains(clientIP) {
-				return true
+	// 1. 检查配置文件中的白名单
+	if config.Cfg != nil && len(config.Cfg.Security.AdminIPWhitelist) > 0 {
+		for _, whitelistIP := range config.Cfg.Security.AdminIPWhitelist {
+			// 支持 CIDR 格式（如：192.168.1.0/24）
+			if strings.Contains(whitelistIP, "/") {
+				_, ipNet, err := net.ParseCIDR(whitelistIP)
+				if err == nil && ipNet.Contains(clientIP) {
+					return true
+				}
+			} else {
+				// 精确匹配
+				whitelistIPParsed := net.ParseIP(whitelistIP)
+				if whitelistIPParsed != nil && whitelistIPParsed.Equal(clientIP) {
+					return true
+				}
 			}
-		} else {
-			// 精确匹配
-			whitelistIPParsed := net.ParseIP(whitelistIP)
-			if whitelistIPParsed != nil && whitelistIPParsed.Equal(clientIP) {
-				return true
+		}
+	}
+
+	// 2. 检查数据库中的白名单
+	var whitelist []model.IPWhitelist
+	if err := db.DB.Find(&whitelist).Error; err == nil {
+		for _, wl := range whitelist {
+			// 检查是否过期
+			if wl.ExpireAt != nil && wl.ExpireAt.Before(time.Now()) {
+				continue
+			}
+
+			// 支持 CIDR 格式
+			if strings.Contains(wl.IP, "/") {
+				_, ipNet, err := net.ParseCIDR(wl.IP)
+				if err == nil && ipNet.Contains(clientIP) {
+					return true
+				}
+			} else {
+				// 精确匹配
+				wlIP := net.ParseIP(wl.IP)
+				if wlIP != nil && wlIP.Equal(clientIP) {
+					return true
+				}
 			}
 		}
 	}
