@@ -33,6 +33,59 @@
           />
         </n-form-item>
 
+        <n-divider />
+
+        <n-form-item label="GitHub链接" path="social_github">
+          <n-input
+            v-model:value="formData.social_github"
+            placeholder="例如：https://github.com/username"
+            maxlength="200"
+          />
+        </n-form-item>
+
+        <n-form-item label="Gitee链接" path="social_gitee">
+          <n-input
+            v-model:value="formData.social_gitee"
+            placeholder="例如：https://gitee.com/username"
+            maxlength="200"
+          />
+        </n-form-item>
+
+        <n-form-item label="邮箱地址" path="social_email">
+          <n-input
+            v-model:value="formData.social_email"
+            placeholder="例如：example@email.com"
+            maxlength="100"
+          />
+        </n-form-item>
+
+        <n-form-item label="RSS链接" path="social_rss">
+          <n-input
+            v-model:value="formData.social_rss"
+            placeholder="例如：https://example.com/rss.xml"
+            maxlength="200"
+          />
+        </n-form-item>
+
+        <n-form-item label="QQ号" path="social_qq">
+          <n-input
+            v-model:value="formData.social_qq"
+            placeholder="例如：123456789"
+            maxlength="20"
+          />
+        </n-form-item>
+
+        <n-form-item label="微信二维码" path="social_wechat">
+          <n-input
+            v-model:value="formData.social_wechat"
+            placeholder="微信二维码图片URL，例如：https://example.com/wechat-qr.png"
+            maxlength="500"
+          />
+          <template #feedback>
+            <span style="font-size: 12px; color: #999;">上传微信二维码图片后，将图片URL填入此处</span>
+          </template>
+        </n-form-item>
+
         <n-form-item>
           <n-space>
             <n-button type="primary" @click="handleSubmit" :loading="loading">
@@ -86,6 +139,14 @@
         <p><strong>ICP备案号：</strong>工信部备案号，点击后会跳转到 beian.miit.gov.cn</p>
         <p><strong>公安备案号：</strong>公安部备案号，点击后会跳转到 www.beian.gov.cn</p>
         <n-divider />
+        <p><strong>社交链接：</strong>配置个人信息卡片中显示的社交链接（未配置的链接不会显示）</p>
+        <p><strong>GitHub链接：</strong>您的GitHub主页地址</p>
+        <p><strong>Gitee链接：</strong>您的Gitee主页地址</p>
+        <p><strong>邮箱地址：</strong>联系邮箱</p>
+        <p><strong>RSS链接：</strong>RSS订阅地址</p>
+        <p><strong>QQ号：</strong>QQ号码，点击后会打开QQ聊天窗口</p>
+        <p><strong>微信二维码：</strong>微信二维码图片的URL地址</p>
+        <n-divider />
         <p><strong>存储方式：</strong>选择文件上传的存储方式</p>
         <p><strong>本地存储：</strong>文件保存在服务器本地，适合小型网站或开发环境</p>
         <p><strong>阿里云 OSS：</strong>文件保存到阿里云对象存储，适合生产环境</p>
@@ -107,7 +168,13 @@ const message = useMessage()
 const formData = ref({
   site_name: '',
   site_icp: '',
-  site_police: ''
+  site_police: '',
+  social_github: '',
+  social_gitee: '',
+  social_email: '',
+  social_rss: '',
+  social_qq: '',
+  social_wechat: ''
 })
 
 const uploadFormData = ref({
@@ -133,7 +200,13 @@ async function fetchSettings() {
       formData.value = {
         site_name: res.data.site_name || '',
         site_icp: res.data.site_icp || '',
-        site_police: res.data.site_police || ''
+        site_police: res.data.site_police || '',
+        social_github: res.data.social_github || '',
+        social_gitee: res.data.social_gitee || '',
+        social_email: res.data.social_email || '',
+        social_rss: res.data.social_rss || '',
+        social_qq: res.data.social_qq || '',
+        social_wechat: res.data.social_wechat || ''
       }
       originalData.value = {...formData.value}
     }
@@ -161,9 +234,21 @@ async function fetchUploadSettings() {
 async function handleSubmit() {
   loading.value = true
   try {
-    await updateSiteSettings(formData.value)
+    // 过滤空值，只提交有值的字段
+    const dataToSubmit: Record<string, string> = {}
+    Object.keys(formData.value).forEach(key => {
+      const value = (formData.value as any)[key]
+      if (value !== null && value !== undefined && value !== '') {
+        dataToSubmit[key] = String(value).trim()
+      }
+    })
+    
+    await updateSiteSettings(dataToSubmit)
     message.success('设置保存成功')
     originalData.value = {...formData.value}
+    
+    // 提示用户刷新页面查看效果
+    message.info('社交链接已更新，请刷新首页查看效果')
   } catch (error: any) {
     message.error(error.response?.data?.message || '保存失败')
   } finally {
