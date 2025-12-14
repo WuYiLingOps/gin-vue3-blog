@@ -271,6 +271,7 @@ onMounted(() => {
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   position: sticky;
   top: 100px;
+  z-index: 20; /* 确保个人名片在文章卡片之上 */
 }
 
 .author-card:hover {

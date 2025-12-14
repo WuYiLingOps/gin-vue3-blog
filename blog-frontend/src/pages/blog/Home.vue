@@ -212,7 +212,7 @@ function getHighlightedSummary(post: Post): string {
 .home-layout {
   display: grid;
   grid-template-columns: 1fr 320px;
-  gap: 24px;
+  gap: 32px; /* 增加间距，避免重叠 */
   align-items: start;
 }
 
@@ -222,6 +222,8 @@ function getHighlightedSummary(post: Post): string {
 
 .sidebar-section {
   position: relative;
+  z-index: 10; /* 确保侧边栏在文章卡片之上 */
+  margin-left: 8px; /* 稍微往右移动 */
 }
 
 /* 移动端布局 */
@@ -278,9 +280,10 @@ function getHighlightedSummary(post: Post): string {
 }
 
 .post-card:hover {
-  transform: translateY(-8px) scale(1.05);
+  transform: translateY(-8px) scale(1.02); /* 减小放大倍数，避免向右扩展太多 */
   box-shadow: 0 20px 48px rgba(0, 0, 0, 0.15);
   border-color: rgba(8, 145, 178, 0.4);
+  z-index: 5; /* 设置z-index，但低于侧边栏 */
 }
 
 .post-card-wrapper {
