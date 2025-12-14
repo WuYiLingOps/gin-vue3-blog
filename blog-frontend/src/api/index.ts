@@ -9,4 +9,5 @@ export * from './user'
 export * from './dashboard'
 export * from './chat'
 export * from './ipBlacklist'
+export * from './ipWhitelist'
 
