@@ -36,6 +36,7 @@ const SiteSettings = () => import('@/pages/admin/SiteSettings.vue')
 const MomentManage = () => import('@/pages/admin/MomentManage.vue')
 const ChatManage = () => import('@/pages/admin/ChatManage.vue')
 const IPBlacklistManage = () => import('@/pages/admin/IPBlacklistManage.vue')
+const IPWhitelistManage = () => import('@/pages/admin/IPWhitelistManage.vue')
 
 const routes: RouteRecordRaw[] = [
   // 博客前台路由
@@ -216,6 +217,12 @@ const routes: RouteRecordRaw[] = [
         name: 'IPBlacklistManage',
         component: IPBlacklistManage,
         meta: { title: 'IP黑名单管理', requiresAuth: true, requiresAdmin: true }
+      },
+      {
+        path: 'ip-whitelist',
+        name: 'IPWhitelistManage',
+        component: IPWhitelistManage,
+        meta: { title: 'IP白名单管理', requiresAuth: true, requiresAdmin: true }
       }
     ]
   },
