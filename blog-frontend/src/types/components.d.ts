@@ -7,6 +7,7 @@ export {}
 
 declare module 'vue' {
   export interface GlobalComponents {
+    AuthorCard: typeof import('./../components/AuthorCard.vue')['default']
     AvatarUpload: typeof import('./../components/AvatarUpload.vue')['default']
     CaptchaInput: typeof import('./../components/CaptchaInput.vue')['default']
     ImageUpload: typeof import('./../components/ImageUpload.vue')['default']
@@ -67,5 +68,6 @@ declare module 'vue' {
     NUploadDragger: typeof import('naive-ui')['NUploadDragger']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    SocialIcons: typeof import('./../components/SocialIcons.vue')['default']
   }
 }
