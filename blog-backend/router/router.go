@@ -43,6 +43,7 @@ func SetupRouter() *gin.Engine {
 	ipWhitelistHandler := handler.NewIPWhitelistHandler()
 	captchaHandler := handler.NewCaptchaHandler()
 	chatHandler := handler.NewChatHandler(chatHub)
+	blogHandler := handler.NewBlogHandler()
 
 	// 健康检查接口
 	r.GET("/health", func(c *gin.Context) {
@@ -54,6 +55,7 @@ func SetupRouter() *gin.Engine {
 	{
 		setupAuthRoutes(api, authHandler)
 		setupCaptchaRoutes(api, captchaHandler)
+		setupBlogRoutes(api, blogHandler)
 		setupPostRoutes(api, postHandler)
 		setupCategoryRoutes(api, categoryHandler)
 		setupTagRoutes(api, tagHandler)
@@ -98,6 +100,15 @@ func setupCaptchaRoutes(api *gin.RouterGroup, h *handler.CaptchaHandler) {
 	captcha := api.Group("/captcha")
 	{
 		captcha.GET("", h.GetCaptcha)
+	}
+}
+
+// setupBlogRoutes 博客路由（公开接口）
+func setupBlogRoutes(api *gin.RouterGroup, h *handler.BlogHandler) {
+	blog := api.Group("/blog")
+	{
+		// 获取博主资料和统计数据
+		blog.GET("/author", h.GetAuthorProfile)
 	}
 }
 
