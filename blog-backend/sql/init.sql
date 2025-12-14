@@ -401,6 +401,30 @@ COMMENT ON COLUMN ip_blacklist.ban_type IS '封禁类型：1-自动封禁，2-�
 COMMENT ON COLUMN ip_blacklist.expire_at IS '过期时间，NULL表示永久封禁';
 
 -- =============================================================================
+-- 10.1. IP 白名单系统
+-- =============================================================================
+
+-- 创建IP白名单表
+CREATE TABLE IF NOT EXISTS ip_whitelist (
+    id SERIAL PRIMARY KEY,
+    ip VARCHAR(45) UNIQUE NOT NULL,
+    reason VARCHAR(255),
+    expire_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- IP白名单表索引
+CREATE INDEX IF NOT EXISTS idx_ip_whitelist_ip ON ip_whitelist(ip);
+CREATE INDEX IF NOT EXISTS idx_ip_whitelist_expire_at ON ip_whitelist(expire_at);
+
+-- IP白名单表注释
+COMMENT ON TABLE ip_whitelist IS 'IP白名单表';
+COMMENT ON COLUMN ip_whitelist.ip IS 'IP地址（支持 CIDR 格式）';
+COMMENT ON COLUMN ip_whitelist.reason IS '添加原因';
+COMMENT ON COLUMN ip_whitelist.expire_at IS '过期时间，NULL表示永久有效';
+
+-- =============================================================================
 -- 11. 聊天室系统
 -- =============================================================================
 
