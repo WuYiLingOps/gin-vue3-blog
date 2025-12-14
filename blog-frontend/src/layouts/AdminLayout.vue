@@ -226,6 +226,11 @@ const menuOptions = [
     icon: renderIcon(ShieldCheckmarkOutline)
   },
   {
+    label: 'IP白名单',
+    key: 'IPWhitelistManage',
+    icon: renderIcon(ShieldCheckmarkOutline)
+  },
+  {
     label: '网站设置',
     key: 'SiteSettings',
     icon: renderIcon(SettingsOutline)
