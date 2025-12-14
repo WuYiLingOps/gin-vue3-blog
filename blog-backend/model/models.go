@@ -74,7 +74,7 @@ type Comment struct {
 	Content   string    `json:"content" gorm:"not null;type:text"`
 	PostID    uint      `json:"post_id" gorm:"index"`
 	UserID    uint      `json:"user_id" gorm:"index"`
-	ParentID  *uint     `json:"parent_id" gorm:"index"` // 父评论ID，用于回复
+	ParentID  *uint     `json:"parent_id" gorm:"index"`  // 父评论ID，用于回复
 	Status    int       `json:"status" gorm:"default:1"` // 1:正常 0:隐藏
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
@@ -91,7 +91,7 @@ type Setting struct {
 	ID        uint      `json:"id" gorm:"primaryKey"`
 	Key       string    `json:"key" gorm:"uniqueIndex;not null;size:100"`
 	Value     string    `json:"value" gorm:"type:text"`
-	Type      string    `json:"type" gorm:"size:20"` // text, json, image
+	Type      string    `json:"type" gorm:"size:20"`        // text, json, image
 	Group     string    `json:"group" gorm:"size:50;index"` // about, site, etc.
 	Label     string    `json:"label" gorm:"size:100"`
 	CreatedAt time.Time `json:"created_at"`
@@ -102,7 +102,7 @@ type Setting struct {
 type PostView struct {
 	ID        uint      `json:"id" gorm:"primaryKey"`
 	PostID    uint      `json:"post_id" gorm:"index;not null"`
-	UserID    *uint     `json:"user_id" gorm:"index"` // 已登录用户ID，可为空
+	UserID    *uint     `json:"user_id" gorm:"index"`    // 已登录用户ID，可为空
 	IP        string    `json:"ip" gorm:"size:45;index"` // 访客IP地址
 	CreatedAt time.Time `json:"created_at"`
 }
@@ -127,7 +127,7 @@ type Moment struct {
 type MomentLike struct {
 	ID        uint      `json:"id" gorm:"primaryKey"`
 	MomentID  uint      `json:"moment_id" gorm:"index;not null"`
-	UserID    *uint     `json:"user_id" gorm:"index"` // 已登录用户ID，可为空
+	UserID    *uint     `json:"user_id" gorm:"index"`    // 已登录用户ID，可为空
 	IP        string    `json:"ip" gorm:"size:45;index"` // 访客IP地址
 	CreatedAt time.Time `json:"created_at"`
 }
@@ -136,7 +136,7 @@ type MomentLike struct {
 type PostLike struct {
 	ID        uint      `json:"id" gorm:"primaryKey"`
 	PostID    uint      `json:"post_id" gorm:"index;not null"`
-	UserID    *uint     `json:"user_id" gorm:"index"` // 已登录用户ID，可为空
+	UserID    *uint     `json:"user_id" gorm:"index"`    // 已登录用户ID，可为空
 	IP        string    `json:"ip" gorm:"size:45;index"` // 访客IP地址
 	CreatedAt time.Time `json:"created_at"`
 }
@@ -148,6 +148,16 @@ type IPBlacklist struct {
 	Reason    string     `json:"reason" gorm:"size:255"`
 	BanType   int        `json:"ban_type" gorm:"default:1"` // 1:自动封禁 2:手动封禁
 	ExpireAt  *time.Time `json:"expire_at"`                 // 过期时间，NULL表示永久封禁
+	CreatedAt time.Time  `json:"created_at"`
+	UpdatedAt time.Time  `json:"updated_at"`
+}
+
+// IPWhitelist IP白名单模型
+type IPWhitelist struct {
+	ID        uint       `json:"id" gorm:"primaryKey"`
+	IP        string     `json:"ip" gorm:"uniqueIndex;not null;size:45"` // 支持 CIDR 格式
+	Reason    string     `json:"reason" gorm:"size:255"`                 // 添加原因
+	ExpireAt  *time.Time `json:"expire_at"`                              // 过期时间，NULL表示永久有效
 	CreatedAt time.Time  `json:"created_at"`
 	UpdatedAt time.Time  `json:"updated_at"`
 }
@@ -177,11 +187,11 @@ type EmailChangeRecord struct {
 type ChatMessage struct {
 	ID        uint      `json:"id" gorm:"primaryKey"`
 	Content   string    `json:"content" gorm:"not null;type:text"`
-	UserID    *uint     `json:"user_id" gorm:"index"` // 登录用户ID，可为空（匿名用户）
+	UserID    *uint     `json:"user_id" gorm:"index"`             // 登录用户ID，可为空（匿名用户）
 	Username  string    `json:"username" gorm:"size:50;not null"` // 用户名（登录用户为真实用户名，匿名用户为临时昵称）
-	Avatar    string    `json:"avatar" gorm:"size:255"` // 头像URL
-	IP        string    `json:"ip" gorm:"size:45"` // IP地址
-	Status    int       `json:"status" gorm:"default:1;index"` // 1:正常 0:删除
+	Avatar    string    `json:"avatar" gorm:"size:255"`           // 头像URL
+	IP        string    `json:"ip" gorm:"size:45"`                // IP地址
+	Status    int       `json:"status" gorm:"default:1;index"`    // 1:正常 0:删除
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 
@@ -228,6 +238,10 @@ func (MomentLike) TableName() string {
 
 func (IPBlacklist) TableName() string {
 	return "ip_blacklist"
+}
+
+func (IPWhitelist) TableName() string {
+	return "ip_whitelist"
 }
 
 func (PasswordResetToken) TableName() string {
