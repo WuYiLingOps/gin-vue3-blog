@@ -37,13 +37,14 @@ func (s *SettingService) UpdateSiteSettings(data map[string]string) error {
 
 	for key, value := range data {
 		settings = append(settings, model.Setting{
+			Group:     "site",
 			Key:       key,
 			Value:     value,
 			UpdatedAt: time.Now(),
 		})
 	}
 
-	return s.repo.BatchUpdate(settings)
+	return s.repo.BatchUpsert(settings)
 }
 
 // GetPublicSettings 获取公开的网站配置（前端用）
@@ -97,4 +98,3 @@ func (s *SettingService) UpdateUploadSettings(data map[string]string) error {
 
 	return s.repo.BatchUpdate(settings)
 }
-
