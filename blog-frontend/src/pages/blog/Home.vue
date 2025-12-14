@@ -1,16 +1,19 @@
 <template>
   <div class="home-page">
-    <n-space vertical :size="24">
-      <!-- 文章列表 -->
-      <n-spin :show="loading">
-        <n-space vertical :size="16">
-          <n-card
-            v-for="post in posts"
-            :key="post.id"
-            hoverable
-            class="post-card"
-            @click="router.push(`/post/${post.id}`)"
-          >
+    <div class="home-layout">
+      <!-- 左侧：文章列表 -->
+      <div class="posts-section">
+        <n-space vertical :size="24">
+          <!-- 文章列表 -->
+          <n-spin :show="loading">
+            <n-space vertical :size="16">
+              <n-card
+                v-for="post in posts"
+                :key="post.id"
+                hoverable
+                class="post-card"
+                @click="router.push(`/post/${post.id}`)"
+              >
             <div class="post-card-wrapper">
               <div class="post-card-content">
                 <!-- 文章信息 -->
@@ -80,6 +83,13 @@
         </n-space>
       </n-spin>
     </n-space>
+      </div>
+
+      <!-- 右侧：个人信息卡片 -->
+      <div class="sidebar-section">
+        <AuthorCard />
+      </div>
+    </div>
   </div>
 </template>
 
@@ -93,6 +103,7 @@ import { formatDate } from '@/utils/format'
 import { highlightKeyword, extractHighlightSnippet } from '@/utils/highlight'
 import { useBlogStore } from '@/stores'
 import type { Post } from '@/types/blog'
+import AuthorCard from '@/components/AuthorCard.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -191,10 +202,37 @@ function getHighlightedSummary(post: Post): string {
 
 <style scoped>
 .home-page {
-  max-width: 900px;
+  max-width: 1400px;
   margin: 0 auto;
+  padding: 0 20px;
   position: relative;
   z-index: 1;
+}
+
+.home-layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 24px;
+  align-items: start;
+}
+
+.posts-section {
+  min-width: 0; /* 防止内容溢出 */
+}
+
+.sidebar-section {
+  position: relative;
+}
+
+/* 移动端布局 */
+@media (max-width: 1024px) {
+  .home-layout {
+    grid-template-columns: 1fr;
+  }
+  
+  .sidebar-section {
+    order: -1; /* 移动端个人信息卡片显示在文章列表上方 */
+  }
 }
 
 /* 玻璃态卡片效果 */
@@ -240,7 +278,7 @@ function getHighlightedSummary(post: Post): string {
 }
 
 .post-card:hover {
-  transform: translateY(-8px) scale(1.01);
+  transform: translateY(-8px) scale(1.05);
   box-shadow: 0 20px 48px rgba(0, 0, 0, 0.15);
   border-color: rgba(8, 145, 178, 0.4);
 }
@@ -296,6 +334,7 @@ html.dark .post-title {
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   text-overflow: ellipsis;
 }
 
