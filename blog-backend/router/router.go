@@ -40,6 +40,7 @@ func SetupRouter() *gin.Engine {
 	dashboardHandler := handler.NewDashboardHandler()
 	momentHandler := handler.NewMomentHandler()
 	ipBlacklistHandler := handler.NewIPBlacklistHandler()
+	ipWhitelistHandler := handler.NewIPWhitelistHandler()
 	captchaHandler := handler.NewCaptchaHandler()
 	chatHandler := handler.NewChatHandler(chatHub)
 
@@ -61,7 +62,7 @@ func SetupRouter() *gin.Engine {
 		setupSettingRoutes(api, settingHandler)
 		setupMomentRoutes(api, momentHandler)
 		setupChatRoutes(api, chatHandler)
-		setupAdminRoutes(api, userHandler, postHandler, commentHandler, dashboardHandler, momentHandler, ipBlacklistHandler, chatHandler)
+		setupAdminRoutes(api, userHandler, postHandler, commentHandler, dashboardHandler, momentHandler, ipBlacklistHandler, ipWhitelistHandler, chatHandler)
 	}
 
 	return r
@@ -244,7 +245,7 @@ func setupChatRoutes(api *gin.RouterGroup, h *handler.ChatHandler) {
 }
 
 // setupAdminRoutes 管理后台路由
-func setupAdminRoutes(api *gin.RouterGroup, userHandler *handler.UserHandler, postHandler *handler.PostHandler, commentHandler *handler.CommentHandler, dashboardHandler *handler.DashboardHandler, momentHandler *handler.MomentHandler, ipBlacklistHandler *handler.IPBlacklistHandler, chatHandler *handler.ChatHandler) {
+func setupAdminRoutes(api *gin.RouterGroup, userHandler *handler.UserHandler, postHandler *handler.PostHandler, commentHandler *handler.CommentHandler, dashboardHandler *handler.DashboardHandler, momentHandler *handler.MomentHandler, ipBlacklistHandler *handler.IPBlacklistHandler, ipWhitelistHandler *handler.IPWhitelistHandler, chatHandler *handler.ChatHandler) {
 	admin := api.Group("/admin")
 	admin.Use(middleware.AuthMiddleware(), middleware.AdminMiddleware())
 	{
@@ -274,6 +275,13 @@ func setupAdminRoutes(api *gin.RouterGroup, userHandler *handler.UserHandler, po
 		admin.DELETE("/ip-blacklist/:id", ipBlacklistHandler.Delete)
 		admin.GET("/ip-blacklist/check", ipBlacklistHandler.Check)
 		admin.POST("/ip-blacklist/clean-expired", ipBlacklistHandler.CleanExpired)
+
+		// IP白名单管理
+		admin.GET("/ip-whitelist", ipWhitelistHandler.List)
+		admin.POST("/ip-whitelist", ipWhitelistHandler.Add)
+		admin.DELETE("/ip-whitelist/:id", ipWhitelistHandler.Delete)
+		admin.GET("/ip-whitelist/check", ipWhitelistHandler.Check)
+		admin.POST("/ip-whitelist/clean-expired", ipWhitelistHandler.CleanExpired)
 
 		// 聊天室管理
 		admin.GET("/chat/messages", chatHandler.AdminListMessages)
