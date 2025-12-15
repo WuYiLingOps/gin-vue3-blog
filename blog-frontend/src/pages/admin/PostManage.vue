@@ -117,7 +117,7 @@ import { useRouter } from 'vue-router'
 import { useMessage, useDialog, NButton, NTag, NSpace } from 'naive-ui'
 import type { DataTableColumns, FormInst } from 'naive-ui'
 import { AddOutline } from '@vicons/ionicons5'
-import { getPosts, createPost, deletePost } from '@/api/post'
+import { getPosts, createPost, deletePost, exportPost } from '@/api/post'
 import { useBlogStore } from '@/stores'
 import { formatDate } from '@/utils/format'
 import type { Post, PostForm } from '@/types/blog'
@@ -212,7 +212,7 @@ const columns: DataTableColumns<Post> = [
   {
     title: '操作',
     key: 'actions',
-    width: 150,
+    width: 220,
     render: row =>
       h(NSpace, null, {
         default: () => [
@@ -225,6 +225,11 @@ const columns: DataTableColumns<Post> = [
             NButton,
             { size: 'small', type: 'error', onClick: () => handleDelete(row.id) },
             { default: () => '删除' }
+          ),
+          h(
+            NButton,
+            { size: 'small', type: 'primary', ghost: true, onClick: () => handleExport(row.id, row.title) },
+            { default: () => '导出MD' }
           )
         ]
       })
@@ -337,6 +342,47 @@ function handleDelete(id: number) {
       }
     }
   })
+}
+
+// 导出 Markdown
+function safeFileName(name: string | null | undefined, fallback: string) {
+  // 去掉首尾引号，避免被当成内容字符
+  const raw = name?.trim().replace(/^"+|"+$/g, '') || fallback
+  const cleaned = raw.replace(/[\\/:*?"<>|]/g, '')
+  return cleaned || fallback
+}
+
+function parseFilenameFromHeader(disposition?: string): string | null {
+  if (!disposition) return null
+  // 兼容 filename* 和 filename
+  const utf8Match = disposition.match(/filename\\*=(?:UTF-8'')?([^;]+)/i)
+  if (utf8Match && utf8Match[1]) {
+    try {
+      return decodeURIComponent(utf8Match[1])
+    } catch {
+      return utf8Match[1]
+    }
+  }
+  const asciiMatch = disposition.match(/filename="?([^";]+)"?/i)
+  return asciiMatch ? asciiMatch[1] : null
+}
+
+// 导出 Markdown
+async function handleExport(id: number, title: string) {
+  try {
+    const res = await exportPost(id, 'md')
+    const blob = new Blob([res.data], { type: 'text/markdown;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    const headerName = parseFilenameFromHeader(res.headers['content-disposition'])
+    a.download = safeFileName(headerName || `${title || `post-${id}`}.md`, `post-${id}.md`)
+    a.click()
+    URL.revokeObjectURL(url)
+    message.success('导出成功')
+  } catch (error: any) {
+    message.error(error?.response?.data?.message || error?.message || '导出失败')
+  }
 }
 
 // 检查是否有未保存的内容
