@@ -97,7 +97,7 @@ myBlog/
 - **PostgreSQL** >= 15
 - **pnpm** (推荐) 或 npm
 
-###  :zero: docker快速启动环境（可选）
+###  0️⃣docker快速启动环境（可选）
 
 创建`pgsql`指令：
 
