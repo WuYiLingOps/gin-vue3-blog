@@ -264,11 +264,24 @@ async function handleSubmit() {
     await formRef.value?.validate()
     submitting.value = true
 
+    const normalizedStatus = formData.status === undefined || formData.status === null
+      ? 1
+      : Number(formData.status)
+
     if (editingMoment.value) {
-      await updateMoment(editingMoment.value.id, formData)
+      await updateMoment(editingMoment.value.id, {
+        content: formData.content,
+        images: formData.images,
+        status: normalizedStatus
+      })
       message.success('更新成功')
     } else {
-      await createMoment(formData)
+      const payload: MomentForm = {
+        content: formData.content,
+        images: formData.images,
+        status: normalizedStatus
+      }
+      await createMoment(payload)
       message.success('发布成功')
     }
 
