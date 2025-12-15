@@ -30,6 +30,7 @@ export interface Announcement {
   avatar?: string
   priority: number
   is_broadcast: boolean
+  target?: 'announcement' | 'chat' | 'both'
   created_at: string
   updated_at: string
 }
