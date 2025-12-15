@@ -1,10 +1,16 @@
 package handler
 
 import (
+	"bytes"
+	"fmt"
+	"regexp"
 	"strconv"
+	"strings"
+	"time"
 
 	"blog-backend/service"
 	"blog-backend/util"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -220,3 +226,68 @@ func (h *PostHandler) GetRecentPosts(c *gin.Context) {
 	util.Success(c, posts)
 }
 
+// Export 导出文章为 Markdown
+func (h *PostHandler) Export(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		util.BadRequest(c, "无效的文章ID")
+		return
+	}
+
+	post, err := h.service.GetByIDForAdmin(uint(id))
+	if err != nil {
+		util.Error(c, 404, "文章不存在")
+		return
+	}
+
+	var buf bytes.Buffer
+	buf.WriteString("---\n")
+	buf.WriteString(fmt.Sprintf("title: \"%s\"\n", escapeYAML(post.Title)))
+	if post.PublishedAt != nil {
+		buf.WriteString(fmt.Sprintf("date: %s\n", post.PublishedAt.Format(time.RFC3339)))
+	} else {
+		buf.WriteString(fmt.Sprintf("date: %s\n", post.CreatedAt.Format(time.RFC3339)))
+	}
+	buf.WriteString(fmt.Sprintf("status: %d\n", post.Status))
+	buf.WriteString(fmt.Sprintf("category: \"%s\"\n", escapeYAML(post.Category.Name)))
+
+	if len(post.Tags) > 0 {
+		buf.WriteString("tags:\n")
+		for _, t := range post.Tags {
+			buf.WriteString(fmt.Sprintf("  - \"%s\"\n", escapeYAML(t.Name)))
+		}
+	} else {
+		buf.WriteString("tags: []\n")
+	}
+
+	buf.WriteString("---\n\n")
+	buf.WriteString(post.Content)
+
+	filename := sanitizeFilename(post.Title)
+	if filename == "" {
+		filename = fmt.Sprintf("post-%d", post.ID)
+	}
+
+	c.Header("Content-Type", "text/markdown; charset=utf-8")
+	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s.md\"", filename))
+	c.String(200, buf.String())
+}
+
+// escapeYAML 简单转义引号
+func escapeYAML(s string) string {
+	return strings.ReplaceAll(s, "\"", "\\\"")
+}
+
+// sanitizeFilename 将标题转为安全文件名
+func sanitizeFilename(s string) string {
+	s = strings.TrimSpace(s)
+	if s == "" {
+		return ""
+	}
+	re := regexp.MustCompile(`[^a-zA-Z0-9\\-_.]+`)
+	s = strings.ToLower(s)
+	s = strings.ReplaceAll(s, " ", "-")
+	s = re.ReplaceAllString(s, "-")
+	s = strings.Trim(s, "-")
+	return s
+}
