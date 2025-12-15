@@ -1,6 +1,7 @@
 // 文章相关 API
 
-import { request } from '@/utils/request'
+import type { AxiosResponse } from 'axios'
+import service, { request } from '@/utils/request'
 import type { Post, PostForm, PostQuery } from '@/types/blog'
 import type { PageData } from '@/types/common'
 
@@ -27,6 +28,14 @@ export function updatePost(id: number, data: Partial<PostForm>) {
 // 删除文章
 export function deletePost(id: number) {
   return request.delete(`/posts/${id}`)
+}
+
+// 导出文章（Markdown）
+export function exportPost(id: number, format: 'md' = 'md'): Promise<AxiosResponse<Blob>> {
+  return service.get<Blob>(`/admin/posts/${id}/export`, {
+    params: { format },
+    responseType: 'blob'
+  })
 }
 
 // 点赞文章
