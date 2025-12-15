@@ -167,7 +167,7 @@ pnpm dev
 - **管理后台**: http://localhost:3000/admin
 - **默认管理员账号**: 
   - 用户名: `admin`
-  - 密码: `admin123`
+  - 密码: `password`
 
 ## ⚙️ 邮箱配置说明
 
