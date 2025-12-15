@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -121,7 +122,7 @@ func (h *ChatHandler) GetMessages(c *gin.Context) {
 		pageSize = 50
 	}
 
-	messages, total, err := h.service.GetMessages(page, pageSize)
+	messages, total, err := h.service.GetMessages(page, pageSize, false)
 	if err != nil {
 		util.ServerError(c, "获取消息列表失败")
 		return
@@ -181,7 +182,7 @@ func (h *ChatHandler) AdminListMessages(c *gin.Context) {
 		pageSize = 20
 	}
 
-	messages, total, err := h.service.GetMessages(page, pageSize)
+	messages, total, err := h.service.GetMessages(page, pageSize, true)
 	if err != nil {
 		util.ServerError(c, "获取消息列表失败")
 		return
@@ -219,7 +220,8 @@ func (h *ChatHandler) CreateAnonymousToken(c *gin.Context) {
 func (h *ChatHandler) BroadcastSystemMessage(c *gin.Context) {
 	var req struct {
 		Content  string `json:"content" binding:"required"`
-		Priority *int   `json:"priority"` // 0:普通 1:置顶
+		Priority *int   `json:"priority"`         // 0:普通 1:置顶
+		Target   string `json:"target,omitempty"` // announcement / chat / both
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -232,12 +234,26 @@ func (h *ChatHandler) BroadcastSystemMessage(c *gin.Context) {
 		priority = 1
 	}
 
+	target := "both"
+	switch strings.ToLower(strings.TrimSpace(req.Target)) {
+	case "announcement":
+		target = "announcement"
+	case "chat":
+		target = "chat"
+	case "both", "":
+		target = "both"
+	default:
+		util.BadRequest(c, "target 参数不合法，可选 announcement/chat/both")
+		return
+	}
+
 	// 创建系统消息
 	message := &model.ChatMessage{
 		Content:     req.Content,
 		Username:    "系统消息",
 		Avatar:      "",
 		Priority:    priority,
+		Target:      target,
 		IsBroadcast: true,
 		Status:      1,
 	}
@@ -248,15 +264,17 @@ func (h *ChatHandler) BroadcastSystemMessage(c *gin.Context) {
 		return
 	}
 
-	// 广播消息
-	wsMsg := service.WebSocketMessage{
-		Type:      "system",
-		Data:      message,
-		Timestamp: time.Now().Unix(),
-	}
+	// 如选择投递到聊天室，才走 WebSocket 广播
+	if target == "chat" || target == "both" {
+		wsMsg := service.WebSocketMessage{
+			Type:      "system",
+			Data:      message,
+			Timestamp: time.Now().Unix(),
+		}
 
-	data, _ := json.Marshal(wsMsg)
-	h.hub.Broadcast <- data
+		data, _ := json.Marshal(wsMsg)
+		h.hub.Broadcast <- data
+	}
 
 	util.Success(c, nil)
 }
