@@ -154,6 +154,7 @@ go run cmd/server/main.go
 cd blog-frontend
 
 # 1. 安装依赖
+# 如果没有安装pnpm，可全局安装：npm install -g pnpm
 pnpm install
 
 # 2. 配置 API 地址（可选）
