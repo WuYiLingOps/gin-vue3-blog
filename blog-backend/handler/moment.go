@@ -4,8 +4,9 @@ import (
 	"blog-backend/model"
 	"blog-backend/service"
 	"blog-backend/util"
-	"github.com/gin-gonic/gin"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
 )
 
 type MomentHandler struct {
@@ -23,7 +24,7 @@ func (h *MomentHandler) Create(c *gin.Context) {
 	var req struct {
 		Content string `json:"content" binding:"required"`
 		Images  string `json:"images"`
-		Status  int    `json:"status"`
+		Status  int    `json:"status" binding:"required,oneof=0 1"` // 1:公开 0:私密，必填
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -45,10 +46,6 @@ func (h *MomentHandler) Create(c *gin.Context) {
 		Status:  req.Status,
 	}
 
-	if moment.Status == 0 {
-		moment.Status = 1 // 默认公开
-	}
-
 	if err := h.service.Create(moment); err != nil {
 		util.Error(c, 500, err.Error())
 		return
@@ -68,6 +65,7 @@ func (h *MomentHandler) Update(c *gin.Context) {
 	var req struct {
 		Content string `json:"content"`
 		Images  string `json:"images"`
+		Status  *int   `json:"status"` // 1:公开 0:私密
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -75,7 +73,7 @@ func (h *MomentHandler) Update(c *gin.Context) {
 		return
 	}
 
-	if err := h.service.Update(uint(id), req.Content, req.Images); err != nil {
+	if err := h.service.Update(uint(id), req.Content, req.Images, req.Status); err != nil {
 		util.Error(c, 500, err.Error())
 		return
 	}
@@ -113,6 +111,20 @@ func (h *MomentHandler) GetByID(c *gin.Context) {
 		return
 	}
 
+	// 权限校验：私密说说仅作者或管理员可见
+	role, _ := c.Get("role")
+	var userID *uint
+	if uid, exists := c.Get("user_id"); exists {
+		uidVal := uid.(uint)
+		userID = &uidVal
+	}
+	if moment.Status == 0 { // 私密
+		if role != "admin" && (userID == nil || *userID != moment.UserID) {
+			util.Forbidden(c, "无权查看该说说")
+			return
+		}
+	}
+
 	util.Success(c, moment)
 }
 
@@ -127,8 +139,11 @@ func (h *MomentHandler) List(c *gin.Context) {
 	if statusStr != "" {
 		statusVal, _ := strconv.Atoi(statusStr)
 		status = &statusVal
-	} else {
-		// 公开接口只返回公开的说说
+	}
+
+	// 权限：管理员可查看全部（含私密），普通用户/游客仅公开
+	role, _ := c.Get("role")
+	if role != "admin" {
 		publicStatus := 1
 		status = &publicStatus
 	}
@@ -230,4 +245,3 @@ func (h *MomentHandler) Like(c *gin.Context) {
 		"liked": liked,
 	})
 }
-
