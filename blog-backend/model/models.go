@@ -185,15 +185,17 @@ type EmailChangeRecord struct {
 
 // ChatMessage 聊天消息模型
 type ChatMessage struct {
-	ID        uint      `json:"id" gorm:"primaryKey"`
-	Content   string    `json:"content" gorm:"not null;type:text"`
-	UserID    *uint     `json:"user_id" gorm:"index"`             // 登录用户ID，可为空（匿名用户）
-	Username  string    `json:"username" gorm:"size:50;not null"` // 用户名（登录用户为真实用户名，匿名用户为临时昵称）
-	Avatar    string    `json:"avatar" gorm:"size:255"`           // 头像URL
-	IP        string    `json:"ip" gorm:"size:45"`                // IP地址
-	Status    int       `json:"status" gorm:"default:1;index"`    // 1:正常 0:删除
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID          uint      `json:"id" gorm:"primaryKey"`
+	Content     string    `json:"content" gorm:"not null;type:text"`
+	UserID      *uint     `json:"user_id" gorm:"index"`                    // 登录用户ID，可为空（匿名用户）
+	Username    string    `json:"username" gorm:"size:50;not null"`        // 用户名（登录用户为真实用户名，匿名用户为临时昵称）
+	Avatar      string    `json:"avatar" gorm:"size:255"`                  // 头像URL
+	IP          string    `json:"ip" gorm:"size:45"`                       // IP地址
+	Priority    int       `json:"priority" gorm:"default:0"`               // 优先级：0-普通，1-置顶
+	IsBroadcast bool      `json:"is_broadcast" gorm:"default:false;index"` // 是否为系统广播
+	Status      int       `json:"status" gorm:"default:1;index"`           // 1:正常 0:删除
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
 
 	// 关联关系
 	User *User `json:"user,omitempty" gorm:"foreignKey:UserID"`
