@@ -32,6 +32,11 @@ service.interceptors.request.use(
 // 响应拦截器
 service.interceptors.response.use(
   (response: AxiosResponse<ApiResponse>): any => {
+    // 二进制/文件直通，不按统一包裹处理
+    if (response.config.responseType === 'blob' || response.config.responseType === 'arraybuffer') {
+      return response
+    }
+
     const res = response.data
 
     // 如果返回的状态码不是 200，则判断为错误
