@@ -115,6 +115,15 @@
         @close="showBroadcastModal = false"
       >
         <n-form>
+          <n-form-item label="优先级">
+            <n-select
+              v-model:value="broadcastPriority"
+              :options="[
+                { label: '置顶', value: 1 },
+                { label: '普通', value: 0 }
+              ]"
+            />
+          </n-form-item>
           <n-form-item label="广播内容">
             <n-input
               v-model:value="broadcastContent"
@@ -151,6 +160,7 @@ import {
   NForm,
   NFormItem,
   NInput,
+  NSelect,
   NPopconfirm,
   NTime,
   NAvatar,
@@ -193,6 +203,7 @@ const pagination = ref({
 // 系统广播
 const showBroadcastModal = ref(false)
 const broadcastContent = ref('')
+const broadcastPriority = ref(0)
 const broadcasting = ref(false)
 
 // 批量删除
@@ -377,10 +388,11 @@ const handleBroadcast = async () => {
 
   broadcasting.value = true
   try {
-    await adminBroadcastMessage(broadcastContent.value.trim())
+    await adminBroadcastMessage(broadcastContent.value.trim(), broadcastPriority.value)
     message.success('广播发送成功')
     showBroadcastModal.value = false
     broadcastContent.value = ''
+    broadcastPriority.value = 0
     fetchMessages()
   } catch (error) {
     message.error('广播发送失败')
