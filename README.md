@@ -97,6 +97,41 @@ myBlog/
 - **PostgreSQL** >= 15
 - **pnpm** (推荐) 或 npm
 
+###  :zero: docker快速启动环境（可选）
+
+创建`pgsql`指令：
+
+```bash
+docker run --name pg-prod \
+  -e POSTGRES_PASSWORD="123456ok!" \
+  -v /data/PgSqlData:/var/lib/postgresql/data \
+  -p 5432:5432 \
+  -d postgres:17-alpine
+```
+
+创建`redis`指令:
+
+```bash
+docker run --name redis-prod \
+  -p 6379:6379 \
+  -v /data/redisData:/data \
+  -e REDIS_PASSWORD=123456 \
+  --restart=always \
+  -d redis:7-alpine \
+  redis-server --requirepass 123456 --appendonly yes
+```
+
+查看是否创建成功：
+
+```bash
+[root@docker-server ~]# docker ps
+CONTAINER ID   IMAGE                COMMAND                  CREATED          STATUS          PORTS                                         NAMES
+51e019841d66   redis:7-alpine       "docker-entrypoint.s…"   18 minutes ago   Up 18 minutes   0.0.0.0:6379->6379/tcp, [::]:6379->6379/tcp   redis-prod
+22205f8e78c6   postgres:17-alpine   "docker-entrypoint.s…"   34 minutes ago   Up 34 minutes   0.0.0.0:5432->5432/tcp, [::]:5432->5432/tcp   pg-prod
+```
+
+完成
+
 ### 1️⃣ 克隆项目
 
 ```bash
@@ -121,6 +156,35 @@ CREATE DATABASE blogdb
 cd blog-backend/sql
 psql -U postgres -d blogdb -f init.sql
 ```
+
+> 如果是docker启动的pgsql则看下面
+
+```bash
+第一步：
+# 进入容器内的 psql 交互界面
+docker exec -it pg-prod psql -U postgres
+
+# 在 psql 中创建 blogdb 库（执行后输入 \q 退出）
+CREATE DATABASE blogdb
+  WITH OWNER = postgres
+       ENCODING = 'UTF8'
+       LC_COLLATE = 'en_US.utf8'
+       LC_CTYPE   = 'en_US.utf8'
+       TEMPLATE   = template0;
+# 退出
+\q
+
+第二步：
+# 将 init.sql 传入容器
+docker cp go-vue3-blog/blog-backend/sql/init.sql pg-prod:/tmp/init.sql
+
+# 导入数据
+docker exec -it pg-prod psql -U postgres -d blogdb -f /tmp/init.sql
+```
+
+结果如下：
+
+![image-20251215231415423](https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202512152314486.png)
 
 ### 3️⃣ 后端配置与启动
 
