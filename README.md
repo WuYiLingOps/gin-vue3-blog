@@ -106,9 +106,14 @@ cd myBlog
 
 ### 2️⃣ 数据库配置
 
-1. 创建 PostgreSQL 数据库：
+1. 创建 PostgreSQL 数据库（指定编码/排序，便于跨版本迁移一致）：
 ```sql
-CREATE DATABASE blogdb;
+CREATE DATABASE blogdb
+  WITH OWNER = postgres
+       ENCODING = 'UTF8'
+       LC_COLLATE = 'en_US.utf8'
+       LC_CTYPE   = 'en_US.utf8'
+       TEMPLATE   = template0;
 ```
 
 2. 导入数据库结构：
@@ -414,6 +419,45 @@ server {
 ```
 
 4. 重载 Nginx：`nginx -s reload` 或 `systemctl reload nginx`。
+
+### 第四步：数据迁移（可选，新旧数据库切换时使用）
+
+1. 备份旧库（PostgreSQL 示例）：
+```bash
+pg_dump -h old-host -U old_user -d old_db -Fc -f backup.dump
+```
+参数说明：
+- `-h old-host`：旧数据库主机
+- `-U old_user`：旧库用户名
+- `-d old_db`：旧库库名
+- `-Fc`：自定义格式（便于 pg_restore 增强选项）
+- `-f backup.dump`：输出文件路径
+示例：
+```bash
+pg_dump -h 10.0.0.5 -U bloguser -d blogdb -Fc -f /tmp/blog_backup_2025-12-15.dump
+```
+
+2. 恢复到新库：
+```bash
+pg_restore -h new-host -U new_user -d new_db --clean --if-exists backup.dump
+```
+参数说明：
+- `-h new-host`：新数据库主机
+- `-U new_user`：新库用户名
+- `-d new_db`：新库库名
+- `--clean`：导入前先 DROP 现有对象
+- `--if-exists`：仅在对象存在时执行 DROP，减少报错
+- `backup.dump`：备份文件路径
+示例：
+```bash
+pg_restore -h 127.0.0.1 -U postgres -d blogdb --clean --if-exists /tmp/blog_backup_2025-12-15.dump
+```
+3. 如使用 Docker Compose，可在容器内执行：
+```bash
+docker exec -i blog-postgres pg_restore -U postgres -d blogdb --clean --if-exists < backup.dump
+```
+4. 确认新库的连接信息已写入 `config/config-prod.yml` 或环境变量，并与 Nginx/后端代理地址匹配。
+5. 如不需要历史会话，可清理 Redis（如果有登录态存储），再重启后端。
 
 ## 🎨 主要功能模块
 
