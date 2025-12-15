@@ -124,7 +124,7 @@ const loading = ref(false)
 const posts = ref<Post[]>([])
 const total = ref(0)
 const currentPage = ref(1)
-const pageSize = ref(5)
+const pageSize = ref(7)
 const searchKeyword = ref('')
 
 const totalPages = computed(() => Math.ceil(total.value / pageSize.value))
