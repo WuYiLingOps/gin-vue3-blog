@@ -12,6 +12,8 @@ export interface ChatMessage {
   avatar?: string
   ip?: string
   client_id?: string  // WebSocket客户端ID，用于踢出用户
+  priority?: number
+  is_broadcast?: boolean
   status: number
   created_at: string
   updated_at: string
@@ -58,8 +60,8 @@ export function adminDeleteMessage(id: number) {
 }
 
 // 管理员：发送系统广播
-export function adminBroadcastMessage(content: string) {
-  return request.post('/admin/chat/broadcast', { content })
+export function adminBroadcastMessage(content: string, priority = 0) {
+  return request.post('/admin/chat/broadcast', { content, priority })
 }
 
 // 管理员：踢出用户
