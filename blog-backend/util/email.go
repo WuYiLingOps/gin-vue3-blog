@@ -39,7 +39,11 @@ func GenerateRandomString(length int) string {
 
 // SendResetPasswordEmail 发送重置密码邮件
 func SendResetPasswordEmail(config EmailConfig, to string, code string) error {
-	subject := "【情迁阁】密码重置验证码"
+	siteName := config.FromName
+	if siteName == "" {
+		siteName = "無以菱"
+	}
+	subject := fmt.Sprintf("【%s】密码重置验证码", siteName)
 	body := fmt.Sprintf(`您好！
 
 您正在进行密码重置操作，请使用以下验证码完成验证：
@@ -54,17 +58,21 @@ func SendResetPasswordEmail(config EmailConfig, to string, code string) error {
 
 ---
 此邮件由系统自动发送，请勿直接回复
-© 2025 情迁阁`, code)
+© 2025 %s`, code, siteName)
 
 	return sendEmailText(config, to, subject, body)
 }
 
 // SendRegisterVerificationEmail 发送注册验证码邮件
 func SendRegisterVerificationEmail(config EmailConfig, to string, code string) error {
-	subject := "【情迁阁】注册验证码"
+	siteName := config.FromName
+	if siteName == "" {
+		siteName = "無以菱"
+	}
+	subject := fmt.Sprintf("【%s】注册验证码", siteName)
 	body := fmt.Sprintf(`您好！
 
-欢迎注册情迁阁，请使用以下验证码完成注册：
+欢迎注册%s，请使用以下验证码完成注册：
 
 验证码：%s
 
@@ -76,7 +84,7 @@ func SendRegisterVerificationEmail(config EmailConfig, to string, code string) e
 
 ---
 此邮件由系统自动发送，请勿直接回复
-© 2025 情迁阁`, code)
+© 2025 %s`, siteName, code, siteName)
 
 	return sendEmailText(config, to, subject, body)
 }
