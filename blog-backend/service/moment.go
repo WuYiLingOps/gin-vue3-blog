@@ -5,6 +5,7 @@ import (
 	"blog-backend/repository"
 
 	"errors"
+
 	"gorm.io/gorm"
 )
 
@@ -27,7 +28,7 @@ func (s *MomentService) Create(moment *model.Moment) error {
 }
 
 // Update 更新说说
-func (s *MomentService) Update(id uint, content, images string) error {
+func (s *MomentService) Update(id uint, content, images string, status *int) error {
 	moment, err := s.repo.GetByID(id)
 	if err != nil {
 		return err
@@ -37,6 +38,9 @@ func (s *MomentService) Update(id uint, content, images string) error {
 		moment.Content = content
 	}
 	moment.Images = images
+	if status != nil && (*status == 0 || *status == 1) {
+		moment.Status = *status
+	}
 
 	return s.repo.Update(moment)
 }
@@ -125,7 +129,7 @@ func (s *MomentService) Like(id uint, userID *uint, ip string) (bool, error) {
 			if err := s.repo.DeleteLikeTx(tx, id, userID, ip); err != nil {
 				return err
 			}
-			
+
 			// 减少点赞数
 			if moment.LikeCount > 0 {
 				moment.LikeCount--
@@ -133,7 +137,7 @@ func (s *MomentService) Like(id uint, userID *uint, ip string) (bool, error) {
 			if err := s.repo.UpdateTx(tx, moment); err != nil {
 				return err
 			}
-			
+
 			isLiked = false
 		} else {
 			// 未点赞，执行点赞
@@ -151,7 +155,7 @@ func (s *MomentService) Like(id uint, userID *uint, ip string) (bool, error) {
 			if err := s.repo.UpdateTx(tx, moment); err != nil {
 				return err
 			}
-			
+
 			isLiked = true
 		}
 		return nil
