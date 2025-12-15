@@ -1,9 +1,14 @@
 <template>
   <n-card
     class="announcement-card"
-    title="公告栏"
     :bordered="false"
   >
+    <template #header>
+      <div class="card-title">
+        <n-icon :component="MegaphoneOutline" size="18" />
+        <span>公告栏</span>
+      </div>
+    </template>
     <n-spin :show="loading">
       <div class="announcement-list" v-if="announcements.length">
         <div
@@ -27,12 +32,14 @@
                 {{ getTitle(item) }}
               </span>
             </div>
-            <span class="item-time">
-              <n-time :time="new Date(item.created_at)" format="yyyy-MM-dd HH:mm" />
-            </span>
           </div>
           <div class="item-content">
             {{ getPreview(item.content) }}
+          </div>
+          <div class="item-footer">
+            <span class="item-time">
+              <n-time :time="new Date(item.created_at)" format="yyyy-MM-dd HH:mm" />
+            </span>
           </div>
           <n-button text type="primary" class="detail-btn" @click.stop="openDetail(item)">
             查看详情
@@ -68,6 +75,7 @@
 <script setup lang="ts">
 import { onMounted, ref, computed } from 'vue'
 import { useMessage } from 'naive-ui'
+import { MegaphoneOutline } from '@vicons/ionicons5'
 import { getAnnouncements, type Announcement } from '@/api/blog'
 
 interface Props {
@@ -132,6 +140,14 @@ onMounted(fetchAnnouncements)
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 }
 
+.card-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
 .announcement-list {
   display: flex;
   flex-direction: column;
@@ -192,6 +208,12 @@ onMounted(fetchAnnouncements)
   line-height: 1.6;
   margin-top: 4px;
   min-height: 20px;
+}
+
+.item-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 6px;
 }
 
 .detail-btn {
