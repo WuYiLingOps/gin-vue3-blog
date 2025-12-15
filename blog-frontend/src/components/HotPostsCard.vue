@@ -1,5 +1,11 @@
 <template>
-  <n-card class="hot-posts-card" title="热门文章推荐" :bordered="false">
+  <n-card class="hot-posts-card" :bordered="false">
+    <template #header>
+      <div class="card-title">
+        <n-icon :component="FlameOutline" size="18" />
+        <span>热门文章推荐</span>
+      </div>
+    </template>
     <n-spin :show="loading">
       <div v-if="posts.length" class="list">
         <div
@@ -33,7 +39,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { TimeOutline, EyeOutline, HeartOutline } from '@vicons/ionicons5'
+import { TimeOutline, EyeOutline, HeartOutline, FlameOutline } from '@vicons/ionicons5'
 import { getHotPosts } from '@/api/post'
 import { formatDate } from '@/utils/format'
 import type { Post } from '@/types/blog'
@@ -66,6 +72,14 @@ onMounted(fetchHot)
 .hot-posts-card {
   background: rgba(255, 255, 255, 0.9);
   border-radius: 16px;
+}
+
+.card-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  color: #1f2937;
 }
 
 .list {
