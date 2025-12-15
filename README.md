@@ -403,21 +403,21 @@ server {
         try_files $uri $uri/ /index.html;
     }
 
-    # 后端 API 反向代理
-    location /api/ {
-        proxy_pass http://127.0.0.1:8080/;  # 修改为后端实际地址
+    # WebSocket（聊天室连接：/api/chat/ws），需保持连接与协议升级
+    location /api/chat/ws {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
-    # WebSocket（如聊天），需保持连接与协议升级
-    location /ws/ {
-        proxy_pass http://127.0.0.1:8080/;  # 修改为后端实际地址
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
+    # 后端 API 反向代理（其余 /api/* 请求）
+    location /api/ {
+        proxy_pass http://127.0.0.1:8080;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -465,21 +465,21 @@ server {
         try_files $uri $uri/ /index.html;
     }
 
-    # 后端 API 反代
-    location /api/ {
-        proxy_pass http://127.0.0.1:8080/;  # 修改为后端实际地址
+    # WebSocket（聊天室连接：/api/chat/ws）
+    location /api/chat/ws {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
-    # WebSocket（如聊天）
-    location /ws/ {
-        proxy_pass http://127.0.0.1:8080/;  # 修改为后端实际地址
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
+    # 后端 API 反代
+    location /api/ {
+        proxy_pass http://127.0.0.1:8080;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
