@@ -376,7 +376,17 @@ pnpm build
 
 ### 第三步：Nginx 部署与反向代理
 
-1. 将前端构建产物 `dist` 上传到服务器目录（如 `/var/www/blog`）。
+1. 在服务器上准备前端目录（例如 `/web/go-vue3-blog/blog-frontend/dist`），**将本地 `dist` 目录中的所有文件和子目录整体上传到该目录**，保持结构不变，例如：
+
+   ```text
+   /web/go-vue3-blog/blog-frontend/dist/
+   ├── index.html
+   ├── assets/
+   ├── logo.svg
+   └── 备案图标.png
+   ```
+
+   Nginx 中的 `root` 应指向 **包含 `index.html` 的目录本身**（如 `/web/go-vue3-blog/blog-frontend/dist`，可按实际路径调整），而不是上级目录。
 2. 配置 Nginx（按需替换域名/路径/证书），无 SSL 示例：
 
 ```nginx
@@ -385,7 +395,7 @@ server {
     server_name your-domain.com;   # 修改为你的域名/主机名
 
     # 前端静态资源目录（dist 构建产物）
-    root /var/www/blog;
+    root /web/go-vue3-blog/blog-frontend/dist;  # 按实际部署路径修改
     index index.html;
 
     # 前端路由回退到 index.html（适配前端 history 模式）
@@ -447,7 +457,7 @@ server {
     ssl_prefer_server_ciphers on;
 
     # 前端静态资源目录（dist 构建产物）
-    root /var/www/blog;
+    root /web/go-vue3-blog/blog-frontend/dist;  # 按实际部署路径修改
     index index.html;
 
     # 前端路由回退
