@@ -188,6 +188,8 @@ docker exec -it pg-prod psql -U postgres -d blogdb -f /tmp/init.sql
 
 ### 3️⃣ 后端配置与启动
 
+> 如果没有配置go的镜像代理，可以参考[Go 国内加速：Go 国内加速镜像 | Go 技术论坛](https://learnku.com/go/wikis/38122)
+
 ```bash
 cd blog-backend
 
