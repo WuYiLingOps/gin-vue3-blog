@@ -21,8 +21,30 @@ export interface AuthorProfile {
   stats: BlogStats
 }
 
+// 公告/系统广播
+export interface Announcement {
+  id: number
+  content: string
+  title?: string
+  username: string
+  avatar?: string
+  priority: number
+  is_broadcast: boolean
+  created_at: string
+  updated_at: string
+}
+
 // 获取博主资料和统计数据
 export function getAuthorProfile() {
   return request.get<AuthorProfile>('/blog/author')
 }
 
+// 获取公告列表
+export function getAnnouncements(limit = 3) {
+  return request.get<Announcement[]>('/blog/announcements', { params: { limit } })
+}
+
+// 获取公告详情
+export function getAnnouncementDetail(id: number) {
+  return request.get<Announcement>(`/blog/announcements/${id}`)
+}
