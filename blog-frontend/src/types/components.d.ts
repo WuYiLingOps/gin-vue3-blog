@@ -7,9 +7,11 @@ export {}
 
 declare module 'vue' {
   export interface GlobalComponents {
+    AnnouncementBoard: typeof import('./../components/AnnouncementBoard.vue')['default']
     AuthorCard: typeof import('./../components/AuthorCard.vue')['default']
     AvatarUpload: typeof import('./../components/AvatarUpload.vue')['default']
     CaptchaInput: typeof import('./../components/CaptchaInput.vue')['default']
+    HotPostsCard: typeof import('./../components/HotPostsCard.vue')['default']
     ImageUpload: typeof import('./../components/ImageUpload.vue')['default']
     MarkdownEditor: typeof import('./../components/MarkdownEditor.vue')['default']
     MarkdownPreview: typeof import('./../components/MarkdownPreview.vue')['default']
@@ -57,6 +59,7 @@ declare module 'vue' {
     NPopconfirm: typeof import('naive-ui')['NPopconfirm']
     NRadio: typeof import('naive-ui')['NRadio']
     NRadioGroup: typeof import('naive-ui')['NRadioGroup']
+    NScrollbar: typeof import('naive-ui')['NScrollbar']
     NSelect: typeof import('naive-ui')['NSelect']
     NSpace: typeof import('naive-ui')['NSpace']
     NSpin: typeof import('naive-ui')['NSpin']
@@ -64,6 +67,7 @@ declare module 'vue' {
     NSwitch: typeof import('naive-ui')['NSwitch']
     NTag: typeof import('naive-ui')['NTag']
     NText: typeof import('naive-ui')['NText']
+    NTime: typeof import('naive-ui')['NTime']
     NUpload: typeof import('naive-ui')['NUpload']
     NUploadDragger: typeof import('naive-ui')['NUploadDragger']
     RouterLink: typeof import('vue-router')['RouterLink']
