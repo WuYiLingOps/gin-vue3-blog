@@ -118,15 +118,17 @@ func (h *Hub) sendHistory(client *Client) {
 	messagesWithClientID := make([]map[string]interface{}, len(messages))
 	for i, msg := range messages {
 		messagesWithClientID[i] = map[string]interface{}{
-			"id":         msg.ID,
-			"content":    msg.Content,
-			"user_id":    msg.UserID,
-			"username":   msg.Username,
-			"avatar":     msg.Avatar,
-			"client_id":  nil, // 历史消息用户可能已离线
-			"status":     msg.Status,
-			"created_at": msg.CreatedAt,
-			"updated_at": msg.UpdatedAt,
+			"id":           msg.ID,
+			"content":      msg.Content,
+			"user_id":      msg.UserID,
+			"username":     msg.Username,
+			"avatar":       msg.Avatar,
+			"client_id":    nil, // 历史消息用户可能已离线
+			"is_broadcast": msg.IsBroadcast,
+			"target":       msg.Target,
+			"status":       msg.Status,
+			"created_at":   msg.CreatedAt,
+			"updated_at":   msg.UpdatedAt,
 		}
 	}
 
@@ -220,10 +222,10 @@ func (h *Hub) broadcastUserList() {
 func (h *Hub) GetOnlineCount() int {
 	h.mutex.RLock()
 	defer h.mutex.RUnlock()
-	
+
 	// 使用 map 去重，key 为 user_id（登录用户）或 username（匿名用户）
 	uniqueUsers := make(map[string]bool)
-	
+
 	for client := range h.Clients {
 		var key string
 		if client.UserID != nil {
@@ -235,7 +237,7 @@ func (h *Hub) GetOnlineCount() int {
 		}
 		uniqueUsers[key] = true
 	}
-	
+
 	return len(uniqueUsers)
 }
 
@@ -246,7 +248,7 @@ func (h *Hub) GetOnlineUsers() []UserInfo {
 
 	// 使用 map 去重
 	uniqueUsersMap := make(map[string]UserInfo)
-	
+
 	for client := range h.Clients {
 		var key string
 		if client.UserID != nil {
@@ -256,7 +258,7 @@ func (h *Hub) GetOnlineUsers() []UserInfo {
 			// 匿名用户，使用 username 作为唯一标识
 			key = fmt.Sprintf("anonymous_%s", client.Username)
 		}
-		
+
 		// 如果已存在，保留第一个连接的信息（或者可以更新为最新的）
 		if _, exists := uniqueUsersMap[key]; !exists {
 			uniqueUsersMap[key] = UserInfo{
@@ -266,13 +268,13 @@ func (h *Hub) GetOnlineUsers() []UserInfo {
 			}
 		}
 	}
-	
+
 	// 转换为数组
 	users := make([]UserInfo, 0, len(uniqueUsersMap))
 	for _, user := range uniqueUsersMap {
 		users = append(users, user)
 	}
-	
+
 	return users
 }
 
@@ -292,7 +294,7 @@ func (h *Hub) KickClient(clientID string, reason string) bool {
 				Timestamp: time.Now().Unix(),
 			}
 			data, _ := json.Marshal(wsMsg)
-			
+
 			select {
 			case client.Send <- data:
 			default:
@@ -360,43 +362,43 @@ func (c *Client) ReadPump() {
 				continue
 			}
 
-		// 保存消息到数据库
-		chatMsg := &model.ChatMessage{
-			Content:  content,
-			UserID:   c.UserID,
-			Username: c.Username,
-			Avatar:   c.Avatar,
-			IP:       c.IP,
-			Status:   1,
-		}
+			// 保存消息到数据库
+			chatMsg := &model.ChatMessage{
+				Content:  content,
+				UserID:   c.UserID,
+				Username: c.Username,
+				Avatar:   c.Avatar,
+				IP:       c.IP,
+				Status:   1,
+			}
 
-		if err := c.Hub.Repo.Create(chatMsg); err != nil {
-			log.Printf("保存消息失败: %v", err)
-			continue
-		}
+			if err := c.Hub.Repo.Create(chatMsg); err != nil {
+				log.Printf("保存消息失败: %v", err)
+				continue
+			}
 
-		// 构建包含client_id的消息响应
-		messageData := map[string]interface{}{
-			"id":         chatMsg.ID,
-			"content":    chatMsg.Content,
-			"user_id":    chatMsg.UserID,
-			"username":   chatMsg.Username,
-			"avatar":     chatMsg.Avatar,
-			"client_id":  c.ID, // 添加client_id用于管理员踢出功能
-			"status":     chatMsg.Status,
-			"created_at": chatMsg.CreatedAt,
-			"updated_at": chatMsg.UpdatedAt,
-		}
+			// 构建包含client_id的消息响应
+			messageData := map[string]interface{}{
+				"id":         chatMsg.ID,
+				"content":    chatMsg.Content,
+				"user_id":    chatMsg.UserID,
+				"username":   chatMsg.Username,
+				"avatar":     chatMsg.Avatar,
+				"client_id":  c.ID, // 添加client_id用于管理员踢出功能
+				"status":     chatMsg.Status,
+				"created_at": chatMsg.CreatedAt,
+				"updated_at": chatMsg.UpdatedAt,
+			}
 
-		// 广播消息
-		wsMsg := WebSocketMessage{
-			Type:      "message",
-			Data:      messageData,
-			Timestamp: time.Now().Unix(),
-		}
+			// 广播消息
+			wsMsg := WebSocketMessage{
+				Type:      "message",
+				Data:      messageData,
+				Timestamp: time.Now().Unix(),
+			}
 
-		data, _ := json.Marshal(wsMsg)
-		c.Hub.Broadcast <- data
+			data, _ := json.Marshal(wsMsg)
+			c.Hub.Broadcast <- data
 		}
 	}
 }
@@ -459,8 +461,8 @@ func NewChatService(hub *Hub) *ChatService {
 }
 
 // GetMessages 获取消息列表（分页）
-func (s *ChatService) GetMessages(page, pageSize int) ([]model.ChatMessage, int64, error) {
-	return s.repo.GetMessages(page, pageSize)
+func (s *ChatService) GetMessages(page, pageSize int, includeAnnouncementOnly bool) ([]model.ChatMessage, int64, error) {
+	return s.repo.GetMessages(page, pageSize, includeAnnouncementOnly)
 }
 
 // DeleteMessage 删除消息
@@ -477,4 +479,3 @@ func (s *ChatService) GetOnlineCount() int {
 func (s *ChatService) GetOnlineUsers() []UserInfo {
 	return s.hub.GetOnlineUsers()
 }
-
