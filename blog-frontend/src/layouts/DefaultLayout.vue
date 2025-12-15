@@ -5,7 +5,7 @@
       <n-layout-header class="header" position="absolute">
         <div class="header-content">
           <div class="logo" @click="router.push('/')">
-            <h2>{{ siteSettings.site_name || '情迁阁' }}</h2>
+            <h2>{{ siteSettings.site_name || defaultSiteName }}</h2>
           </div>
 
           <!-- 桌面端导航菜单 -->
@@ -60,7 +60,7 @@
         <!-- 底部 -->
         <div class="footer">
           <div class="footer-content">
-            <p>&copy; 2025 {{ siteSettings.site_name || '情迁阁' }}. All rights reserved.</p>
+            <p>&copy; 2025 {{ siteSettings.site_name || defaultSiteName }}. All rights reserved.</p>
             <p class="running-time" v-html="runningTime"></p>
             <div v-if="siteSettings.site_icp || siteSettings.site_police" class="filing-info">
               <a v-if="siteSettings.site_icp" href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">
@@ -266,6 +266,7 @@ const dialog = useDialog()
 const activeKey = ref(route.name as string)
 const isDark = computed(() => appStore.theme === 'dark')
 const siteSettings = ref<SiteSettings>({})
+const defaultSiteName = '無以菱'
 const runningTime = ref('')
 const searchKeyword = ref('')
 const showSearchModal = ref(false)
@@ -462,7 +463,7 @@ onMounted(() => {
 
 // 更新页面标题
 function updatePageTitle() {
-  const siteName = siteSettings.value.site_name || '情迁阁'
+  const siteName = siteSettings.value.site_name || defaultSiteName
   const currentTitle = route.meta.title as string || '首页'
   document.title = `${currentTitle} | ${siteName}`
 }
