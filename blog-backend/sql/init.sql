@@ -437,6 +437,7 @@ CREATE TABLE IF NOT EXISTS chat_messages (
     avatar VARCHAR(255),
     ip VARCHAR(45),
     priority INTEGER NOT NULL DEFAULT 0, -- 0:普通 1:置顶
+    target VARCHAR(20) NOT NULL DEFAULT 'announcement', -- 投递目标：announcement / chat / both
     is_broadcast BOOLEAN NOT NULL DEFAULT FALSE,
     status INTEGER NOT NULL DEFAULT 1,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
