@@ -93,6 +93,20 @@ blog-backend/
 - ✅ IP 黑名单管理 API（查看、添加、删除、检查、清理过期）
 - ✅ 管理员 IP 豁免（角色豁免 + IP 白名单）
 - ✅ 数据统计
+- ✅ 系统广播可定向投递：支持 `announcement`（仅公告栏）、`chat`（仅聊天室）、`both`（同时），数据库 `chat_messages.target` 默认为 `announcement`
+
+### 系统广播投递说明
+
+- 接口：`POST /admin/chat/broadcast`
+- 请求体示例：
+```json
+{
+  "content": "系统维护通知",
+  "priority": 1,
+  "target": "announcement" // announcement | chat | both，默认 both
+}
+```
+- 公告列表接口仅返回 `target` 为 `announcement` / `both` 的广播；聊天室历史与实时消息仅展示 `chat` / `both`。
 
 ---
 
