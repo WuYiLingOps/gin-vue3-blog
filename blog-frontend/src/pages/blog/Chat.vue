@@ -415,12 +415,17 @@ const connectWebSocket = () => {
 
   // 接收历史消息
   ws.on('history', (data: ChatMessage[]) => {
-    messages.value = data
+    // 过滤掉仅投递到公告栏的系统广播
+    messages.value = data.filter(msg => !(msg.is_broadcast && msg.target === 'announcement'))
     scrollToBottom()
   })
 
   // 接收新消息
   ws.on('message', (data: ChatMessage) => {
+    // 普通消息或投递到聊天室/同时的广播才显示
+    if (data.is_broadcast && data.target === 'announcement') {
+      return
+    }
     messages.value.push(data)
     scrollToBottom()
   })
@@ -443,6 +448,10 @@ const connectWebSocket = () => {
 
   // 系统消息
   ws.on('system', (data: ChatMessage) => {
+    // 如果仅投递到公告栏，则不在聊天室展示
+    if (data.is_broadcast && data.target === 'announcement') {
+      return
+    }
     messages.value.push(data)
     scrollToBottom()
     message.info('系统消息: ' + data.content)
