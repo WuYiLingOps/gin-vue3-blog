@@ -72,10 +72,12 @@ import { ref, onMounted } from 'vue'
 import { useMessage } from 'naive-ui'
 import { HeartOutline, Heart } from '@vicons/ionicons5'
 import { getMoments, likeMoment } from '@/api/moment'
-import type { Moment } from '@/api/moment'
+import type { Moment, MomentParams } from '@/api/moment'
 import { formatDate } from '@/utils/format'
+import { useAuthStore } from '@/stores/auth'
 
 const message = useMessage()
+const authStore = useAuthStore()
 
 const loading = ref(false)
 const moments = ref<Moment[]>([])
@@ -96,11 +98,17 @@ function parseImages(images: string): string[] {
 async function fetchMoments() {
   try {
     loading.value = true
-    const res = await getMoments({
+    const isAdmin = authStore.isLoggedIn && authStore.user?.role === 'admin'
+
+    const params: MomentParams = {
       page: currentPage.value,
-      page_size: pageSize.value,
-      status: 1
-    }) as any
+      page_size: pageSize.value
+    }
+    if (!isAdmin) {
+      params.status = 1
+    }
+
+    const res = await getMoments(params) as any
 
     if (res && res.data) {
       moments.value = res.data.list || []
