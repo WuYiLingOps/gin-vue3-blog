@@ -218,7 +218,8 @@ func (h *ChatHandler) CreateAnonymousToken(c *gin.Context) {
 // BroadcastSystemMessage 发送系统广播消息（管理员功能）
 func (h *ChatHandler) BroadcastSystemMessage(c *gin.Context) {
 	var req struct {
-		Content string `json:"content" binding:"required"`
+		Content  string `json:"content" binding:"required"`
+		Priority *int   `json:"priority"` // 0:普通 1:置顶
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -226,12 +227,19 @@ func (h *ChatHandler) BroadcastSystemMessage(c *gin.Context) {
 		return
 	}
 
+	priority := 0
+	if req.Priority != nil && *req.Priority == 1 {
+		priority = 1
+	}
+
 	// 创建系统消息
 	message := &model.ChatMessage{
-		Content:  req.Content,
-		Username: "系统消息",
-		Avatar:   "",
-		Status:   1,
+		Content:     req.Content,
+		Username:    "系统消息",
+		Avatar:      "",
+		Priority:    priority,
+		IsBroadcast: true,
+		Status:      1,
 	}
 
 	// 保存到数据库
