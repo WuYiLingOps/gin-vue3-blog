@@ -230,8 +230,8 @@ func setupMomentRoutes(api *gin.RouterGroup, h *handler.MomentHandler) {
 	moments := api.Group("/moments")
 	{
 		// 公开接口
-		moments.GET("", h.List)
-		moments.GET("/:id", h.GetByID)
+		moments.GET("", middleware.OptionalAuthMiddleware(), h.List)
+		moments.GET("/:id", middleware.OptionalAuthMiddleware(), h.GetByID)
 		moments.GET("/recent", h.GetRecent)
 		moments.POST("/:id/like", h.Like)
 
