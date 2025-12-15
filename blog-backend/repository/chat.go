@@ -19,20 +19,30 @@ func (r *ChatRepository) Create(message *model.ChatMessage) error {
 }
 
 // GetMessages 获取消息列表（分页）
-func (r *ChatRepository) GetMessages(page, pageSize int) ([]model.ChatMessage, int64, error) {
+// includeAnnouncementOnly 表示是否包含仅投递到公告栏的广播
+func (r *ChatRepository) GetMessages(page, pageSize int, includeAnnouncementOnly bool) ([]model.ChatMessage, int64, error) {
 	var messages []model.ChatMessage
 	var total int64
 
 	offset := (page - 1) * pageSize
 
 	// 获取总数
-	if err := db.DB.Model(&model.ChatMessage{}).Where("status = ?", 1).Count(&total).Error; err != nil {
+	totalQuery := db.DB.Model(&model.ChatMessage{}).Where("status = ?", 1)
+	if !includeAnnouncementOnly {
+		totalQuery = totalQuery.Where("(is_broadcast = ? OR target IN ? OR target IS NULL OR target = '')",
+			false, []string{"chat", "both"})
+	}
+	if err := totalQuery.Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
 
 	// 获取消息列表
-	err := db.DB.Where("status = ?", 1).
-		Order("created_at DESC").
+	query := db.DB.Where("status = ?", 1)
+	if !includeAnnouncementOnly {
+		query = query.Where("(is_broadcast = ? OR target IN ? OR target IS NULL OR target = '')",
+			false, []string{"chat", "both"})
+	}
+	err := query.Order("created_at DESC").
 		Offset(offset).
 		Limit(pageSize).
 		Find(&messages).Error
@@ -48,7 +58,8 @@ func (r *ChatRepository) GetMessages(page, pageSize int) ([]model.ChatMessage, i
 func (r *ChatRepository) GetRecentMessages(limit int) ([]model.ChatMessage, error) {
 	var messages []model.ChatMessage
 
-	err := db.DB.Where("status = ?", 1).
+	err := db.DB.Where("status = ? AND (is_broadcast = ? OR target IN ? OR target IS NULL OR target = '')",
+		1, false, []string{"chat", "both"}).
 		Order("created_at DESC").
 		Limit(limit).
 		Find(&messages).Error
@@ -81,7 +92,8 @@ func (r *ChatRepository) GetByID(id uint) (*model.ChatMessage, error) {
 func (r *ChatRepository) GetBroadcasts(limit int) ([]model.ChatMessage, error) {
 	var messages []model.ChatMessage
 
-	err := db.DB.Where("status = ? AND is_broadcast = ?", 1, true).
+	err := db.DB.Where("status = ? AND is_broadcast = ? AND (target = ? OR target = ? OR target IS NULL OR target = '')",
+		1, true, "announcement", "both").
 		Order("priority DESC, created_at DESC").
 		Limit(limit).
 		Find(&messages).Error
@@ -96,6 +108,9 @@ func (r *ChatRepository) GetBroadcasts(limit int) ([]model.ChatMessage, error) {
 // GetBroadcastByID 根据ID获取广播详情
 func (r *ChatRepository) GetBroadcastByID(id uint) (*model.ChatMessage, error) {
 	var message model.ChatMessage
-	err := db.DB.Where("id = ? AND status = ? AND is_broadcast = ?", id, 1, true).First(&message).Error
+	err := db.DB.
+		Where("id = ? AND status = ? AND is_broadcast = ? AND (target = ? OR target = ? OR target IS NULL OR target = '')",
+			id, 1, true, "announcement", "both").
+		First(&message).Error
 	return &message, err
 }
