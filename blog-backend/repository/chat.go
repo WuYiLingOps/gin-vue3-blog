@@ -77,3 +77,25 @@ func (r *ChatRepository) GetByID(id uint) (*model.ChatMessage, error) {
 	return &message, err
 }
 
+// GetBroadcasts 获取系统广播（公告）
+func (r *ChatRepository) GetBroadcasts(limit int) ([]model.ChatMessage, error) {
+	var messages []model.ChatMessage
+
+	err := db.DB.Where("status = ? AND is_broadcast = ?", 1, true).
+		Order("priority DESC, created_at DESC").
+		Limit(limit).
+		Find(&messages).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return messages, nil
+}
+
+// GetBroadcastByID 根据ID获取广播详情
+func (r *ChatRepository) GetBroadcastByID(id uint) (*model.ChatMessage, error) {
+	var message model.ChatMessage
+	err := db.DB.Where("id = ? AND status = ? AND is_broadcast = ?", id, 1, true).First(&message).Error
+	return &message, err
+}
