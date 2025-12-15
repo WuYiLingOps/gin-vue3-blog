@@ -85,10 +85,18 @@
     </n-space>
       </div>
 
-      <!-- 右侧：个人信息卡片 -->
-      <div class="sidebar-section">
+    <!-- 右侧：个人信息卡片 + 公告栏 -->
+    <div class="sidebar-section">
+      <div class="sidebar-card-wrapper">
         <AuthorCard />
       </div>
+      <div class="sidebar-card-wrapper">
+        <AnnouncementBoard :limit="3" />
+      </div>
+      <div class="sidebar-card-wrapper">
+        <HotPostsCard />
+      </div>
+    </div>
     </div>
   </div>
 </template>
@@ -104,6 +112,8 @@ import { highlightKeyword, extractHighlightSnippet } from '@/utils/highlight'
 import { useBlogStore } from '@/stores'
 import type { Post } from '@/types/blog'
 import AuthorCard from '@/components/AuthorCard.vue'
+import AnnouncementBoard from '@/components/AnnouncementBoard.vue'
+import HotPostsCard from '@/components/HotPostsCard.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -224,6 +234,9 @@ function getHighlightedSummary(post: Post): string {
   position: relative;
   z-index: 10; /* 确保侧边栏在文章卡片之上 */
   margin-left: 8px; /* 稍微往右移动 */
+  display: flex;
+  flex-direction: column;
+  gap: 16px; /* 卡片之间的间距，避免重叠 */
 }
 
 /* 移动端布局 */
