@@ -44,6 +44,7 @@ func SetupRouter() *gin.Engine {
 	captchaHandler := handler.NewCaptchaHandler()
 	chatHandler := handler.NewChatHandler(chatHub)
 	blogHandler := handler.NewBlogHandler()
+	announcementHandler := handler.NewAnnouncementHandler()
 
 	// 健康检查接口
 	r.GET("/health", func(c *gin.Context) {
@@ -55,7 +56,7 @@ func SetupRouter() *gin.Engine {
 	{
 		setupAuthRoutes(api, authHandler)
 		setupCaptchaRoutes(api, captchaHandler)
-		setupBlogRoutes(api, blogHandler)
+		setupBlogRoutes(api, blogHandler, announcementHandler)
 		setupPostRoutes(api, postHandler)
 		setupCategoryRoutes(api, categoryHandler)
 		setupTagRoutes(api, tagHandler)
@@ -104,11 +105,14 @@ func setupCaptchaRoutes(api *gin.RouterGroup, h *handler.CaptchaHandler) {
 }
 
 // setupBlogRoutes 博客路由（公开接口）
-func setupBlogRoutes(api *gin.RouterGroup, h *handler.BlogHandler) {
+func setupBlogRoutes(api *gin.RouterGroup, h *handler.BlogHandler, a *handler.AnnouncementHandler) {
 	blog := api.Group("/blog")
 	{
 		// 获取博主资料和统计数据
 		blog.GET("/author", h.GetAuthorProfile)
+		// 公告/系统广播
+		blog.GET("/announcements", a.GetAnnouncements)
+		blog.GET("/announcements/:id", a.GetAnnouncementDetail)
 	}
 }
 
@@ -272,6 +276,7 @@ func setupAdminRoutes(api *gin.RouterGroup, userHandler *handler.UserHandler, po
 
 		// 文章管理
 		admin.GET("/posts", postHandler.List)
+		admin.GET("/posts/:id/export", postHandler.Export)
 
 		// 评论管理
 		admin.GET("/comments", commentHandler.List)
