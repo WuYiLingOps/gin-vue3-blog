@@ -204,7 +204,9 @@ email:
 
 ## 📦 生产部署
 
-### 方式一：Docker Compose 部署（推荐）
+### 第一步：后端部署
+
+#### 方式一：Docker Compose（推荐）
 
 使用 Docker Compose 一键部署后端服务（包含 PostgreSQL、Redis、后端应用）：
 
@@ -279,19 +281,8 @@ docker compose logs -f backend
 - **PostgreSQL**: `localhost:5632`
 - **Redis**: `localhost:6379`
 
-### 方式二：前端构建
-
-```bash
-cd blog-frontend
-pnpm build
-```
-
-构建产物在 `dist` 目录，可部署到任何静态服务器（Nginx、Vercel、Netlify 等）。
-
-### 方式三：传统部署
-
-#### 后端编译
-
+#### 方式二：本地编译部署
+开始后端编译：
 ```bash
 cd blog-backend
 go build -o blog-backend cmd/server/main.go
@@ -300,9 +291,129 @@ go build -o blog-backend cmd/server/main.go
 ./blog-backend
 ```
 
-#### 数据库
+手动在主机安装并启动 PostgreSQL、Redis，按需配置 `config/config-prod.yml`，再以服务方式管理可执行文件。
 
-手动安装 PostgreSQL 和 Redis，并配置 `config/config-prod.yml`。
+### 第二步：前端构建
+
+```bash
+cd blog-frontend
+pnpm build
+```
+
+构建产物在 `dist` 目录，可部署到任何静态服务器（Nginx、Vercel、Netlify 等）。
+
+### 第三步：Nginx 部署与反向代理
+
+1. 将前端构建产物 `dist` 上传到服务器目录（如 `/var/www/blog`）。
+2. 配置 Nginx（按需替换域名/路径/证书），无 SSL 示例：
+
+```nginx
+server {
+    listen 80;
+    server_name your-domain.com;   # 修改为你的域名/主机名
+
+    # 前端静态资源目录（dist 构建产物）
+    root /var/www/blog;
+    index index.html;
+
+    # 前端路由回退到 index.html（适配前端 history 模式）
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # 后端 API 反向代理
+    location /api/ {
+        proxy_pass http://127.0.0.1:8080/;  # 修改为后端实际地址
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # WebSocket（如聊天），需保持连接与协议升级
+    location /ws/ {
+        proxy_pass http://127.0.0.1:8080/;  # 修改为后端实际地址
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # 可选：静态资源缓存
+    location ~* \.(js|css|png|jpg|jpeg|gif|svg|ico|woff2?)$ {
+        try_files $uri =404;
+        expires 30d;
+        access_log off;
+    }
+}
+```
+
+3. HTTPS 示例（含 80→443 跳转，请替换证书路径）：
+
+```nginx
+# 80 强制跳转到 443
+server {
+    listen 80;
+    server_name your-domain.com;   # 修改为你的域名/主机名
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name your-domain.com;   # 修改为你的域名/主机名
+
+    # 证书路径（替换为实际证书文件）
+    ssl_certificate     /etc/nginx/ssl/your-domain.com.crt;
+    ssl_certificate_key /etc/nginx/ssl/your-domain.com.key;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 10m;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+    ssl_prefer_server_ciphers on;
+
+    # 前端静态资源目录（dist 构建产物）
+    root /var/www/blog;
+    index index.html;
+
+    # 前端路由回退
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # 后端 API 反代
+    location /api/ {
+        proxy_pass http://127.0.0.1:8080/;  # 修改为后端实际地址
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # WebSocket（如聊天）
+    location /ws/ {
+        proxy_pass http://127.0.0.1:8080/;  # 修改为后端实际地址
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # 可选：静态资源缓存
+    location ~* \.(js|css|png|jpg|jpeg|gif|svg|ico|woff2?)$ {
+        try_files $uri =404;
+        expires 30d;
+        access_log off;
+    }
+}
+```
+
+4. 重载 Nginx：`nginx -s reload` 或 `systemctl reload nginx`。
 
 ## 🎨 主要功能模块
 
