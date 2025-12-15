@@ -124,6 +124,16 @@
               ]"
             />
           </n-form-item>
+          <n-form-item label="投递到">
+            <n-select
+              v-model:value="broadcastTarget"
+              :options="[
+                { label: '公告栏', value: 'announcement' },
+                { label: '聊天室', value: 'chat' },
+                { label: '同时', value: 'both' }
+              ]"
+            />
+          </n-form-item>
           <n-form-item label="广播内容">
             <n-input
               v-model:value="broadcastContent"
@@ -204,6 +214,7 @@ const pagination = ref({
 const showBroadcastModal = ref(false)
 const broadcastContent = ref('')
 const broadcastPriority = ref(0)
+const broadcastTarget = ref<'announcement' | 'chat' | 'both'>('both')
 const broadcasting = ref(false)
 
 // 批量删除
@@ -388,11 +399,12 @@ const handleBroadcast = async () => {
 
   broadcasting.value = true
   try {
-    await adminBroadcastMessage(broadcastContent.value.trim(), broadcastPriority.value)
+    await adminBroadcastMessage(broadcastContent.value.trim(), broadcastPriority.value, broadcastTarget.value)
     message.success('广播发送成功')
     showBroadcastModal.value = false
     broadcastContent.value = ''
     broadcastPriority.value = 0
+    broadcastTarget.value = 'both'
     fetchMessages()
   } catch (error) {
     message.error('广播发送失败')
