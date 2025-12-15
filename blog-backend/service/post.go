@@ -6,6 +6,7 @@ import (
 
 	"blog-backend/model"
 	"blog-backend/repository"
+
 	"gorm.io/gorm"
 )
 
@@ -27,26 +28,26 @@ func NewPostService() *PostService {
 
 // CreatePostRequest 创建文章请求
 type CreatePostRequest struct {
-	Title      string   `json:"title" binding:"required"`
-	Content    string   `json:"content" binding:"required"`
-	Summary    string   `json:"summary"`
-	Cover      string   `json:"cover"`
-	CategoryID uint     `json:"category_id" binding:"required"`
-	TagIDs     []uint   `json:"tag_ids"`
-	Status     int      `json:"status"` // 0:草稿 1:发布
-	IsTop      bool     `json:"is_top"`
+	Title      string `json:"title" binding:"required"`
+	Content    string `json:"content" binding:"required"`
+	Summary    string `json:"summary"`
+	Cover      string `json:"cover"`
+	CategoryID uint   `json:"category_id" binding:"required"`
+	TagIDs     []uint `json:"tag_ids"`
+	Status     int    `json:"status"` // 0:草稿 1:发布
+	IsTop      bool   `json:"is_top"`
 }
 
 // UpdatePostRequest 更新文章请求
 type UpdatePostRequest struct {
-	Title      string   `json:"title"`
-	Content    string   `json:"content"`
-	Summary    string   `json:"summary"`
-	Cover      string   `json:"cover"`
-	CategoryID uint     `json:"category_id"`
-	TagIDs     []uint   `json:"tag_ids"`
-	Status     int      `json:"status"`
-	IsTop      bool     `json:"is_top"`
+	Title      string `json:"title"`
+	Content    string `json:"content"`
+	Summary    string `json:"summary"`
+	Cover      string `json:"cover"`
+	CategoryID uint   `json:"category_id"`
+	TagIDs     []uint `json:"tag_ids"`
+	Status     int    `json:"status"`
+	IsTop      bool   `json:"is_top"`
 }
 
 // Create 创建文章
@@ -85,7 +86,7 @@ func (s *PostService) Create(userID uint, req *CreatePostRequest) (*model.Post, 
 			if err := s.postRepo.UpdateTagsTx(tx, post.ID, req.TagIDs); err != nil {
 				return err
 			}
-			
+
 			// 增加标签文章数（仅发布状态）
 			if req.Status == 1 {
 				for _, tagID := range req.TagIDs {
@@ -157,7 +158,7 @@ func (s *PostService) Update(id, userID uint, role string, req *UpdatePostReques
 
 	oldCategoryID := post.CategoryID
 	oldStatus := post.Status
-	
+
 	// 获取旧的标签列表（在更新之前）
 	oldTagIDs := make([]uint, 0)
 	if len(post.Tags) > 0 {
@@ -207,7 +208,7 @@ func (s *PostService) Update(id, userID uint, role string, req *UpdatePostReques
 			if err := s.postRepo.UpdateTagsTx(tx, post.ID, req.TagIDs); err != nil {
 				return err
 			}
-			
+
 			// 更新标签文章数
 			if oldStatus == 1 || post.Status == 1 {
 				// 找出需要减少计数的标签（旧标签中有但新标签中没有的）
@@ -225,7 +226,7 @@ func (s *PostService) Update(id, userID uint, role string, req *UpdatePostReques
 						}
 					}
 				}
-				
+
 				// 找出需要增加计数的标签（新标签中有但旧标签中没有的）
 				for _, newTagID := range req.TagIDs {
 					found := false
@@ -241,7 +242,7 @@ func (s *PostService) Update(id, userID uint, role string, req *UpdatePostReques
 						}
 					}
 				}
-				
+
 				// 如果状态从草稿变为发布，所有新标签都要增加计数
 				if oldStatus == 0 && post.Status == 1 {
 					for _, tagID := range req.TagIDs {
@@ -259,7 +260,7 @@ func (s *PostService) Update(id, userID uint, role string, req *UpdatePostReques
 						}
 					}
 				}
-				
+
 				// 如果状态从发布变为草稿，所有旧标签都要减少计数
 				if oldStatus == 1 && post.Status == 0 {
 					for _, oldTagID := range oldTagIDs {
@@ -324,7 +325,7 @@ func (s *PostService) Delete(id, userID uint, role string) error {
 			if err := s.categoryRepo.DecrementPostCountTx(tx, post.CategoryID); err != nil {
 				return err
 			}
-			
+
 			// 减少标签文章数
 			if len(post.Tags) > 0 {
 				for _, tag := range post.Tags {
@@ -386,12 +387,12 @@ func (s *PostService) Like(id uint, userID *uint, ip string) (bool, error) {
 			if err := s.postRepo.DeleteLikeTx(tx, id, userID, ip); err != nil {
 				return err
 			}
-			
+
 			// 减少点赞数
 			if err := s.postRepo.DecrementLikeCountTx(tx, id); err != nil {
 				return err
 			}
-			
+
 			isLiked = false
 		} else {
 			// 未点赞，执行点赞
@@ -408,7 +409,7 @@ func (s *PostService) Like(id uint, userID *uint, ip string) (bool, error) {
 			if err := s.postRepo.IncrementLikeCountTx(tx, id); err != nil {
 				return err
 			}
-			
+
 			isLiked = true
 		}
 		return nil
@@ -442,3 +443,14 @@ func (s *PostService) GetRecentPosts(limit int) ([]model.Post, error) {
 	return s.postRepo.GetRecentPosts(limit)
 }
 
+// GetByIDForAdmin 管理端获取文章（不计浏览、无权限限制）
+func (s *PostService) GetByIDForAdmin(id uint) (*model.Post, error) {
+	post, err := s.postRepo.GetByID(id)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("文章不存在")
+		}
+		return nil, errors.New("获取文章失败")
+	}
+	return post, nil
+}
