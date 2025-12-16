@@ -14,7 +14,14 @@
             placeholder="请输入网站名称"
             maxlength="50"
             show-count
-          />
+            clearable
+          >
+            <template #suffix>
+              <n-button text tertiary size="tiny" @click="clearField('site_name')" type="error">
+                清空
+              </n-button>
+            </template>
+          </n-input>
         </n-form-item>
 
         <n-form-item label="ICP备案号" path="site_icp">
@@ -22,7 +29,14 @@
             v-model:value="formData.site_icp"
             placeholder="例如：京ICP备12345678号"
             maxlength="50"
-          />
+            clearable
+          >
+            <template #suffix>
+              <n-button text tertiary size="tiny" @click="clearField('site_icp')" type="error">
+                清空
+              </n-button>
+            </template>
+          </n-input>
         </n-form-item>
 
         <n-form-item label="公安备案号" path="site_police">
@@ -30,7 +44,14 @@
             v-model:value="formData.site_police"
             placeholder="例如：京公网安备11010802012345号"
             maxlength="50"
-          />
+            clearable
+          >
+            <template #suffix>
+              <n-button text tertiary size="tiny" @click="clearField('site_police')" type="error">
+                清空
+              </n-button>
+            </template>
+          </n-input>
         </n-form-item>
 
         <n-divider />
@@ -40,7 +61,14 @@
             v-model:value="formData.social_github"
             placeholder="例如：https://github.com/username"
             maxlength="200"
-          />
+            clearable
+          >
+            <template #suffix>
+              <n-button text tertiary size="tiny" @click="clearField('social_github')" type="error">
+                清空
+              </n-button>
+            </template>
+          </n-input>
         </n-form-item>
 
         <n-form-item label="Gitee链接" path="social_gitee">
@@ -48,7 +76,14 @@
             v-model:value="formData.social_gitee"
             placeholder="例如：https://gitee.com/username"
             maxlength="200"
-          />
+            clearable
+          >
+            <template #suffix>
+              <n-button text tertiary size="tiny" @click="clearField('social_gitee')" type="error">
+                清空
+              </n-button>
+            </template>
+          </n-input>
         </n-form-item>
 
         <n-form-item label="邮箱地址" path="social_email">
@@ -56,7 +91,14 @@
             v-model:value="formData.social_email"
             placeholder="例如：example@email.com"
             maxlength="100"
-          />
+            clearable
+          >
+            <template #suffix>
+              <n-button text tertiary size="tiny" @click="clearField('social_email')" type="error">
+                清空
+              </n-button>
+            </template>
+          </n-input>
         </n-form-item>
 
         <n-form-item label="RSS链接" path="social_rss">
@@ -64,7 +106,14 @@
             v-model:value="formData.social_rss"
             placeholder="例如：https://example.com/rss.xml"
             maxlength="200"
-          />
+            clearable
+          >
+            <template #suffix>
+              <n-button text tertiary size="tiny" @click="clearField('social_rss')" type="error">
+                清空
+              </n-button>
+            </template>
+          </n-input>
         </n-form-item>
 
         <n-form-item label="QQ号" path="social_qq">
@@ -72,7 +121,14 @@
             v-model:value="formData.social_qq"
             placeholder="例如：123456789"
             maxlength="20"
-          />
+            clearable
+          >
+            <template #suffix>
+              <n-button text tertiary size="tiny" @click="clearField('social_qq')" type="error">
+                清空
+              </n-button>
+            </template>
+          </n-input>
         </n-form-item>
 
         <n-form-item label="微信二维码" path="social_wechat">
@@ -80,7 +136,14 @@
             v-model:value="formData.social_wechat"
             placeholder="微信二维码图片URL，例如：https://example.com/wechat-qr.png"
             maxlength="500"
-          />
+            clearable
+          >
+            <template #suffix>
+              <n-button text tertiary size="tiny" @click="clearField('social_wechat')" type="error">
+                清空
+              </n-button>
+            </template>
+          </n-input>
           <template #feedback>
             <span style="font-size: 12px; color: #999;">上传微信二维码图片后，将图片URL填入此处</span>
           </template>
@@ -160,10 +223,25 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import { useMessage } from 'naive-ui'
+import { useMessage, type FormInst } from 'naive-ui'
 import { getSiteSettings, updateSiteSettings, getUploadSettings, updateUploadSettings } from '@/api/setting'
 
 const message = useMessage()
+
+const formRef = ref<FormInst | null>(null)
+const uploadFormRef = ref<FormInst | null>(null)
+
+const defaultFormData = {
+  site_name: '',
+  site_icp: '',
+  site_police: '',
+  social_github: '',
+  social_gitee: '',
+  social_email: '',
+  social_rss: '',
+  social_qq: '',
+  social_wechat: ''
+}
 
 const formData = ref({
   site_name: '',
@@ -181,8 +259,8 @@ const uploadFormData = ref({
   storage_type: 'local'
 })
 
-const originalData = ref({...formData.value})
-const originalUploadData = ref({...uploadFormData.value})
+const originalData = ref({ ...formData.value })
+const originalUploadData = ref({ ...uploadFormData.value })
 const loading = ref(false)
 const uploadLoading = ref(false)
 const isMobile = ref(false)
@@ -208,7 +286,7 @@ async function fetchSettings() {
         social_qq: res.data.social_qq || '',
         social_wechat: res.data.social_wechat || ''
       }
-      originalData.value = {...formData.value}
+      originalData.value = { ...formData.value }
     }
   } catch (error: any) {
     message.error(error.response?.data?.message || '获取设置失败')
@@ -223,7 +301,7 @@ async function fetchUploadSettings() {
       uploadFormData.value = {
         storage_type: res.data.storage_type || 'local'
       }
-      originalUploadData.value = {...uploadFormData.value}
+      originalUploadData.value = { ...uploadFormData.value }
     }
   } catch (error: any) {
     message.error(error.response?.data?.message || '获取上传配置失败')
@@ -234,18 +312,16 @@ async function fetchUploadSettings() {
 async function handleSubmit() {
   loading.value = true
   try {
-    // 过滤空值，只提交有值的字段
+    // 提交全部字段（包含空字符串），以便支持清空配置
     const dataToSubmit: Record<string, string> = {}
     Object.keys(formData.value).forEach(key => {
       const value = (formData.value as any)[key]
-      if (value !== null && value !== undefined && value !== '') {
-        dataToSubmit[key] = String(value).trim()
-      }
+      dataToSubmit[key] = value === null || value === undefined ? '' : String(value).trim()
     })
-    
+
     await updateSiteSettings(dataToSubmit)
     message.success('设置保存成功')
-    originalData.value = {...formData.value}
+    originalData.value = { ...formData.value }
     
     // 提示用户刷新页面查看效果
     message.info('社交链接已更新，请刷新首页查看效果')
@@ -262,7 +338,7 @@ async function handleUploadSubmit() {
   try {
     await updateUploadSettings(uploadFormData.value)
     message.success('上传配置保存成功')
-    originalUploadData.value = {...uploadFormData.value}
+    originalUploadData.value = { ...uploadFormData.value }
   } catch (error: any) {
     message.error(error.response?.data?.message || '保存失败')
   } finally {
@@ -272,14 +348,23 @@ async function handleUploadSubmit() {
 
 // 重置表单
 function handleReset() {
-  formData.value = {...originalData.value}
-  message.info('已重置')
+  // 重置为初始默认值（清空所有字段）
+  formData.value = { ...defaultFormData }
+  originalData.value = { ...defaultFormData }
+  formRef.value?.restoreValidation()
+  message.info('已重置为初始默认值，请保存后生效')
 }
 
 // 重置上传配置
 function handleUploadReset() {
-  uploadFormData.value = {...originalUploadData.value}
-  message.info('已重置')
+  uploadFormData.value = { ...originalUploadData.value }
+  uploadFormRef.value?.restoreValidation()
+  message.info('已重置为上次保存的数据')
+}
+
+// 单字段清除
+function clearField(key: keyof typeof formData.value) {
+  formData.value[key] = ''
 }
 
 onMounted(() => {
