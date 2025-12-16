@@ -359,8 +359,11 @@ docker compose logs -f backend
 cd blog-backend
 go build -o blog-backend cmd/server/main.go
 
-# 运行
+# 前台运行（调试用）
 ./blog-backend
+
+# 后台运行（简单方式，生产环境建议配合 systemd 等守护进程管理）
+nohup ./blog-backend > app.log 2>&1 &
 ```
 
 手动在主机安装并启动 PostgreSQL、Redis，按需配置 `config/config-prod.yml`，再以服务方式管理可执行文件。
