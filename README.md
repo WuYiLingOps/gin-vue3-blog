@@ -403,6 +403,16 @@ server {
         try_files $uri $uri/ /index.html;
     }
 
+    # 本地存储上传文件访问（通过后端读取 /uploads 下资源）
+    # 使用 ^~ 确保优先级高于下面的静态资源正则 location
+    location ^~ /uploads/ {
+        proxy_pass http://127.0.0.1:8080;  # 与后端 API 相同地址
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
     # WebSocket（聊天室连接：/api/chat/ws），需保持连接与协议升级
     location /api/chat/ws {
         proxy_pass http://127.0.0.1:8080;
@@ -463,6 +473,16 @@ server {
     # 前端路由回退
     location / {
         try_files $uri $uri/ /index.html;
+    }
+
+    # 本地存储上传文件访问（通过后端读取 /uploads 下资源）
+    # 使用 ^~ 确保优先级高于下面的静态资源正则 location
+    location ^~ /uploads/ {
+        proxy_pass http://127.0.0.1:8080;  # 与后端 API 相同地址
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
     }
 
     # WebSocket（聊天室连接：/api/chat/ws）
