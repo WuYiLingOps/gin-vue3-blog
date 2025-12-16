@@ -40,20 +40,6 @@
         </div>
       </div>
 
-      <!-- 关注按钮 -->
-      <n-button
-        v-if="socialLinks.github && socialLinks.github.trim()"
-        type="primary"
-        block
-        class="follow-button"
-        @click="handleFollow"
-      >
-        <template #icon>
-          <SocialIcons type="github" />
-        </template>
-        Follow Me
-      </n-button>
-
       <!-- 社交链接 - 只在有配置时显示 -->
       <div v-if="hasSocialLinks" class="social-links">
         <!-- GitHub -->
@@ -248,13 +234,6 @@ async function fetchSettings() {
   }
 }
 
-// 处理关注按钮点击
-function handleFollow() {
-  if (socialLinks.value.github && socialLinks.value.github.trim()) {
-    window.open(socialLinks.value.github, '_blank', 'noopener,noreferrer')
-  }
-}
-
 onMounted(() => {
   fetchAuthorProfile()
   fetchSettings()
@@ -380,12 +359,6 @@ html.dark .stat-label {
 
 html.dark .stat-value {
   color: #e5e5e5;
-}
-
-.follow-button {
-  margin-bottom: 16px;
-  height: 40px;
-  font-weight: 600;
 }
 
 .social-links {
