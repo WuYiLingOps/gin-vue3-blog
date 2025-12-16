@@ -1,5 +1,6 @@
 <template>
   <div class="default-layout">
+    <CanvasBackground />
     <n-layout position="absolute">
       <!-- 头部 -->
       <n-layout-header class="header" position="absolute">
@@ -255,6 +256,7 @@ import type { PasswordForm } from '@/types/auth'
 import { formatDate } from '@/utils/format'
 import { highlightKeyword, extractHighlightSnippet } from '@/utils/highlight'
 import type { Post } from '@/types/blog'
+import CanvasBackground from '@/components/CanvasBackground.vue'
 
 const router = useRouter()
 const route = useRoute()
