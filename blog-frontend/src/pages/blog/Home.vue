@@ -395,7 +395,7 @@ html.dark .meta-item {
 .post-cover {
   flex-shrink: 0;
   width: 220px;
-  height: 140px;
+  aspect-ratio: 4 / 3; /* 提升可视面积，减少留白 */
   border-radius: 8px;
   overflow: hidden;
   background: #f5f5f5;
@@ -406,15 +406,24 @@ html.dark .post-cover {
 }
 
 .cover-image {
+  display: block;
   width: 100%;
   height: 100%;
   transition: transform 0.4s;
 }
 
+.cover-image :deep(.n-image) {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+}
+
 .cover-image :deep(img) {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain; /* 展示全貌，避免裁剪 */
+  display: block;
+  background: #f5f5f5;
 }
 
 .post-card:hover .cover-image {
