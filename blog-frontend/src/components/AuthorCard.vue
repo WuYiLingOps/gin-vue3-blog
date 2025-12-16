@@ -6,7 +6,7 @@
       <div class="avatar-wrapper">
         <n-avatar
           :src="authorProfile?.author.avatar || ''"
-          :size="80"
+          :size="104"
           round
           :fallback-src="defaultAvatar"
         >
@@ -259,11 +259,11 @@ html.dark .author-card:hover {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 8px;
+  padding: 12px;
 }
 
 .avatar-wrapper {
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
 
 .author-name {

@@ -221,7 +221,7 @@ function getHighlightedSummary(post: Post): string {
 
 .home-layout {
   display: grid;
-  grid-template-columns: 1fr 320px;
+  grid-template-columns: 1fr 360px; /* 扩大右侧区域，容纳更大的个人名片 */
   gap: 32px; /* 增加间距，避免重叠 */
   align-items: start;
 }
@@ -233,7 +233,7 @@ function getHighlightedSummary(post: Post): string {
 .sidebar-section {
   position: relative;
   z-index: 10; /* 确保侧边栏在文章卡片之上 */
-  margin-left: 8px; /* 稍微往右移动 */
+  margin-left: 12px; /* 稍微往右移动，留出呼吸空间 */
   display: flex;
   flex-direction: column;
   gap: 16px; /* 卡片之间的间距，避免重叠 */
