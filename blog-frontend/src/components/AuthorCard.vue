@@ -40,74 +40,30 @@
         </div>
       </div>
 
-      <!-- 社交链接 - 只在有配置时显示 -->
-      <div v-if="hasSocialLinks" class="social-links">
-        <!-- GitHub -->
-        <a
-          v-if="socialLinks.github && socialLinks.github.trim()"
-          :href="socialLinks.github"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="social-icon github"
-          title="GitHub"
-        >
-          <SocialIcons type="github" />
-        </a>
-
-        <!-- Gitee -->
-        <a
-          v-if="socialLinks.gitee && socialLinks.gitee.trim()"
-          :href="socialLinks.gitee"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="social-icon gitee"
-          title="Gitee"
-        >
-          <SocialIcons type="gitee" />
-        </a>
-
-        <!-- Email -->
-        <a
-          v-if="socialLinks.email && socialLinks.email.trim()"
-          :href="`mailto:${socialLinks.email}`"
-          class="social-icon email"
-          title="Email"
-        >
-          <SocialIcons type="email" />
-        </a>
-
-        <!-- RSS -->
-        <a
-          v-if="socialLinks.rss && socialLinks.rss.trim()"
-          :href="socialLinks.rss"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="social-icon rss"
-          title="RSS"
-        >
-          <SocialIcons type="rss" />
-        </a>
-
-        <!-- QQ -->
-        <a
-          v-if="socialLinks.qq && socialLinks.qq.trim()"
-          :href="`tencent://message/?uin=${socialLinks.qq}`"
-          class="social-icon qq"
-          title="QQ"
-        >
-          <SocialIcons type="qq" />
-        </a>
-
-        <!-- 微信 -->
-        <a
-          v-if="socialLinks.wechat && socialLinks.wechat.trim()"
-          href="javascript:void(0)"
-          class="social-icon wechat"
-          title="微信"
-          @click="showWechatQR = true"
-        >
-          <SocialIcons type="wechat" />
-        </a>
+      <!-- 社交链接（最多展示 5 个） -->
+      <div v-if="visibleSocialLinks.length" class="social-links">
+        <template v-for="link in visibleSocialLinks" :key="link.type">
+          <a
+            v-if="link.type !== 'wechat'"
+            :href="link.href"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="social-icon"
+            :class="link.type"
+            :title="link.title"
+          >
+            <SocialIcons :type="link.type" />
+          </a>
+          <a
+            v-else
+            href="javascript:void(0)"
+            class="social-icon wechat"
+            :title="link.title"
+            @click="showWechatQR = true"
+          >
+            <SocialIcons type="wechat" />
+          </a>
+        </template>
       </div>
       </div>
     </n-spin>
@@ -144,6 +100,14 @@ import { getPublicSettings } from '@/api/setting'
 import type { SiteSettings } from '@/api/setting'
 import SocialIcons from './SocialIcons.vue'
 
+const MAX_SOCIAL_LINKS = 5
+type SocialLinkType = 'github' | 'gitee' | 'email' | 'rss' | 'qq' | 'wechat'
+interface SocialLink {
+  type: SocialLinkType
+  href?: string
+  title: string
+}
+
 const authorProfile = ref<AuthorProfile | null>(null)
 const siteSettings = ref<SiteSettings>({})
 const socialLinks = ref({
@@ -159,9 +123,31 @@ const loading = ref(false)
 const defaultAvatar = '/default-avatar.png'
 const router = useRouter()
 
-// 判断是否有任何社交链接
-const hasSocialLinks = computed(() => {
-  return Object.values(socialLinks.value).some(link => link && link.trim() !== '')
+// 计算需展示的社交链接（最多 5 个，按优先顺序）
+const visibleSocialLinks = computed<SocialLink[]>(() => {
+  const links: SocialLink[] = []
+  const data = socialLinks.value
+
+  if (data.github?.trim()) {
+    links.push({ type: 'github', href: data.github.trim(), title: 'GitHub' })
+  }
+  if (data.gitee?.trim()) {
+    links.push({ type: 'gitee', href: data.gitee.trim(), title: 'Gitee' })
+  }
+  if (data.email?.trim()) {
+    links.push({ type: 'email', href: `mailto:${data.email.trim()}`, title: 'Email' })
+  }
+  if (data.rss?.trim()) {
+    links.push({ type: 'rss', href: data.rss.trim(), title: 'RSS' })
+  }
+  if (data.qq?.trim()) {
+    links.push({ type: 'qq', href: `tencent://message/?uin=${data.qq.trim()}`, title: 'QQ' })
+  }
+  if (data.wechat?.trim()) {
+    links.push({ type: 'wechat', title: '微信' })
+  }
+
+  return links.slice(0, MAX_SOCIAL_LINKS)
 })
 
 // 跳转到文章列表
