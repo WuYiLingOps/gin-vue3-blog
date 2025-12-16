@@ -10,6 +10,7 @@ declare module 'vue' {
     AnnouncementBoard: typeof import('./../components/AnnouncementBoard.vue')['default']
     AuthorCard: typeof import('./../components/AuthorCard.vue')['default']
     AvatarUpload: typeof import('./../components/AvatarUpload.vue')['default']
+    CanvasBackground: typeof import('./../components/CanvasBackground.vue')['default']
     CaptchaInput: typeof import('./../components/CaptchaInput.vue')['default']
     HotPostsCard: typeof import('./../components/HotPostsCard.vue')['default']
     ImageUpload: typeof import('./../components/ImageUpload.vue')['default']
