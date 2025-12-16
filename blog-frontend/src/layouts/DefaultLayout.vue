@@ -243,7 +243,7 @@
 <script setup lang="ts">
 import { ref, computed, h, onMounted, onBeforeUnmount, reactive } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { MoonOutline, SunnyOutline, PersonOutline, LogOutOutline, SettingsOutline, SearchOutline, MenuOutline, HomeOutline, ArchiveOutline, ChatbubblesOutline, ChatboxEllipsesOutline } from '@vicons/ionicons5'
+import { MoonOutline, SunnyOutline, PersonOutline, LogOutOutline, SettingsOutline, SearchOutline, MenuOutline, HomeOutline, ArchiveOutline, ChatbubblesOutline, ChatboxEllipsesOutline, ClipboardOutline } from '@vicons/ionicons5'
 import { useAuthStore, useAppStore } from '@/stores'
 import { NIcon, useMessage, useDialog } from 'naive-ui'
 import type { FormInst, FormRules } from 'naive-ui'
@@ -306,49 +306,62 @@ const passwordRules: FormRules = {
 // 网站启动时间（可以在这里设置你的网站上线日期）
 const siteStartDate = new Date('2025-10-25 00:00:00')
 
-// 菜单选项
-const menuOptions = [
-  {
-    label: '首页',
-    key: 'Home',
-    path: '/',
-    icon: () => h(NIcon, null, { default: () => h(HomeOutline) })
-  },
-  {
-    label: '文章归档',
-    key: 'ArchiveMenu',
-    icon: () => h(NIcon, null, { default: () => h(ArchiveOutline) }),
-    children: [
-      {
-        label: '归档',
-        key: 'Archive',
-        path: '/archive'
-      },
-      {
-        label: '分类',
-        key: 'Category',
-        path: '/category'
-      },
-      {
-        label: '标签',
-        key: 'Tag',
-        path: '/tag'
-      }
-    ]
-  },
-  {
-    label: '说说',
-    key: 'Moments',
-    path: '/moments',
-    icon: () => h(NIcon, null, { default: () => h(ChatbubblesOutline) })
-  },
-  {
-    label: '聊天室',
-    key: 'Chat',
-    path: '/chat',
-    icon: () => h(NIcon, null, { default: () => h(ChatboxEllipsesOutline) })
+// 菜单选项（根据登录状态动态生成）
+const menuOptions = computed(() => {
+  const base = [
+    {
+      label: '首页',
+      key: 'Home',
+      path: '/',
+      icon: () => h(NIcon, null, { default: () => h(HomeOutline) })
+    },
+    {
+      label: '文章归档',
+      key: 'ArchiveMenu',
+      icon: () => h(NIcon, null, { default: () => h(ArchiveOutline) }),
+      children: [
+        {
+          label: '归档',
+          key: 'Archive',
+          path: '/archive'
+        },
+        {
+          label: '分类',
+          key: 'Category',
+          path: '/category'
+        },
+        {
+          label: '标签',
+          key: 'Tag',
+          path: '/tag'
+        }
+      ]
+    },
+    {
+      label: '说说',
+      key: 'Moments',
+      path: '/moments',
+      icon: () => h(NIcon, null, { default: () => h(ChatbubblesOutline) })
+    },
+    {
+      label: '聊天室',
+      key: 'Chat',
+      path: '/chat',
+      icon: () => h(NIcon, null, { default: () => h(ChatboxEllipsesOutline) })
+    }
+  ] as any[]
+
+  if (authStore.isLoggedIn) {
+    base.push({
+      label: '任务清单',
+      key: 'Todo',
+      path: '/todo',
+      icon: () => h(NIcon, null, { default: () => h(ClipboardOutline) })
+    })
   }
-]
+
+  return base
+})
 
 // 用户菜单选项
 const userMenuOptions = computed(() => {
@@ -686,6 +699,7 @@ html.dark .header {
   display: flex;
   align-items: center;
   transition: transform 0.3s;
+  flex-shrink: 0;
 }
 
 .logo:hover {
@@ -711,10 +725,10 @@ html.dark .logo h2 {
 }
 
 .nav-menu {
-  flex: 1;
-  margin: 0 48px;
-  max-width: 500px;
-  min-width: 400px;
+  flex: 1 1 auto;
+  margin: 0 24px;
+  max-width: 100%;
+  min-width: 0;
 }
 
 /* 自定义导航菜单样式 */
@@ -1071,7 +1085,7 @@ html.dark .running-time :deep(.time-number) {
   }
   
   .header {
-    padding: 0 16px;
+    padding: 0 12px;
     height: 60px;
   }
   
@@ -1103,6 +1117,18 @@ html.dark .running-time :deep(.time-number) {
   
   .running-time {
     font-size: 11px !important;
+  }
+}
+
+@media (max-width: 1024px) {
+  .nav-menu {
+    margin: 0 12px;
+  }
+
+  .nav-menu :deep(.n-menu-item) {
+    font-size: 13px;
+    padding-left: 8px;
+    padding-right: 8px;
   }
 }
 
