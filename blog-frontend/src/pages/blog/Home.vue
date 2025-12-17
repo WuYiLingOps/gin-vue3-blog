@@ -1,5 +1,15 @@
 <template>
   <div class="home-page">
+    <!-- 顶部：贡献热力图（左） + 个人名片（右） -->
+    <div class="top-row">
+      <div class="calendar-wrapper">
+        <GiteeCalendar />
+      </div>
+      <div class="top-author-wrapper">
+        <AuthorCard />
+      </div>
+    </div>
+
     <div class="home-layout">
       <!-- 左侧：文章列表 -->
       <div class="posts-section">
@@ -85,11 +95,8 @@
     </n-space>
       </div>
 
-    <!-- 右侧：个人信息卡片 + 公告栏 -->
+    <!-- 右侧：公告栏 + 热门文章（保持原有组件和顺序） -->
     <div class="sidebar-section">
-      <div class="sidebar-card-wrapper">
-        <AuthorCard />
-      </div>
       <div class="sidebar-card-wrapper">
         <AnnouncementBoard :limit="3" />
       </div>
@@ -114,6 +121,7 @@ import type { Post } from '@/types/blog'
 import AuthorCard from '@/components/AuthorCard.vue'
 import AnnouncementBoard from '@/components/AnnouncementBoard.vue'
 import HotPostsCard from '@/components/HotPostsCard.vue'
+import GiteeCalendar from '@/components/GiteeCalendar.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -219,6 +227,31 @@ function getHighlightedSummary(post: Post): string {
   z-index: 1;
 }
 
+.top-row {
+  display: grid;
+  /* 左侧自适应内容，右侧固定为与侧边栏相同的宽度（360px），保持个人名片大小一致 */
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 32px;
+  margin-bottom: 24px;
+}
+
+.calendar-wrapper,
+.top-author-wrapper {
+  display: flex;
+}
+
+.calendar-wrapper :deep(.hexo-calendar-card),
+.top-author-wrapper :deep(.author-card) {
+  width: 100%;
+}
+
+/* 桌面端：让顶部个人名片与侧边栏卡片左边对齐，保持视觉宽度一致 */
+@media (min-width: 1025px) {
+  .top-author-wrapper {
+    margin-left: 12px;
+  }
+}
+
 .home-layout {
   display: grid;
   grid-template-columns: 1fr 360px; /* 扩大右侧区域，容纳更大的个人名片 */
@@ -244,9 +277,24 @@ function getHighlightedSummary(post: Post): string {
   .home-layout {
     grid-template-columns: 1fr;
   }
-  
+
+  /* 移动端不显示热力图，仅保留个人名片，避免挤压 */
+  .calendar-wrapper {
+    display: none;
+  }
+
+  .top-row {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .top-author-wrapper {
+    margin-left: 0;
+  }
+
   .sidebar-section {
-    order: -1; /* 移动端个人信息卡片显示在文章列表上方 */
+    order: 0;
+    margin-left: 0;
   }
 }
 
