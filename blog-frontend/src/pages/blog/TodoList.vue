@@ -10,13 +10,14 @@
                 <span>任务清单</span>
               </div>
               <div class="card-subtitle">
-                仅当前登录用户可见，数据存储在浏览器本地
+                <span v-if="isLoggedIn">仅当前登录用户可见，数据存储在浏览器本地</span>
+                <span v-else>任务清单对所有人开放浏览，请先登录后使用任务记录功能</span>
               </div>
             </div>
           </template>
 
           <!-- 新任务输入 -->
-          <div class="todo-input-row">
+          <div v-if="isLoggedIn" class="todo-input-row">
             <n-input
               v-model:value="newTitle"
               placeholder="记录一条待办事项，例如：阅读一篇技术文章"
@@ -33,7 +34,7 @@
           </div>
 
           <!-- 顶部统计与筛选 -->
-          <div class="todo-toolbar">
+          <div v-if="isLoggedIn" class="todo-toolbar">
             <div class="stats">
               <span>总数：{{ todos.length }}</span>
               <n-divider vertical />
@@ -52,7 +53,7 @@
           </div>
 
           <!-- 操作按钮 -->
-          <div class="todo-actions" v-if="todos.length">
+          <div v-if="isLoggedIn && todos.length" class="todo-actions">
             <n-space :size="12">
               <n-button quaternary size="small" @click="markAllCompleted" :disabled="!ongoingCount">
                 完成全部
@@ -64,7 +65,7 @@
           </div>
 
           <!-- 列表 -->
-          <div v-if="filteredTodos.length" class="todo-list">
+          <div v-if="isLoggedIn && filteredTodos.length" class="todo-list">
             <div
               v-for="item in filteredTodos"
               :key="item.id"
@@ -109,7 +110,7 @@
             </div>
           </div>
 
-          <n-empty v-else description="暂无任务，开始添加一条吧~" class="todo-empty" />
+          <n-empty v-else-if="isLoggedIn" description="暂无任务，开始添加一条吧~" class="todo-empty" />
         </n-card>
       </div>
 
@@ -128,6 +129,7 @@
 
     <!-- 编辑对话框 -->
     <n-modal
+      v-if="isLoggedIn"
       v-model:show="showEditModal"
       preset="dialog"
       title="编辑任务"
@@ -168,6 +170,8 @@ interface TodoItem {
 const authStore = useAuthStore()
 const message = useMessage()
 
+const isLoggedIn = computed(() => authStore.isLoggedIn)
+
 const newTitle = ref('')
 const todos = ref<TodoItem[]>([])
 const filter = ref<'all' | 'ongoing' | 'completed' | 'removed'>('all')
@@ -177,8 +181,8 @@ const editingTodo = ref<TodoItem | null>(null)
 const editTitle = ref('')
 
 const storageKey = computed(() => {
-  const userId = authStore.user?.id || 'guest'
-  return `todo-list-${userId}`
+  const userId = authStore.user?.id
+  return userId ? `todo-list-${userId}` : ''
 })
 
 // 统计
@@ -201,7 +205,12 @@ const filteredTodos = computed(() => {
 
 function loadFromStorage() {
   try {
-    const raw = localStorage.getItem(storageKey.value)
+    const key = storageKey.value
+    if (!key) {
+      todos.value = []
+      return
+    }
+    const raw = localStorage.getItem(key)
     if (!raw) return
     const parsed = JSON.parse(raw) as TodoItem[]
     if (Array.isArray(parsed)) {
@@ -214,7 +223,9 @@ function loadFromStorage() {
 
 function saveToStorage() {
   try {
-    localStorage.setItem(storageKey.value, JSON.stringify(todos.value))
+    const key = storageKey.value
+    if (!key) return
+    localStorage.setItem(key, JSON.stringify(todos.value))
   } catch (e) {
     console.error('保存任务清单失败', e)
   }
@@ -233,6 +244,18 @@ watch(
     saveToStorage()
   },
   { deep: true }
+)
+
+watch(
+  isLoggedIn,
+  (loggedIn) => {
+    if (loggedIn) {
+      loadFromStorage()
+    } else {
+      todos.value = []
+      newTitle.value = ''
+    }
+  }
 )
 
 function handleAdd() {
@@ -313,7 +336,9 @@ function formatTime(iso: string) {
 }
 
 onMounted(() => {
-  loadFromStorage()
+  if (isLoggedIn.value) {
+    loadFromStorage()
+  }
 })
 </script>
 
