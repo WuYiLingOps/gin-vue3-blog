@@ -37,38 +37,74 @@ func IPBlacklistMiddleware() gin.HandlerFunc {
 	go cleanupExpiredRecords()
 
 	return func(c *gin.Context) {
-		// 排除静态文件路径和 WebSocket 路径，不进行频率限制和黑名单检查
 		path := c.Request.URL.Path
+		ip := util.GetClientIP(c)
+
+		// 1. 完全排除的路径：静态文件和 WebSocket
 		if strings.HasPrefix(path, "/uploads") || strings.HasPrefix(path, "/api/chat/ws") {
 			c.Next()
 			return
 		}
 
-		ip := util.GetClientIP(c)
+		// 2. 登录相关路径：允许通过黑名单检查，但记录访问（以便管理员能够登录）
+		// 这些路径即使IP被封禁也要允许访问，给管理员登录的机会
+		isAuthPath := strings.HasPrefix(path, "/api/auth/login") ||
+			strings.HasPrefix(path, "/api/captcha") ||
+			strings.HasPrefix(path, "/api/auth/register") ||
+			strings.HasPrefix(path, "/api/auth/send-register-code") ||
+			strings.HasPrefix(path, "/api/auth/forgot-password") ||
+			strings.HasPrefix(path, "/api/auth/reset-password") ||
+			strings.HasPrefix(path, "/api/auth/refresh")
 
-		// 0. 优先检查：如果是管理员或白名单IP，跳过所有限制
-		if shouldSkipRateLimit(c, ip) {
+		// 3. 优先检查：如果是管理员或白名单IP，跳过所有限制
+		// 管理员和白名单IP不会被计入访问频率，也不会被封禁
+		isAdmin := isAdminUser(c)
+		isWhitelisted := isIPInWhitelist(ip)
+
+		if isAdmin || isWhitelisted {
+			// 管理员和白名单IP完全豁免，不记录访问，不检查黑名单
 			c.Next()
 			return
 		}
 
-		// 1. 检查是否在黑名单中
-		if isIPBanned(ip) {
+		// 4. 检查是否在黑名单中
+		// 关键优化：认证相关路径（登录、验证码等）跳过黑名单检查，给管理员登录的机会
+		if !isAuthPath && isIPBanned(ip) {
+			// 再次检查是否是管理员或白名单（防止Token在后续处理中才被正确解析）
+			if isAdminUser(c) || isIPInWhitelist(ip) {
+				c.Next()
+				return
+			}
 			util.Error(c, 403, "您的IP已被封禁，请联系管理员")
 			c.Abort()
 			return
 		}
 
-		// 2. 检查访问频率
+		// 5. 检查访问频率
+		// 认证路径也要检查频率，但不会自动封禁（给管理员登录机会）
 		if shouldBanIP(ip) {
-			// 自动封禁IP
+			// 封禁前最后检查：确保不会误封管理员
+			if isAdminUser(c) || isIPInWhitelist(ip) {
+				// 管理员和白名单IP即使访问频繁也不封禁
+				c.Next()
+				return
+			}
+
+			// 认证路径不自动封禁，只返回频率限制错误
+			if isAuthPath {
+				util.Error(c, 429, "访问过于频繁，请稍后再试")
+				c.Abort()
+				return
+			}
+
+			// 非认证路径：自动封禁IP
 			banIP(ip, "访问频率过高，自动封禁", 1)
 			util.Error(c, 429, "访问过于频繁，您的IP已被临时封禁")
 			c.Abort()
 			return
 		}
 
-		// 3. 记录访问
+		// 6. 记录访问（只记录非管理员、非白名单的访问）
 		recordAccess(ip)
 
 		c.Next()
@@ -171,6 +207,7 @@ func banIP(ip string, reason string, banType int) {
 
 // shouldSkipRateLimit 判断是否应该跳过频率限制
 // 返回 true 表示应该跳过（管理员或白名单IP）
+// 注意：为了提高性能和多次检查的可靠性，中间件中已内联此逻辑
 func shouldSkipRateLimit(c *gin.Context, ip string) bool {
 	// 方案一：检查是否是管理员用户（通过解析 Token）
 	if isAdminUser(c) {
