@@ -1,67 +1,81 @@
 <template>
   <div class="moments-page">
-    <div class="moments-container">
-      <n-spin :show="loading">
-        <div v-if="moments.length > 0" class="moments-list">
-          <div v-for="moment in moments" :key="moment.id" class="moment-card">
-            <!-- 左侧头像 -->
-            <div class="moment-avatar">
-              <n-avatar :src="moment.user.avatar" :size="56" round />
-            </div>
+    <div class="moments-layout">
+      <div class="moments-main">
+        <n-spin :show="loading">
+          <div v-if="moments.length > 0" class="moments-list">
+            <div v-for="moment in moments" :key="moment.id" class="moment-card">
+              <!-- 左侧头像 -->
+              <div class="moment-avatar">
+                <n-avatar :src="moment.user.avatar" :size="56" round />
+              </div>
 
-            <!-- 右侧内容区 -->
-            <div class="moment-main">
-              <div class="moment-header">
-                <div class="user-info">
-                  <span class="username">{{ moment.user.nickname || moment.user.username }}</span>
-                  <span class="time">{{ formatDate(moment.created_at, 'YYYY-MM-DD HH:mm') }}</span>
+              <!-- 右侧内容区 -->
+              <div class="moment-main">
+                <div class="moment-header">
+                  <div class="user-info">
+                    <span class="username">{{ moment.user.nickname || moment.user.username }}</span>
+                    <span class="time">{{ formatDate(moment.created_at, 'YYYY-MM-DD HH:mm') }}</span>
+                  </div>
                 </div>
-              </div>
 
-              <div class="moment-content">
-                <p>{{ moment.content }}</p>
-              </div>
+                <div class="moment-content">
+                  <p>{{ moment.content }}</p>
+                </div>
 
-              <div v-if="moment.images" class="moment-images">
-                <n-image-group>
-                  <n-space :size="12">
-                    <n-image
-                      v-for="(img, index) in parseImages(moment.images)"
-                      :key="index"
-                      :src="img"
-                      object-fit="cover"
-                      class="moment-image"
-                    />
+                <div v-if="moment.images" class="moment-images">
+                  <n-image-group>
+                    <n-space :size="12">
+                      <n-image
+                        v-for="(img, index) in parseImages(moment.images)"
+                        :key="index"
+                        :src="img"
+                        object-fit="cover"
+                        class="moment-image"
+                      />
+                    </n-space>
+                  </n-image-group>
+                </div>
+
+                <div class="moment-footer">
+                  <n-space :size="16">
+                    <span class="stat-item like-button" @click="handleLike(moment)">
+                      <n-icon :component="moment.liked ? Heart : HeartOutline" :class="{ liked: moment.liked }" />
+                      <span v-if="moment.like_count > 0" class="like-text">{{ moment.like_count }}</span>
+                    </span>
                   </n-space>
-                </n-image-group>
-              </div>
-
-              <div class="moment-footer">
-                <n-space :size="16">
-                  <span class="stat-item like-button" @click="handleLike(moment)">
-                    <n-icon :component="moment.liked ? Heart : HeartOutline" :class="{ liked: moment.liked }" />
-                    <span v-if="moment.like_count > 0" class="like-text">{{ moment.like_count }}</span>
-                  </span>
-                </n-space>
+                </div>
               </div>
             </div>
           </div>
+
+          <n-empty v-else description="还没有发布说说" style="margin: 60px 0" />
+        </n-spin>
+
+        <!-- 分页 -->
+        <div v-if="total > pageSize" class="pagination-wrapper">
+          <n-pagination
+            v-model:page="currentPage"
+            :page-count="Math.ceil(total / pageSize)"
+            :page-size="pageSize"
+            show-size-picker
+            :page-sizes="[10, 20, 30]"
+            @update:page="handlePageChange"
+            @update:page-size="handlePageSizeChange"
+          />
         </div>
+      </div>
 
-        <n-empty v-else description="还没有发布说说" style="margin: 60px 0" />
-      </n-spin>
-
-      <!-- 分页 -->
-      <div v-if="total > pageSize" class="pagination-wrapper">
-        <n-pagination
-          v-model:page="currentPage"
-          :page-count="Math.ceil(total / pageSize)"
-          :page-size="pageSize"
-          show-size-picker
-          :page-sizes="[10, 20, 30]"
-          @update:page="handlePageChange"
-          @update:page-size="handlePageSizeChange"
-        />
+      <div class="sidebar-section">
+        <div class="sidebar-card-wrapper">
+          <AuthorCard />
+        </div>
+        <div class="sidebar-card-wrapper">
+          <AnnouncementBoard :limit="3" />
+        </div>
+        <div class="sidebar-card-wrapper">
+          <TagCloudWidget />
+        </div>
       </div>
     </div>
   </div>
@@ -75,6 +89,9 @@ import { getMoments, likeMoment } from '@/api/moment'
 import type { Moment, MomentParams } from '@/api/moment'
 import { formatDate } from '@/utils/format'
 import { useAuthStore } from '@/stores/auth'
+import AuthorCard from '@/components/AuthorCard.vue'
+import AnnouncementBoard from '@/components/AnnouncementBoard.vue'
+import TagCloudWidget from '@/components/TagCloudWidget.vue'
 
 const message = useMessage()
 const authStore = useAuthStore()
@@ -178,10 +195,18 @@ onMounted(() => {
   padding: 32px 0;
 }
 
-.moments-container {
-  max-width: 900px;
+.moments-layout {
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 0 24px;
+  padding: 0 20px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 32px;
+  align-items: start;
+}
+
+.moments-main {
+  min-width: 0;
 }
 
 .moments-list {
@@ -387,6 +412,26 @@ html.dark .like-button:hover {
   justify-content: center;
   margin-top: 40px;
   padding: 24px 0;
+}
+
+.sidebar-section {
+  position: relative;
+  z-index: 10;
+  margin-left: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+@media (max-width: 1024px) {
+  .moments-layout {
+    grid-template-columns: 1fr;
+    padding: 0 16px;
+  }
+
+  .sidebar-section {
+    display: none;
+  }
 }
 
 /* 响应式设计 */
