@@ -148,6 +148,7 @@ function updateScale() {
   if (!outer || !inner) return
 
   const outerWidth = outer.clientWidth
+  // 获取未缩放时的原始宽度
   const innerWidth = inner.scrollWidth || inner.clientWidth
 
   if (!innerWidth || !outerWidth) {
@@ -155,9 +156,13 @@ function updateScale() {
     return
   }
 
-  const next = Math.min(1, outerWidth / innerWidth)
-  // 避免过小，保留一个合理下限
-  scale.value = next < 0.4 ? 0.4 : next
+  const ratio = outerWidth / innerWidth
+  const next = Math.min(1, ratio)
+  
+  // 完全自适应缩放，确保所有数据都完整显示在容器内
+  // 移除下限限制，允许适当缩小以完全适配容器宽度
+  // 这样就不需要横向滚动，所有内容都能一次性看到
+  scale.value = next
 }
 
 const dateRange = computed(() => {
@@ -398,10 +403,21 @@ watch(
 <style scoped>
 .hexo-calendar-card {
   width: 100%;
+  overflow: visible; /* 允许提示框超出容器边界显示 */
 }
 
 .calendar-card {
   height: 100%;
+  overflow: visible; /* 允许提示框超出卡片边界显示 */
+}
+
+/* 确保 n-card 内部的所有容器都允许提示框显示 */
+.calendar-card :deep(.n-card__content) {
+  overflow: visible !important;
+}
+
+.calendar-card :deep(.n-card) {
+  overflow: visible !important;
 }
 
 .card-header {
@@ -446,7 +462,12 @@ watch(
 /* --- 核心布局，参考 go-code-calendar-api/web/index.html --- */
 .graph-body-outer {
   margin-top: 12px;
-  overflow: hidden;           /* 通过内部 scale 适配宽度，不出现横向滚动条 */
+  /* 允许提示框显示，缩放逻辑会确保内容适配容器 */
+  overflow: visible;
+  position: relative;
+  /* 为提示框留出显示空间 */
+  padding-top: 30px;
+  margin-top: calc(12px - 30px);
 }
 
 .graph-body-inner {
@@ -454,6 +475,8 @@ watch(
   align-items: flex-end;
   transform-origin: left top;
   transform: scale(var(--scale, 1));
+  overflow: visible; /* 允许提示框显示 */
+  position: relative;
 }
 
 /* 左侧：星期标签柱 */
@@ -474,6 +497,8 @@ watch(
 .graph-content-col {
   display: flex;
   flex-direction: column;
+  overflow: visible; /* 允许提示框超出边界显示 */
+  position: relative; /* 为提示框提供定位上下文 */
 }
 
 /* 顶部月份栏 */
@@ -531,13 +556,16 @@ watch(
   border-color: #0969da;
 }
 
+.cell {
+  position: relative; /* 为提示框提供定位上下文 */
+}
+
 .cell:hover::after {
   content: attr(data-date) ' · ' attr(data-count) ' 次提交';
   position: absolute;
-  bottom: 100%;
+  bottom: calc(100% + 5px);
   left: 50%;
   transform: translateX(-50%);
-  margin-bottom: 5px;
   padding: 4px 8px;
   font-size: 11px;
   color: #fff;
@@ -545,7 +573,36 @@ watch(
   border-radius: 4px;
   white-space: nowrap;
   pointer-events: none;
-  z-index: 10;
+  z-index: 1000; /* 提高层级，确保显示在最上层 */
+  /* 确保提示框不会被裁剪 */
+  min-width: max-content;
+  /* 防止提示框超出容器，智能调整位置 */
+  max-width: 200px;
+  word-break: keep-all;
+}
+
+/* 优化边缘方块的提示框位置 - 使用更精确的选择器 */
+.grid {
+  position: relative;
+  overflow: visible; /* 允许提示框超出网格显示 */
+}
+
+/* 检测并调整最右侧列的提示框位置 */
+/* 由于网格使用 grid-auto-flow: column，最右侧列是最后7个方块 */
+.grid > .cell:nth-last-child(-n+7):hover::after {
+  /* 最右侧列（最后7个方块），提示框左对齐：从方块中心向左完全延伸 */
+  left: 50%;
+  right: auto;
+  transform: translateX(-100%); /* 提示框完全在方块左侧，右边缘对齐到方块中心 */
+}
+
+/* 检测并调整最左侧列的提示框位置 */
+/* 由于网格使用 grid-auto-flow: column，最左侧列是前7个方块 */
+.grid > .cell:nth-child(-n+7):hover::after {
+  /* 最左侧列（前7个方块），提示框右对齐：从方块中心向右完全延伸 */
+  left: 50%;
+  right: auto;
+  transform: translateX(0); /* 提示框完全在方块右侧，左边缘对齐到方块中心 */
 }
 
 /* --- 底部信息栏 --- */
@@ -646,6 +703,39 @@ watch(
 }
 
 @media (max-width: 768px) {
+  /* 移动端卡片内边距优化 */
+  .calendar-card :deep(.n-card__content) {
+    padding: 16px !important;
+  }
+
+  /* 移动端标题优化 */
+  .card-header {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .title {
+    font-size: 14px;
+  }
+
+  .subtitle {
+    font-size: 11px;
+  }
+
+  /* 移动端月份标签优化 */
+  .months-row {
+    font-size: 10px;
+    height: 18px;
+    margin-bottom: 6px;
+  }
+
+  /* 移动端星期标签优化 */
+  .weekdays-col {
+    font-size: 10px;
+    margin-right: 6px;
+  }
+
+  /* 移动端统计信息优化 */
   .stats {
     flex-direction: column;
     gap: 8px;
@@ -660,6 +750,49 @@ watch(
   .stat-item:first-child {
     border-top: none;
     padding-top: 0;
+  }
+
+  .stat-item h3 {
+    font-size: 22px;
+  }
+
+  .stat-item p {
+    font-size: 12px;
+  }
+
+  /* 移动端优化：通过缩放适配容器，不显示滚动条 */
+  .graph-body-outer {
+    overflow: hidden; /* 移除滚动，通过缩放完全适配 */
+    margin-top: 8px;
+  }
+
+  /* 移动端单元格触摸优化 */
+  .cell {
+    /* 增加触摸区域，提升移动端交互体验 */
+    min-width: 12px;
+    min-height: 12px;
+    touch-action: manipulation; /* 禁用双击缩放 */
+  }
+
+  /* 移动端网格优化 */
+  .grid {
+    gap: 4px; /* 移动端稍微减小间距，节省空间 */
+  }
+
+  /* 移动端图例优化 */
+  .legend {
+    font-size: 10px;
+    gap: 4px;
+  }
+
+  .legend-box {
+    width: 10px;
+    height: 10px;
+  }
+
+  /* 移动端数据来源优化 */
+  .source {
+    font-size: 11px;
   }
 }
 </style>
