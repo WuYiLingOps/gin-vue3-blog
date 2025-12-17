@@ -210,6 +210,10 @@ vim config/config-dev.yml
 
 # 3. 运行后端服务
 go run cmd/server/main.go
+
+# （可选）如果需要首页贡献热力图，请同时启动 gitee-calendar-api（默认端口 8081，路径 /api）
+# ./gitee-calendar-api   # 前台运行
+# nohup ./gitee-calendar-api > gitee-calendar-api.log 2>&1 &   # 后台运行
 ```
 
 后端服务默认运行在 `http://localhost:8080`
@@ -224,8 +228,9 @@ cd blog-frontend
 pnpm install
 
 # 2. 配置 API 地址（可选）
-# 创建 .env.development 文件
+# 创建 .env.development 文件（包含主后端与热力图接口）
 echo "VITE_API_BASE_URL=http://localhost:8080" > .env.development
+echo "VITE_GITEE_CALENDAR_API=http://localhost:8081/api" >> .env.development
 
 # 3. 启动开发服务器
 pnpm dev
@@ -368,14 +373,81 @@ nohup ./blog-backend > app.log 2>&1 &
 
 手动在主机安装并启动 PostgreSQL、Redis，按需配置 `config/config-prod.yml`，再以服务方式管理可执行文件。
 
-### 第二步：前端构建
+### 第二步：前端构建与 Gitee 贡献热力图集成（必选）
 
-```bash
-cd blog-frontend
-pnpm build
-```
+> 本步骤包含：前端 `.env.production` 配置 + 首页“贡献热力图”所需的 `gitee-calendar-api` 服务部署与接入。
 
-构建产物在 `dist` 目录，可部署到任何静态服务器（Nginx、Vercel、Netlify 等）。
+#### 2.1 前端 `.env.production` 环境变量配置
+
+1. 在 `blog-frontend` 目录下创建或编辑 `.env.production`：
+
+   ```bash
+   cd blog-frontend
+   vim .env.production
+   ```
+
+2. 写入（或补充）如下内容（根据你的实际域名调整）：
+
+   ```env
+   # 后端主 API（博客业务接口）
+   VITE_API_BASE_URL=https://your-domain.com/api
+
+   # Gitee 贡献日历 API（go-code-calendar-api 提供）
+   # 若通过 Nginx 反代到 /gitee-calendar-api，则写：
+   VITE_GITEE_CALENDAR_API=https://your-domain.com/gitee-calendar-api
+   ```
+
+   - `VITE_API_BASE_URL`：博客后端（Gin 服务）的统一前缀，前端所有业务接口都会基于该地址请求。  
+   - `VITE_GITEE_CALENDAR_API`：首页“贡献热力图”组件使用的 Gitee 日历 API 前缀，组件内部会自动拼接 `?user=你的Gitee用户名`。
+
+#### 2.2 gitee-calendar-api 服务部署与接入
+
+1. 本仓库已自带编译好的 `gitee-calendar-api`（根目录），可直接赋予执行权限使用（默认占用端口为8081）。若需查看/自行编译源码，可访问：`https://gitee.com/wylblog/go-code-calendar-api.git`
+
+   ```bash
+   cd /web/go-vue3-blog/gitee-calendar-api
+   chmod +x gitee-calendar-api
+   ```
+
+2. 在服务器上启动该服务（示例为简单后台运行方式，生产环境可用 systemd 管理）：
+
+   ```bash
+   # 前台调试运行
+   ./gitee-calendar-api
+
+   # 或后台运行（输出到 gitee-calendar-api.log）
+   nohup ./gitee-calendar-api > gitee-calendar-api.log 2>&1 &
+   ```
+
+   默认监听端口为 `8081`，路径为 `/api`，即本机访问地址为：`http://127.0.0.1:8081/api?user=你的Gitee用户名`。
+
+3. 推荐通过 Nginx 暴露为统一域名（与前端环境变量一致），在 Nginx 配置中增加一段反向代理（以 HTTPS 配置为例）：
+
+   ```nginx
+   # 在现有 server { ... } 块中追加一段
+   location /gitee-calendar-api {
+       proxy_pass http://127.0.0.1:8081/api;
+       proxy_set_header Host $host;
+       proxy_set_header X-Real-IP $remote_addr;
+       proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+       proxy_set_header X-Forwarded-Proto $scheme;
+   }
+   ```
+
+   这样，外部可通过 `https://your-domain.com/gitee-calendar-api?user=wylblog` 访问该服务，且与前端的 `VITE_GITEE_CALENDAR_API` 完全对应。
+
+4. 最后重新构建前端：
+
+   ```bash
+   cd blog-frontend
+   pnpm build
+   ```
+
+   构建产物在 `dist` 目录，可部署到任何静态服务器（Nginx、Vercel、Netlify 等）。部署新的 `dist` 后，首页热力图会自动走你配置的 `VITE_GITEE_CALENDAR_API` 地址。
+
+   > 说明：前端首页热力图组件位置为 `blog-frontend/src/components/GiteeCalendar.vue`，其数据源完全依赖 `VITE_GITEE_CALENDAR_API` 指向的 `gitee-calendar-api`，保持域名/路径与上方 Nginx 反代一致即可。
+
+> 注意：如果你直接在前端组件中写死了 IP + 端口（如 `http://42.194.242.109:8081/api`），建议改为使用 `VITE_GITEE_CALENDAR_API` 环境变量，便于后续迁移和域名切换。
 
 ### 第三步：Nginx 部署与反向代理
 
@@ -404,6 +476,16 @@ server {
     # 前端路由回退到 index.html（适配前端 history 模式）
     location / {
         try_files $uri $uri/ /index.html;
+    }
+
+    # Gitee 贡献日历 API（go-code-calendar-api）反向代理
+    # 对应前端 .env.production 中的 VITE_GITEE_CALENDAR_API=https://your-domain.com/gitee-calendar-api
+    location /gitee-calendar-api {
+        proxy_pass http://127.0.0.1:8081/api;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
     }
 
     # 本地存储上传文件访问（通过后端读取 /uploads 下资源）
@@ -476,6 +558,16 @@ server {
     # 前端路由回退
     location / {
         try_files $uri $uri/ /index.html;
+    }
+
+    # Gitee 贡献日历 API（go-code-calendar-api）反向代理
+    # 对应前端 .env.production 中的 VITE_GITEE_CALENDAR_API=https://your-domain.com/gitee-calendar-api
+    location /gitee-calendar-api {
+        proxy_pass http://127.0.0.1:8081/api;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
     }
 
     # 本地存储上传文件访问（通过后端读取 /uploads 下资源）
