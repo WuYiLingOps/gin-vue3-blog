@@ -264,6 +264,46 @@ html.dark .author-card:hover {
 
 .avatar-wrapper {
   margin-bottom: 18px;
+  width: 120px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.avatar-wrapper :deep(.n-avatar) {
+  transition: all 0.35s ease;
+  box-shadow: 0 8px 24px rgba(8, 145, 178, 0.15);
+}
+
+.avatar-wrapper :deep(.n-avatar img) {
+  object-fit: cover;
+}
+
+.avatar-wrapper::after {
+  content: '';
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(8, 145, 178, 0.18) 0%, transparent 60%);
+  opacity: 0;
+  transform: scale(0.9);
+  transition: opacity 0.35s ease, transform 0.35s ease, filter 0.35s ease;
+  filter: blur(2px);
+  z-index: 0;
+}
+
+.avatar-wrapper:hover::after {
+  opacity: 0.5;
+  transform: scale(1.08);
+  filter: blur(3px);
+}
+
+.avatar-wrapper:hover :deep(.n-avatar) {
+  transform: translateY(-3px) scale(1.04);
+  box-shadow: 0 14px 32px rgba(8, 145, 178, 0.25);
 }
 
 .author-name {
