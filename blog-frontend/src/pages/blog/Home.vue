@@ -7,6 +7,12 @@
       </div>
       <div class="top-author-wrapper">
         <AuthorCard />
+        <div class="mobile-announcement">
+          <AnnouncementBoard :limit="3" />
+        </div>
+        <div class="mobile-tag-cloud">
+          <TagCloudWidget />
+        </div>
       </div>
     </div>
 
@@ -97,11 +103,14 @@
 
     <!-- 右侧：公告栏 + 热门文章（保持原有组件和顺序） -->
     <div class="sidebar-section">
-      <div class="sidebar-card-wrapper">
+      <div class="sidebar-card-wrapper sidebar-announcement">
         <AnnouncementBoard :limit="3" />
       </div>
-      <div class="sidebar-card-wrapper">
+      <div class="sidebar-card-wrapper sidebar-hot-posts">
         <HotPostsCard />
+      </div>
+      <div class="sidebar-card-wrapper sidebar-tag-cloud">
+        <TagCloudWidget />
       </div>
     </div>
     </div>
@@ -121,6 +130,7 @@ import type { Post } from '@/types/blog'
 import AuthorCard from '@/components/AuthorCard.vue'
 import AnnouncementBoard from '@/components/AnnouncementBoard.vue'
 import HotPostsCard from '@/components/HotPostsCard.vue'
+import TagCloudWidget from '@/components/TagCloudWidget.vue'
 import GiteeCalendar from '@/components/GiteeCalendar.vue'
 
 const router = useRouter()
@@ -132,7 +142,7 @@ const loading = ref(false)
 const posts = ref<Post[]>([])
 const total = ref(0)
 const currentPage = ref(1)
-const pageSize = ref(7)
+const pageSize = ref(6)
 const searchKeyword = ref('')
 
 const totalPages = computed(() => Math.ceil(total.value / pageSize.value))
@@ -245,6 +255,13 @@ function getHighlightedSummary(post: Post): string {
   width: 100%;
 }
 
+.mobile-announcement,
+.mobile-tag-cloud {
+  display: none;
+  width: 100%;
+  margin-top: 12px;
+}
+
 /* 桌面端：让顶部个人名片与侧边栏卡片左边对齐，保持视觉宽度一致 */
 @media (min-width: 1025px) {
   .top-author-wrapper {
@@ -283,6 +300,17 @@ function getHighlightedSummary(post: Post): string {
     display: none;
   }
 
+  .mobile-announcement,
+  .mobile-tag-cloud {
+    display: block;
+  }
+
+  .sidebar-announcement,
+  .sidebar-hot-posts,
+  .sidebar-tag-cloud {
+    display: none;
+  }
+
   .top-row {
     grid-template-columns: 1fr;
     gap: 16px;
@@ -290,6 +318,7 @@ function getHighlightedSummary(post: Post): string {
 
   .top-author-wrapper {
     margin-left: 0;
+    flex-direction: column;
   }
 
   .sidebar-section {
