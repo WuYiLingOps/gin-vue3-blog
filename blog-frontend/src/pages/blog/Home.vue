@@ -7,6 +7,9 @@
       </div>
       <div class="top-author-wrapper">
         <AuthorCard />
+        <div class="tablet-calendar">
+          <GiteeCalendar />
+        </div>
         <div class="mobile-announcement">
           <AnnouncementBoard :limit="3" />
         </div>
@@ -248,6 +251,8 @@ function getHighlightedSummary(post: Post): string {
 .calendar-wrapper,
 .top-author-wrapper {
   display: flex;
+  min-width: 0; /* 防止 flex 子元素被压缩 */
+  overflow: visible; /* 确保内容不被裁剪 */
 }
 
 .calendar-wrapper :deep(.hexo-calendar-card) {
@@ -259,6 +264,12 @@ function getHighlightedSummary(post: Post): string {
   width: 100%;
   position: static;
   top: auto;
+}
+
+.tablet-calendar {
+  display: none;
+  width: 100%;
+  margin-top: 16px;
 }
 
 .mobile-announcement,
@@ -295,20 +306,15 @@ function getHighlightedSummary(post: Post): string {
   gap: 16px; /* 卡片之间的间距，避免重叠 */
 }
 
-/* 移动端布局 */
+/* 平板端和移动端布局 */
 @media (max-width: 1024px) {
   .home-layout {
     grid-template-columns: 1fr;
   }
 
-  /* 移动端不显示热力图，仅保留个人名片，避免挤压 */
+  /* 桌面端的热力图在平板和移动端都不显示 */
   .calendar-wrapper {
     display: none;
-  }
-
-  .mobile-announcement,
-  .mobile-tag-cloud {
-    display: block;
   }
 
   .sidebar-announcement,
@@ -325,11 +331,57 @@ function getHighlightedSummary(post: Post): string {
   .top-author-wrapper {
     margin-left: 0;
     flex-direction: column;
+    min-width: 0; /* 防止内容被压缩 */
+    overflow: visible; /* 确保内容不被裁剪 */
   }
 
   .sidebar-section {
     order: 0;
     margin-left: 0;
+  }
+}
+
+/* 平板端布局（768px ~ 1024px） */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .tablet-calendar {
+    display: block;
+    /* 移除固定缩放，让组件内部的自动缩放逻辑处理自适应 */
+  }
+
+  .mobile-announcement,
+  .mobile-tag-cloud {
+    display: block;
+  }
+}
+
+/* 移动端布局（< 768px） */
+@media (max-width: 767px) {
+  /* 移动端也显示热力图，位置在个人名片下方、公告栏上方 */
+  .tablet-calendar {
+    display: block;
+    width: 100%;
+    margin-top: 16px;
+    margin-bottom: 0;
+    min-width: 0; /* 防止内容被压缩 */
+    overflow: visible; /* 确保内容不被裁剪 */
+  }
+
+  /* 移动端热力图卡片优化 */
+  .tablet-calendar :deep(.hexo-calendar-card) {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .top-author-wrapper {
+    min-width: 0; /* 防止内容被压缩 */
+    overflow: visible; /* 确保内容不被裁剪 */
+  }
+
+  .mobile-announcement,
+  .mobile-tag-cloud {
+    display: block;
+    min-width: 0; /* 防止内容被压缩 */
+    overflow: visible; /* 确保内容不被裁剪 */
   }
 }
 
