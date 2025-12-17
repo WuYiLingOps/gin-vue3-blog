@@ -63,10 +63,9 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Package manager lock files (keep pnpm-lock.yaml as it's already in the project)
-# Uncomment if you want to ignore lock files:
-# package-lock.json
-# yarn.lock
+# Package manager lock files（本项目使用 pnpm，忽略 npm/yarn 的 lock）
+package-lock.json
+yarn.lock
 
 # Environment variables
 .env
