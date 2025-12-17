@@ -21,31 +21,41 @@
       <div v-else>
         <div v-if="error" class="calendar-error">{{ error }}</div>
 
-        <div v-if="flatDays.length" class="graph-body-container">
-          <div class="weekdays-col">
-            <div>日</div>
-            <div class="hidden-label">一</div>
-            <div>二</div>
-            <div class="hidden-label">三</div>
-            <div>四</div>
-            <div class="hidden-label">五</div>
-            <div>六</div>
-          </div>
-
-          <div class="graph-content-col">
-            <div class="months-row">
-              <span v-for="(month, idx) in monthLabels" :key="idx">{{ month }}</span>
+        <div v-if="flatDays.length" class="graph-body-outer" ref="outerRef">
+          <div class="graph-body-inner" :style="{ '--scale': scale }" ref="innerRef">
+            <div class="weekdays-col">
+              <div>日</div>
+              <div class="hidden-label">一</div>
+              <div>二</div>
+              <div class="hidden-label">三</div>
+              <div>四</div>
+              <div class="hidden-label">五</div>
+              <div>六</div>
             </div>
 
-            <div class="grid">
-              <div
-                v-for="day in flatDays"
-                :key="day.date"
-                class="cell"
-                :class="cellLevelClass(day.count)"
-                :data-date="day.date"
-                :data-count="day.count"
-              />
+            <div class="graph-content-col">
+              <div class="months-row">
+                <template v-for="(pos, idx) in monthPositions" :key="idx">
+                  <span
+                    v-if="pos !== null"
+                    class="month-label"
+                    :style="{ left: pos + 'px' }"
+                  >
+                    {{ monthLabels[idx] }}
+                  </span>
+                </template>
+              </div>
+
+              <div class="grid">
+                <div
+                  v-for="day in flatDays"
+                  :key="day.date"
+                  class="cell"
+                  :class="cellLevelClass(day.count)"
+                  :data-date="day.date"
+                  :data-count="day.count"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -102,7 +112,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, computed } from 'vue'
+import { onMounted, onBeforeUnmount, ref, computed, watch, nextTick } from 'vue'
 import { useMessage } from 'naive-ui'
 import { getPublicSettings } from '@/api/setting'
 
@@ -125,6 +135,30 @@ const total = ref(0)
 const weeks = ref<CalendarWeek[]>([])
 
 const flatDays = computed(() => weeks.value.flat())
+
+// 自适应缩放相关
+const outerRef = ref<HTMLElement | null>(null)
+const innerRef = ref<HTMLElement | null>(null)
+const scale = ref(1)
+let resizeObserver: ResizeObserver | null = null
+
+function updateScale() {
+  const outer = outerRef.value
+  const inner = innerRef.value
+  if (!outer || !inner) return
+
+  const outerWidth = outer.clientWidth
+  const innerWidth = inner.scrollWidth || inner.clientWidth
+
+  if (!innerWidth || !outerWidth) {
+    scale.value = 1
+    return
+  }
+
+  const next = Math.min(1, outerWidth / innerWidth)
+  // 避免过小，保留一个合理下限
+  scale.value = next < 0.4 ? 0.4 : next
+}
 
 const dateRange = computed(() => {
   if (!flatDays.value.length) return ''
@@ -156,8 +190,63 @@ const lastMonthStats = computed(() => {
   return { total: sum, from: slice.length ? slice[0].date : fromStr, to }
 })
 
+// 网格尺寸（需与下方 CSS 中 .grid 的宽高 / gap 保持一致）
+const CELL_SIZE = 12
+const CELL_GAP = 5
+
 // 月份标签（静态 12 个月）
 const monthLabels = ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月']
+
+// 每个月份对应的像素位置（相对于网格左侧），用于让月份文字精确对齐到对应列上方
+const monthPositions = computed(() => {
+  if (!weeks.value.length) {
+    return Array(12).fill(null) as (number | null)[]
+  }
+
+  const positions: (number | null)[] = Array(12).fill(null)
+
+  // 先根据实际数据，记录每个月最后一次出现的列索引
+  weeks.value.forEach((week, colIndex) => {
+    week.forEach((d) => {
+      if (!d.date) return
+      const date = new Date(d.date)
+      if (Number.isNaN(date.getTime())) return
+      const m = date.getMonth() // 0-11
+      // 不断覆盖，保证取到“该月最后一次出现”的列
+      positions[m] = colIndex * (CELL_SIZE + CELL_GAP)
+    })
+  })
+
+  // 为了让 1-11 月之间的间隔完全一致：
+  // - 如果一月和十二月都拿到了位置，则按它们之间线性均分 11 份；
+  // - 否则退化为根据总列数等比分布。
+  const firstPos = positions[0]
+  const lastPos = positions[11]
+
+  if (firstPos !== null && lastPos !== null && lastPos > firstPos) {
+    const step = (lastPos - firstPos) / 11
+    for (let m = 0; m < 12; m++) {
+      positions[m] = firstPos + step * m
+    }
+  } else {
+    const totalCols = weeks.value.length
+    const totalWidth = (totalCols - 1) * (CELL_SIZE + CELL_GAP)
+    const step = totalWidth / 11
+    for (let m = 0; m < 12; m++) {
+      positions[m] = step * m
+    }
+  }
+
+  // 整体向左平移一点，让文字更居中贴近对应月份（再整体左移一个格子宽度）
+  const OFFSET = 2 * (CELL_SIZE + CELL_GAP)
+  for (let m = 0; m < 12; m++) {
+    if (positions[m] !== null) {
+      positions[m] = Math.max(0, (positions[m] as number) - OFFSET)
+    }
+  }
+
+  return positions
+})
 
 // 颜色等级
 function cellLevelClass(count: number) {
@@ -260,6 +349,10 @@ async function fetchData() {
     message.error(error.value)
   } finally {
     loading.value = false
+    // 数据加载或回退完成后，等待 DOM 更新再计算缩放
+    nextTick(() => {
+      updateScale()
+    })
   }
 }
 
@@ -270,7 +363,36 @@ onMounted(async () => {
   } catch {
     // 错误已在内部处理
   }
+
+  if (typeof ResizeObserver !== 'undefined') {
+    resizeObserver = new ResizeObserver(() => {
+      updateScale()
+    })
+    if (outerRef.value) {
+      resizeObserver.observe(outerRef.value)
+    }
+  } else {
+    window.addEventListener('resize', updateScale)
+  }
 })
+
+onBeforeUnmount(() => {
+  if (resizeObserver) {
+    resizeObserver.disconnect()
+    resizeObserver = null
+  } else {
+    window.removeEventListener('resize', updateScale)
+  }
+})
+
+watch(
+  () => flatDays.value.length,
+  () => {
+    nextTick(() => {
+      updateScale()
+    })
+  }
+)
 </script>
 
 <style scoped>
@@ -322,10 +444,16 @@ onMounted(async () => {
 }
 
 /* --- 核心布局，参考 go-code-calendar-api/web/index.html --- */
-.graph-body-container {
+.graph-body-outer {
+  margin-top: 12px;
+  overflow: hidden;           /* 通过内部 scale 适配宽度，不出现横向滚动条 */
+}
+
+.graph-body-inner {
   display: flex;
   align-items: flex-end;
-  margin-top: 12px;
+  transform-origin: left top;
+  transform: scale(var(--scale, 1));
 }
 
 /* 左侧：星期标签柱 */
@@ -346,20 +474,23 @@ onMounted(async () => {
 .graph-content-col {
   display: flex;
   flex-direction: column;
-  flex: 1;
-  min-width: 0;
 }
 
 /* 顶部月份栏 */
 .months-row {
-  display: flex;
-  justify-content: space-between;
+  position: relative;
+  height: 20px; /* 预留固定高度，避免与方块重叠 */
   margin-bottom: 8px;
   font-size: 12px;
   color: #6e7781;
-  width: 100%;
   box-sizing: border-box;
-  padding: 0 2px;
+}
+
+.month-label {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  white-space: nowrap;
 }
 
 /* 网格区域 */
@@ -509,12 +640,8 @@ onMounted(async () => {
 }
 
 @media (max-width: 1100px) {
-  .grid {
-    grid-auto-columns: 10px;
-  }
-
-  .months-row span:nth-child(odd) {
-    display: none;
+  .months-row {
+    font-size: 11px;
   }
 }
 
