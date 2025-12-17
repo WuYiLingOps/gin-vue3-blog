@@ -250,9 +250,15 @@ function getHighlightedSummary(post: Post): string {
   display: flex;
 }
 
-.calendar-wrapper :deep(.hexo-calendar-card),
+.calendar-wrapper :deep(.hexo-calendar-card) {
+  width: 100%;
+}
+
+/* 首页顶部区域的个人名片不需要吸顶，避免在特定分辨率下出现悬停不随滚动的问题 */
 .top-author-wrapper :deep(.author-card) {
   width: 100%;
+  position: static;
+  top: auto;
 }
 
 .mobile-announcement,
