@@ -103,7 +103,7 @@ const routes: RouteRecordRaw[] = [
         path: 'todo',
         name: 'Todo',
         component: TodoList,
-        meta: { title: '任务清单', requiresAuth: true }
+        meta: { title: '任务清单' }
       }
     ]
   },
