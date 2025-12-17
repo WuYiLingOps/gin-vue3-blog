@@ -132,5 +132,22 @@ onMounted(() => {
     padding: 16px !important;
   }
 }
+
+@media (max-width: 768px) {
+  .tag-cloud-card {
+    min-width: 0; /* 防止内容被压缩 */
+    overflow: visible; /* 确保内容不被裁剪 */
+  }
+
+  .tag-cloud {
+    min-width: 0; /* 防止内容被压缩 */
+    overflow: visible; /* 确保内容不被裁剪 */
+  }
+
+  .tags-wrap {
+    min-width: 0; /* 防止内容被压缩 */
+    overflow: visible; /* 确保内容不被裁剪 */
+  }
+}
 </style>
 
