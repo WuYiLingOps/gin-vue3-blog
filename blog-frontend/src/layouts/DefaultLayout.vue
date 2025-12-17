@@ -308,7 +308,7 @@ const passwordRules: FormRules = {
 // 网站启动时间（可以在这里设置你的网站上线日期）
 const siteStartDate = new Date('2025-10-25 00:00:00')
 
-// 菜单选项（根据登录状态动态生成）
+// 菜单选项（部分菜单根据登录状态动态生成）
 const menuOptions = computed(() => {
   const base = [
     {
@@ -350,17 +350,14 @@ const menuOptions = computed(() => {
       key: 'Chat',
       path: '/chat',
       icon: () => h(NIcon, null, { default: () => h(ChatboxEllipsesOutline) })
-    }
-  ] as any[]
-
-  if (authStore.isLoggedIn) {
-    base.push({
+    },
+    {
       label: '任务清单',
       key: 'Todo',
       path: '/todo',
       icon: () => h(NIcon, null, { default: () => h(ClipboardOutline) })
-    })
-  }
+    }
+  ] as any[]
 
   return base
 })
