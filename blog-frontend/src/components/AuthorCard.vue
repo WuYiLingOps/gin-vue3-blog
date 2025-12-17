@@ -467,6 +467,13 @@ html.dark .social-icon.disabled {
   .author-card {
     position: static;
     margin-bottom: 24px;
+    min-width: 0; /* 防止内容被压缩 */
+    overflow: visible; /* 确保内容不被裁剪 */
+  }
+
+  .author-content {
+    min-width: 0; /* 防止内容被压缩 */
+    overflow: visible; /* 确保内容不被裁剪 */
   }
 }
 </style>
