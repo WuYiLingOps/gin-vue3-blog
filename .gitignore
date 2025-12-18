@@ -68,14 +68,8 @@ package-lock.json
 yarn.lock
 
 # Environment variables
-.env
-.env.development
-.env.production
-.env.local
-.env.*.local
-.env.development.local
-.env.test.local
-.env.production.local
+# 通用：忽略所有 .env* 文件（包括 .env.config.dev / .env.config.prod 等）
+.env*
 
 # Testing
 coverage/
