@@ -373,12 +373,53 @@ proxy: {
 
 ### 存储类型
 
-支持两种存储方式：
+当前支持三种存储方式：
 
-1. **本地存储**：文件保存在服务器本地 `uploads` 目录
-2. **OSS 存储**：文件上传到阿里云 OSS（需要在配置文件中配置 OSS 参数）
+1. **本地存储（local）**：文件保存在服务器本地 `uploads` 目录
+2. **阿里云 OSS 存储（oss）**：文件上传到阿里云对象存储
+3. **腾讯云 COS 存储（cos）**：文件上传到腾讯云对象存储
 
-可在管理后台的"网站设置"中切换存储类型。
+可以在管理后台的「网站设置 → 上传存储配置」中切换存储类型。
+
+#### 阿里云 OSS 配置示例
+
+在 `config/config-dev.yml` 或 `config/config-prod.yml` 中配置 `oss` 节点（示例）：
+
+```yaml
+oss:
+  endpoint: "oss-cn-hangzhou.aliyuncs.com"
+  access_key_id: "your-ak"
+  access_key_secret: "your-sk"
+  bucket_name: "your-bucket"
+  # 可选，自定义访问域名（如接入 CDN）
+  # domain: "https://static.example.com"
+```
+
+#### 腾讯云 COS 配置示例
+
+在 `config/config-dev.yml` 或 `config/config-prod.yml` 中配置 `cos` 节点（示例）：
+
+```yaml
+cos:
+  # Bucket 访问地址，格式必须是完整 URL：
+  # https://<bucket-name>.cos.<region>.myqcloud.com
+  # 示例：你的 COS Bucket 叫 xx-blog-images-xxxx，地域是 ap-guangzhou
+  bucket_url: "https://xx-blog-images-xxxx.cos.ap-guangzhou.myqcloud.com"
+
+  # 腾讯云访问密钥（建议只在本地真实 config-dev.yml / config-prod.yml 中填写，不要提交到仓库）
+  secret_id: "你的 SecretId"
+  secret_key: "你的 SecretKey"
+
+  # 可选：自定义访问域名（例如绑定了 CDN 或自定义域名）
+  # 如果配置了 domain，返回的文件 URL 会优先使用这个域名
+  # 没有自定义域名时可以先留空或注释掉
+  # domain: "https://static.example.com"
+```
+
+> 说明：
+> - 存储类型的开关（local / oss / cos）保存在数据库的系统设置中，通过管理后台页面修改；
+> - OSS / COS 的连接参数通过 `config-dev.yml` / `config-prod.yml` 加载；
+> - 如需在不同环境中安全管理敏感信息（如密钥、密码），可在后端项目根目录（`blog-backend/`）创建对应的 `.env.config.<env>` 文件（如 `.env.config.dev` / `.env.config.prod`），覆盖配置文件中的默认值。
 
 ---
 
