@@ -34,7 +34,8 @@ type CreatePostRequest struct {
 	Cover      string `json:"cover"`
 	CategoryID uint   `json:"category_id" binding:"required"`
 	TagIDs     []uint `json:"tag_ids"`
-	Status     int    `json:"status"` // 0:草稿 1:发布
+	Status     int    `json:"status"`     // 0:草稿 1:发布
+	Visibility *int   `json:"visibility"` // 1:公开 0:私密（nil 表示使用默认值 1）
 	IsTop      bool   `json:"is_top"`
 }
 
@@ -47,6 +48,7 @@ type UpdatePostRequest struct {
 	CategoryID uint   `json:"category_id"`
 	TagIDs     []uint `json:"tag_ids"`
 	Status     int    `json:"status"`
+	Visibility *int   `json:"visibility"` // 1:公开 0:私密（nil 表示不修改）
 	IsTop      bool   `json:"is_top"`
 }
 
@@ -57,6 +59,15 @@ func (s *PostService) Create(userID uint, req *CreatePostRequest) (*model.Post, 
 		return nil, errors.New("分类不存在")
 	}
 
+	// 处理可见性：默认公开（1），仅允许 0 或 1
+	visibility := 1
+	if req.Visibility != nil {
+		if *req.Visibility != 0 && *req.Visibility != 1 {
+			return nil, errors.New("可见性参数错误")
+		}
+		visibility = *req.Visibility
+	}
+
 	post := &model.Post{
 		Title:      req.Title,
 		Content:    req.Content,
@@ -64,6 +75,7 @@ func (s *PostService) Create(userID uint, req *CreatePostRequest) (*model.Post, 
 		Cover:      req.Cover,
 		CategoryID: req.CategoryID,
 		Status:     req.Status,
+		Visibility: visibility,
 		IsTop:      req.IsTop,
 		UserID:     userID,
 	}
@@ -189,6 +201,14 @@ func (s *PostService) Update(id, userID uint, role string, req *UpdatePostReques
 	}
 	post.Status = req.Status
 	post.IsTop = req.IsTop
+
+	// 更新可见性（仅当传入时才修改）
+	if req.Visibility != nil {
+		if *req.Visibility != 0 && *req.Visibility != 1 {
+			return nil, errors.New("可见性参数错误")
+		}
+		post.Visibility = *req.Visibility
+	}
 
 	// 如果从草稿变为发布，设置发布时间
 	if oldStatus == 0 && req.Status == 1 {
@@ -342,7 +362,7 @@ func (s *PostService) Delete(id, userID uint, role string) error {
 }
 
 // List 获取文章列表
-func (s *PostService) List(page, pageSize int, categoryID uint, keyword string, status int) ([]model.Post, int64, error) {
+func (s *PostService) List(page, pageSize int, categoryID uint, keyword string, status int, visibility *int) ([]model.Post, int64, error) {
 	if page < 1 {
 		page = 1
 	}
@@ -350,7 +370,7 @@ func (s *PostService) List(page, pageSize int, categoryID uint, keyword string, 
 		pageSize = 10
 	}
 
-	return s.postRepo.List(page, pageSize, categoryID, keyword, status)
+	return s.postRepo.List(page, pageSize, categoryID, keyword, status, visibility)
 }
 
 // GetByTag 根据标签获取文章
