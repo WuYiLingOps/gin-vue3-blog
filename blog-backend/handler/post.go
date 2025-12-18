@@ -127,7 +127,14 @@ func (h *PostHandler) List(c *gin.Context) {
 	keyword := c.Query("keyword")
 	status, _ := strconv.Atoi(c.DefaultQuery("status", "1"))
 
-	posts, total, err := h.service.List(page, pageSize, uint(categoryID), keyword, status)
+	// 默认只返回公开文章；管理员则可以查看所有可见性
+	var visibility *int
+	if role, exists := c.Get("role"); !exists || role != "admin" {
+		v := 1
+		visibility = &v
+	}
+
+	posts, total, err := h.service.List(page, pageSize, uint(categoryID), keyword, status, visibility)
 	if err != nil {
 		util.ServerError(c, "获取文章列表失败")
 		return
