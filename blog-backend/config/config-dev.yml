@@ -7,14 +7,14 @@ db:
   host: localhost
   port: 5432
   user: postgres
-  password: 123456ok!
+  password: xxxxxxxxx
   dbname: blogdb
   sslmode: disable
 
 redis:
   host: localhost
   port: 6379
-  password: "123456"
+  password: "xxxxxxxxx"
   db: 0
 
 jwt:
@@ -25,8 +25,8 @@ jwt:
 email:
   host: smtp.qq.com
   port: 587
-  username: 2794998160@qq.com  # 请替换为你的QQ邮箱
-  password: boczpilgktkwdedj     # 请替换为你的QQ邮箱授权码
+  username: xxxxxxxxx@qq.com  # 请替换为你的QQ邮箱
+  password: xxxxxxxxx     # 请替换为你的QQ邮箱授权码
   from_name: 無以菱
 
 log:
@@ -38,6 +38,16 @@ oss:
   access_key_id: "xxxxxxx"
   access_key_secret: "xxxxxxx"
   bucket_name: "xxxxxxx"
+  # domain: "https://static.example.com" # 可选，自定义访问域名
+
+# 腾讯云 COS 配置（可选，如果不使用可以留空）
+cos:
+  # Bucket 访问地址，格式必须是完整 URL：
+  bucket_url: "https://xxxxxxx.cos.ap-guangzhou.myqcloud.com"
+  secret_id: "xxxxxxx"
+  secret_key: "xxxxxxx"
+  # domain: "https://static.example.com" # 可选，自定义访问域名
+
 
 # 安全配置
 security:
