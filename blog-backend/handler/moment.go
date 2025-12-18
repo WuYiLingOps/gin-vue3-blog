@@ -5,6 +5,7 @@ import (
 	"blog-backend/service"
 	"blog-backend/util"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -21,15 +22,50 @@ func NewMomentHandler() *MomentHandler {
 
 // Create 创建说说
 func (h *MomentHandler) Create(c *gin.Context) {
-	var req struct {
-		Content string `json:"content" binding:"required"`
-		Images  string `json:"images"`
-		Status  int    `json:"status" binding:"required,oneof=0 1"` // 1:公开 0:私密，必填
-	}
-
-	if err := c.ShouldBindJSON(&req); err != nil {
+	// 使用通用 map 接收原始 JSON，避免整型零值与默认值干扰
+	var body map[string]interface{}
+	if err := c.ShouldBindJSON(&body); err != nil {
 		util.BadRequest(c, "参数错误")
 		return
+	}
+
+	// 内容校验
+	contentVal, ok := body["content"].(string)
+	if !ok || strings.TrimSpace(contentVal) == "" {
+		util.BadRequest(c, "说说内容不能为空")
+		return
+	}
+
+	// 图片（可选）
+	imagesVal, _ := body["images"].(string)
+
+	// 状态处理：仅允许 0 或 1，未传则默认公开(1)
+	status := 1
+	if raw, exists := body["status"]; exists {
+		switch v := raw.(type) {
+		case float64:
+			// JSON 数字（如 0 或 1）
+			if v != 0 && v != 1 {
+				util.BadRequest(c, "状态参数错误")
+				return
+			}
+			status = int(v)
+		case string:
+			// JSON 字符串（"0" 或 "1"）
+			if v != "0" && v != "1" {
+				util.BadRequest(c, "状态参数错误")
+				return
+			}
+			if v == "0" {
+				status = 0
+			} else {
+				status = 1
+			}
+		default:
+			// 其他类型一律视为参数错误
+			util.BadRequest(c, "状态参数错误")
+			return
+		}
 	}
 
 	// 获取当前用户ID
@@ -40,10 +76,10 @@ func (h *MomentHandler) Create(c *gin.Context) {
 	}
 
 	moment := &model.Moment{
-		Content: req.Content,
-		Images:  req.Images,
+		Content: contentVal,
+		Images:  imagesVal,
 		UserID:  userID.(uint),
-		Status:  req.Status,
+		Status:  status,
 	}
 
 	if err := h.service.Create(moment); err != nil {
