@@ -113,7 +113,7 @@ type Moment struct {
 	Content   string    `json:"content" gorm:"not null;type:text"`
 	Images    string    `json:"images" gorm:"type:text"` // JSON数组格式存储图片URLs
 	UserID    uint      `json:"user_id" gorm:"index"`
-	Status    int       `json:"status" gorm:"default:1;index"` // 1:公开 0:私密 -1:删除
+	Status    int       `json:"status" gorm:"index"` // 1:公开 0:私密 -1:删除（默认值在业务层处理）
 	LikeCount int       `json:"like_count" gorm:"default:0"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
