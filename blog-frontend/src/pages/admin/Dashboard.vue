@@ -43,9 +43,18 @@
     </n-grid>
 
     <!-- 图表区域 -->
-    <n-card title="文章分类统计" style="margin-top: 24px">
-      <div ref="categoryChartRef" :style="chartStyle"></div>
-    </n-card>
+    <n-grid :cols="isMobile ? 1 : 2" :x-gap="16" :y-gap="16" style="margin-top: 24px">
+      <n-gi>
+        <n-card title="文章分类统计">
+          <div ref="categoryChartRef" :style="chartStyle"></div>
+        </n-card>
+      </n-gi>
+      <n-gi>
+        <n-card title="最近7天访问量">
+          <div ref="visitChartRef" :style="chartStyle"></div>
+        </n-card>
+      </n-gi>
+    </n-grid>
 
     <!-- 快捷操作 -->
     <n-card title="快捷操作" style="margin-top: 24px">
@@ -99,8 +108,8 @@ import {
   PricetagsOutline
 } from '@vicons/ionicons5'
 import { useAppStore } from '@/stores'
-import { getDashboardStats, getCategoryStats } from '@/api'
-import type { DashboardStats, CategoryStat } from '@/api'
+import { getDashboardStats, getCategoryStats, getVisitStats } from '@/api'
+import type { DashboardStats, CategoryStat, VisitStat } from '@/api'
 
 const router = useRouter()
 const appStore = useAppStore()
@@ -114,9 +123,12 @@ const stats = ref<DashboardStats>({
 })
 
 const categoryStats = ref<CategoryStat[]>([])
+const visitStats = ref<VisitStat[]>([])
 
 const categoryChartRef = ref<HTMLElement>()
+const visitChartRef = ref<HTMLElement>()
 let categoryChart: ECharts | null = null
+let visitChart: ECharts | null = null
 
 const loading = ref(false)
 const isMobile = ref(false)
@@ -173,6 +185,24 @@ async function fetchCategoryStats() {
   }
 }
 
+// 获取最近访问统计数据（最近 7 天）
+async function fetchVisitStats() {
+  try {
+    const res = await getVisitStats(7)
+    if (res.data) {
+      visitStats.value = res.data
+      if (res.data.length > 0) {
+        nextTick(() => {
+          initVisitChart()
+        })
+      }
+    }
+  } catch (error) {
+    message.error('获取访问统计失败')
+    console.error(error)
+  }
+}
+
 onMounted(async () => {
   // 检测移动设备
   checkMobile()
@@ -180,6 +210,7 @@ onMounted(async () => {
   // 获取统计数据
   await fetchStats()
   await fetchCategoryStats()
+  await fetchVisitStats()
 
   // 监听窗口大小变化
   window.addEventListener('resize', handleResize)
@@ -188,11 +219,13 @@ onMounted(async () => {
 onUnmounted(() => {
   window.removeEventListener('resize', handleResize)
   categoryChart?.dispose()
+  visitChart?.dispose()
 })
 
 function handleResize() {
   checkMobile()
   categoryChart?.resize()
+  visitChart?.resize()
 }
 
 // 初始化分类统计饼图
@@ -259,6 +292,98 @@ function initCategoryChart() {
   }
 
   categoryChart.setOption(option)
+}
+
+// 初始化最近访问量折线图
+function initVisitChart() {
+  if (!visitChartRef.value) return
+
+  if (!visitChart) {
+    visitChart = echarts.init(visitChartRef.value)
+  }
+
+  const dates = visitStats.value.map((item) => item.date.slice(5)) // 显示 MM-DD
+  const counts = visitStats.value.map((item) => item.count)
+
+  const isDark = appStore.theme === 'dark'
+
+  const option = {
+    tooltip: {
+      trigger: 'axis'
+    },
+    grid: {
+      left: 40,
+      right: 24,
+      top: 24,
+      bottom: 32
+    },
+    xAxis: {
+      type: 'category',
+      data: dates,
+      boundaryGap: false,
+      axisLine: {
+        lineStyle: {
+          color: isDark ? '#64748b' : '#cbd5e1'
+        }
+      },
+      axisTick: {
+        show: false
+      },
+      axisLabel: {
+        color: isDark ? '#e5e7eb' : '#64748b'
+      }
+    },
+    yAxis: {
+      type: 'value',
+      minInterval: 1,
+      axisLine: {
+        show: false
+      },
+      axisTick: {
+        show: false
+      },
+      splitLine: {
+        lineStyle: {
+          color: isDark ? '#1e293b' : '#e5e7eb'
+        }
+      },
+      axisLabel: {
+        color: isDark ? '#e5e7eb' : '#64748b'
+      }
+    },
+    series: [
+      {
+        name: '访问量',
+        type: 'line',
+        data: counts,
+        smooth: true,
+        symbol: 'circle',
+        symbolSize: 6,
+        lineStyle: {
+          width: 3,
+          color: '#0ea5e9'
+        },
+        itemStyle: {
+          color: '#0ea5e9'
+        },
+        areaStyle: {
+          color: {
+            type: 'linear',
+            x: 0,
+            y: 0,
+            x2: 0,
+            y2: 1,
+            colorStops: [
+              { offset: 0, color: 'rgba(14,165,233,0.35)' },
+              { offset: 1, color: 'rgba(14,165,233,0.02)' }
+            ]
+          }
+        }
+      }
+    ]
+  }
+
+  visitChart.setOption(option)
 }
 </script>
 
