@@ -3,6 +3,7 @@ package repository
 import (
 	"blog-backend/db"
 	"blog-backend/model"
+
 	"gorm.io/gorm"
 )
 
@@ -19,13 +20,13 @@ func (r *PostRepository) Create(post *model.Post) error {
 	if err != nil {
 		return err
 	}
-	
+
 	// 更新全文搜索向量
 	db.DB.Exec(
 		"UPDATE posts SET search_tsv = setweight(to_tsvector('english', coalesce(title, '')), 'A') || setweight(to_tsvector('english', coalesce(content, '')), 'B') WHERE id = ?",
 		post.ID,
 	)
-	
+
 	return nil
 }
 
@@ -42,13 +43,13 @@ func (r *PostRepository) Update(post *model.Post) error {
 	if err != nil {
 		return err
 	}
-	
+
 	// 更新全文搜索向量
 	db.DB.Exec(
 		"UPDATE posts SET search_tsv = setweight(to_tsvector('english', coalesce(title, '')), 'A') || setweight(to_tsvector('english', coalesce(content, '')), 'B') WHERE id = ?",
 		post.ID,
 	)
-	
+
 	return nil
 }
 
@@ -58,7 +59,7 @@ func (r *PostRepository) Delete(id uint) error {
 }
 
 // List 获取文章列表
-func (r *PostRepository) List(page, pageSize int, categoryID uint, keyword string, status int) ([]model.Post, int64, error) {
+func (r *PostRepository) List(page, pageSize int, categoryID uint, keyword string, status int, visibility *int) ([]model.Post, int64, error) {
 	var posts []model.Post
 	var total int64
 
@@ -68,6 +69,9 @@ func (r *PostRepository) List(page, pageSize int, categoryID uint, keyword strin
 	// 筛选条件
 	if status >= 0 {
 		query = query.Where("status = ?", status)
+	}
+	if visibility != nil {
+		query = query.Where("visibility = ?", *visibility)
 	}
 	if categoryID > 0 {
 		query = query.Where("category_id = ?", categoryID)
@@ -139,13 +143,13 @@ func (r *PostRepository) CreateLike(like *model.PostLike) error {
 // DeleteLike 删除点赞记录
 func (r *PostRepository) DeleteLike(postID uint, userID *uint, ip string) error {
 	query := db.DB.Where("post_id = ?", postID)
-	
+
 	if userID != nil && *userID > 0 {
 		query = query.Where("user_id = ?", *userID)
 	} else {
 		query = query.Where("ip = ? AND user_id IS NULL", ip)
 	}
-	
+
 	return query.Delete(&model.PostLike{}).Error
 }
 
@@ -153,13 +157,13 @@ func (r *PostRepository) DeleteLike(postID uint, userID *uint, ip string) error 
 func (r *PostRepository) CheckLiked(postID uint, userID *uint, ip string) (bool, error) {
 	var count int64
 	query := db.DB.Model(&model.PostLike{}).Where("post_id = ?", postID)
-	
+
 	if userID != nil && *userID > 0 {
 		query = query.Where("user_id = ?", *userID)
 	} else {
 		query = query.Where("ip = ? AND user_id IS NULL", ip)
 	}
-	
+
 	err := query.Count(&count).Error
 	return count > 0, err
 }
@@ -227,13 +231,13 @@ func (r *PostRepository) CreateTx(tx *gorm.DB, post *model.Post) error {
 	if err != nil {
 		return err
 	}
-	
+
 	// 更新全文搜索向量
 	tx.Exec(
 		"UPDATE posts SET search_tsv = setweight(to_tsvector('english', coalesce(title, '')), 'A') || setweight(to_tsvector('english', coalesce(content, '')), 'B') WHERE id = ?",
 		post.ID,
 	)
-	
+
 	return nil
 }
 
@@ -243,13 +247,13 @@ func (r *PostRepository) UpdateTx(tx *gorm.DB, post *model.Post) error {
 	if err != nil {
 		return err
 	}
-	
+
 	// 更新全文搜索向量
 	tx.Exec(
 		"UPDATE posts SET search_tsv = setweight(to_tsvector('english', coalesce(title, '')), 'A') || setweight(to_tsvector('english', coalesce(content, '')), 'B') WHERE id = ?",
 		post.ID,
 	)
-	
+
 	return nil
 }
 
@@ -276,13 +280,13 @@ func (r *PostRepository) CreateLikeTx(tx *gorm.DB, like *model.PostLike) error {
 // DeleteLikeTx 在事务中删除点赞记录
 func (r *PostRepository) DeleteLikeTx(tx *gorm.DB, postID uint, userID *uint, ip string) error {
 	query := tx.Where("post_id = ?", postID)
-	
+
 	if userID != nil && *userID > 0 {
 		query = query.Where("user_id = ?", *userID)
 	} else {
 		query = query.Where("ip = ? AND user_id IS NULL", ip)
 	}
-	
+
 	return query.Delete(&model.PostLike{}).Error
 }
 
@@ -295,4 +299,3 @@ func (r *PostRepository) IncrementLikeCountTx(tx *gorm.DB, id uint) error {
 func (r *PostRepository) DecrementLikeCountTx(tx *gorm.DB, id uint) error {
 	return tx.Model(&model.Post{}).Where("id = ?", id).UpdateColumn("like_count", gorm.Expr("CASE WHEN like_count > 0 THEN like_count - 1 ELSE 0 END")).Error
 }
-
