@@ -196,9 +196,24 @@ cd blog-backend
 # 1. 安装依赖
 go mod download
 
-# 2. 配置数据库连接和邮箱服务
-# 编辑 config/config-dev.yml
+# 2. 配置数据库连接和邮箱服务（推荐：YAML + .env.config.dev 组合）
+# （1）先编辑 config/config-dev.yml，填入非敏感的默认配置（如主机、端口等）
+#     可参考 blog-backend/config/env.config.example 中的示例字段说明
 vim config/config-dev.yml
+
+# （2）在后端项目根目录（blog-backend）创建 .env.config.dev，仅填写真正的账号/密码等敏感信息，例如：
+# DB_HOST=127.0.0.1
+# DB_PORT=5432
+# DB_USER=postgres
+# DB_PASSWORD=安全的数据库密码
+# DB_NAME=blogdb
+# REDIS_HOST=127.0.0.1
+# REDIS_PORT=6379
+# REDIS_PASSWORD=安全的redis密码
+# JWT_SECRET=更复杂的JWT密钥
+# EMAIL_PASSWORD=邮箱授权码
+#
+# 注意：.env.config.dev / .env.config.prod 建议加入 .gitignore，不要提交到仓库
 
 # 配置邮箱服务（用于密码重置）
 # email:
@@ -299,20 +314,54 @@ $env:GOOS="linux"; $env:GOARCH="amd64"; go build -o blog-backend ./cmd/server
 GOOS=linux GOARCH=amd64 go build -o blog-backend ./cmd/server
 ```
 
-#### 2. 配置环境变量（可选）
+#### 2. 配置环境变量（推荐）
 
-创建 `docker-compose.yml` 同级的 `.env` 文件：
+> 生产环境同样推荐使用「YAML + .env.config.prod」方案，将敏感信息放到环境变量文件中，而不是写死在 `config-prod.yml` 里。
 
-```env
-# PostgreSQL 配置
-POSTGRES_PASSWORD=your_postgres_password
-POSTGRES_DB=blogdb
+- **后端应用内部配置覆盖**  
+  在后端可执行文件的工作目录下创建 `.env.config.prod`，用于覆盖 `config/config-prod.yml` 中的敏感字段；可参考 `blog-backend/config/env.config.example` 中的字段说明，例如：
 
-# Redis 配置
-REDIS_PASSWORD=your_redis_password
-```
+  ```env
+  # 数据库
+  DB_HOST=postgres
+  DB_PORT=5432
+  DB_USER=postgres
+  DB_PASSWORD=your_postgres_password
+  DB_NAME=blogdb
 
-或直接修改 `docker-compose.yml` 中的环境变量。
+  # Redis
+  REDIS_HOST=redis
+  REDIS_PORT=6379
+  REDIS_PASSWORD=your_redis_password
+
+  # JWT
+  JWT_SECRET=your_jwt_secret
+
+  # 阿里云 OSS（如使用）
+  OSS_ENDPOINT=oss-cn-hangzhou.aliyuncs.com
+  OSS_ACCESS_KEY_ID=your-ak
+  OSS_ACCESS_KEY_SECRET=your-sk
+  OSS_BUCKET_NAME=your-bucket
+
+  # 腾讯云 COS（如使用）
+  COS_BUCKET_URL=https://your-bucket.cos.ap-guangzhou.myqcloud.com
+  COS_SECRET_ID=your-cos-secret-id
+  COS_SECRET_KEY=your-cos-secret-key
+  ```
+
+- **数据库 / Redis 容器自身变量**  
+  你仍然可以在 `docker-compose.yml` 同级的 `.env` 文件中，为 PostgreSQL / Redis 设置自身的密码等变量，例如：
+
+  ```env
+  # PostgreSQL 容器内部初始化密码
+  POSTGRES_PASSWORD=your_postgres_password
+  POSTGRES_DB=blogdb
+
+  # Redis 容器内部初始化密码
+  REDIS_PASSWORD=your_redis_password
+  ```
+
+  或者直接在 `docker-compose.yml` 文件中内联这些环境变量。
 
 #### 3. 启动所有服务
 
