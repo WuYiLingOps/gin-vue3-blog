@@ -94,6 +94,13 @@
           </n-radio-group>
         </n-form-item>
 
+        <n-form-item label="可见性">
+          <n-radio-group v-model:value="formData.visibility">
+            <n-radio :value="1">公开</n-radio>
+            <n-radio :value="0">私密（仅管理员可见）</n-radio>
+          </n-radio-group>
+        </n-form-item>
+
         <n-form-item label="置顶">
           <n-switch v-model:value="formData.is_top" />
         </n-form-item>
@@ -153,12 +160,18 @@ const formData = reactive<PostForm>({
   category_id: null,
   tag_ids: [],
   status: 1,
+  visibility: 1,
   is_top: false
 })
 
 const statusOptions = [
   { label: '草稿', value: 0 },
   { label: '已发布', value: 1 }
+]
+
+const visibilityOptions = [
+  { label: '公开', value: 1 },
+  { label: '私密', value: 0 }
 ]
 
 const categoryOptions = computed(() =>
@@ -196,7 +209,22 @@ const columns: DataTableColumns<Post> = [
     key: 'status',
     width: 80,
     render: row =>
-      h(NTag, { type: row.status === 1 ? 'success' : 'default', size: 'small' }, { default: () => (row.status === 1 ? '已发布' : '草稿') })
+      h(
+        NTag,
+        { type: row.status === 1 ? 'success' : 'default', size: 'small' },
+        { default: () => (row.status === 1 ? '已发布' : '草稿') }
+      )
+  },
+  {
+    title: '可见性',
+    key: 'visibility',
+    width: 80,
+    render: row =>
+      h(
+        NTag,
+        { type: row.visibility === 1 ? 'success' : 'warning', size: 'small' },
+        { default: () => (row.visibility === 1 ? '公开' : '私密') }
+      )
   },
   {
     title: '浏览',
