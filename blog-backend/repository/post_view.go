@@ -4,6 +4,7 @@ import (
 	"blog-backend/db"
 	"blog-backend/model"
 	"errors"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -66,3 +67,22 @@ func (r *PostViewRepository) IncrementViewCount(postID uint) error {
 		Error
 }
 
+// VisitStat 按天统计访问量结果
+type VisitStat struct {
+	Date  time.Time
+	Count int64
+}
+
+// GetVisitStats 获取指定时间范围内按天聚合的访问量统计
+func (r *PostViewRepository) GetVisitStats(start, end time.Time) ([]VisitStat, error) {
+	var results []VisitStat
+
+	err := db.DB.Model(&model.PostView{}).
+		Select("DATE(created_at) AS date, COUNT(*) AS count").
+		Where("created_at >= ? AND created_at < ?", start, end).
+		Group("DATE(created_at)").
+		Order("DATE(created_at)").
+		Scan(&results).Error
+
+	return results, err
+}
