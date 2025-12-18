@@ -77,8 +77,8 @@ func (h *SettingHandler) UpdateUploadSettings(c *gin.Context) {
 
 	// 只允许修改 storage_type
 	storageType := req["storage_type"]
-	if storageType != "local" && storageType != "oss" {
-		util.BadRequest(c, "存储类型只能是 local 或 oss")
+	if storageType != "local" && storageType != "oss" && storageType != "cos" {
+		util.BadRequest(c, "存储类型只能是 local、oss 或 cos")
 		return
 	}
 
@@ -95,6 +95,18 @@ func (h *SettingHandler) UpdateUploadSettings(c *gin.Context) {
 		}
 	}
 
+	// 如果选择 COS 存储，检查配置文件中的 COS 配置是否完整
+	if storageType == "cos" {
+		if err := util.ValidateCOSConfig(
+			config.Cfg.COS.BucketURL,
+			config.Cfg.COS.SecretID,
+			config.Cfg.COS.SecretKey,
+		); err != nil {
+			util.BadRequest(c, "COS 配置不完整，请先在配置文件中设置 COS 参数")
+			return
+		}
+	}
+
 	if err := h.service.UpdateUploadSettings(req); err != nil {
 		util.Error(c, 500, "更新配置失败")
 		return
@@ -102,4 +114,3 @@ func (h *SettingHandler) UpdateUploadSettings(c *gin.Context) {
 
 	util.SuccessWithMessage(c, "更新成功", nil)
 }
-
