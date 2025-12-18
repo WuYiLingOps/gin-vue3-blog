@@ -73,6 +73,13 @@
             </n-radio-group>
           </n-form-item>
 
+          <n-form-item label="可见性" path="visibility">
+            <n-radio-group v-model:value="formData.visibility">
+              <n-radio :value="1">公开</n-radio>
+              <n-radio :value="0">私密（仅管理员可见）</n-radio>
+            </n-radio-group>
+          </n-form-item>
+
           <n-form-item label="置顶" path="is_top">
             <n-switch v-model:value="formData.is_top" />
           </n-form-item>
@@ -125,6 +132,7 @@ const formData = reactive<PostForm>({
   category_id: null,
   tag_ids: [],
   status: 1,
+  visibility: 1,
   is_top: false
 })
 
@@ -192,6 +200,7 @@ async function loadPost() {
     formData.category_id = post.category_id
     formData.tag_ids = post.tags?.map((tag) => tag.id) || []
     formData.status = post.status
+    formData.visibility = post.visibility ?? 1
     formData.is_top = post.is_top
   } catch (error: any) {
     message.error(error.message || '加载文章失败')
