@@ -264,22 +264,23 @@ async function handleSubmit() {
     await formRef.value?.validate()
     submitting.value = true
 
-    const normalizedStatus = formData.status === undefined || formData.status === null
-      ? 1
-      : Number(formData.status)
+    // 确保 status 是有效的数字（0 或 1），默认值为 1（公开）
+    const status = (formData.status === 0 || formData.status === 1) 
+      ? formData.status 
+      : 1
 
     if (editingMoment.value) {
       await updateMoment(editingMoment.value.id, {
         content: formData.content,
         images: formData.images,
-        status: normalizedStatus
+        status: status
       })
       message.success('更新成功')
     } else {
       const payload: MomentForm = {
         content: formData.content,
         images: formData.images,
-        status: normalizedStatus
+        status: status
       }
       await createMoment(payload)
       message.success('发布成功')
@@ -328,10 +329,6 @@ function resetForm() {
   formData.status = 1
   editingMoment.value = null
 }
-
-onMounted(() => {
-  fetchMoments()
-})
 </script>
 
 <style scoped>
