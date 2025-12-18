@@ -74,7 +74,7 @@ func (s *SettingService) GetUploadSettings() (map[string]string, error) {
 		result[setting.Key] = setting.Value
 	}
 
-	// 设置默认值
+	// 设置默认值（兼容老数据）
 	if result["storage_type"] == "" {
 		result["storage_type"] = "local"
 	}
