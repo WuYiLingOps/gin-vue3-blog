@@ -26,7 +26,8 @@ type Post struct {
 	Content     string     `json:"content" gorm:"type:text"`
 	Summary     string     `json:"summary" gorm:"size:500"`
 	Cover       string     `json:"cover" gorm:"size:255"`
-	Status      int        `json:"status" gorm:"default:1;index"` // 1:发布 0:草稿 -1:删除
+	Status      int        `json:"status" gorm:"default:1;index"`     // 1:发布 0:草稿 -1:删除
+	Visibility  int        `json:"visibility" gorm:"default:1;index"` // 1:公开 0:私密
 	IsTop       bool       `json:"is_top" gorm:"default:false"`
 	ViewCount   int        `json:"view_count" gorm:"default:0"`
 	LikeCount   int        `json:"like_count" gorm:"default:0"`
