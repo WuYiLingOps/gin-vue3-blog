@@ -95,6 +95,7 @@ CREATE TABLE IF NOT EXISTS posts (
     summary VARCHAR(500),
     cover VARCHAR(255),
     status INT DEFAULT 1,
+    visibility INT DEFAULT 1,
     is_top BOOLEAN DEFAULT FALSE,
     view_count INT DEFAULT 0,
     like_count INT DEFAULT 0,
@@ -111,6 +112,7 @@ CREATE TABLE IF NOT EXISTS posts (
 -- 文章表索引
 CREATE INDEX IF NOT EXISTS idx_posts_title ON posts(title);
 CREATE INDEX IF NOT EXISTS idx_posts_status ON posts(status);
+CREATE INDEX IF NOT EXISTS idx_posts_visibility ON posts(visibility);
 CREATE INDEX IF NOT EXISTS idx_posts_category_id ON posts(category_id);
 CREATE INDEX IF NOT EXISTS idx_posts_user_id ON posts(user_id);
 CREATE INDEX IF NOT EXISTS idx_posts_created_at ON posts(created_at DESC);
@@ -125,6 +127,7 @@ COMMENT ON COLUMN posts.content IS '文章内容（Markdown格式）';
 COMMENT ON COLUMN posts.summary IS '文章摘要';
 COMMENT ON COLUMN posts.cover IS '封面图URL';
 COMMENT ON COLUMN posts.status IS '状态：1-已发布，0-草稿，-1-删除';
+COMMENT ON COLUMN posts.visibility IS '可见性：1-公开，0-私密';
 COMMENT ON COLUMN posts.is_top IS '是否置顶';
 COMMENT ON COLUMN posts.view_count IS '浏览量';
 COMMENT ON COLUMN posts.like_count IS '点赞数';
