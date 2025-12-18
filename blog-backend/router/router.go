@@ -267,6 +267,7 @@ func setupAdminRoutes(api *gin.RouterGroup, userHandler *handler.UserHandler, po
 		// 仪表盘
 		admin.GET("/dashboard/stats", dashboardHandler.GetStats)
 		admin.GET("/dashboard/category-stats", dashboardHandler.GetCategoryStats)
+		admin.GET("/dashboard/visit-stats", dashboardHandler.GetVisitStats)
 
 		// 用户管理
 		admin.GET("/users", userHandler.List)
