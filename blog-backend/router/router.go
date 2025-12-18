@@ -119,6 +119,8 @@ func setupBlogRoutes(api *gin.RouterGroup, h *handler.BlogHandler, a *handler.An
 // setupPostRoutes 文章路由
 func setupPostRoutes(api *gin.RouterGroup, h *handler.PostHandler) {
 	posts := api.Group("/posts")
+	// 前台获取文章相关接口允许携带可选认证信息，用于区分管理员和普通用户
+	posts.Use(middleware.OptionalAuthMiddleware())
 	{
 		// 公开接口
 		posts.GET("", h.List)
