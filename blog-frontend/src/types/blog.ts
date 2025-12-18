@@ -34,6 +34,7 @@ export interface Post {
   summary: string
   cover: string
   status: number
+  visibility: number
   is_top: boolean
   view_count: number
   like_count: number
@@ -77,6 +78,7 @@ export interface PostForm {
   category_id: number | null
   tag_ids: number[]
   status: number
+  visibility: number
   is_top: boolean
 }
 
@@ -110,5 +112,6 @@ export interface PostQuery {
   category_id?: number
   keyword?: string
   status?: number
+  visibility?: number
 }
 
