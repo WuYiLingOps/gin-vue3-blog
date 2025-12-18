@@ -175,12 +175,17 @@
             <n-space>
               <n-radio value="local">本地存储</n-radio>
               <n-radio value="oss">阿里云 OSS</n-radio>
+              <n-radio value="cos">腾讯云 COS</n-radio>
             </n-space>
           </n-radio-group>
         </n-form-item>
 
         <n-alert v-if="uploadFormData.storage_type === 'oss'" type="info" style="margin-bottom: 16px;">
-          OSS 配置需要在服务器配置文件中设置（config/config-dev.yml 或 config/config-prod.yml）
+          OSS 配置需要在服务器配置文件中设置（config/config-dev.yml 或 config/config-prod.yml 的 oss 节点）
+        </n-alert>
+
+        <n-alert v-if="uploadFormData.storage_type === 'cos'" type="info" style="margin-bottom: 16px;">
+          COS 配置需要在服务器配置文件中设置（config/config-dev.yml 或 config/config-prod.yml 的 cos 节点）
         </n-alert>
 
         <n-form-item>
@@ -213,8 +218,9 @@
         <p><strong>存储方式：</strong>选择文件上传的存储方式</p>
         <p><strong>本地存储：</strong>文件保存在服务器本地，适合小型网站或开发环境</p>
         <p><strong>阿里云 OSS：</strong>文件保存到阿里云对象存储，适合生产环境</p>
+        <p><strong>腾讯云 COS：</strong>文件保存到腾讯云对象存储，适合生产环境</p>
         <p style="color: #f90; font-size: 13px;">
-          ⚠️ 重要：使用 OSS 存储前，请先在服务器配置文件中填写 OSS 相关参数（endpoint、access_key_id、access_key_secret、bucket_name）
+          ⚠️ 重要：使用 OSS/COS 存储前，请先在服务器配置文件中填写对应的连接参数（oss 或 cos 节点）
         </p>
       </n-space>
     </n-card>
