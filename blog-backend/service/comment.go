@@ -171,6 +171,7 @@ func (s *CommentService) sendCommentNotifications(comment *model.Comment, commen
 							commentPreview,
 							postURL,
 						); err != nil {
+							// 记录错误，但不影响主流程（邮件发送是异步的）
 							fmt.Printf("发送评论通知邮件给管理员失败: %v\n", err)
 						}
 					}
