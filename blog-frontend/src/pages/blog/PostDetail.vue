@@ -81,11 +81,10 @@
               正在回复 <strong>@{{ (replyToUser || replyToComment).user.nickname }}</strong> 的评论
             </n-alert>
             
-            <n-input
-              v-model:value="commentContent"
-              type="textarea"
-              placeholder="写下你的评论..."
-              :rows="3"
+            <CommentMarkdownEditor
+              v-model="commentContent"
+              height="250px"
+              :max-length="5000"
             />
             <div style="margin-top: 12px; text-align: right">
               <n-button type="primary" :loading="submitting" @click="handleSubmitComment">
@@ -108,7 +107,7 @@
                     <strong>{{ comment.user.nickname }}</strong>
                     <span class="comment-time">{{ formatRelativeTime(comment.created_at) }}</span>
                   </div>
-                  <p>{{ comment.content }}</p>
+                  <CommentContent :content="comment.content" />
                   <div class="comment-actions">
                     <n-button text size="small" @click="handleReply(comment)">回复</n-button>
                     <n-button 
@@ -147,7 +146,7 @@
                               formatRelativeTime(reply.created_at)
                             }}</span>
                           </div>
-                          <p>{{ removeAtMention(reply.content) }}</p>
+                          <CommentContent :content="removeAtMention(reply.content)" />
                           <div class="comment-actions">
                             <n-button text size="small" @click="handleReply(comment, reply)">回复</n-button>
                             <n-popconfirm
@@ -228,6 +227,8 @@ import { formatDate, formatRelativeTime } from '@/utils/format'
 import { useAuthStore } from '@/stores'
 import type { Post, Comment } from '@/types/blog'
 import MarkdownPreview from '@/components/MarkdownPreview.vue'
+import CommentMarkdownEditor from '@/components/CommentMarkdownEditor.vue'
+import CommentContent from '@/components/CommentContent.vue'
 
 const router = useRouter()
 const route = useRoute()
