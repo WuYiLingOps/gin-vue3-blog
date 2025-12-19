@@ -5,6 +5,7 @@ import (
 
 	"blog-backend/service"
 	"blog-backend/util"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -120,6 +121,35 @@ func (h *CommentHandler) GetByPostID(c *gin.Context) {
 	util.Success(c, comments)
 }
 
+// GetByTypeAndTarget 根据评论类型和目标ID获取评论列表（用于友链等特殊页面）
+func (h *CommentHandler) GetByTypeAndTarget(c *gin.Context) {
+	commentType := c.Query("type")
+	targetIDStr := c.Query("target_id")
+
+	if commentType == "" {
+		util.BadRequest(c, "评论类型不能为空")
+		return
+	}
+
+	var targetID uint = 0
+	if targetIDStr != "" {
+		parsedID, err := strconv.ParseUint(targetIDStr, 10, 32)
+		if err != nil {
+			util.BadRequest(c, "无效的目标ID")
+			return
+		}
+		targetID = uint(parsedID)
+	}
+
+	comments, err := h.service.GetByTypeAndTarget(commentType, targetID)
+	if err != nil {
+		util.ServerError(c, "获取评论列表失败")
+		return
+	}
+
+	util.Success(c, comments)
+}
+
 // List 获取评论列表（管理后台）
 func (h *CommentHandler) List(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
@@ -157,4 +187,3 @@ func (h *CommentHandler) UpdateStatus(c *gin.Context) {
 
 	util.SuccessWithMessage(c, "状态更新成功", nil)
 }
-
