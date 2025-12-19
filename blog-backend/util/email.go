@@ -89,6 +89,67 @@ func SendRegisterVerificationEmail(config EmailConfig, to string, code string) e
 	return sendEmailText(config, to, subject, body)
 }
 
+// SendCommentNotificationEmail 发送评论通知邮件（给文章作者）
+func SendCommentNotificationEmail(config EmailConfig, to string, commenterName string, postTitle string, commentContent string, postURL string) error {
+	siteName := config.FromName
+	if siteName == "" {
+		siteName = "無以菱"
+	}
+	subject := fmt.Sprintf("【%s】您的文章收到新评论", siteName)
+
+	// 截取评论内容前100个字符作为预览
+	preview := commentContent
+	if len([]rune(commentContent)) > 100 {
+		preview = string([]rune(commentContent)[:100]) + "..."
+	}
+
+	body := fmt.Sprintf(`您好！
+
+您的文章《%s》收到了一条新评论：
+
+评论者：%s
+评论内容：%s
+
+查看完整评论：%s
+
+---
+此邮件由系统自动发送，请勿直接回复
+© 2025 %s`, postTitle, commenterName, preview, postURL, siteName)
+
+	return sendEmailText(config, to, subject, body)
+}
+
+// SendAdminCommentNotificationEmail 发送评论通知邮件（给管理员）
+func SendAdminCommentNotificationEmail(config EmailConfig, to string, commenterName string, postTitle string, commentContent string, postURL string) error {
+	siteName := config.FromName
+	if siteName == "" {
+		siteName = "無以菱"
+	}
+	subject := fmt.Sprintf("【%s】系统收到新评论", siteName)
+
+	// 截取评论内容前100个字符作为预览
+	preview := commentContent
+	if len([]rune(commentContent)) > 100 {
+		preview = string([]rune(commentContent)[:100]) + "..."
+	}
+
+	body := fmt.Sprintf(`管理员您好！
+
+系统收到了一条新评论：
+
+文章：%s
+评论者：%s
+评论内容：%s
+
+查看完整评论：%s
+
+---
+此邮件由系统自动发送，请勿直接回复
+© 2025 %s`, postTitle, commenterName, preview, postURL, siteName)
+
+	return sendEmailText(config, to, subject, body)
+}
+
 // sendEmailText 发送纯文本邮件
 func sendEmailText(config EmailConfig, to, subject, body string) error {
 	// SMTP认证
