@@ -162,6 +162,45 @@ func (s *SettingService) UpdateFriendLinkInfo(data map[string]string) error {
 	return s.repo.BatchUpsert(settings)
 }
 
+// GetNotificationSettings 获取通知配置
+func (s *SettingService) GetNotificationSettings() (map[string]string, error) {
+	settings, err := s.repo.GetByGroup("notification")
+	if err != nil {
+		return nil, err
+	}
+
+	result := make(map[string]string)
+	for _, setting := range settings {
+		result[setting.Key] = setting.Value
+	}
+
+	// 设置默认值
+	if result["notify_admin_on_comment"] == "" {
+		result["notify_admin_on_comment"] = "0"
+	}
+
+	return result, nil
+}
+
+// UpdateNotificationSettings 更新通知配置
+func (s *SettingService) UpdateNotificationSettings(data map[string]string) error {
+	var settings []model.Setting
+
+	// 只允许修改 notify_admin_on_comment
+	if notifyAdmin, ok := data["notify_admin_on_comment"]; ok {
+		settings = append(settings, model.Setting{
+			Group:     "notification",
+			Key:       "notify_admin_on_comment",
+			Value:     notifyAdmin,
+			Type:      "text",
+			Label:     "评论时通知管理员",
+			UpdatedAt: time.Now(),
+		})
+	}
+
+	return s.repo.BatchUpsert(settings)
+}
+
 // getFriendLinkInfoLabel 获取字段标签
 func getFriendLinkInfoLabel(key string) string {
 	labels := map[string]string{
