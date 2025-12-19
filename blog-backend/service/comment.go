@@ -5,6 +5,7 @@ import (
 
 	"blog-backend/model"
 	"blog-backend/repository"
+
 	"gorm.io/gorm"
 )
 
@@ -22,9 +23,11 @@ func NewCommentService() *CommentService {
 
 // CreateCommentRequest 创建评论请求
 type CreateCommentRequest struct {
-	Content  string `json:"content" binding:"required"`
-	PostID   uint   `json:"post_id" binding:"required"`
-	ParentID *uint  `json:"parent_id"`
+	Content     string `json:"content" binding:"required"`
+	CommentType string `json:"comment_type"` // 评论类型：post-文章评论，friendlink-友链评论
+	PostID      *uint  `json:"post_id"`      // 文章ID（文章评论时使用）
+	TargetID    *uint  `json:"target_id"`    // 目标ID（友链评论时使用，可以为0或友链ID）
+	ParentID    *uint  `json:"parent_id"`    // 父评论ID（用于回复）
 }
 
 // UpdateCommentRequest 更新评论请求
@@ -34,9 +37,29 @@ type UpdateCommentRequest struct {
 
 // Create 创建评论
 func (s *CommentService) Create(userID uint, req *CreateCommentRequest) (*model.Comment, error) {
-	// 检查文章是否存在
-	if _, err := s.postRepo.GetByID(req.PostID); err != nil {
-		return nil, errors.New("文章不存在")
+	// 确定评论类型（默认为post，向后兼容）
+	commentType := req.CommentType
+	if commentType == "" {
+		commentType = "post"
+	}
+
+	// 根据评论类型进行验证
+	if commentType == "post" {
+		// 文章评论：必须提供post_id，且文章必须存在
+		if req.PostID == nil || *req.PostID == 0 {
+			return nil, errors.New("文章ID不能为空")
+		}
+		if _, err := s.postRepo.GetByID(*req.PostID); err != nil {
+			return nil, errors.New("文章不存在")
+		}
+	} else if commentType == "friendlink" {
+		// 友链评论：不需要post_id，使用target_id（可以为0表示友链页面）
+		if req.TargetID == nil {
+			targetID := uint(0)
+			req.TargetID = &targetID
+		}
+	} else {
+		return nil, errors.New("不支持的评论类型")
 	}
 
 	// 如果是回复评论，检查父评论是否存在
@@ -47,11 +70,13 @@ func (s *CommentService) Create(userID uint, req *CreateCommentRequest) (*model.
 	}
 
 	comment := &model.Comment{
-		Content:  req.Content,
-		PostID:   req.PostID,
-		UserID:   userID,
-		ParentID: req.ParentID,
-		Status:   1,
+		Content:     req.Content,
+		CommentType: commentType,
+		PostID:      req.PostID,
+		TargetID:    req.TargetID,
+		UserID:      userID,
+		ParentID:    req.ParentID,
+		Status:      1,
 	}
 
 	if err := s.repo.Create(comment); err != nil {
@@ -111,9 +136,14 @@ func (s *CommentService) Delete(id, userID uint, role string) error {
 	return s.repo.Delete(id)
 }
 
-// GetByPostID 获取文章的评论列表
+// GetByPostID 获取文章的评论列表（向后兼容）
 func (s *CommentService) GetByPostID(postID uint) ([]model.Comment, error) {
 	return s.repo.GetByPostID(postID)
+}
+
+// GetByTypeAndTarget 根据评论类型和目标ID获取评论列表
+func (s *CommentService) GetByTypeAndTarget(commentType string, targetID uint) ([]model.Comment, error) {
+	return s.repo.GetByTypeAndTarget(commentType, targetID)
 }
 
 // List 获取评论列表（管理后台）
@@ -136,4 +166,3 @@ func (s *CommentService) UpdateStatus(id uint, status int) error {
 
 	return s.repo.UpdateStatus(id, status)
 }
-
