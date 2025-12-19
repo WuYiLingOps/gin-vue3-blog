@@ -231,6 +231,11 @@ const menuOptions = [
     icon: renderIcon(ShieldCheckmarkOutline)
   },
   {
+    label: '友链管理',
+    key: 'FriendLinkManage',
+    icon: renderIcon(PricetagsOutline)
+  },
+  {
     label: '网站设置',
     key: 'SiteSettings',
     icon: renderIcon(SettingsOutline)
