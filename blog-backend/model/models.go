@@ -262,6 +262,23 @@ func (ChatMessage) TableName() string {
 	return "chat_messages"
 }
 
+// FriendLinkCategory 友链分类模型
+type FriendLinkCategory struct {
+	ID          uint      `json:"id" gorm:"primaryKey"`
+	Name        string    `json:"name" gorm:"not null;size:50"`
+	Description string    `json:"description" gorm:"size:200"`
+	SortOrder   int       `json:"sort_order" gorm:"default:0;index"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+
+	// 关联关系
+	FriendLinks []FriendLink `json:"friend_links,omitempty" gorm:"foreignKey:CategoryID"`
+}
+
+func (FriendLinkCategory) TableName() string {
+	return "friend_link_categories"
+}
+
 // FriendLink 友链模型
 type FriendLink struct {
 	ID          uint      `json:"id" gorm:"primaryKey"`
@@ -271,10 +288,14 @@ type FriendLink struct {
 	Description string    `json:"description" gorm:"type:text"`
 	Screenshot  string    `json:"screenshot" gorm:"size:255"`
 	AtomURL     string    `json:"atom_url" gorm:"size:255"`
+	CategoryID  uint      `json:"category_id" gorm:"not null;index"` // 分类ID（必选）
 	SortOrder   int       `json:"sort_order" gorm:"default:0;index"`
 	Status      int       `json:"status" gorm:"default:1;index"` // 1:启用 0:禁用
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
+
+	// 关联关系
+	Category FriendLinkCategory `json:"category" gorm:"foreignKey:CategoryID"`
 }
 
 func (FriendLink) TableName() string {
