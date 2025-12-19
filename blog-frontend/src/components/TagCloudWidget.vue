@@ -102,11 +102,11 @@ onMounted(() => {
 
 .tag-chip {
   cursor: pointer;
-  padding: 6px 10px;
-  border-radius: 12px;
+  padding: 8px 12px;
+  border-radius: 14px;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-  line-height: 1;
+  line-height: 1.1;
 }
 
 .tag-chip:hover {
@@ -115,16 +115,16 @@ onMounted(() => {
 }
 
 .tag-sm {
-  font-size: 12px;
-}
-
-.tag-md {
   font-size: 13px;
 }
 
-.tag-lg {
+.tag-md {
   font-size: 14px;
-  font-weight: 600;
+}
+
+.tag-lg {
+  font-size: 16px;
+  font-weight: 700;
 }
 
 @media (max-width: 1024px) {
