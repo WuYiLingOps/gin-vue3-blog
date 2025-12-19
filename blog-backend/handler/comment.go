@@ -33,7 +33,9 @@ func (h *CommentHandler) Create(c *gin.Context) {
 		return
 	}
 
-	comment, err := h.service.Create(userID.(uint), &req)
+	// 不传递请求URL，让 service 层使用数据库配置的 site_url
+	// 因为请求头中的 Host 是后端地址（如 localhost:8080），不是前端地址
+	comment, err := h.service.CreateWithContext(userID.(uint), &req, "")
 	if err != nil {
 		util.Error(c, 400, err.Error())
 		return
