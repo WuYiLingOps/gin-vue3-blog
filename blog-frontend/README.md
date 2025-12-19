@@ -37,7 +37,7 @@ blog-frontend/
 │   ├── layouts/          # 布局组件
 │   ├── pages/            # 页面组件
 │   │   ├── admin/       # 管理后台页面
-│   │   │   ├── IPBlacklistManage.vue
+│   │   │   ├── IPAccessControl.vue
 │   │   │   └── ...
 │   ├── router/           # 路由配置
 │   ├── stores/           # Pinia 状态管理
