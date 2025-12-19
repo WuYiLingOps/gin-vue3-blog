@@ -11,26 +11,30 @@
 export function normalizeImageUrl(url: string): string {
   if (!url) return ''
   
-  // 如果已经是当前环境的完整 URL，直接返回
-  const currentBaseUrl = import.meta.env.VITE_API_BASE_URL || ''
-  if (url.startsWith(currentBaseUrl)) {
-    return url
-  }
-  
-  // 如果是其他域名的完整 URL（如 http://localhost:8080），提取相对路径
+  // 如果已经是完整 URL，检查是否需要转换
   if (url.startsWith('http://') || url.startsWith('https://')) {
+    // 如果是当前页面的域名，直接返回
     try {
       const urlObj = new URL(url)
-      // 提取路径部分（如 /uploads/avatars/xxx.jpg）
+      if (urlObj.host === window.location.host) {
+        return url
+      }
+      // 如果是其他域名，提取路径部分，使用当前页面域名
       const relativePath = urlObj.pathname
-      return currentBaseUrl + relativePath
+      return `${window.location.protocol}//${window.location.host}${relativePath}`
     } catch (e) {
       console.warn('Invalid URL:', url)
       return url
     }
   }
   
-  // 如果是相对路径，拼接当前环境的基础 URL
+  // 如果是 /uploads/ 开头的相对路径，使用当前页面的域名
+  if (url.startsWith('/uploads/')) {
+    return `${window.location.protocol}//${window.location.host}${url}`
+  }
+  
+  // 其他相对路径，使用配置的基础 URL（通常是API路径）
+  const currentBaseUrl = import.meta.env.VITE_API_BASE_URL || ''
   return currentBaseUrl + url
 }
 
