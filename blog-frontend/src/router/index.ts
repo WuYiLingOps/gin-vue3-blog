@@ -37,8 +37,7 @@ const UserManage = () => import('@/pages/admin/UserManage.vue')
 const SiteSettings = () => import('@/pages/admin/SiteSettings.vue')
 const MomentManage = () => import('@/pages/admin/MomentManage.vue')
 const ChatManage = () => import('@/pages/admin/ChatManage.vue')
-const IPBlacklistManage = () => import('@/pages/admin/IPBlacklistManage.vue')
-const IPWhitelistManage = () => import('@/pages/admin/IPWhitelistManage.vue')
+const IPAccessControl = () => import('@/pages/admin/IPAccessControl.vue')
 const FriendLinkManage = () => import('@/pages/admin/FriendLinkManage.vue')
 const FriendLinkCategoryManage = () => import('@/pages/admin/FriendLinkCategoryManage.vue')
 
@@ -229,16 +228,10 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '聊天室管理', requiresAuth: true, requiresAdmin: true }
       },
       {
-        path: 'ip-blacklist',
-        name: 'IPBlacklistManage',
-        component: IPBlacklistManage,
-        meta: { title: 'IP黑名单管理', requiresAuth: true, requiresAdmin: true }
-      },
-      {
-        path: 'ip-whitelist',
-        name: 'IPWhitelistManage',
-        component: IPWhitelistManage,
-        meta: { title: 'IP白名单管理', requiresAuth: true, requiresAdmin: true }
+        path: 'ip-access-control',
+        name: 'IPAccessControl',
+        component: IPAccessControl,
+        meta: { title: 'IP访问控制', requiresAuth: true, requiresAdmin: true }
       },
       {
         path: 'friend-links',
