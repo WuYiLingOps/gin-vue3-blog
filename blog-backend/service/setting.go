@@ -98,3 +98,82 @@ func (s *SettingService) UpdateUploadSettings(data map[string]string) error {
 
 	return s.repo.BatchUpdate(settings)
 }
+
+// GetFriendLinkInfo 获取我的友链信息
+func (s *SettingService) GetFriendLinkInfo() (map[string]string, error) {
+	settings, err := s.repo.GetByGroup("friendlink_info")
+	if err != nil {
+		return nil, err
+	}
+
+	result := make(map[string]string)
+	for _, setting := range settings {
+		result[setting.Key] = setting.Value
+	}
+
+	// 设置默认值
+	if result["name"] == "" {
+		result["name"] = "無以菱"
+	}
+	if result["desc"] == "" {
+		result["desc"] = "分享技术与科技生活"
+	}
+	if result["url"] == "" {
+		result["url"] = "https://xxxxx.cn/"
+	}
+	if result["avatar"] == "" {
+		result["avatar"] = "https://pic.imgdb.cn/xxxx/xxxx.png"
+	}
+	if result["screenshot"] == "" {
+		result["screenshot"] = "https://pic.imgdb.cn/xxxx/xxxx.png"
+	}
+	// RSS订阅可为空，不设置默认值
+
+	return result, nil
+}
+
+// UpdateFriendLinkInfo 更新我的友链信息
+func (s *SettingService) UpdateFriendLinkInfo(data map[string]string) error {
+	var settings []model.Setting
+
+	// 定义允许的字段
+	allowedKeys := map[string]bool{
+		"name":       true,
+		"desc":       true,
+		"url":        true,
+		"avatar":     true,
+		"screenshot": true,
+		"rss":        true,
+	}
+
+	for key, value := range data {
+		if allowedKeys[key] {
+			settings = append(settings, model.Setting{
+				Group:     "friendlink_info",
+				Key:       key,
+				Value:     value,
+				Type:      "text",
+				Label:     getFriendLinkInfoLabel(key),
+				UpdatedAt: time.Now(),
+			})
+		}
+	}
+
+	return s.repo.BatchUpsert(settings)
+}
+
+// getFriendLinkInfoLabel 获取字段标签
+func getFriendLinkInfoLabel(key string) string {
+	labels := map[string]string{
+		"name":       "名称",
+		"desc":       "描述",
+		"url":        "地址",
+		"avatar":     "头像",
+		"screenshot": "站点图片",
+		"rss":        "订阅",
+	}
+	if label, ok := labels[key]; ok {
+		return label
+	}
+	return key
+}
