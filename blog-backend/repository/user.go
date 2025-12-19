@@ -66,3 +66,10 @@ func (r *UserRepository) List(page, pageSize int) ([]model.User, int64, error) {
 func (r *UserRepository) UpdateStatus(id uint, status int) error {
 	return db.DB.Model(&model.User{}).Where("id = ?", id).Update("status", status).Error
 }
+
+// GetAdmins 获取所有管理员用户
+func (r *UserRepository) GetAdmins() ([]model.User, error) {
+	var admins []model.User
+	err := db.DB.Where("role = ? AND status = ?", "admin", 1).Find(&admins).Error
+	return admins, err
+}
