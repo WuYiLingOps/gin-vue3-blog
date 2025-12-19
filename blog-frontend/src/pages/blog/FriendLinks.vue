@@ -9,63 +9,81 @@
           </div>
 
           <template v-if="!loading">
-            <div v-if="friendLinks.length === 0" class="empty-container">
-              <n-empty description="暂无友链" />
+            <div v-if="categories.length === 0" class="empty-container">
+              <n-empty description="暂无友链分类" />
             </div>
 
-            <div v-else class="friendlinks-grid">
-        <div
-          v-for="link in friendLinks"
-          :key="link.id"
-          class="friendlink-card"
-          @click="handleClick(link.url)"
-        >
-          <div class="card-header">
-            <div class="link-icon">
-              <n-image
-                v-if="link.icon"
-                :src="link.icon"
-                :alt="link.name"
-                width="36"
-                height="36"
-                object-fit="cover"
-                :preview-disabled="true"
-                fallback-src="/logo.svg"
-              />
-              <div v-else class="icon-placeholder">
-                <n-icon :component="LinkOutline" size="20" />
+            <!-- 按分类展示友链 -->
+            <div v-else class="categories-container">
+              <div
+                v-for="category in sortedCategories"
+                :key="category.id"
+                class="category-section"
+              >
+                <div class="category-header">
+                  <h2 class="category-title">{{ category.name }} ({{ getCategoryLinksCount(category.id) }})</h2>
+                  <p v-if="category.description" class="category-description">{{ category.description }}</p>
+                </div>
+                
+                <div v-if="getCategoryLinks(category.id).length === 0" class="empty-category">
+                  <n-empty description="该分类下暂无友链" size="small" />
+                </div>
+                
+                <div v-else class="friendlinks-grid">
+                  <div
+                    v-for="link in getCategoryLinks(category.id)"
+                    :key="link.id"
+                    class="friendlink-card"
+                    @click="handleClick(link.url)"
+                  >
+                    <div class="card-header">
+                      <div class="link-icon">
+                        <n-image
+                          v-if="link.icon"
+                          :src="link.icon"
+                          :alt="link.name"
+                          width="36"
+                          height="36"
+                          object-fit="cover"
+                          :preview-disabled="true"
+                          fallback-src="/logo.svg"
+                        />
+                        <div v-else class="icon-placeholder">
+                          <n-icon :component="LinkOutline" size="20" />
+                        </div>
+                      </div>
+                      <div class="link-info">
+                        <h3 class="link-name">{{ link.name }}</h3>
+                        <p v-if="link.description" class="link-description">{{ link.description }}</p>
+                      </div>
+                    </div>
+                    
+                    <div v-if="link.screenshot" class="card-screenshot">
+                      <n-image
+                        :src="link.screenshot"
+                        :alt="link.name"
+                        width="100%"
+                        height="120"
+                        object-fit="cover"
+                        :preview-disabled="true"
+                        class="screenshot-image"
+                      />
+                    </div>
+
+                    <div class="card-footer">
+                      <a :href="link.url" target="_blank" rel="noopener noreferrer" class="link-url" @click.stop>
+                        {{ formatURL(link.url) }}
+                      </a>
+                      <span v-if="link.atom_url" class="rss-badge" title="支持 RSS 订阅">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="14" height="14">
+                          <circle cx="6.18" cy="17.82" r="2.18"/>
+                          <path d="M4 4.44v2.83c7.03 0 12.73 5.7 12.73 12.73h2.83c0-8.59-6.97-15.56-15.56-15.56zm0 5.66v2.83c3.9 0 7.07 3.17 7.07 7.07h2.83c0-5.47-4.43-9.9-9.9-9.9z"/>
+                        </svg>
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-            <div class="link-info">
-              <h3 class="link-name">{{ link.name }}</h3>
-              <p v-if="link.description" class="link-description">{{ link.description }}</p>
-            </div>
-          </div>
-          
-          <div v-if="link.screenshot" class="card-screenshot">
-            <n-image
-              :src="link.screenshot"
-              :alt="link.name"
-              width="100%"
-              height="120"
-              object-fit="cover"
-              :preview-disabled="true"
-              class="screenshot-image"
-            />
-          </div>
-
-          <div class="card-footer">
-            <a :href="link.url" target="_blank" rel="noopener noreferrer" class="link-url" @click.stop>
-              {{ formatURL(link.url) }}
-            </a>
-            <span v-if="link.atom_url" class="rss-badge" title="支持 RSS 订阅">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="14" height="14">
-                <circle cx="6.18" cy="17.82" r="2.18"/>
-                <path d="M4 4.44v2.83c7.03 0 12.73 5.7 12.73 12.73h2.83c0-8.59-6.97-15.56-15.56-15.56zm0 5.66v2.83c3.9 0 7.07 3.17 7.07 7.07h2.83c0-5.47-4.43-9.9-9.9-9.9z"/>
-              </svg>
-            </span>
-          </div>
-        </div>
             </div>
           </template>
         </n-spin>
@@ -282,8 +300,8 @@ import { ref, onMounted, nextTick, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMessage, NIcon } from 'naive-ui'
 import { LinkOutline, CopyOutline } from '@vicons/ionicons5'
-import { getFriendLinks } from '@/api/friendlink'
-import type { FriendLink } from '@/api/friendlink'
+import { getFriendLinks, getFriendLinkCategories } from '@/api/friendlink'
+import type { FriendLink, FriendLinkCategory } from '@/api/friendlink'
 import { getCommentsByTypeAndTarget, createComment, deleteComment } from '@/api/comment'
 import { formatRelativeTime } from '@/utils/format'
 import { useAuthStore } from '@/stores'
@@ -297,6 +315,7 @@ const authStore = useAuthStore()
 const loading = ref(false)
 const submitting = ref(false)
 const friendLinks = ref<FriendLink[]>([])
+const categories = ref<FriendLinkCategory[]>([])
 const comments = ref<Comment[]>([])
 const commentContent = ref('')
 const replyToComment = ref<Comment | null>(null)
@@ -345,6 +364,20 @@ function handleClick(url: string) {
   window.open(url, '_blank', 'noopener,noreferrer')
 }
 
+// 获取友链分类列表
+async function fetchCategories() {
+  try {
+    const res = await getFriendLinkCategories()
+    if (res && res.data) {
+      categories.value = Array.isArray(res.data) ? res.data : []
+    } else {
+      categories.value = []
+    }
+  } catch (e: any) {
+    console.error('获取友链分类失败:', e)
+  }
+}
+
 async function fetchFriendLinks() {
   loading.value = true
   try {
@@ -359,6 +392,21 @@ async function fetchFriendLinks() {
   } finally {
     loading.value = false
   }
+}
+
+// 按排序顺序获取分类列表
+const sortedCategories = computed(() => {
+  return [...categories.value].sort((a, b) => b.sort_order - a.sort_order)
+})
+
+// 获取指定分类下的友链
+function getCategoryLinks(categoryId: number): FriendLink[] {
+  return friendLinks.value.filter(link => link.category_id === categoryId)
+}
+
+// 获取指定分类下的友链数量
+function getCategoryLinksCount(categoryId: number): number {
+  return getCategoryLinks(categoryId).length
 }
 
 // 获取我的友链信息
@@ -506,6 +554,7 @@ async function handleDeleteComment(commentId: number) {
 }
 
 onMounted(() => {
+  fetchCategories()
   fetchFriendLinks()
   fetchComments()
   fetchMyFriendLinkInfo()
@@ -556,6 +605,46 @@ html.dark .page-description {
 
 .empty-container {
   padding: 80px 20px;
+  text-align: center;
+}
+
+.categories-container {
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+}
+
+.category-section {
+  margin-bottom: 32px;
+}
+
+.category-header {
+  margin-bottom: 24px;
+}
+
+.category-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  color: #1a202c;
+}
+
+html.dark .category-title {
+  color: #e5e5e5;
+}
+
+.category-description {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
+}
+
+html.dark .category-description {
+  color: #94a3b8;
+}
+
+.empty-category {
+  padding: 40px 20px;
   text-align: center;
 }
 
