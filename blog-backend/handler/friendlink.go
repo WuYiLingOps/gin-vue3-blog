@@ -92,6 +92,12 @@ func (h *FriendLinkHandler) Update(c *gin.Context) {
 		return
 	}
 
+	// 调试：打印接收到的请求数据
+	if req.CategoryID != nil {
+		// 这里可以添加日志输出，但为了不影响生产环境，暂时注释
+		// fmt.Printf("接收到 category_id: %d\n", *req.CategoryID)
+	}
+
 	friendLink, err := h.service.Update(uint(id), &req)
 	if err != nil {
 		util.Error(c, 400, err.Error())
