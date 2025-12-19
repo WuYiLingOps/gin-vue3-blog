@@ -186,11 +186,10 @@
                 正在回复 <strong>@{{ (replyToUser || replyToComment).user.nickname }}</strong> 的评论
               </n-alert>
               
-              <n-input
-                v-model:value="commentContent"
-                type="textarea"
-                placeholder="写下你的评论..."
-                :rows="3"
+              <CommentMarkdownEditor
+                v-model="commentContent"
+                height="250px"
+                :max-length="5000"
               />
               <div style="margin-top: 12px; text-align: right">
                 <n-button type="primary" :loading="submitting" @click="handleSubmitComment">
@@ -216,7 +215,7 @@
                       <strong>{{ comment.user.nickname }}</strong>
                       <span class="comment-time">{{ formatRelativeTime(comment.created_at) }}</span>
                     </div>
-                    <p>{{ comment.content }}</p>
+                    <CommentContent :content="comment.content" />
                     <div class="comment-actions">
                       <n-button
                         v-if="authStore.isLoggedIn"
@@ -260,7 +259,7 @@
                               <span class="reply-to">回复 @{{ getReplyTargetName(reply, comment) }}</span>
                               <span class="comment-time">{{ formatRelativeTime(reply.created_at) }}</span>
                             </div>
-                            <p>{{ removeAtMention(reply.content) }}</p>
+                            <CommentContent :content="removeAtMention(reply.content)" />
                             <div class="comment-actions">
                               <n-button
                                 v-if="authStore.isLoggedIn"
@@ -307,6 +306,8 @@ import { formatRelativeTime } from '@/utils/format'
 import { useAuthStore } from '@/stores'
 import type { Comment } from '@/types/blog'
 import { getFriendLinkInfo, type FriendLinkInfo } from '@/api/setting'
+import CommentMarkdownEditor from '@/components/CommentMarkdownEditor.vue'
+import CommentContent from '@/components/CommentContent.vue'
 
 const router = useRouter()
 const message = useMessage()
