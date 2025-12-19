@@ -14,6 +14,7 @@ declare module 'vue' {
     CanvasBackground: typeof import('./../components/CanvasBackground.vue')['default']
     CaptchaInput: typeof import('./../components/CaptchaInput.vue')['default']
     ContributionCalendar: typeof import('./../components/ContributionCalendar.vue')['default']
+    FriendLinkWidget: typeof import('./../components/FriendLinkWidget.vue')['default']
     GiteeCalendar: typeof import('./../components/GiteeCalendar.vue')['default']
     HotPostsCard: typeof import('./../components/HotPostsCard.vue')['default']
     ImageUpload: typeof import('./../components/ImageUpload.vue')['default']
@@ -28,6 +29,7 @@ declare module 'vue' {
     NButton: typeof import('naive-ui')['NButton']
     NCard: typeof import('naive-ui')['NCard']
     NCheckbox: typeof import('naive-ui')['NCheckbox']
+    NCode: typeof import('naive-ui')['NCode']
     NColorPicker: typeof import('naive-ui')['NColorPicker']
     NConfigProvider: typeof import('naive-ui')['NConfigProvider']
     NDataTable: typeof import('naive-ui')['NDataTable']
@@ -78,6 +80,7 @@ declare module 'vue' {
     NUploadDragger: typeof import('naive-ui')['NUploadDragger']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    RSSWidget: typeof import('./../components/RSSWidget.vue')['default']
     SocialIcons: typeof import('./../components/SocialIcons.vue')['default']
     TagCloudWidget: typeof import('./../components/TagCloudWidget.vue')['default']
   }
