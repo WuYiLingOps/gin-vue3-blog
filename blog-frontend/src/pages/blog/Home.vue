@@ -242,8 +242,8 @@ function getHighlightedSummary(post: Post): string {
 
 .top-row {
   display: grid;
-  /* 左侧自适应内容，右侧固定为与侧边栏相同的宽度（360px），保持个人名片大小一致 */
-  grid-template-columns: minmax(0, 1fr) 360px;
+  /* 左侧自适应内容，右侧固定为与侧边栏相同的宽度（400px），保持个人名片大小一致 */
+  grid-template-columns: minmax(0, 1fr) 400px;
   gap: 32px;
   margin-bottom: 24px;
 }
@@ -288,7 +288,7 @@ function getHighlightedSummary(post: Post): string {
 
 .home-layout {
   display: grid;
-  grid-template-columns: 1fr 360px; /* 扩大右侧区域，容纳更大的个人名片 */
+  grid-template-columns: 1fr 400px; /* 扩大右侧区域，容纳更大的个人名片和侧边卡片 */
   gap: 32px; /* 增加间距，避免重叠 */
   align-items: start;
 }
