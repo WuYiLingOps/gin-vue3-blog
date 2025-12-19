@@ -46,6 +46,7 @@ func SetupRouter() *gin.Engine {
 	blogHandler := handler.NewBlogHandler()
 	announcementHandler := handler.NewAnnouncementHandler()
 	friendLinkHandler := handler.NewFriendLinkHandler()
+	friendLinkCategoryHandler := handler.NewFriendLinkCategoryHandler()
 
 	// 健康检查接口
 	r.GET("/health", func(c *gin.Context) {
@@ -57,7 +58,7 @@ func SetupRouter() *gin.Engine {
 	{
 		setupAuthRoutes(api, authHandler)
 		setupCaptchaRoutes(api, captchaHandler)
-		setupBlogRoutes(api, blogHandler, announcementHandler, friendLinkHandler)
+		setupBlogRoutes(api, blogHandler, announcementHandler, friendLinkHandler, friendLinkCategoryHandler)
 		setupPostRoutes(api, postHandler)
 		setupCategoryRoutes(api, categoryHandler)
 		setupTagRoutes(api, tagHandler)
@@ -66,7 +67,7 @@ func SetupRouter() *gin.Engine {
 		setupSettingRoutes(api, settingHandler)
 		setupMomentRoutes(api, momentHandler)
 		setupChatRoutes(api, chatHandler)
-		setupAdminRoutes(api, userHandler, postHandler, commentHandler, dashboardHandler, momentHandler, ipBlacklistHandler, ipWhitelistHandler, chatHandler, friendLinkHandler)
+		setupAdminRoutes(api, userHandler, postHandler, commentHandler, dashboardHandler, momentHandler, ipBlacklistHandler, ipWhitelistHandler, chatHandler, friendLinkHandler, friendLinkCategoryHandler)
 	}
 
 	return r
@@ -106,7 +107,7 @@ func setupCaptchaRoutes(api *gin.RouterGroup, h *handler.CaptchaHandler) {
 }
 
 // setupBlogRoutes 博客路由（公开接口）
-func setupBlogRoutes(api *gin.RouterGroup, h *handler.BlogHandler, a *handler.AnnouncementHandler, fl *handler.FriendLinkHandler) {
+func setupBlogRoutes(api *gin.RouterGroup, h *handler.BlogHandler, a *handler.AnnouncementHandler, fl *handler.FriendLinkHandler, flc *handler.FriendLinkCategoryHandler) {
 	blog := api.Group("/blog")
 	{
 		// 获取博主资料和统计数据
@@ -116,6 +117,7 @@ func setupBlogRoutes(api *gin.RouterGroup, h *handler.BlogHandler, a *handler.An
 		blog.GET("/announcements/:id", a.GetAnnouncementDetail)
 		// 友链（公开接口）
 		blog.GET("/friend-links", fl.ListPublic)
+		blog.GET("/friend-link-categories", flc.List) // 公开获取分类列表
 	}
 }
 
@@ -268,7 +270,7 @@ func setupChatRoutes(api *gin.RouterGroup, h *handler.ChatHandler) {
 }
 
 // setupAdminRoutes 管理后台路由
-func setupAdminRoutes(api *gin.RouterGroup, userHandler *handler.UserHandler, postHandler *handler.PostHandler, commentHandler *handler.CommentHandler, dashboardHandler *handler.DashboardHandler, momentHandler *handler.MomentHandler, ipBlacklistHandler *handler.IPBlacklistHandler, ipWhitelistHandler *handler.IPWhitelistHandler, chatHandler *handler.ChatHandler, friendLinkHandler *handler.FriendLinkHandler) {
+func setupAdminRoutes(api *gin.RouterGroup, userHandler *handler.UserHandler, postHandler *handler.PostHandler, commentHandler *handler.CommentHandler, dashboardHandler *handler.DashboardHandler, momentHandler *handler.MomentHandler, ipBlacklistHandler *handler.IPBlacklistHandler, ipWhitelistHandler *handler.IPWhitelistHandler, chatHandler *handler.ChatHandler, friendLinkHandler *handler.FriendLinkHandler, friendLinkCategoryHandler *handler.FriendLinkCategoryHandler) {
 	admin := api.Group("/admin")
 	admin.Use(middleware.AuthMiddleware(), middleware.AdminMiddleware())
 	{
@@ -316,10 +318,18 @@ func setupAdminRoutes(api *gin.RouterGroup, userHandler *handler.UserHandler, po
 		admin.POST("/chat/ban", chatHandler.BanIP)     // 封禁IP
 
 		// 友链管理
+		// 友链管理
 		admin.GET("/friend-links", friendLinkHandler.List)
 		admin.GET("/friend-links/:id", friendLinkHandler.GetByID)
 		admin.POST("/friend-links", friendLinkHandler.Create)
 		admin.PUT("/friend-links/:id", friendLinkHandler.Update)
 		admin.DELETE("/friend-links/:id", friendLinkHandler.Delete)
+
+		// 友链分类管理
+		admin.GET("/friend-link-categories", friendLinkCategoryHandler.List)
+		admin.GET("/friend-link-categories/:id", friendLinkCategoryHandler.GetByID)
+		admin.POST("/friend-link-categories", friendLinkCategoryHandler.Create)
+		admin.PUT("/friend-link-categories/:id", friendLinkCategoryHandler.Update)
+		admin.DELETE("/friend-link-categories/:id", friendLinkCategoryHandler.Delete)
 	}
 }
