@@ -382,10 +382,21 @@ docker compose logs -f backend
 
 ```bash
 # 进入数据库容器
-docker exec -it blog-postgres psql -U postgres -d blogdb
+docker exec -it pg-prod psql -U postgres -d blogdb
 
-# 或从外部导入 SQL
-docker exec -i blog-postgres psql -U postgres -d blogdb < sql/init.sql
+# 创建数据库
+CREATE DATABASE blogdb
+  WITH OWNER = postgres
+       ENCODING = 'UTF8'
+       LC_COLLATE = 'en_US.utf8'
+       LC_CTYPE   = 'en_US.utf8'
+       TEMPLATE   = template0;
+
+# 开始外部导入 SQL
+docker exec -i pg-prod psql -U postgres -d blogdb < sql/init.sql
+# 如果是导入备份数据则如下：
+docker cp blog_backup.dump pg-prod:/tmp
+docker exec -it pg-prod pg_restore -U postgres -d blogdb --clean --if-exists /tmp/blog_backup.dump
 ```
 
 #### 5. 服务管理
@@ -491,6 +502,7 @@ nohup ./blog-backend > app.log 2>&1 &
 
    ```bash
    cd blog-frontend
+   pnpm install
    pnpm build
    ```
 
@@ -697,7 +709,7 @@ pg_restore -h 127.0.0.1 -U postgres -d blogdb --clean --if-exists /tmp/blog_back
 ```
 3. 如使用 Docker Compose，可在容器内执行：
 ```bash
-docker exec -i blog-postgres pg_restore -U postgres -d blogdb --clean --if-exists < backup.dump
+docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < backup.dump
 ```
 4. 确认新库的连接信息已写入 `config/config-prod.yml` 或环境变量，并与 Nginx/后端代理地址匹配。
 5. **迁移上传文件目录**（重要）：
