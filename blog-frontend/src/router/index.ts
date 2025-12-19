@@ -15,6 +15,7 @@ const PostDetail = () => import('@/pages/blog/PostDetail.vue')
 const Category = () => import('@/pages/blog/Category.vue')
 const Tag = () => import('@/pages/blog/Tag.vue')
 const Archive = () => import('@/pages/blog/Archive.vue')
+const FriendLinks = () => import('@/pages/blog/FriendLinks.vue')
 const Moments = () => import('@/pages/blog/Moments.vue')
 const Chat = () => import('@/pages/blog/Chat.vue')
 const TodoList = () => import('@/pages/blog/TodoList.vue')
@@ -38,6 +39,7 @@ const MomentManage = () => import('@/pages/admin/MomentManage.vue')
 const ChatManage = () => import('@/pages/admin/ChatManage.vue')
 const IPBlacklistManage = () => import('@/pages/admin/IPBlacklistManage.vue')
 const IPWhitelistManage = () => import('@/pages/admin/IPWhitelistManage.vue')
+const FriendLinkManage = () => import('@/pages/admin/FriendLinkManage.vue')
 
 const routes: RouteRecordRaw[] = [
   // 博客前台路由
@@ -86,6 +88,12 @@ const routes: RouteRecordRaw[] = [
         name: 'Archive',
         component: Archive,
         meta: { title: '归档' }
+      },
+      {
+        path: 'friend-links',
+        name: 'FriendLinks',
+        component: FriendLinks,
+        meta: { title: '友情链接' }
       },
       {
         path: 'moments',
@@ -230,6 +238,12 @@ const routes: RouteRecordRaw[] = [
         name: 'IPWhitelistManage',
         component: IPWhitelistManage,
         meta: { title: 'IP白名单管理', requiresAuth: true, requiresAdmin: true }
+      },
+      {
+        path: 'friend-links',
+        name: 'FriendLinkManage',
+        component: FriendLinkManage,
+        meta: { title: '友链管理', requiresAuth: true, requiresAdmin: true }
       }
     ]
   },
