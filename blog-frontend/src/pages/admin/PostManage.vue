@@ -66,6 +66,22 @@
           />
         </n-form-item>
 
+        <n-form-item label="封面图" path="cover">
+          <n-space vertical style="width: 100%">
+            <image-upload
+              v-model="formData.cover"
+              :width="isMobile ? 300 : 500"
+              :height="isMobile ? 170 : 280"
+              :max-size-m-b="5"
+              alt="文章封面"
+              @success="handleCoverSuccess"
+            />
+            <n-text depth="3" style="font-size: 12px">
+              建议尺寸：1200x680 或 16:9 比例，支持 jpg、png、gif 格式（可选）
+            </n-text>
+          </n-space>
+        </n-form-item>
+
         <n-form-item label="内容" path="content">
           <markdown-editor v-model="formData.content" height="400px" />
         </n-form-item>
@@ -129,6 +145,7 @@ import { useBlogStore } from '@/stores'
 import { formatDate } from '@/utils/format'
 import type { Post, PostForm } from '@/types/blog'
 import MarkdownEditor from '@/components/MarkdownEditor.vue'
+import ImageUpload from '@/components/ImageUpload.vue'
 
 const router = useRouter()
 const message = useMessage()
@@ -321,6 +338,11 @@ function handlePageChange(page: number) {
 
 function handleEdit(id: number) {
   router.push({ name: 'PostEdit', params: { id } })
+}
+
+function handleCoverSuccess(url: string) {
+  formData.cover = url
+  message.success('封面图上传成功')
 }
 
 async function handleSubmit() {
