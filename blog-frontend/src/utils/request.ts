@@ -121,7 +121,7 @@ export const request = {
  * 获取完整的静态文件 URL
  * 用于拼接上传后返回的相对路径
  * @param path 相对路径，如 /uploads/avatars/xxx.jpg
- * @returns 完整 URL，如 http://localhost:8080/uploads/avatars/xxx.jpg
+ * @returns 完整 URL，如 https://huangjingblog.cn/uploads/avatars/xxx.jpg
  */
 export function getFileUrl(path: string): string {
   if (!path) return ''
@@ -131,7 +131,14 @@ export function getFileUrl(path: string): string {
     return path
   }
   
-  // 拼接基础 URL
+  // 如果是 /uploads/ 开头的路径，使用当前页面的域名（因为Nginx会代理到后端）
+  // 这样可以避免路径被错误地拼接为 /api/uploads/...
+  if (path.startsWith('/uploads/')) {
+    // 使用当前页面的协议和域名
+    return `${window.location.protocol}//${window.location.host}${path}`
+  }
+  
+  // 其他路径（如API路径），使用配置的基础 URL
   const baseURL = import.meta.env.VITE_API_BASE_URL || ''
   return baseURL + path
 }
