@@ -45,6 +45,7 @@ func SetupRouter() *gin.Engine {
 	chatHandler := handler.NewChatHandler(chatHub)
 	blogHandler := handler.NewBlogHandler()
 	announcementHandler := handler.NewAnnouncementHandler()
+	friendLinkHandler := handler.NewFriendLinkHandler()
 
 	// 健康检查接口
 	r.GET("/health", func(c *gin.Context) {
@@ -56,7 +57,7 @@ func SetupRouter() *gin.Engine {
 	{
 		setupAuthRoutes(api, authHandler)
 		setupCaptchaRoutes(api, captchaHandler)
-		setupBlogRoutes(api, blogHandler, announcementHandler)
+		setupBlogRoutes(api, blogHandler, announcementHandler, friendLinkHandler)
 		setupPostRoutes(api, postHandler)
 		setupCategoryRoutes(api, categoryHandler)
 		setupTagRoutes(api, tagHandler)
@@ -65,7 +66,7 @@ func SetupRouter() *gin.Engine {
 		setupSettingRoutes(api, settingHandler)
 		setupMomentRoutes(api, momentHandler)
 		setupChatRoutes(api, chatHandler)
-		setupAdminRoutes(api, userHandler, postHandler, commentHandler, dashboardHandler, momentHandler, ipBlacklistHandler, ipWhitelistHandler, chatHandler)
+		setupAdminRoutes(api, userHandler, postHandler, commentHandler, dashboardHandler, momentHandler, ipBlacklistHandler, ipWhitelistHandler, chatHandler, friendLinkHandler)
 	}
 
 	return r
@@ -105,7 +106,7 @@ func setupCaptchaRoutes(api *gin.RouterGroup, h *handler.CaptchaHandler) {
 }
 
 // setupBlogRoutes 博客路由（公开接口）
-func setupBlogRoutes(api *gin.RouterGroup, h *handler.BlogHandler, a *handler.AnnouncementHandler) {
+func setupBlogRoutes(api *gin.RouterGroup, h *handler.BlogHandler, a *handler.AnnouncementHandler, fl *handler.FriendLinkHandler) {
 	blog := api.Group("/blog")
 	{
 		// 获取博主资料和统计数据
@@ -113,6 +114,8 @@ func setupBlogRoutes(api *gin.RouterGroup, h *handler.BlogHandler, a *handler.An
 		// 公告/系统广播
 		blog.GET("/announcements", a.GetAnnouncements)
 		blog.GET("/announcements/:id", a.GetAnnouncementDetail)
+		// 友链（公开接口）
+		blog.GET("/friend-links", fl.ListPublic)
 	}
 }
 
@@ -186,6 +189,7 @@ func setupCommentRoutes(api *gin.RouterGroup, h *handler.CommentHandler) {
 	{
 		// 公开接口
 		comments.GET("/post/:id", h.GetByPostID)
+		comments.GET("/type", h.GetByTypeAndTarget) // 根据类型和目标ID获取评论（用于友链等特殊页面）
 
 		// 需要认证的接口
 		commentsAuth := comments.Group("")
@@ -214,6 +218,7 @@ func setupSettingRoutes(api *gin.RouterGroup, h *handler.SettingHandler) {
 	{
 		// 公开接口
 		settings.GET("/public", h.GetPublicSettings)
+		settings.GET("/friendlink-info", h.GetFriendLinkInfo)
 
 		// 需要管理员权限
 		settingsAdmin := settings.Group("")
@@ -223,6 +228,7 @@ func setupSettingRoutes(api *gin.RouterGroup, h *handler.SettingHandler) {
 			settingsAdmin.PUT("/site", h.UpdateSiteSettings)
 			settingsAdmin.GET("/upload", h.GetUploadSettings)
 			settingsAdmin.PUT("/upload", h.UpdateUploadSettings)
+			settingsAdmin.PUT("/friendlink-info", h.UpdateFriendLinkInfo)
 		}
 	}
 }
@@ -262,7 +268,7 @@ func setupChatRoutes(api *gin.RouterGroup, h *handler.ChatHandler) {
 }
 
 // setupAdminRoutes 管理后台路由
-func setupAdminRoutes(api *gin.RouterGroup, userHandler *handler.UserHandler, postHandler *handler.PostHandler, commentHandler *handler.CommentHandler, dashboardHandler *handler.DashboardHandler, momentHandler *handler.MomentHandler, ipBlacklistHandler *handler.IPBlacklistHandler, ipWhitelistHandler *handler.IPWhitelistHandler, chatHandler *handler.ChatHandler) {
+func setupAdminRoutes(api *gin.RouterGroup, userHandler *handler.UserHandler, postHandler *handler.PostHandler, commentHandler *handler.CommentHandler, dashboardHandler *handler.DashboardHandler, momentHandler *handler.MomentHandler, ipBlacklistHandler *handler.IPBlacklistHandler, ipWhitelistHandler *handler.IPWhitelistHandler, chatHandler *handler.ChatHandler, friendLinkHandler *handler.FriendLinkHandler) {
 	admin := api.Group("/admin")
 	admin.Use(middleware.AuthMiddleware(), middleware.AdminMiddleware())
 	{
@@ -308,5 +314,12 @@ func setupAdminRoutes(api *gin.RouterGroup, userHandler *handler.UserHandler, po
 		admin.POST("/chat/broadcast", chatHandler.BroadcastSystemMessage)
 		admin.POST("/chat/kick", chatHandler.KickUser) // 踢出用户
 		admin.POST("/chat/ban", chatHandler.BanIP)     // 封禁IP
+
+		// 友链管理
+		admin.GET("/friend-links", friendLinkHandler.List)
+		admin.GET("/friend-links/:id", friendLinkHandler.GetByID)
+		admin.POST("/friend-links", friendLinkHandler.Create)
+		admin.PUT("/friend-links/:id", friendLinkHandler.Update)
+		admin.DELETE("/friend-links/:id", friendLinkHandler.Delete)
 	}
 }
