@@ -156,7 +156,9 @@ COMMENT ON TABLE post_tags IS '文章标签关联表';
 CREATE TABLE IF NOT EXISTS comments (
     id SERIAL PRIMARY KEY,
     content TEXT NOT NULL,
-    post_id INT NOT NULL,
+    comment_type VARCHAR(20) DEFAULT 'post',
+    post_id INT,
+    target_id INT,
     user_id INT NOT NULL,
     parent_id INT,
     status INT DEFAULT 1,
@@ -171,11 +173,16 @@ CREATE TABLE IF NOT EXISTS comments (
 CREATE INDEX IF NOT EXISTS idx_comments_post_id ON comments(post_id);
 CREATE INDEX IF NOT EXISTS idx_comments_user_id ON comments(user_id);
 CREATE INDEX IF NOT EXISTS idx_comments_parent_id ON comments(parent_id);
+CREATE INDEX IF NOT EXISTS idx_comments_comment_type ON comments(comment_type);
+CREATE INDEX IF NOT EXISTS idx_comments_target_id ON comments(target_id);
+CREATE INDEX IF NOT EXISTS idx_comments_type_target ON comments(comment_type, target_id);
 
 -- 评论表注释
 COMMENT ON TABLE comments IS '评论表';
 COMMENT ON COLUMN comments.content IS '评论内容';
-COMMENT ON COLUMN comments.post_id IS '文章ID';
+COMMENT ON COLUMN comments.comment_type IS '评论类型：post-文章评论，friendlink-友链评论';
+COMMENT ON COLUMN comments.post_id IS '文章ID（文章评论时使用，友链评论时为NULL）';
+COMMENT ON COLUMN comments.target_id IS '目标ID（根据comment_type不同，指向不同的目标）';
 COMMENT ON COLUMN comments.user_id IS '评论用户ID';
 COMMENT ON COLUMN comments.parent_id IS '父评论ID（用于回复）';
 COMMENT ON COLUMN comments.status IS '状态：1-正常，0-待审核，-1-删除';
@@ -500,6 +507,40 @@ VALUES
 ('Docker', '#2496ED', NULL, NULL, 0, NOW(), NOW())
 ON CONFLICT (name) DO NOTHING;
 
+-- =============================================================================
+-- 14. 友链表
+-- =============================================================================
+
+-- 创建友链表
+CREATE TABLE IF NOT EXISTS friend_links (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    url VARCHAR(255) NOT NULL,
+    icon VARCHAR(255),
+    description TEXT,
+    screenshot VARCHAR(255),
+    atom_url VARCHAR(255),
+    sort_order INT DEFAULT 0,
+    status INT DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 友链表索引
+CREATE INDEX IF NOT EXISTS idx_friend_links_status ON friend_links(status);
+CREATE INDEX IF NOT EXISTS idx_friend_links_sort ON friend_links(sort_order DESC, id DESC);
+
+-- 友链表注释
+COMMENT ON TABLE friend_links IS '友链表';
+COMMENT ON COLUMN friend_links.name IS '网站名称';
+COMMENT ON COLUMN friend_links.url IS '网站网址';
+COMMENT ON COLUMN friend_links.icon IS '网站图标URL';
+COMMENT ON COLUMN friend_links.description IS '网站描述';
+COMMENT ON COLUMN friend_links.screenshot IS '网站截图URL';
+COMMENT ON COLUMN friend_links.atom_url IS 'RSS/Atom订阅地址（可选）';
+COMMENT ON COLUMN friend_links.sort_order IS '排序顺序（数字越大越靠前）';
+COMMENT ON COLUMN friend_links.status IS '状态：1-启用，0-禁用';
+
 -- 插入网站配置
 INSERT INTO settings (key, value, type, "group", label, created_at, updated_at)
 VALUES 
@@ -508,6 +549,20 @@ VALUES
 ('site_police', '', 'text', 'site', '公安备案号', NOW(), NOW()),
 ('storage_type', 'local', 'text', 'upload', '存储类型', NOW(), NOW())
 ON CONFLICT (key) DO NOTHING;
+
+-- 插入我的友链信息默认配置
+INSERT INTO settings (key, value, type, "group", label, created_at, updated_at)
+VALUES 
+('name', '無以菱', 'text', 'friendlink_info', '名称', NOW(), NOW()),
+('desc', '分享技术与科技生活', 'text', 'friendlink_info', '描述', NOW(), NOW()),
+('url', 'https://xxxxx.cn/', 'text', 'friendlink_info', '地址', NOW(), NOW()),
+('avatar', 'https://pic.imgdb.cn/xxxx/xxxx.png', 'text', 'friendlink_info', '头像', NOW(), NOW()),
+('screenshot', 'https://pic.imgdb.cn/xxxx/xxxx.png', 'text', 'friendlink_info', '站点图片', NOW(), NOW()),
+('rss', '', 'text', 'friendlink_info', '订阅', NOW(), NOW())
+ON CONFLICT (key) DO NOTHING;
+
+-- 注意：友链页面的评论功能已改为独立的评论系统，不再需要特殊文章
+-- 评论表已扩展支持 comment_type 和 target_id 字段，友链评论使用 comment_type='friendlink'
 
 -- =============================================================================
 -- 13. 更新现有数据的全文搜索向量
