@@ -9,6 +9,11 @@ export function getCommentsByPostId(postId: number) {
   return request.get<Comment[]>(`/comments/post/${postId}`)
 }
 
+// 根据评论类型和目标ID获取评论列表（用于友链等特殊页面）
+export function getCommentsByTypeAndTarget(commentType: string, targetId: number = 0) {
+  return request.get<Comment[]>(`/comments/type?type=${commentType}&target_id=${targetId}`)
+}
+
 // 创建评论
 export function createComment(data: CommentForm) {
   return request.post<Comment>('/comments', data)
