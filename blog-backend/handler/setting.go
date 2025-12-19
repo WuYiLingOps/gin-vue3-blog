@@ -141,3 +141,30 @@ func (h *SettingHandler) UpdateFriendLinkInfo(c *gin.Context) {
 
 	util.SuccessWithMessage(c, "更新成功", nil)
 }
+
+// GetNotificationSettings 获取通知配置（仅管理员）
+func (h *SettingHandler) GetNotificationSettings(c *gin.Context) {
+	settings, err := h.service.GetNotificationSettings()
+	if err != nil {
+		util.Error(c, 500, "获取通知配置失败")
+		return
+	}
+
+	util.Success(c, settings)
+}
+
+// UpdateNotificationSettings 更新通知配置（仅管理员）
+func (h *SettingHandler) UpdateNotificationSettings(c *gin.Context) {
+	var req map[string]string
+	if err := c.ShouldBindJSON(&req); err != nil {
+		util.BadRequest(c, "参数错误")
+		return
+	}
+
+	if err := h.service.UpdateNotificationSettings(req); err != nil {
+		util.Error(c, 500, "更新通知配置失败")
+		return
+	}
+
+	util.SuccessWithMessage(c, "更新成功", nil)
+}
