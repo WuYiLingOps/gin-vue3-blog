@@ -95,6 +95,7 @@ myBlog/
 - **Node.js** >= 18.0.0
 - **Go** >= 1.21
 - **PostgreSQL** >= 15
+- **Redis** >= 3.0 (建议 >= 6.2 以避免客户端警告)
 - **pnpm** (推荐) 或 npm
 
 ###  0️⃣docker快速启动环境（可选）
@@ -352,14 +353,14 @@ GOOS=linux GOARCH=amd64 go build -o blog-backend ./cmd/server
 - **数据库 / Redis 容器自身变量**  
   你仍然可以在 `docker-compose.yml` 同级的 `.env` 文件中，为 PostgreSQL / Redis 设置自身的密码等变量，例如：
 
-  ```env
+```env
   # PostgreSQL 容器内部初始化密码
-  POSTGRES_PASSWORD=your_postgres_password
-  POSTGRES_DB=blogdb
+POSTGRES_PASSWORD=your_postgres_password
+POSTGRES_DB=blogdb
 
   # Redis 容器内部初始化密码
-  REDIS_PASSWORD=your_redis_password
-  ```
+REDIS_PASSWORD=your_redis_password
+```
 
   或者直接在 `docker-compose.yml` 文件中内联这些环境变量。
 
@@ -698,7 +699,24 @@ pg_restore -h 127.0.0.1 -U postgres -d blogdb --clean --if-exists /tmp/blog_back
 docker exec -i blog-postgres pg_restore -U postgres -d blogdb --clean --if-exists < backup.dump
 ```
 4. 确认新库的连接信息已写入 `config/config-prod.yml` 或环境变量，并与 Nginx/后端代理地址匹配。
-5. 如不需要历史会话，可清理 Redis（如果有登录态存储），再重启后端。
+5. **迁移上传文件目录**（重要）：
+   - 如果使用**本地存储**，需要将旧服务器的 `blog-backend/uploads/` 目录完整复制到新服务器
+   - 包括 `uploads/avatars/`（用户头像）和 `uploads/` 下的其他图片文件
+   - 迁移方法：
+     ```bash
+     # 在旧服务器上打包
+     cd blog-backend
+     tar -czf uploads-backup.tar.gz uploads/
+     
+     # 传输到新服务器（使用 scp 或其他方式）
+     scp uploads-backup.tar.gz user@new-server:/path/to/blog-backend/
+     
+     # 在新服务器上解压
+     cd blog-backend
+     tar -xzf uploads-backup.tar.gz
+     ```
+   - **注意**：如果使用 OSS/COS 存储，文件在云端，无需迁移本地文件；但普通用户头像强制使用本地存储，仍需迁移 `uploads/avatars/` 目录
+6. 如不需要历史会话，可清理 Redis（如果有登录态存储），再重启后端。
 
 ## 🎨 主要功能模块
 
@@ -725,7 +743,7 @@ docker exec -i blog-postgres pg_restore -U postgres -d blogdb --clean --if-exist
 ### 👤 用户中心
 - 用户注册和登录
 - 个人资料编辑
-- 头像上传
+- 头像上传（普通用户默认使用本地存储，管理员可使用 OSS/COS）
 - 密码修改
 - 忘记密码（邮箱验证码）
 - 邮箱修改（限制一年2次）
@@ -843,7 +861,9 @@ docker exec -i blog-postgres pg_restore -U postgres -d blogdb --clean --if-exist
 
 ### 上传相关
 - `POST /api/upload/avatar` - 上传头像（需认证）
-- `POST /api/upload/image` - 上传图片（需认证）
+  - 普通用户：强制使用本地存储，不上传到 OSS/COS
+  - 管理员：根据后台配置选择存储方式（本地/OSS/COS）
+- `POST /api/upload/image` - 上传图片（需认证，根据配置选择存储方式）
 
 ### 设置相关
 - `GET /api/settings/public` - 获取公开设置
