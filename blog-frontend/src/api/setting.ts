@@ -49,3 +49,22 @@ export function updateUploadSettings(data: Record<string, string>) {
   return request.put('/settings/upload', data)
 }
 
+export interface FriendLinkInfo {
+  name?: string
+  desc?: string
+  url?: string
+  avatar?: string
+  screenshot?: string
+  rss?: string
+}
+
+// 获取我的友链信息（公开接口）
+export function getFriendLinkInfo() {
+  return request.get<FriendLinkInfo>('/settings/friendlink-info')
+}
+
+// 更新我的友链信息（管理员）
+export function updateFriendLinkInfo(data: FriendLinkInfo) {
+  return request.put('/settings/friendlink-info', data)
+}
+
