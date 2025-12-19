@@ -201,6 +201,45 @@
       </n-form>
     </n-card>
 
+    <n-card title="通知配置" style="margin-top: 24px;">
+      <n-form
+        ref="notificationFormRef"
+        :model="notificationFormData"
+        :label-placement="isMobile ? 'top' : 'left'"
+        :label-width="isMobile ? 'auto' : '120'"
+        require-mark-placement="right-hanging"
+      >
+        <n-form-item label="管理员通知" path="notify_admin_on_comment">
+          <n-switch v-model:value="notificationFormData.notify_admin_on_comment" />
+          <template #feedback>
+            <span style="font-size: 12px; color: #999">
+              开启后，当有用户评论文章时，所有管理员都会收到评论通知邮件
+            </span>
+          </template>
+        </n-form-item>
+
+        <n-alert type="info" style="margin-bottom: 16px;">
+          <template #header>通知说明</template>
+          <ul style="margin: 8px 0; padding-left: 20px;">
+            <li><strong>管理员通知</strong>：需要在此处开启，开启后所有管理员都会收到评论通知邮件</li>
+            <li><strong>说明</strong>：由于普通用户没有权限写文章，文章作者只能是管理员，因此统一通过管理员通知处理</li>
+            <li><strong>邮件配置</strong>：需要在服务器配置文件中设置邮件参数（config/config-dev.yml 或 config/config-prod.yml 的 email 节点）</li>
+          </ul>
+        </n-alert>
+
+        <n-form-item>
+          <n-space>
+            <n-button type="primary" @click="handleNotificationSubmit" :loading="notificationLoading">
+              保存配置
+            </n-button>
+            <n-button @click="handleNotificationReset">
+              重置
+            </n-button>
+          </n-space>
+        </n-form-item>
+      </n-form>
+    </n-card>
+
     <n-card title="设置说明" style="margin-top: 24px;">
       <n-space vertical>
         <p><strong>网站名称：</strong>显示在网站底部的名称</p>
@@ -230,12 +269,13 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useMessage, type FormInst } from 'naive-ui'
-import { getSiteSettings, updateSiteSettings, getUploadSettings, updateUploadSettings } from '@/api/setting'
+import { getSiteSettings, updateSiteSettings, getUploadSettings, updateUploadSettings, getNotificationSettings, updateNotificationSettings } from '@/api/setting'
 
 const message = useMessage()
 
 const formRef = ref<FormInst | null>(null)
 const uploadFormRef = ref<FormInst | null>(null)
+const notificationFormRef = ref<FormInst | null>(null)
 
 const defaultFormData = {
   site_name: '',
@@ -265,10 +305,16 @@ const uploadFormData = ref({
   storage_type: 'local'
 })
 
+const notificationFormData = ref({
+  notify_admin_on_comment: false
+})
+
 const originalData = ref({ ...formData.value })
 const originalUploadData = ref({ ...uploadFormData.value })
+const originalNotificationData = ref({ ...notificationFormData.value })
 const loading = ref(false)
 const uploadLoading = ref(false)
+const notificationLoading = ref(false)
 const isMobile = ref(false)
 
 // 检测移动设备
@@ -311,6 +357,21 @@ async function fetchUploadSettings() {
     }
   } catch (error: any) {
     message.error(error.response?.data?.message || '获取上传配置失败')
+  }
+}
+
+// 获取通知配置
+async function fetchNotificationSettings() {
+  try {
+    const res = await getNotificationSettings()
+    if (res.data) {
+      notificationFormData.value = {
+        notify_admin_on_comment: res.data.notify_admin_on_comment === '1' || res.data.notify_admin_on_comment === 'true'
+      }
+      originalNotificationData.value = { ...notificationFormData.value }
+    }
+  } catch (error: any) {
+    message.error(error.response?.data?.message || '获取通知配置失败')
   }
 }
 
@@ -368,6 +429,29 @@ function handleUploadReset() {
   message.info('已重置为上次保存的数据')
 }
 
+// 提交通知配置
+async function handleNotificationSubmit() {
+  notificationLoading.value = true
+  try {
+    await updateNotificationSettings({
+      notify_admin_on_comment: notificationFormData.value.notify_admin_on_comment ? '1' : '0'
+    })
+    message.success('通知配置保存成功')
+    originalNotificationData.value = { ...notificationFormData.value }
+  } catch (error: any) {
+    message.error(error.response?.data?.message || '保存失败')
+  } finally {
+    notificationLoading.value = false
+  }
+}
+
+// 重置通知配置
+function handleNotificationReset() {
+  notificationFormData.value = { ...originalNotificationData.value }
+  notificationFormRef.value?.restoreValidation()
+  message.info('已重置为上次保存的数据')
+}
+
 // 单字段清除
 function clearField(key: keyof typeof formData.value) {
   formData.value[key] = ''
@@ -378,6 +462,7 @@ onMounted(() => {
   window.addEventListener('resize', checkMobile)
   fetchSettings()
   fetchUploadSettings()
+  fetchNotificationSettings()
 })
 
 onUnmounted(() => {
