@@ -31,4 +31,3 @@ func InitRedis() error {
 	blogLogger.Info("Redis connected successfully")
 	return nil
 }
-
