@@ -230,6 +230,8 @@ func setupSettingRoutes(api *gin.RouterGroup, h *handler.SettingHandler) {
 			settingsAdmin.PUT("/site", h.UpdateSiteSettings)
 			settingsAdmin.GET("/upload", h.GetUploadSettings)
 			settingsAdmin.PUT("/upload", h.UpdateUploadSettings)
+			settingsAdmin.GET("/notification", h.GetNotificationSettings)
+			settingsAdmin.PUT("/notification", h.UpdateNotificationSettings)
 			settingsAdmin.PUT("/friendlink-info", h.UpdateFriendLinkInfo)
 		}
 	}
