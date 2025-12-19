@@ -572,9 +572,11 @@ COMMENT ON COLUMN friend_links.status IS '状态：1-启用，0-禁用';
 INSERT INTO settings (key, value, type, "group", label, created_at, updated_at)
 VALUES 
 ('site_name', '我的博客', 'text', 'site', '网站名称', NOW(), NOW()),
+('site_url', 'http://localhost:3000', 'text', 'site', '网站URL', NOW(), NOW()),
 ('site_icp', '', 'text', 'site', 'ICP备案号', NOW(), NOW()),
 ('site_police', '', 'text', 'site', '公安备案号', NOW(), NOW()),
-('storage_type', 'local', 'text', 'upload', '存储类型', NOW(), NOW())
+('storage_type', 'local', 'text', 'upload', '存储类型', NOW(), NOW()),
+('notify_admin_on_comment', '0', 'text', 'notification', '评论时通知管理员', NOW(), NOW())
 ON CONFLICT (key) DO NOTHING;
 
 -- 插入默认友链分类
