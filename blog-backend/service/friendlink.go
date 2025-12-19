@@ -23,6 +23,7 @@ type CreateFriendLinkRequest struct {
 	Description string `json:"description"`
 	Screenshot  string `json:"screenshot"`
 	AtomURL     string `json:"atom_url"`
+	CategoryID  uint   `json:"category_id" binding:"required"` // 分类ID（必选）
 	SortOrder   int    `json:"sort_order"`
 	Status      int    `json:"status"`
 }
@@ -35,12 +36,19 @@ type UpdateFriendLinkRequest struct {
 	Description string `json:"description"`
 	Screenshot  string `json:"screenshot"`
 	AtomURL     string `json:"atom_url"`
-	SortOrder   int    `json:"sort_order"`
-	Status      int    `json:"status"`
+	CategoryID  *uint  `json:"category_id"` // 分类ID（使用指针以区分未传递和传递了0）
+	SortOrder   *int   `json:"sort_order"`
+	Status      *int   `json:"status"`
 }
 
 // Create 创建友链
 func (s *FriendLinkService) Create(req *CreateFriendLinkRequest) (*model.FriendLink, error) {
+	// 验证分类是否存在
+	categoryRepo := repository.NewFriendLinkCategoryRepository()
+	if _, err := categoryRepo.GetByID(req.CategoryID); err != nil {
+		return nil, err
+	}
+
 	friendLink := &model.FriendLink{
 		Name:        req.Name,
 		URL:         req.URL,
@@ -48,6 +56,7 @@ func (s *FriendLinkService) Create(req *CreateFriendLinkRequest) (*model.FriendL
 		Description: req.Description,
 		Screenshot:  req.Screenshot,
 		AtomURL:     req.AtomURL,
+		CategoryID:  req.CategoryID,
 		SortOrder:   req.SortOrder,
 		Status:      req.Status,
 	}
@@ -60,7 +69,7 @@ func (s *FriendLinkService) Create(req *CreateFriendLinkRequest) (*model.FriendL
 		return nil, err
 	}
 
-	return friendLink, nil
+	return s.repo.GetByID(friendLink.ID)
 }
 
 // GetByID 根据ID获取友链
@@ -97,20 +106,48 @@ func (s *FriendLinkService) Update(id uint, req *UpdateFriendLinkRequest) (*mode
 	if req.URL != "" {
 		friendLink.URL = req.URL
 	}
-	friendLink.Icon = req.Icon
-	friendLink.Description = req.Description
-	friendLink.Screenshot = req.Screenshot
-	friendLink.AtomURL = req.AtomURL
-	friendLink.SortOrder = req.SortOrder
-	if req.Status >= 0 {
-		friendLink.Status = req.Status
+	if req.Icon != "" {
+		friendLink.Icon = req.Icon
+	}
+	if req.Description != "" {
+		friendLink.Description = req.Description
+	}
+	if req.Screenshot != "" {
+		friendLink.Screenshot = req.Screenshot
+	}
+	if req.AtomURL != "" {
+		friendLink.AtomURL = req.AtomURL
+	}
+	// 如果传递了 category_id，则更新分类
+	// 注意：JSON 绑定中，如果字段存在且值为数字，指针会被设置为指向该数字
+	// 如果字段不存在，指针为 nil
+	if req.CategoryID != nil {
+		categoryID := *req.CategoryID
+		if categoryID > 0 {
+			// 验证分类是否存在
+			categoryRepo := repository.NewFriendLinkCategoryRepository()
+			if _, err := categoryRepo.GetByID(categoryID); err != nil {
+				return nil, err
+			}
+			friendLink.CategoryID = categoryID
+		} else {
+			// category_id 为 0 或负数，视为无效值，不更新
+			// 这种情况不应该发生，因为前端验证要求 category_id > 0
+		}
+	}
+	// 如果 req.CategoryID == nil，说明前端没有传递 category_id 字段，不更新分类
+	if req.SortOrder != nil {
+		friendLink.SortOrder = *req.SortOrder
+	}
+	if req.Status != nil {
+		friendLink.Status = *req.Status
 	}
 
 	if err := s.repo.Update(friendLink); err != nil {
 		return nil, err
 	}
 
-	return friendLink, nil
+	return s.repo.GetByID(friendLink.ID)
 }
 
 // Delete 删除友链
