@@ -508,7 +508,30 @@ VALUES
 ON CONFLICT (name) DO NOTHING;
 
 -- =============================================================================
--- 14. 友链表
+-- 14. 友链分类表
+-- =============================================================================
+
+-- 创建友链分类表
+CREATE TABLE IF NOT EXISTS friend_link_categories (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    description VARCHAR(200),
+    sort_order INT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 友链分类表索引
+CREATE INDEX IF NOT EXISTS idx_friend_link_categories_sort ON friend_link_categories(sort_order DESC, id DESC);
+
+-- 友链分类表注释
+COMMENT ON TABLE friend_link_categories IS '友链分类表';
+COMMENT ON COLUMN friend_link_categories.name IS '分类名称';
+COMMENT ON COLUMN friend_link_categories.description IS '分类描述';
+COMMENT ON COLUMN friend_link_categories.sort_order IS '排序顺序（数字越大越靠前）';
+
+-- =============================================================================
+-- 15. 友链表
 -- =============================================================================
 
 -- 创建友链表
@@ -520,15 +543,18 @@ CREATE TABLE IF NOT EXISTS friend_links (
     description TEXT,
     screenshot VARCHAR(255),
     atom_url VARCHAR(255),
+    category_id INT NOT NULL,
     sort_order INT DEFAULT 0,
     status INT DEFAULT 1,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (category_id) REFERENCES friend_link_categories(id) ON DELETE RESTRICT
 );
 
 -- 友链表索引
 CREATE INDEX IF NOT EXISTS idx_friend_links_status ON friend_links(status);
-CREATE INDEX IF NOT EXISTS idx_friend_links_sort ON friend_links(sort_order DESC, id DESC);
+CREATE INDEX IF NOT EXISTS idx_friend_links_category_id ON friend_links(category_id);
+CREATE INDEX IF NOT EXISTS idx_friend_links_sort ON friend_links(category_id, sort_order DESC, id DESC);
 
 -- 友链表注释
 COMMENT ON TABLE friend_links IS '友链表';
@@ -538,6 +564,7 @@ COMMENT ON COLUMN friend_links.icon IS '网站图标URL';
 COMMENT ON COLUMN friend_links.description IS '网站描述';
 COMMENT ON COLUMN friend_links.screenshot IS '网站截图URL';
 COMMENT ON COLUMN friend_links.atom_url IS 'RSS/Atom订阅地址（可选）';
+COMMENT ON COLUMN friend_links.category_id IS '分类ID（必选）';
 COMMENT ON COLUMN friend_links.sort_order IS '排序顺序（数字越大越靠前）';
 COMMENT ON COLUMN friend_links.status IS '状态：1-启用，0-禁用';
 
@@ -549,6 +576,13 @@ VALUES
 ('site_police', '', 'text', 'site', '公安备案号', NOW(), NOW()),
 ('storage_type', 'local', 'text', 'upload', '存储类型', NOW(), NOW())
 ON CONFLICT (key) DO NOTHING;
+
+-- 插入默认友链分类
+INSERT INTO friend_link_categories (id, name, description, sort_order, created_at, updated_at)
+VALUES 
+(1, '推荐', '都是大佬,推荐关注', 2, NOW(), NOW()),
+(2, '小伙伴们', '由添加时间综合排序', 1, NOW(), NOW())
+ON CONFLICT (id) DO NOTHING;
 
 -- 插入我的友链信息默认配置
 INSERT INTO settings (key, value, type, "group", label, created_at, updated_at)
