@@ -3,6 +3,7 @@ package repository
 import (
 	"blog-backend/db"
 	"blog-backend/model"
+
 	"gorm.io/gorm"
 )
 
@@ -34,7 +35,7 @@ func (r *CommentRepository) Delete(id uint) error {
 	return db.DB.Delete(&model.Comment{}, id).Error
 }
 
-// GetByPostID 根据文章ID获取评论列表
+// GetByPostID 根据文章ID获取评论列表（向后兼容）
 func (r *CommentRepository) GetByPostID(postID uint) ([]model.Comment, error) {
 	var comments []model.Comment
 	// 主评论按时间倒序，子评论按时间正序
@@ -43,7 +44,22 @@ func (r *CommentRepository) GetByPostID(postID uint) ([]model.Comment, error) {
 			return tx.Where("status = 1").Order("created_at ASC")
 		}).
 		Preload("Children.User").
-		Where("post_id = ? AND parent_id IS NULL AND status = 1", postID).
+		Where("comment_type = ? AND post_id = ? AND parent_id IS NULL AND status = 1", "post", postID).
+		Order("created_at DESC").
+		Find(&comments).Error
+	return comments, err
+}
+
+// GetByTypeAndTarget 根据评论类型和目标ID获取评论列表
+func (r *CommentRepository) GetByTypeAndTarget(commentType string, targetID uint) ([]model.Comment, error) {
+	var comments []model.Comment
+	// 主评论按时间倒序，子评论按时间正序
+	err := db.DB.Preload("User").
+		Preload("Children", func(tx *gorm.DB) *gorm.DB {
+			return tx.Where("status = 1").Order("created_at ASC")
+		}).
+		Preload("Children.User").
+		Where("comment_type = ? AND target_id = ? AND parent_id IS NULL AND status = 1", commentType, targetID).
 		Order("created_at DESC").
 		Find(&comments).Error
 	return comments, err
@@ -83,4 +99,3 @@ func (r *CommentRepository) GetRecentComments(limit int) ([]model.Comment, error
 		Find(&comments).Error
 	return comments, err
 }
-
