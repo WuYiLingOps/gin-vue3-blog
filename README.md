@@ -34,7 +34,8 @@
 ### 🎯 核心功能
 - 📝 **文章管理** - Markdown 编辑器，支持代码高亮、图片上传
 - 🏷️ **分类标签** - 灵活的分类和标签系统
-- 💬 **评论系统** - 支持嵌套回复的评论功能
+- 💬 **评论系统** - 支持嵌套回复的评论功能，支持多种评论类型（文章评论、友链评论等）
+- 🔗 **友情链接** - 友链管理功能，支持独立评论系统
 - 💭 **说说动态** - 类似朋友圈的动态发布
 - 💬 **实时聊天室** - WebSocket 实时通信，支持登录用户和匿名访问
 - 👤 **用户系统** - 完整的用户注册、登录、权限管理
@@ -733,12 +734,22 @@ docker exec -i blog-postgres pg_restore -U postgres -d blogdb --clean --if-exist
 - 评论审核
 - 评论状态管理
 - 用户头像显示
+- **多类型评论支持** - 支持文章评论、友链评论等多种评论类型
+- **独立评论系统** - 友链页面拥有独立的评论系统，不依赖文章
 
 ### 💭 说说动态
 - 发布图文动态
 - 多图上传（最多9张）
 - 点赞功能
 - 公开/私密状态
+
+### 🔗 友情链接
+- 友链管理（后台添加、编辑、删除）
+- 友链展示（前台展示友链列表）
+- 友链申请（支持在友链页面申请）
+- **独立评论系统** - 友链页面拥有独立的评论功能，支持嵌套回复
+- 我的友链信息配置（名称、描述、URL、头像、站点图片、RSS订阅等）
+- YAML 格式友链信息导出
 
 ### 👤 用户中心
 - 用户注册和登录
@@ -769,6 +780,7 @@ docker exec -i blog-postgres pg_restore -U postgres -d blogdb --clean --if-exist
 - 📝 文章管理
 - 🏷️ 分类标签管理
 - 💬 评论管理
+- 🔗 友链管理（添加、编辑、删除友链，配置我的友链信息）
 - 💭 说说管理
 - 💬 聊天室管理（消息管理、用户管理）
 - 👥 用户管理
@@ -846,7 +858,12 @@ docker exec -i blog-postgres pg_restore -U postgres -d blogdb --clean --if-exist
 
 ### 评论相关
 - `GET /api/comments/post/:id` - 获取文章评论
+- `GET /api/comments/type?type={type}&target_id={target_id}` - 根据评论类型和目标ID获取评论（用于友链等特殊页面）
+  - `type`: 评论类型（`post`-文章评论，`friendlink`-友链评论）
+  - `target_id`: 目标ID（友链评论时固定为0）
 - `POST /api/comments` - 创建评论（需认证）
+  - 文章评论：`{ "content": "...", "comment_type": "post", "post_id": 1 }`
+  - 友链评论：`{ "content": "...", "comment_type": "friendlink", "target_id": 0 }`
 - `PUT /api/comments/:id` - 更新评论（需认证）
 - `DELETE /api/comments/:id` - 删除评论（需认证）
 
@@ -864,6 +881,16 @@ docker exec -i blog-postgres pg_restore -U postgres -d blogdb --clean --if-exist
   - 普通用户：强制使用本地存储，不上传到 OSS/COS
   - 管理员：根据后台配置选择存储方式（本地/OSS/COS）
 - `POST /api/upload/image` - 上传图片（需认证，根据配置选择存储方式）
+
+### 友链相关
+- `GET /api/friend-links` - 获取友链列表（公开）
+- `GET /api/admin/friend-links` - 获取友链列表（管理员）
+- `GET /api/admin/friend-links/:id` - 获取友链详情（管理员）
+- `POST /api/admin/friend-links` - 创建友链（管理员）
+- `PUT /api/admin/friend-links/:id` - 更新友链（管理员）
+- `DELETE /api/admin/friend-links/:id` - 删除友链（管理员）
+- `GET /api/settings/friendlink-info` - 获取我的友链信息（公开）
+- `PUT /api/admin/settings/friendlink-info` - 更新我的友链信息（管理员）
 
 ### 设置相关
 - `GET /api/settings/public` - 获取公开设置
@@ -926,6 +953,19 @@ docker exec -i blog-postgres pg_restore -U postgres -d blogdb --clean --if-exist
 5. 提交 Pull Request
 
 ## 📝 更新日志
+
+### v1.3.0 (2025-12-19)
+- ✨ 新增友情链接功能
+  - 🔗 友链管理（后台添加、编辑、删除友链）
+  - 📋 友链展示页面（前台展示友链列表）
+  - 💬 友链独立评论系统（支持嵌套回复，不依赖文章）
+  - ⚙️ 我的友链信息配置（名称、描述、URL、头像、站点图片、RSS订阅等）
+  - 📄 YAML 格式友链信息导出
+- 🔧 评论系统重构
+  - 🎯 支持多种评论类型（文章评论、友链评论等）
+  - 📊 评论表扩展：添加 `comment_type` 和 `target_id` 字段
+  - 🔄 向后兼容：保持文章评论功能不变
+  - 🗑️ 移除特殊文章依赖（不再需要创建ID=999999的特殊文章）
 
 ### v1.2.0 (2025-11-04)
 - ✨ 新增实时聊天室功能
