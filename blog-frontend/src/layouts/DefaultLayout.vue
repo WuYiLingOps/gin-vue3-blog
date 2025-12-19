@@ -244,7 +244,7 @@
 <script setup lang="ts">
 import { ref, computed, h, onMounted, onBeforeUnmount, reactive } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { MoonOutline, SunnyOutline, PersonOutline, LogOutOutline, SettingsOutline, SearchOutline, MenuOutline, HomeOutline, ArchiveOutline, ChatbubblesOutline, ChatboxEllipsesOutline, ClipboardOutline } from '@vicons/ionicons5'
+import { MoonOutline, SunnyOutline, PersonOutline, LogOutOutline, SettingsOutline, SearchOutline, MenuOutline, HomeOutline, ArchiveOutline, ChatbubblesOutline, ChatboxEllipsesOutline, ClipboardOutline, LinkOutline } from '@vicons/ionicons5'
 import { useAuthStore, useAppStore } from '@/stores'
 import { NIcon, useMessage, useDialog } from 'naive-ui'
 import type { FormInst, FormRules } from 'naive-ui'
@@ -340,6 +340,12 @@ const menuOptions = computed(() => {
       ]
     },
     {
+      label: '友情链接',
+      key: 'FriendLinks',
+      path: '/friend-links',
+      icon: () => h(NIcon, null, { default: () => h(LinkOutline) })
+    },
+    {
       label: '说说',
       key: 'Moments',
       path: '/moments',
@@ -402,7 +408,41 @@ function handleMenuSelect(key: string) {
   }
   
   activeKey.value = key
-  router.push({ name: key })
+  
+  // 查找菜单项，优先使用 path，如果没有 path 则使用 name
+  let targetPath: string | undefined = undefined
+  
+  for (const item of menuOptions.value) {
+    // 检查是否是当前项
+    if (item.key === key) {
+      targetPath = (item as any).path
+      break
+    }
+    // 检查子项
+    if ((item as any).children) {
+      const child = (item as any).children.find((child: any) => child.key === key)
+      if (child) {
+        targetPath = child.path
+        break
+      }
+    }
+  }
+  
+  if (targetPath) {
+    router.push(targetPath).catch((err) => {
+      // 忽略导航重复的错误
+      if (err.name !== 'NavigationDuplicated') {
+        console.error('路由跳转失败:', err)
+      }
+    })
+  } else {
+    router.push({ name: key }).catch((err) => {
+      // 忽略导航重复的错误
+      if (err.name !== 'NavigationDuplicated') {
+        console.error('路由跳转失败:', err)
+      }
+    })
+  }
 }
 
 // 处理移动端菜单选择
@@ -414,7 +454,41 @@ function handleMobileMenuSelect(key: string) {
   
   activeKey.value = key
   showMobileMenu.value = false
-  router.push({ name: key })
+  
+  // 查找菜单项，优先使用 path，如果没有 path 则使用 name
+  let targetPath: string | undefined = undefined
+  
+  for (const item of menuOptions.value) {
+    // 检查是否是当前项
+    if (item.key === key) {
+      targetPath = (item as any).path
+      break
+    }
+    // 检查子项
+    if ((item as any).children) {
+      const child = (item as any).children.find((child: any) => child.key === key)
+      if (child) {
+        targetPath = child.path
+        break
+      }
+    }
+  }
+  
+  if (targetPath) {
+    router.push(targetPath).catch((err) => {
+      // 忽略导航重复的错误
+      if (err.name !== 'NavigationDuplicated') {
+        console.error('路由跳转失败:', err)
+      }
+    })
+  } else {
+    router.push({ name: key }).catch((err) => {
+      // 忽略导航重复的错误
+      if (err.name !== 'NavigationDuplicated') {
+        console.error('路由跳转失败:', err)
+      }
+    })
+  }
 }
 
 // 处理移动端用户操作
