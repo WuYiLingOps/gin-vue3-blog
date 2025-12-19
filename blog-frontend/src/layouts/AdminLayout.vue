@@ -115,7 +115,8 @@ import {
   SettingsOutline,
   MenuOutline,
   ChatbubbleEllipsesOutline,
-  ShieldCheckmarkOutline
+  ShieldCheckmarkOutline,
+  LinkOutline
 } from '@vicons/ionicons5'
 import { useAuthStore } from '@/stores'
 import { NIcon, useLoadingBar } from 'naive-ui'
@@ -233,7 +234,12 @@ const menuOptions = [
   {
     label: '友链管理',
     key: 'FriendLinkManage',
-    icon: renderIcon(PricetagsOutline)
+    icon: renderIcon(LinkOutline)
+  },
+  {
+    label: '友链分类',
+    key: 'FriendLinkCategoryManage',
+    icon: renderIcon(FolderOutline)
   },
   {
     label: '网站设置',
