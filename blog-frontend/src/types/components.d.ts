@@ -13,6 +13,8 @@ declare module 'vue' {
     BwinHotCalendar: typeof import('./../components/BwinHotCalendar.vue')['default']
     CanvasBackground: typeof import('./../components/CanvasBackground.vue')['default']
     CaptchaInput: typeof import('./../components/CaptchaInput.vue')['default']
+    CommentContent: typeof import('./../components/CommentContent.vue')['default']
+    CommentMarkdownEditor: typeof import('./../components/CommentMarkdownEditor.vue')['default']
     ContributionCalendar: typeof import('./../components/ContributionCalendar.vue')['default']
     FriendLinkWidget: typeof import('./../components/FriendLinkWidget.vue')['default']
     GiteeCalendar: typeof import('./../components/GiteeCalendar.vue')['default']
