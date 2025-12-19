@@ -1,6 +1,6 @@
 <template>
   <div class="tag-cloud-card">
-    <n-card title="☁️ 标签云" size="small" :bordered="false" class="tag-cloud">
+    <n-card title="🏷️ 标签列表" size="small" :bordered="false" class="tag-cloud">
       <div v-if="loading" class="tag-loading">加载中...</div>
       <div v-else-if="error" class="tag-error">{{ error }}</div>
       <div v-else class="tags-wrap">

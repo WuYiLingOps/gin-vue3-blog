@@ -2,7 +2,7 @@
   <n-card class="hot-posts-card" :bordered="false">
     <template #header>
       <div class="card-title">
-        <n-icon :component="TimeOutline" size="18" />
+        <span>📰</span>
         <span>最新发布文章</span>
       </div>
     </template>

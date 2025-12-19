@@ -5,7 +5,7 @@
   >
     <template #header>
       <div class="card-title">
-        <n-icon :component="MegaphoneOutline" size="18" />
+        <span>📢</span>
         <span>公告栏</span>
       </div>
     </template>
@@ -75,7 +75,6 @@
 <script setup lang="ts">
 import { onMounted, ref, computed } from 'vue'
 import { useMessage } from 'naive-ui'
-import { MegaphoneOutline } from '@vicons/ionicons5'
 import { getAnnouncements, type Announcement } from '@/api/blog'
 
 interface Props {
