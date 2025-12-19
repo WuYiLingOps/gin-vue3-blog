@@ -24,6 +24,10 @@ export interface UploadSettings {
   oss_domain?: string
 }
 
+export interface NotificationSettings {
+  notify_admin_on_comment?: string  // '0' | '1'
+}
+
 // 获取公开的网站配置
 export function getPublicSettings() {
   return request.get<SiteSettings>('/settings/public')
@@ -66,5 +70,15 @@ export function getFriendLinkInfo() {
 // 更新我的友链信息（管理员）
 export function updateFriendLinkInfo(data: FriendLinkInfo) {
   return request.put('/settings/friendlink-info', data)
+}
+
+// 获取通知配置（管理员）
+export function getNotificationSettings() {
+  return request.get<NotificationSettings>('/settings/notification')
+}
+
+// 更新通知配置（管理员）
+export function updateNotificationSettings(data: Record<string, string>) {
+  return request.put('/settings/notification', data)
 }
 
