@@ -186,11 +186,6 @@ const statusOptions = [
   { label: '已发布', value: 1 }
 ]
 
-const visibilityOptions = [
-  { label: '公开', value: 1 },
-  { label: '私密', value: 0 }
-]
-
 const categoryOptions = computed(() =>
   blogStore.categories.map(c => ({ label: c.name, value: c.id }))
 )
