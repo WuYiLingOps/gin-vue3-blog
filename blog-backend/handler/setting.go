@@ -114,3 +114,30 @@ func (h *SettingHandler) UpdateUploadSettings(c *gin.Context) {
 
 	util.SuccessWithMessage(c, "更新成功", nil)
 }
+
+// GetFriendLinkInfo 获取我的友链信息（公开接口）
+func (h *SettingHandler) GetFriendLinkInfo(c *gin.Context) {
+	info, err := h.service.GetFriendLinkInfo()
+	if err != nil {
+		util.Error(c, 500, "获取友链信息失败")
+		return
+	}
+
+	util.Success(c, info)
+}
+
+// UpdateFriendLinkInfo 更新我的友链信息（仅管理员）
+func (h *SettingHandler) UpdateFriendLinkInfo(c *gin.Context) {
+	var req map[string]string
+	if err := c.ShouldBindJSON(&req); err != nil {
+		util.BadRequest(c, "参数错误")
+		return
+	}
+
+	if err := h.service.UpdateFriendLinkInfo(req); err != nil {
+		util.Error(c, 500, "更新友链信息失败")
+		return
+	}
+
+	util.SuccessWithMessage(c, "更新成功", nil)
+}
