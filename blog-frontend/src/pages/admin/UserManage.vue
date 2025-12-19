@@ -18,7 +18,7 @@
 import { ref, computed, onMounted, onUnmounted, h } from 'vue'
 import { useMessage, useDialog, NButton, NTag, NSpace, NAvatar } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
-import { getUsers, updateUserStatus } from '@/api/user'
+import { getUsers, updateUserStatus, deleteUser } from '@/api/user'
 import { formatDate } from '@/utils/format'
 import type { User } from '@/types/auth'
 
@@ -94,7 +94,7 @@ const columns: DataTableColumns<User> = [
   {
     title: '操作',
     key: 'actions',
-    width: 120,
+    width: 180,
     render: row =>
       h(NSpace, null, {
         default: () => [
@@ -105,6 +105,15 @@ const columns: DataTableColumns<User> = [
               onClick: () => handleToggleStatus(row)
             },
             { default: () => (row.status === 1 ? '禁用' : '启用') }
+          ),
+          h(
+            NButton,
+            {
+              size: 'small',
+              type: 'error',
+              onClick: () => handleDelete(row)
+            },
+            { default: () => '删除' }
           )
         ]
       })
@@ -164,6 +173,24 @@ function handleToggleStatus(user: User) {
         fetchUsers()
       } catch (error: any) {
         message.error(error.message || '操作失败')
+      }
+    }
+  })
+}
+
+function handleDelete(user: User) {
+  dialog.error({
+    title: '确认删除',
+    content: `确定要删除用户"${user.nickname || user.username}"吗？此操作不可恢复！`,
+    positiveText: '确定',
+    negativeText: '取消',
+    onPositiveClick: async () => {
+      try {
+        await deleteUser(user.id)
+        message.success('删除成功')
+        fetchUsers()
+      } catch (error: any) {
+        message.error(error.message || '删除失败')
       }
     }
   })
