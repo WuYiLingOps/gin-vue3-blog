@@ -736,6 +736,7 @@ docker exec -i blog-postgres pg_restore -U postgres -d blogdb --clean --if-exist
 - 用户头像显示
 - **多类型评论支持** - 支持文章评论、友链评论等多种评论类型
 - **独立评论系统** - 友链页面拥有独立的评论系统，不依赖文章
+- **评论通知功能** - 管理员可配置是否接收评论通知邮件（由于普通用户无权限写文章，文章作者只能是管理员，统一通过管理员通知处理）
 
 ### 💭 说说动态
 - 发布图文动态
@@ -784,8 +785,8 @@ docker exec -i blog-postgres pg_restore -U postgres -d blogdb --clean --if-exist
 - 💭 说说管理
 - 💬 聊天室管理（消息管理、用户管理）
 - 👥 用户管理
-- ⚙️ 网站设置
-- 🚫 IP 黑名单管理
+- ⚙️ 网站设置（包含通知配置）
+- 🚫 IP 访问控制（黑名单/白名单统一管理）
 
 ## 🛠️ 技术栈
 
@@ -896,6 +897,9 @@ docker exec -i blog-postgres pg_restore -U postgres -d blogdb --clean --if-exist
 - `GET /api/settings/public` - 获取公开设置
 - `GET /api/settings/site` - 获取网站设置（管理员）
 - `PUT /api/settings/site` - 更新网站设置（管理员）
+- `GET /api/settings/notification` - 获取通知配置（管理员）
+- `PUT /api/settings/notification` - 更新通知配置（管理员）
+  - 支持配置管理员评论通知开关
 
 ### 验证码相关
 - `GET /api/captcha` - 获取图形验证码
@@ -953,6 +957,20 @@ docker exec -i blog-postgres pg_restore -U postgres -d blogdb --clean --if-exist
 5. 提交 Pull Request
 
 ## 📝 更新日志
+
+### v1.4.0 (2025-12-20)
+- ✨ 新增评论通知功能
+  - 📧 管理员评论通知（可配置开关）
+  - 🔔 当有用户评论文章时，可选择性通知所有管理员
+  - ⚙️ 通知配置可在管理后台"网站设置"中开启/关闭
+  - 🌐 智能URL获取：优先从"我的友链信息"中获取网站地址
+  - 📝 邮件模板支持Markdown内容预览
+- 🔧 优化评论通知逻辑
+  - 由于普通用户无权限写文章，文章作者只能是管理员，统一通过管理员通知处理
+  - 避免重复通知：评论者本人不会收到通知邮件
+- 🎨 优化管理后台通知配置界面
+  - 清晰展示管理员通知开关
+  - 完善通知说明文档
 
 ### v1.3.0 (2025-12-19)
 - ✨ 新增友情链接功能
