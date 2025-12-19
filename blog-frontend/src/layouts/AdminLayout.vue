@@ -222,13 +222,8 @@ const menuOptions = [
     icon: renderIcon(PeopleOutline)
   },
   {
-    label: 'IP黑名单',
-    key: 'IPBlacklistManage',
-    icon: renderIcon(ShieldCheckmarkOutline)
-  },
-  {
-    label: 'IP白名单',
-    key: 'IPWhitelistManage',
+    label: 'IP访问控制',
+    key: 'IPAccessControl',
     icon: renderIcon(ShieldCheckmarkOutline)
   },
   {
