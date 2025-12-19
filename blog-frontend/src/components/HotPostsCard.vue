@@ -2,8 +2,8 @@
   <n-card class="hot-posts-card" :bordered="false">
     <template #header>
       <div class="card-title">
-        <n-icon :component="FlameOutline" size="18" />
-        <span>热门文章推荐</span>
+        <n-icon :component="TimeOutline" size="18" />
+        <span>最新发布文章</span>
       </div>
     </template>
     <n-spin :show="loading">
@@ -14,24 +14,38 @@
           class="list-item"
           @click="goPost(item.id)"
         >
-          <div class="item-title" :title="item.title">{{ item.title }}</div>
-          <div class="item-meta">
-            <span class="meta">
-              <n-icon :component="TimeOutline" size="14" />
-              {{ formatDate(item.created_at, 'YYYY-MM-DD') }}
-            </span>
-            <span class="meta">
-              <n-icon :component="EyeOutline" size="14" />
-              {{ item.view_count }}
-            </span>
-            <span class="meta">
-              <n-icon :component="HeartOutline" size="14" />
-              {{ item.like_count }}
-            </span>
+          <div class="item-cover">
+            <n-image
+              v-if="item.cover"
+              :src="item.cover"
+              :alt="item.title"
+              class="cover-image"
+              preview-disabled
+            />
+            <div v-else class="cover-placeholder">
+              <n-icon :component="ImageOutline" size="20" />
+            </div>
+          </div>
+          <div class="item-content">
+            <div class="item-title" :title="item.title">{{ item.title }}</div>
+            <div class="item-meta">
+              <span class="meta">
+                <n-icon :component="TimeOutline" size="14" />
+                {{ formatDate(item.created_at, 'YYYY-MM-DD') }}
+              </span>
+              <span class="meta">
+                <n-icon :component="EyeOutline" size="14" />
+                {{ item.view_count }}
+              </span>
+              <span class="meta">
+                <n-icon :component="HeartOutline" size="14" />
+                {{ item.like_count }}
+              </span>
+            </div>
           </div>
         </div>
       </div>
-      <n-empty v-else description="暂无热门文章" size="small" />
+      <n-empty v-else description="暂无最新文章" size="small" />
     </n-spin>
   </n-card>
 </template>
@@ -39,8 +53,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { TimeOutline, EyeOutline, HeartOutline, FlameOutline } from '@vicons/ionicons5'
-import { getHotPosts } from '@/api/post'
+import { TimeOutline, EyeOutline, HeartOutline, ImageOutline } from '@vicons/ionicons5'
+import { getRecentPosts } from '@/api/post'
 import { formatDate } from '@/utils/format'
 import type { Post } from '@/types/blog'
 
@@ -49,13 +63,13 @@ const posts = ref<Post[]>([])
 const loading = ref(false)
 const LIMIT = 5
 
-async function fetchHot() {
+async function fetchRecent() {
   loading.value = true
   try {
-    const res = await getHotPosts(LIMIT)
+    const res = await getRecentPosts(LIMIT)
     posts.value = res.data || []
   } catch (error) {
-    console.error('获取热门文章失败', error)
+    console.error('获取最新文章失败', error)
   } finally {
     loading.value = false
   }
@@ -65,7 +79,7 @@ function goPost(id: number) {
   router.push(`/post/${id}`)
 }
 
-onMounted(fetchHot)
+onMounted(fetchRecent)
 </script>
 
 <style scoped>
@@ -95,6 +109,9 @@ onMounted(fetchHot)
   border: 1px solid rgba(0, 0, 0, 0.04);
   cursor: pointer;
   transition: all 0.2s ease;
+  display: flex;
+  gap: 12px;
+  align-items: center;
 }
 
 .list-item:hover {
@@ -102,14 +119,54 @@ onMounted(fetchHot)
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
 }
 
+.item-cover {
+  flex-shrink: 0;
+  width: 120px;
+  height: 80px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cover-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.cover-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #c0c4cc;
+  background: linear-gradient(135deg, #f5f7fa 0%, #f0f2f5 100%);
+}
+
+.item-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
 .item-title {
   font-size: 14px;
   font-weight: 600;
   color: #111827;
-  line-height: 1.4;
+  line-height: 1.5;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  line-clamp: 2;
+  word-break: break-word;
 }
 
 .item-meta {
