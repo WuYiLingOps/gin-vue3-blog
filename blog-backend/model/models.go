@@ -71,18 +71,20 @@ type Tag struct {
 
 // Comment 评论模型
 type Comment struct {
-	ID        uint      `json:"id" gorm:"primaryKey"`
-	Content   string    `json:"content" gorm:"not null;type:text"`
-	PostID    uint      `json:"post_id" gorm:"index"`
-	UserID    uint      `json:"user_id" gorm:"index"`
-	ParentID  *uint     `json:"parent_id" gorm:"index"`  // 父评论ID，用于回复
-	Status    int       `json:"status" gorm:"default:1"` // 1:正常 0:隐藏
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID          uint      `json:"id" gorm:"primaryKey"`
+	Content     string    `json:"content" gorm:"not null;type:text"`
+	CommentType string    `json:"comment_type" gorm:"default:post;size:20;index"` // 评论类型：post-文章评论，friendlink-友链评论
+	PostID      *uint     `json:"post_id" gorm:"index"`                           // 文章ID（文章评论时使用，友链评论时为NULL）
+	TargetID    *uint     `json:"target_id" gorm:"index"`                         // 目标ID（通用目标ID，根据comment_type不同含义不同）
+	UserID      uint      `json:"user_id" gorm:"index"`
+	ParentID    *uint     `json:"parent_id" gorm:"index"`  // 父评论ID，用于回复
+	Status      int       `json:"status" gorm:"default:1"` // 1:正常 0:隐藏
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
 
 	// 关联关系
 	User     User      `json:"user" gorm:"foreignKey:UserID"`
-	Post     Post      `json:"post" gorm:"foreignKey:PostID"`
+	Post     *Post     `json:"post,omitempty" gorm:"foreignKey:PostID"`
 	Parent   *Comment  `json:"parent,omitempty" gorm:"foreignKey:ParentID"`
 	Children []Comment `json:"children,omitempty" gorm:"foreignKey:ParentID"`
 }
@@ -258,4 +260,23 @@ func (EmailChangeRecord) TableName() string {
 
 func (ChatMessage) TableName() string {
 	return "chat_messages"
+}
+
+// FriendLink 友链模型
+type FriendLink struct {
+	ID          uint      `json:"id" gorm:"primaryKey"`
+	Name        string    `json:"name" gorm:"not null;size:100"`
+	URL         string    `json:"url" gorm:"not null;size:255"`
+	Icon        string    `json:"icon" gorm:"size:255"`
+	Description string    `json:"description" gorm:"type:text"`
+	Screenshot  string    `json:"screenshot" gorm:"size:255"`
+	AtomURL     string    `json:"atom_url" gorm:"size:255"`
+	SortOrder   int       `json:"sort_order" gorm:"default:0;index"`
+	Status      int       `json:"status" gorm:"default:1;index"` // 1:启用 0:禁用
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+}
+
+func (FriendLink) TableName() string {
+	return "friend_links"
 }
