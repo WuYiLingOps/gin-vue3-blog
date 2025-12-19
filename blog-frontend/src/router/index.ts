@@ -40,6 +40,7 @@ const ChatManage = () => import('@/pages/admin/ChatManage.vue')
 const IPBlacklistManage = () => import('@/pages/admin/IPBlacklistManage.vue')
 const IPWhitelistManage = () => import('@/pages/admin/IPWhitelistManage.vue')
 const FriendLinkManage = () => import('@/pages/admin/FriendLinkManage.vue')
+const FriendLinkCategoryManage = () => import('@/pages/admin/FriendLinkCategoryManage.vue')
 
 const routes: RouteRecordRaw[] = [
   // 博客前台路由
@@ -244,6 +245,12 @@ const routes: RouteRecordRaw[] = [
         name: 'FriendLinkManage',
         component: FriendLinkManage,
         meta: { title: '友链管理', requiresAuth: true, requiresAdmin: true }
+      },
+      {
+        path: 'friend-link-categories',
+        name: 'FriendLinkCategoryManage',
+        component: FriendLinkCategoryManage,
+        meta: { title: '友链分类管理', requiresAuth: true, requiresAdmin: true }
       }
     ]
   },
