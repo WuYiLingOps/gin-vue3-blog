@@ -52,6 +52,15 @@
           </n-gi>
         </n-grid>
 
+        <n-form-item label="分类" path="category_id">
+          <n-select
+            v-model:value="formData.category_id"
+            :options="categoryOptions"
+            placeholder="请选择分类"
+            :loading="categories.length === 0"
+          />
+        </n-form-item>
+
         <n-form-item label="网站图标">
           <n-input v-model:value="formData.icon" placeholder="https://example.com/icon.ico" />
         </n-form-item>
@@ -151,12 +160,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, onUnmounted, h } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted, h } from 'vue'
 import { useMessage, useDialog, NButton, NTag, NSpace, NImage } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
 import { AddOutline, PersonOutline } from '@vicons/ionicons5'
-import { getFriendLinksAdmin, createFriendLink, updateFriendLink, deleteFriendLink } from '@/api/friendlink'
-import type { FriendLink, FriendLinkForm } from '@/api/friendlink'
+import { getFriendLinksAdmin, createFriendLink, updateFriendLink, deleteFriendLink, getFriendLinkCategoriesAdmin } from '@/api/friendlink'
+import type { FriendLink, FriendLinkForm, FriendLinkCategory } from '@/api/friendlink'
 import { getFriendLinkInfo, updateFriendLinkInfo, type FriendLinkInfo } from '@/api/setting'
 
 const message = useMessage()
@@ -166,6 +175,7 @@ const loading = ref(false)
 const submitting = ref(false)
 const showModal = ref(false)
 const friendLinks = ref<FriendLink[]>([])
+const categories = ref<FriendLinkCategory[]>([])
 const editingId = ref<number | null>(null)
 const isMobile = ref(false)
 const total = ref(0)
@@ -188,7 +198,7 @@ const myInfoRules = {
   name: [{ required: true, message: '请输入名称', trigger: 'blur' }],
   url: [
     { required: true, message: '请输入地址', trigger: 'blur' },
-    { type: 'url', message: '请输入有效的网址', trigger: 'blur' }
+    { type: 'url' as const, message: '请输入有效的网址', trigger: 'blur' }
   ]
 }
 
@@ -213,6 +223,7 @@ const formData = reactive<FriendLinkForm>({
   description: '',
   screenshot: '',
   atom_url: '',
+  category_id: 0,
   sort_order: 0,
   status: 1
 })
@@ -221,8 +232,9 @@ const rules = {
   name: [{ required: true, message: '请输入网站名称', trigger: 'blur' }],
   url: [
     { required: true, message: '请输入网址', trigger: 'blur' },
-    { type: 'url', message: '请输入有效的网址', trigger: 'blur' }
-  ]
+    { type: 'url' as const, message: '请输入有效的网址', trigger: 'blur' }
+  ],
+  category_id: [{ required: true, message: '请选择分类', trigger: 'change', type: 'number' as const }]
 }
 
 const columns: DataTableColumns<FriendLink> = [
@@ -245,6 +257,12 @@ const columns: DataTableColumns<FriendLink> = [
     key: 'url',
     width: 200,
     render: row => h('a', { href: row.url, target: '_blank', rel: 'noopener noreferrer', style: 'color: #18a058; text-decoration: none;' }, row.url)
+  },
+  {
+    title: '分类',
+    key: 'category',
+    width: 120,
+    render: row => row.category ? row.category.name : '-'
   },
   {
     title: '描述',
@@ -286,9 +304,30 @@ const columns: DataTableColumns<FriendLink> = [
   }
 ]
 
+// 分类选项
+const categoryOptions = computed(() => {
+  return categories.value.map(cat => ({
+    label: cat.name,
+    value: cat.id
+  }))
+})
+
+// 获取分类列表
+async function fetchCategories() {
+  try {
+    const res = await getFriendLinkCategoriesAdmin()
+    if (res && res.data) {
+      categories.value = Array.isArray(res.data) ? res.data : []
+    }
+  } catch (e: any) {
+    console.error('获取分类列表失败:', e)
+  }
+}
+
 onMounted(() => {
   checkMobile()
   window.addEventListener('resize', checkMobile)
+  fetchCategories()
   fetchFriendLinks()
   fetchMyInfo()
 })
@@ -355,8 +394,20 @@ async function fetchFriendLinks() {
   }
 }
 
-function handleCreate() {
+function resetForm() {
   editingId.value = null
+  formData.name = ''
+  formData.url = ''
+  formData.icon = ''
+  formData.description = ''
+  formData.screenshot = ''
+  formData.atom_url = ''
+  formData.category_id = categories.value.length > 0 ? categories.value[0].id : 0
+  formData.sort_order = 0
+  formData.status = 1
+}
+
+function handleCreate() {
   resetForm()
   showModal.value = true
 }
@@ -369,6 +420,7 @@ function handleEdit(friendLink: FriendLink) {
   formData.description = friendLink.description || ''
   formData.screenshot = friendLink.screenshot || ''
   formData.atom_url = friendLink.atom_url || ''
+  formData.category_id = friendLink.category_id
   formData.sort_order = friendLink.sort_order
   formData.status = friendLink.status
   showModal.value = true
@@ -379,7 +431,19 @@ async function handleSubmit() {
     await formRef.value?.validate()
     submitting.value = true
     if (editingId.value) {
-      await updateFriendLink(editingId.value, formData)
+      // 确保传递所有字段，包括 category_id
+      const updateData: Partial<FriendLinkForm> = {
+        name: formData.name,
+        url: formData.url,
+        icon: formData.icon || '',
+        description: formData.description || '',
+        screenshot: formData.screenshot || '',
+        atom_url: formData.atom_url || '',
+        category_id: formData.category_id,
+        sort_order: formData.sort_order,
+        status: formData.status
+      }
+      await updateFriendLink(editingId.value, updateData)
       message.success('更新成功')
     } else {
       await createFriendLink(formData)
@@ -420,18 +484,6 @@ function handleDelete(id: number) {
 
 const formRef = ref()
 const myInfoFormRef = ref()
-
-function resetForm() {
-  editingId.value = null
-  formData.name = ''
-  formData.url = ''
-  formData.icon = ''
-  formData.description = ''
-  formData.screenshot = ''
-  formData.atom_url = ''
-  formData.sort_order = 0
-  formData.status = 1
-}
 </script>
 
 <style scoped>
