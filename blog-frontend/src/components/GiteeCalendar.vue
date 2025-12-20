@@ -271,7 +271,8 @@ function extractUsername(url?: string) {
 // 使用后端缓存接口（带Redis缓存，20分钟过期）
 function getCalendarApiBase() {
   const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
-  return `${baseURL}/api/calendar/gitee`
+  // VITE_API_BASE_URL 已经包含了 /api 前缀，所以这里只需要添加 /calendar/gitee
+  return `${baseURL}/calendar/gitee`
 }
 
 // 构造一整年的「空」数据，用于无数据 / 请求失败时仍然展示完整网格样式
