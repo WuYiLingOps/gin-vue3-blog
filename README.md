@@ -521,17 +521,27 @@ nohup ./blog-backend > app.log 2>&1 &
    **HTTP 方式：**
    ```env
    # 后端主 API（博客业务接口）
-   VITE_API_BASE_URL=http://your-domain.com/api
+   # 方式一：只配置域名（推荐，更简洁）
+   VITE_API_BASE_URL=http://your-domain.com
+   
+   # 方式二：配置包含 /api 的完整路径（也可以，函数会自动处理）
+   # VITE_API_BASE_URL=http://your-domain.com/api
    ```
 
    **HTTPS 方式（SSL 证书）：**
    ```env
    # 后端主 API（博客业务接口）
-   VITE_API_BASE_URL=https://your-domain.com/api
+   # 方式一：只配置域名（推荐，更简洁）
+   VITE_API_BASE_URL=https://your-domain.com
+   # 示例：VITE_API_BASE_URL=https://huangjingblog.cn
+   
+   # 方式二：配置包含 /api 的完整路径（也可以，函数会自动处理）
+   # VITE_API_BASE_URL=https://your-domain.com/api
    # 示例：VITE_API_BASE_URL=https://huangjingblog.cn/api
    ```
 
-   - `VITE_API_BASE_URL`：博客后端（Gin 服务）的统一前缀，前端所有业务接口都会基于该地址请求，包括贡献热力图数据（通过 `/api/calendar/gitee` 接口获取）。
+   - `VITE_API_BASE_URL`：博客后端（Gin 服务）的基础地址，前端所有业务接口都会基于该地址请求，包括贡献热力图数据（通过 `/api/calendar/gitee` 接口获取）。
+   - **推荐配置方式**：只配置域名（如 `https://your-domain.com`），贡献热力图组件会自动添加 `/api` 前缀。如果已配置包含 `/api` 的路径，也能正常工作。
 
 #### 2.2 构建前端项目
 
