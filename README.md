@@ -57,7 +57,7 @@
 
 ## 🏗️ 项目结构
 
-```
+```bash
 myBlog/
 ├── blog-frontend/          # 前端项目
 │   ├── src/
@@ -185,10 +185,6 @@ docker cp go-vue3-blog/blog-backend/sql/init.sql pg-prod:/tmp/init.sql
 docker exec -it pg-prod psql -U postgres -d blogdb -f /tmp/init.sql
 ```
 
-结果如下：
-
-![image-20251215231415423](https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202512152314486.png)
-
 ### 3️⃣ 后端配置与启动
 
 > 如果没有配置go的镜像代理，可以参考[Go 国内加速：Go 国内加速镜像 | Go 技术论坛](https://learnku.com/go/wikis/38122)
@@ -215,8 +211,8 @@ vim config/config-dev.yml
 # REDIS_PASSWORD=安全的redis密码
 # JWT_SECRET=更复杂的JWT密钥
 # EMAIL_PASSWORD=邮箱授权码
-#
-# 注意：.env.config.dev / .env.config.prod 建议加入 .gitignore，不要提交到仓库
+
+
 
 # 配置邮箱服务（用于密码重置）
 # email:
@@ -338,26 +334,39 @@ GOOS=linux GOARCH=amd64 go build -o blog-backend ./cmd/server
   DB_USER=postgres
   DB_PASSWORD=your_postgres_password
   DB_NAME=blogdb
-
+  
   # Redis
   REDIS_HOST=redis
   REDIS_PORT=6379
   REDIS_PASSWORD=your_redis_password
-
+  
+  # Gitee Calendar API（如使用）
+  GITEE_CALENDAR_API_URL=http://127.0.0.1:8081/api
+  
   # JWT
   JWT_SECRET=your_jwt_secret
-
+  
   # 阿里云 OSS（如使用）
   OSS_ENDPOINT=oss-cn-hangzhou.aliyuncs.com
   OSS_ACCESS_KEY_ID=your-ak
   OSS_ACCESS_KEY_SECRET=your-sk
   OSS_BUCKET_NAME=your-bucket
-
+  
   # 腾讯云 COS（如使用）
   COS_BUCKET_URL=https://your-bucket.cos.ap-guangzhou.myqcloud.com
   COS_SECRET_ID=your-cos-secret-id
   COS_SECRET_KEY=your-cos-secret-key
   ```
+
+- **环境变量字段说明（生产建议放在 `.env.config.prod`，模板：`blog-backend/config/env.config.example`）**
+
+  - 基础必填：`DB_HOST` `DB_PORT` `DB_USER` `DB_PASSWORD` `DB_NAME`  
+  - Redis：`REDIS_HOST` `REDIS_PORT` `REDIS_PASSWORD`  
+  - JWT：`JWT_SECRET`（可选 `JWT_EXPIRE_HOURS`）  
+  - 邮件（找回密码/验证邮件）：`EMAIL_HOST` `EMAIL_PORT` `EMAIL_USERNAME` `EMAIL_PASSWORD`（`EMAIL_FROM_NAME` 如需覆盖）  
+  - Gitee 贡献热力图：`GITEE_CALENDAR_API_URL`（必填，后端调用 gitee-calendar-api）  
+  - 对象存储可选：阿里云 OSS（`OSS_ENDPOINT` `OSS_ACCESS_KEY_ID` `OSS_ACCESS_KEY_SECRET` `OSS_BUCKET_NAME` `OSS_DOMAIN`），腾讯云 COS（`COS_BUCKET_URL` `COS_SECRET_ID` `COS_SECRET_KEY` `COS_DOMAIN`）  
+  - 其他按需：如有自定义新增字段，统一放入 `.env.config.prod` 并在后端读取。
 
 - **数据库 / Redis 容器自身变量**  
   你仍然可以在 `docker-compose.yml` 同级的 `.env` 文件中，为 PostgreSQL / Redis 设置自身的密码等变量，例如：
@@ -428,10 +437,63 @@ docker compose logs -f backend
 - **PostgreSQL**: `localhost:5632`
 - **Redis**: `localhost:6379`
 
-#### 方式二：本地编译部署
-开始后端编译：
+#### 方式二：本地编译部署✅
+
+##### 1. 启动 Gitee Calendar API 服务（必选，贡献热力图依赖）
+
+1. **部署 gitee-calendar-api 服务**  
+   本仓库已自带编译好的 `gitee-calendar-api`（根目录），可直接赋予执行权限使用（默认占用端口为8081）。若需查看/自行编译源码，可访问：`https://gitee.com/wylblog/go-code-calendar-api.git`
+
+   ```bash
+   cd /web/go-vue3-blog/gitee-calendar-api
+   chmod +x gitee-calendar-api
+   ```
+
+2. **启动 gitee-calendar-api 服务**（示例为简单后台运行方式，生产环境可用 systemd 管理）：
+
+   ```bash
+   # 前台调试运行
+   ./gitee-calendar-api
+
+   # 或后台运行（输出到 gitee-calendar-api.log）
+   nohup ./gitee-calendar-api > gitee-calendar-api.log 2>&1 &
+   ```
+
+   默认监听端口为 `8081`，路径为 `/api`，即本机访问地址为：`http://127.0.0.1:8081/api?user=你的Gitee用户名`。
+
+   > **说明**：
+   > - `gitee-calendar-api` 现在由**后端调用**，前端不再直接访问该服务
+   > - 前端通过后端 API `/api/calendar/gitee` 获取热力图数据，后端会调用 `gitee-calendar-api` 并缓存结果（20分钟过期）
+   > - `gitee-calendar-api` 通常部署在与后端相同的服务器上，通过 `127.0.0.1:8081` 访问，无需通过 Nginx 暴露给外部
+
+##### 2. 配置后端 Gitee Calendar API 地址（必选，生产环境统一用环境变量）
+
+在后端根目录创建（或编辑）`.env.config.prod`，通过环境变量配置 `gitee-calendar-api` 服务地址（不再修改 `config/config-prod.yml`）。**模板已提供：`blog-backend/config/env.config.example`**，可直接复制为 `.env.config.prod` 后按需修改：
+
+```env
+# .env.config.prod
+GITEE_CALENDAR_API_URL=http://127.0.0.1:8081/api
+```
+
+**通过 Nginx 代理（HTTP 或 HTTPS）**
+
+如果 `gitee-calendar-api` 通过 Nginx 代理访问，可配置为：
+
+```env
+# HTTP 方式
+GITEE_CALENDAR_API_URL=http://your-domain.com/gitee-calendar-api
+
+# HTTPS 方式（SSL 证书）
+GITEE_CALENDAR_API_URL=https://your-domain.com/gitee-calendar-api
+# 示例：GITEE_CALENDAR_API_URL=https://huangjingblog.cn/gitee-calendar-api
+```
+
+##### 3. 构建并启动后端服务
+
 ```bash
 cd blog-backend
+
+# 构建后端可执行文件
 go build -o blog-backend cmd/server/main.go
 
 # 前台运行（调试用）
@@ -443,9 +505,7 @@ nohup ./blog-backend > app.log 2>&1 &
 
 手动在主机安装并启动 PostgreSQL、Redis，按需配置 `config/config-prod.yml`，再以服务方式管理可执行文件。
 
-### 第二步：前端构建与 Gitee 贡献热力图集成（可选）
-
-> 本步骤包含：前端 `.env.production` 配置 + 后端 `gitee-calendar-api` 配置。
+### 第二步：前端构建与配置
 
 #### 2.1 前端 `.env.production` 环境变量配置
 
@@ -458,67 +518,32 @@ nohup ./blog-backend > app.log 2>&1 &
 
 2. 写入（或补充）如下内容（根据你的实际域名调整）：
 
+   **HTTP 方式：**
+   ```env
+   # 后端主 API（博客业务接口）
+   VITE_API_BASE_URL=http://your-domain.com/api
+   ```
+
+   **HTTPS 方式（SSL 证书）：**
    ```env
    # 后端主 API（博客业务接口）
    VITE_API_BASE_URL=https://your-domain.com/api
+   # 示例：VITE_API_BASE_URL=https://huangjingblog.cn/api
    ```
 
    - `VITE_API_BASE_URL`：博客后端（Gin 服务）的统一前缀，前端所有业务接口都会基于该地址请求，包括贡献热力图数据（通过 `/api/calendar/gitee` 接口获取）。
 
-#### 2.2 后端 gitee-calendar-api 配置与部署
+#### 2.2 构建前端项目
 
-1. **配置后端 API 地址**  
-   在后端配置文件（`config/config-prod.yml` 或 `.env.config.prod`）中配置 `gitee-calendar-api` 服务地址：
+```bash
+cd blog-frontend
+pnpm install
+pnpm build
+```
 
-   ```yaml
-   # config/config-prod.yml
-   gitee_calendar:
-     api_url: "http://127.0.0.1:8081/api"  # gitee-calendar-api 服务地址
-   ```
+构建产物在 `dist` 目录，可部署到任何静态服务器（Nginx、Vercel、Netlify 等）。部署新的 `dist` 后，首页热力图会自动通过后端 API 获取数据。
 
-   或通过环境变量配置：
-
-   ```env
-   # .env.config.prod
-   GITEE_CALENDAR_API_URL=http://127.0.0.1:8081/api
-   ```
-
-2. **部署 gitee-calendar-api 服务**  
-   本仓库已自带编译好的 `gitee-calendar-api`（根目录），可直接赋予执行权限使用（默认占用端口为8081）。若需查看/自行编译源码，可访问：`https://gitee.com/wylblog/go-code-calendar-api.git`
-
-   ```bash
-   cd /web/go-vue3-blog/gitee-calendar-api
-   chmod +x gitee-calendar-api
-   ```
-
-3. **启动 gitee-calendar-api 服务**（示例为简单后台运行方式，生产环境可用 systemd 管理）：
-
-   ```bash
-   # 前台调试运行
-   ./gitee-calendar-api
-
-   # 或后台运行（输出到 gitee-calendar-api.log）
-   nohup ./gitee-calendar-api > gitee-calendar-api.log 2>&1 &
-   ```
-
-   默认监听端口为 `8081`，路径为 `/api`，即本机访问地址为：`http://127.0.0.1:8081/api?user=你的Gitee用户名`。
-
-   > **重要说明**：
-   > - `gitee-calendar-api` 现在由**后端调用**，前端不再直接访问该服务
-   > - 前端通过后端 API `/api/calendar/gitee` 获取热力图数据，后端会调用 `gitee-calendar-api` 并缓存结果（20分钟过期）
-   > - `gitee-calendar-api` 通常部署在与后端相同的服务器上，通过 `127.0.0.1:8081` 访问，无需通过 Nginx 暴露给外部
-
-4. **重新构建前端**：
-
-   ```bash
-   cd blog-frontend
-   pnpm install
-   pnpm build
-   ```
-
-   构建产物在 `dist` 目录，可部署到任何静态服务器（Nginx、Vercel、Netlify 等）。部署新的 `dist` 后，首页热力图会自动通过后端 API 获取数据。
-
-   > 说明：前端首页热力图组件位置为 `blog-frontend/src/components/GiteeCalendar.vue`，其数据源现在通过后端 API `/api/calendar/gitee` 获取，后端会自动调用 `gitee-calendar-api` 并缓存结果。
+> 说明：前端首页热力图组件位置为 `blog-frontend/src/components/GiteeCalendar.vue`，其数据源现在通过后端 API `/api/calendar/gitee` 获取，后端会自动调用 `gitee-calendar-api` 并缓存结果。
 
 ### 第三步：Nginx 部署与反向代理
 
@@ -533,12 +558,12 @@ nohup ./blog-backend > app.log 2>&1 &
    ```
 
    Nginx 中的 `root` 应指向 **包含 `index.html` 的目录本身**（如 `/web/go-vue3-blog/blog-frontend/dist`，可按实际路径调整），而不是上级目录。
-2. 配置 Nginx（按需替换域名/路径/证书），无 SSL 示例：
+2. 配置 Nginx（按需替换域名/路径/证书），HTTP 示例：
 
 ```nginx
 server {
     listen 80;
-    server_name your-domain.com;   # 修改为你的域名/主机名
+    server_name your-domain.com;   # 修改为你的域名/主机名，例如：huangjingblog.cn
 
     # 前端静态资源目录（dist 构建产物）
     root /web/go-vue3-blog/blog-frontend/dist;  # 按实际部署路径修改
@@ -547,6 +572,16 @@ server {
     # 前端路由回退到 index.html（适配前端 history 模式）
     location / {
         try_files $uri $uri/ /index.html;
+    }
+
+    # Gitee 贡献日历 API（go-code-calendar-api）反向代理
+    # 对应后端 .env.config.prod 中的 GITEE_CALENDAR_API_URL=http://your-domain.com/gitee-calendar-api
+    location /gitee-calendar-api {
+        proxy_pass http://127.0.0.1:8081/api;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
     }
 
     # 本地存储上传文件访问（通过后端读取 /uploads 下资源）
@@ -595,17 +630,17 @@ server {
 # 80 强制跳转到 443
 server {
     listen 80;
-    server_name your-domain.com;   # 修改为你的域名/主机名
+    server_name your-domain.com;   # 修改为你的域名/主机名，例如：huangjingblog.cn
     return 301 https://$host$request_uri;
 }
 
 server {
     listen 443 ssl http2;
-    server_name your-domain.com;   # 修改为你的域名/主机名
+    server_name your-domain.com;   # 修改为你的域名/主机名，例如：huangjingblog.cn
 
     # 证书路径（替换为实际证书文件）
-    ssl_certificate     /etc/nginx/ssl/your-domain.com.crt;
-    ssl_certificate_key /etc/nginx/ssl/your-domain.com.key;
+    ssl_certificate     /usr/local/nginx/ssl/your-domain.com.pem;  # 例如：/usr/local/nginx/ssl/huangjingblog.cn.pem
+    ssl_certificate_key /usr/local/nginx/ssl/your-domain.com.key;  # 例如：/usr/local/nginx/ssl/huangjingblog.cn.key
     ssl_session_cache shared:SSL:10m;
     ssl_session_timeout 10m;
     ssl_protocols TLSv1.2 TLSv1.3;
@@ -619,6 +654,16 @@ server {
     # 前端路由回退
     location / {
         try_files $uri $uri/ /index.html;
+    }
+
+    # Gitee 贡献日历 API（go-code-calendar-api）反向代理
+    # 对应后端 .env.config.prod 中的 GITEE_CALENDAR_API_URL=https://your-domain.com/gitee-calendar-api
+    location /gitee-calendar-api {
+        proxy_pass http://127.0.0.1:8081/api;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
     }
 
     # 本地存储上传文件访问（通过后端读取 /uploads 下资源）
