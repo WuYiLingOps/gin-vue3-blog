@@ -557,6 +557,10 @@ function handleScroll() {
   position: relative;
   z-index: 1;
   padding: 0 24px;
+  /* 确保容器不溢出 */
+  overflow-x: hidden;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .post-detail-page {
@@ -566,6 +570,9 @@ function handleScroll() {
 
 .post-main {
   width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 .post-toc {
@@ -630,10 +637,95 @@ html.dark .post-toc::-webkit-scrollbar-thumb:hover {
   }
 }
 
+/* 超小屏幕优化（小于420px） */
+@media (max-width: 419px) {
+  .post-detail-container {
+    padding: 0 2px !important;
+    overflow-x: hidden !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  
+  .post-main {
+    overflow-x: hidden !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
+  .post-content {
+    font-size: 14px;
+    /* 超小屏幕确保内容不溢出 */
+    overflow-x: hidden !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    word-wrap: break-word;
+    box-sizing: border-box !important;
+    /* 移除所有 padding，最大化可用空间 */
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+  
+  /* 减小卡片内边距，最大化代码块可用空间 */
+  .post-detail-page :deep(.n-card) {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  .post-detail-page :deep(.n-card .n-card__content) {
+    padding: 10px 4px !important;
+  }
+  
+  /* 确保代码块容器有最大可用空间 */
+  .post-content :deep(.markdown-preview) {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box !important;
+  }
+  
+  /* 确保代码块在超小屏幕有足够空间 */
+  .post-content :deep(.markdown-preview .vuepress-markdown-body) {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box !important;
+  }
+  
+  /* 确保代码块本身在超小屏幕正确显示 */
+  .post-content :deep(.markdown-preview pre) {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow-x: auto !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+}
+
 /* 移动端优化 */
 @media (max-width: 768px) {
   .post-detail-container {
     padding: 0 8px;
+    overflow-x: hidden !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  
+  .post-main {
+    overflow-x: hidden !important;
+    width: 100% !important;
+    max-width: 100% !important;
   }
   
   .post-title {
@@ -651,6 +743,15 @@ html.dark .post-toc::-webkit-scrollbar-thumb:hover {
   
   .post-content {
     font-size: 15px;
+    /* 移动端确保内容不溢出 */
+    overflow-x: hidden !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    word-wrap: break-word;
+    box-sizing: border-box !important;
+    /* 确保代码块有足够空间显示 */
+    padding-left: 0 !important;
+    padding-right: 0 !important;
   }
   
   .comments-section h3 {
@@ -672,8 +773,8 @@ html.dark .post-toc::-webkit-scrollbar-thumb:hover {
   }
 }
 
-/* 极小屏幕优化 */
-@media (max-width: 480px) {
+/* 极小屏幕优化（420px-480px） */
+@media (min-width: 420px) and (max-width: 480px) {
   .post-detail-container {
     padding: 0 6px;
   }
@@ -740,6 +841,14 @@ html.dark .post-meta {
   min-height: 200px;
   line-height: 1.8;
   color: #374151;
+  /* 确保内容不会溢出 */
+  overflow-x: hidden !important;
+  max-width: 100% !important;
+  width: 100% !important;
+  word-wrap: break-word;
+  box-sizing: border-box !important;
+  /* 确保代码块容器有足够空间 */
+  position: relative;
 }
 
 html.dark .post-content {
