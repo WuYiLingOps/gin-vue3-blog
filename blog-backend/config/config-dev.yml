@@ -49,6 +49,10 @@ cos:
   # domain: "https://static.example.com" # 可选，自定义访问域名
 
 
+# Gitee 贡献热力图 API 配置
+gitee_calendar:
+  api_url: "http://localhost:8081/api"  # gitee-calendar-api 服务地址
+
 # 安全配置
 security:
   # 管理员IP白名单（这些IP将跳过频率限制和黑名单检查）
