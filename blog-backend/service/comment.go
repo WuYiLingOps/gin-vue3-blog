@@ -120,12 +120,16 @@ func (s *CommentService) sendCommentNotifications(comment *model.Comment, commen
 		return // 邮件未配置，不发送通知
 	}
 
+	// 获取网站名称
+	siteName := s.getSiteName()
+
 	emailConfig := util.EmailConfig{
 		Host:     config.Cfg.Email.Host,
 		Port:     config.Cfg.Email.Port,
 		Username: config.Cfg.Email.Username,
 		Password: config.Cfg.Email.Password,
 		FromName: config.Cfg.Email.FromName,
+		SiteName: siteName,
 	}
 
 	// 获取评论者信息
@@ -343,4 +347,20 @@ func (s *CommentService) UpdateStatus(id uint, status int) error {
 	}
 
 	return s.repo.UpdateStatus(id, status)
+}
+
+// getSiteName 获取网站名称
+func (s *CommentService) getSiteName() string {
+	settings, err := s.settingRepo.GetByGroup("site")
+	if err != nil {
+		return ""
+	}
+
+	for _, setting := range settings {
+		if setting.Key == "site_name" {
+			return setting.Value
+		}
+	}
+
+	return ""
 }
