@@ -47,6 +47,7 @@ func SetupRouter() *gin.Engine {
 	announcementHandler := handler.NewAnnouncementHandler()
 	friendLinkHandler := handler.NewFriendLinkHandler()
 	friendLinkCategoryHandler := handler.NewFriendLinkCategoryHandler()
+	calendarHandler := handler.NewCalendarHandler()
 
 	// 健康检查接口
 	r.GET("/health", func(c *gin.Context) {
@@ -59,6 +60,7 @@ func SetupRouter() *gin.Engine {
 		setupAuthRoutes(api, authHandler)
 		setupCaptchaRoutes(api, captchaHandler)
 		setupBlogRoutes(api, blogHandler, announcementHandler, friendLinkHandler, friendLinkCategoryHandler)
+		setupCalendarRoutes(api, calendarHandler)
 		setupPostRoutes(api, postHandler)
 		setupCategoryRoutes(api, categoryHandler)
 		setupTagRoutes(api, tagHandler)
@@ -118,6 +120,14 @@ func setupBlogRoutes(api *gin.RouterGroup, h *handler.BlogHandler, a *handler.An
 		// 友链（公开接口）
 		blog.GET("/friend-links", fl.ListPublic)
 		blog.GET("/friend-link-categories", flc.List) // 公开获取分类列表
+	}
+}
+
+// setupCalendarRoutes 贡献热力图路由（公开接口）
+func setupCalendarRoutes(api *gin.RouterGroup, h *handler.CalendarHandler) {
+	calendar := api.Group("/calendar")
+	{
+		calendar.GET("/gitee", h.GetGiteeCalendar)
 	}
 }
 
