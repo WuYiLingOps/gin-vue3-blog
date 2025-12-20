@@ -40,6 +40,7 @@
 - 💬 **实时聊天室** - WebSocket 实时通信，支持登录用户和匿名访问
 - 👤 **用户系统** - 完整的用户注册、登录、权限管理
 - 🔐 **安全认证** - 密码重置、邮箱修改、邮件验证码
+- 🛡️ **验证码系统** - 图形验证码，基于 Redis 存储，支持 IP 限流和防暴力破解
 - 🔒 **权限控制** - 基于角色的访问控制（RBAC）
 - 📊 **数据统计** - 最近 7 天访问量趋势、文章统计、用户统计
 - 🎨 **主题切换** - 支持亮色/暗色主题
@@ -225,12 +226,19 @@ vim config/config-dev.yml
 #   password: your-auth-code  # QQ邮箱授权码
 #   from_name: 情迁阁
 
-# 3. 运行后端服务
-go run cmd/server/main.go
-
-# （可选）如果需要首页贡献热力图，请同时启动 gitee-calendar-api（默认端口 8081，路径 /api）
+# 3. 配置 Gitee 贡献热力图 API（可选）
+# 如果需要首页贡献热力图，需要在 config/config-dev.yml 中配置 gitee-calendar-api 地址：
+# gitee_calendar:
+#   api_url: "http://localhost:8081/api"  # gitee-calendar-api 服务地址
+# 
+# 然后启动 gitee-calendar-api 服务（默认端口 8081，路径 /api）：
 # ./gitee-calendar-api   # 前台运行
 # nohup ./gitee-calendar-api > gitee-calendar-api.log 2>&1 &   # 后台运行
+# 
+# 注意：gitee-calendar-api 现在由后端调用，前端不再直接访问该服务
+
+# 4. 运行后端服务
+go run cmd/server/main.go
 ```
 
 后端服务默认运行在 `http://localhost:8080`
@@ -245,9 +253,9 @@ cd blog-frontend
 pnpm install
 
 # 2. 配置 API 地址（可选）
-# 创建 .env.development 文件（包含主后端与热力图接口）
+# 创建 .env.development 文件
 echo "VITE_API_BASE_URL=http://localhost:8080" > .env.development
-echo "VITE_GITEE_CALENDAR_API=http://localhost:8081/api" >> .env.development
+# 注意：贡献热力图现在通过后端 API 获取，无需单独配置 VITE_GITEE_CALENDAR_API
 
 # 3. 启动开发服务器
 pnpm dev
@@ -435,9 +443,9 @@ nohup ./blog-backend > app.log 2>&1 &
 
 手动在主机安装并启动 PostgreSQL、Redis，按需配置 `config/config-prod.yml`，再以服务方式管理可执行文件。
 
-### 第二步：前端构建与 Gitee 贡献热力图集成（必选）
+### 第二步：前端构建与 Gitee 贡献热力图集成（可选）
 
-> 本步骤包含：前端 `.env.production` 配置 + 首页“贡献热力图”所需的 `gitee-calendar-api` 服务部署与接入。
+> 本步骤包含：前端 `.env.production` 配置 + 后端 `gitee-calendar-api` 配置。
 
 #### 2.1 前端 `.env.production` 环境变量配置
 
@@ -453,25 +461,37 @@ nohup ./blog-backend > app.log 2>&1 &
    ```env
    # 后端主 API（博客业务接口）
    VITE_API_BASE_URL=https://your-domain.com/api
-
-   # Gitee 贡献日历 API（go-code-calendar-api 提供）
-   # 若通过 Nginx 反代到 /gitee-calendar-api，则写：
-   VITE_GITEE_CALENDAR_API=https://your-domain.com/gitee-calendar-api
    ```
 
-   - `VITE_API_BASE_URL`：博客后端（Gin 服务）的统一前缀，前端所有业务接口都会基于该地址请求。  
-   - `VITE_GITEE_CALENDAR_API`：首页“贡献热力图”组件使用的 Gitee 日历 API 前缀，组件内部会自动拼接 `?user=你的Gitee用户名`。
+   - `VITE_API_BASE_URL`：博客后端（Gin 服务）的统一前缀，前端所有业务接口都会基于该地址请求，包括贡献热力图数据（通过 `/api/calendar/gitee` 接口获取）。
 
-#### 2.2 gitee-calendar-api 服务部署与接入
+#### 2.2 后端 gitee-calendar-api 配置与部署
 
-1. 本仓库已自带编译好的 `gitee-calendar-api`（根目录），可直接赋予执行权限使用（默认占用端口为8081）。若需查看/自行编译源码，可访问：`https://gitee.com/wylblog/go-code-calendar-api.git`
+1. **配置后端 API 地址**  
+   在后端配置文件（`config/config-prod.yml` 或 `.env.config.prod`）中配置 `gitee-calendar-api` 服务地址：
+
+   ```yaml
+   # config/config-prod.yml
+   gitee_calendar:
+     api_url: "http://127.0.0.1:8081/api"  # gitee-calendar-api 服务地址
+   ```
+
+   或通过环境变量配置：
+
+   ```env
+   # .env.config.prod
+   GITEE_CALENDAR_API_URL=http://127.0.0.1:8081/api
+   ```
+
+2. **部署 gitee-calendar-api 服务**  
+   本仓库已自带编译好的 `gitee-calendar-api`（根目录），可直接赋予执行权限使用（默认占用端口为8081）。若需查看/自行编译源码，可访问：`https://gitee.com/wylblog/go-code-calendar-api.git`
 
    ```bash
    cd /web/go-vue3-blog/gitee-calendar-api
    chmod +x gitee-calendar-api
    ```
 
-2. 在服务器上启动该服务（示例为简单后台运行方式，生产环境可用 systemd 管理）：
+3. **启动 gitee-calendar-api 服务**（示例为简单后台运行方式，生产环境可用 systemd 管理）：
 
    ```bash
    # 前台调试运行
@@ -483,22 +503,12 @@ nohup ./blog-backend > app.log 2>&1 &
 
    默认监听端口为 `8081`，路径为 `/api`，即本机访问地址为：`http://127.0.0.1:8081/api?user=你的Gitee用户名`。
 
-3. 推荐通过 Nginx 暴露为统一域名（与前端环境变量一致），在 Nginx 配置中增加一段反向代理（以 HTTPS 配置为例）：
+   > **重要说明**：
+   > - `gitee-calendar-api` 现在由**后端调用**，前端不再直接访问该服务
+   > - 前端通过后端 API `/api/calendar/gitee` 获取热力图数据，后端会调用 `gitee-calendar-api` 并缓存结果（20分钟过期）
+   > - `gitee-calendar-api` 通常部署在与后端相同的服务器上，通过 `127.0.0.1:8081` 访问，无需通过 Nginx 暴露给外部
 
-   ```nginx
-   # 在现有 server { ... } 块中追加一段
-   location /gitee-calendar-api {
-       proxy_pass http://127.0.0.1:8081/api;
-       proxy_set_header Host $host;
-       proxy_set_header X-Real-IP $remote_addr;
-       proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-       proxy_set_header X-Forwarded-Proto $scheme;
-   }
-   ```
-
-   这样，外部可通过 `https://your-domain.com/gitee-calendar-api?user=wylblog` 访问该服务，且与前端的 `VITE_GITEE_CALENDAR_API` 完全对应。
-
-4. 最后重新构建前端：
+4. **重新构建前端**：
 
    ```bash
    cd blog-frontend
@@ -506,11 +516,9 @@ nohup ./blog-backend > app.log 2>&1 &
    pnpm build
    ```
 
-   构建产物在 `dist` 目录，可部署到任何静态服务器（Nginx、Vercel、Netlify 等）。部署新的 `dist` 后，首页热力图会自动走你配置的 `VITE_GITEE_CALENDAR_API` 地址。
+   构建产物在 `dist` 目录，可部署到任何静态服务器（Nginx、Vercel、Netlify 等）。部署新的 `dist` 后，首页热力图会自动通过后端 API 获取数据。
 
-   > 说明：前端首页热力图组件位置为 `blog-frontend/src/components/GiteeCalendar.vue`，其数据源完全依赖 `VITE_GITEE_CALENDAR_API` 指向的 `gitee-calendar-api`，保持域名/路径与上方 Nginx 反代一致即可。
-
-> 注意：如果你直接在前端组件中写死了 IP + 端口（如 `http://42.194.242.109:8081/api`），建议改为使用 `VITE_GITEE_CALENDAR_API` 环境变量，便于后续迁移和域名切换。
+   > 说明：前端首页热力图组件位置为 `blog-frontend/src/components/GiteeCalendar.vue`，其数据源现在通过后端 API `/api/calendar/gitee` 获取，后端会自动调用 `gitee-calendar-api` 并缓存结果。
 
 ### 第三步：Nginx 部署与反向代理
 
@@ -539,16 +547,6 @@ server {
     # 前端路由回退到 index.html（适配前端 history 模式）
     location / {
         try_files $uri $uri/ /index.html;
-    }
-
-    # Gitee 贡献日历 API（go-code-calendar-api）反向代理
-    # 对应前端 .env.production 中的 VITE_GITEE_CALENDAR_API=https://your-domain.com/gitee-calendar-api
-    location /gitee-calendar-api {
-        proxy_pass http://127.0.0.1:8081/api;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
     }
 
     # 本地存储上传文件访问（通过后端读取 /uploads 下资源）
@@ -621,16 +619,6 @@ server {
     # 前端路由回退
     location / {
         try_files $uri $uri/ /index.html;
-    }
-
-    # Gitee 贡献日历 API（go-code-calendar-api）反向代理
-    # 对应前端 .env.production 中的 VITE_GITEE_CALENDAR_API=https://your-domain.com/gitee-calendar-api
-    location /gitee-calendar-api {
-        proxy_pass http://127.0.0.1:8081/api;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
     }
 
     # 本地存储上传文件访问（通过后端读取 /uploads 下资源）
@@ -773,6 +761,13 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
 - 忘记密码（邮箱验证码）
 - 邮箱修改（限制一年2次）
 
+### 🛡️ 验证码系统
+- **图形验证码** - 基于 Redis 存储，支持数字验证码
+- **验证码存储** - 验证码答案存储在 Redis 中，2分钟自动过期
+- **IP 限流** - 每个 IP 每分钟最多获取 10 次验证码，防止频繁请求
+- **防暴力破解** - 5 分钟内最多错误 5 次，超过限制需等待
+- **安全机制** - 验证成功后自动删除验证码，确保一次性使用
+
 ### 💬 聊天室功能
 - 实时 WebSocket 通信
 - 支持登录用户和匿名访问
@@ -821,6 +816,10 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
 - **ORM**: GORM
 - **数据库**: PostgreSQL
 - **缓存**: Redis
+  - 验证码存储与管理（2分钟过期）
+  - IP 限流（防止频繁获取验证码）
+  - 防暴力破解（错误次数限制）
+  - Gitee 贡献热力图数据缓存（20分钟过期）
 - **认证**: JWT
 - **WebSocket**: Gorilla WebSocket
 - **邮件发送**: SMTP (支持QQ邮箱、163邮箱等)
@@ -916,6 +915,14 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
 
 ### 验证码相关
 - `GET /api/captcha` - 获取图形验证码
+  - 基于 Redis 存储验证码答案（2分钟过期）
+  - IP 限流：每个 IP 每分钟最多获取 10 次
+  - 防暴力破解：5 分钟内最多错误 5 次
+
+### 日历相关
+- `GET /api/calendar/gitee?user={username}` - 获取 Gitee 贡献热力图数据
+  - 后端会调用 `gitee-calendar-api` 并缓存结果（20分钟过期）
+  - 参数：`user` - Gitee 用户名
 
 ### 聊天室相关
 - `WS /api/chat/ws` - WebSocket 连接（支持登录用户和匿名访问）
