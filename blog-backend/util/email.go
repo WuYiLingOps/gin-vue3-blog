@@ -18,6 +18,7 @@ type EmailConfig struct {
 	Username string // 发件人邮箱
 	Password string // 授权码
 	FromName string // 发件人名称
+	SiteName string // 网站名称（可选，优先使用）
 }
 
 // GenerateVerificationCode 生成6位数字验证码
@@ -43,7 +44,11 @@ func GenerateRandomString(length int) string {
 
 // SendResetPasswordEmail 发送重置密码邮件
 func SendResetPasswordEmail(config EmailConfig, to string, code string) error {
-	siteName := config.FromName
+	// 优先使用配置的网站名称，其次使用发件人名称，最后使用默认值
+	siteName := config.SiteName
+	if siteName == "" {
+		siteName = config.FromName
+	}
 	if siteName == "" {
 		siteName = "無以菱"
 	}
@@ -77,7 +82,11 @@ func SendResetPasswordEmail(config EmailConfig, to string, code string) error {
 
 // SendRegisterVerificationEmail 发送注册验证码邮件
 func SendRegisterVerificationEmail(config EmailConfig, to string, code string) error {
-	siteName := config.FromName
+	// 优先使用配置的网站名称，其次使用发件人名称，最后使用默认值
+	siteName := config.SiteName
+	if siteName == "" {
+		siteName = config.FromName
+	}
 	if siteName == "" {
 		siteName = "無以菱"
 	}
@@ -111,7 +120,11 @@ func SendRegisterVerificationEmail(config EmailConfig, to string, code string) e
 
 // SendAdminCommentNotificationEmail 发送评论通知邮件（给管理员）
 func SendAdminCommentNotificationEmail(config EmailConfig, to string, commenterName string, postTitle string, commentContent string, postURL string) error {
-	siteName := config.FromName
+	// 优先使用配置的网站名称，其次使用发件人名称，最后使用默认值
+	siteName := config.SiteName
+	if siteName == "" {
+		siteName = config.FromName
+	}
 	if siteName == "" {
 		siteName = "無以菱"
 	}
