@@ -268,9 +268,10 @@ function extractUsername(url?: string) {
   return match ? match[1] : ''
 }
 
-// go-code-calendar-api 的后端地址，建议在生产环境用环境变量覆盖
+// 使用后端缓存接口（带Redis缓存，20分钟过期）
 function getCalendarApiBase() {
-  return import.meta.env.VITE_GITEE_CALENDAR_API || 'http://localhost:8081/api'
+  const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
+  return `${baseURL}/api/calendar/gitee`
 }
 
 // 构造一整年的「空」数据，用于无数据 / 请求失败时仍然展示完整网格样式
@@ -329,7 +330,14 @@ async function fetchData() {
     if (!res.ok) {
       throw new Error(`接口返回错误状态：${res.status}`)
     }
-    const data = (await res.json()) as { total: number; contributions: CalendarWeek[] }
+    const response = (await res.json()) as { code: number; message: string; data: { total: number; contributions: CalendarWeek[] } }
+    
+    // 检查后端返回格式
+    if (response.code !== 200 || !response.data) {
+      throw new Error(response.message || '接口返回数据格式不正确')
+    }
+    
+    const data = response.data
     if (!data || !Array.isArray(data.contributions)) {
       throw new Error('接口返回数据格式不正确')
     }
