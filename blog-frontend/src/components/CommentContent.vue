@@ -1,5 +1,6 @@
 <template>
   <div class="comment-content" ref="previewRef">
+    <!-- 使用Markdown预览组件，支持代码高亮和图片 -->
     <v-md-preview :text="content" />
   </div>
 </template>
@@ -23,6 +24,7 @@ import 'prismjs/components/prism-python'
 import 'prismjs/components/prism-sql'
 import 'prismjs/components/prism-markdown'
 import 'prismjs/components/prism-css'
+import 'prismjs/components/prism-yaml'
 
 // 配置主题
 VMdPreview.use(vuepressTheme, {
@@ -71,12 +73,73 @@ function addCopyButtons() {
   })
 }
 
+// 修复代码块间距问题
+function fixCodeBlockSpacing() {
+  if (!previewRef.value) return
+
+  const codeBlocks = previewRef.value.querySelectorAll('pre code')
+  
+  codeBlocks.forEach((codeBlock) => {
+    // 移除所有 token 和 span 的 margin 和 padding
+    const allElements = codeBlock.querySelectorAll('*')
+    allElements.forEach((element) => {
+      const el = element as HTMLElement
+      // 强制设置所有样式属性
+      el.style.margin = '0'
+      el.style.padding = '0'
+      el.style.wordSpacing = 'normal'
+      el.style.letterSpacing = 'normal'
+      el.style.wordWrap = 'normal'
+      el.style.wordBreak = 'normal'
+      el.style.whiteSpace = 'inherit'
+      el.style.display = 'inline'
+      el.style.lineHeight = 'inherit'
+      el.style.verticalAlign = 'baseline'
+      el.style.fontSize = 'inherit'
+      el.style.border = 'none'
+      el.style.background = 'transparent'
+      el.style.boxSizing = 'border-box'
+    })
+    
+    // 确保 code 元素本身没有额外的样式
+    const codeElement = codeBlock as HTMLElement
+    codeElement.style.wordSpacing = 'normal'
+    codeElement.style.letterSpacing = 'normal'
+    codeElement.style.wordWrap = 'normal'
+    codeElement.style.wordBreak = 'normal'
+    codeElement.style.margin = '0'
+    codeElement.style.padding = '0'
+    codeElement.style.whiteSpace = 'pre'
+    codeElement.style.fontVariantLigatures = 'none'
+    codeElement.style.textRendering = 'auto'
+    // 关键：使用 max-content 确保内容不被压缩
+    codeElement.style.width = 'max-content'
+    codeElement.style.minWidth = '100%'
+    
+    // 确保 pre 元素也没有额外的样式
+    const preElement = codeBlock.parentElement as HTMLElement
+    if (preElement) {
+      preElement.style.wordSpacing = 'normal'
+      preElement.style.letterSpacing = 'normal'
+      preElement.style.wordWrap = 'normal'
+      preElement.style.wordBreak = 'normal'
+      preElement.style.whiteSpace = 'pre'
+      preElement.style.overflowX = 'auto'
+      preElement.style.overflowY = 'hidden'
+      preElement.style.width = '100%'
+      // 移除可能存在的 max-width 限制
+      preElement.style.maxWidth = 'none'
+    }
+  })
+}
+
 // 处理图片点击放大
 function handleImageClick() {
   if (!previewRef.value) return
 
   const images = previewRef.value.querySelectorAll('img')
-  images.forEach((img) => {
+  images.forEach((imgElement) => {
+    const img = imgElement as HTMLImageElement
     if (img.hasAttribute('data-lightbox')) return
     
     img.setAttribute('data-lightbox', 'true')
@@ -119,6 +182,26 @@ onMounted(() => {
   nextTick(() => {
     addCopyButtons()
     handleImageClick()
+    fixCodeBlockSpacing()
+    
+    // 使用 MutationObserver 监听代码块变化，确保间距修复持续生效
+    if (previewRef.value) {
+      const observer = new MutationObserver(() => {
+        fixCodeBlockSpacing()
+      })
+      
+      observer.observe(previewRef.value, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['class', 'style']
+      })
+      
+      // 在组件卸载时断开观察
+      return () => {
+        observer.disconnect()
+      }
+    }
   })
 })
 
@@ -126,6 +209,10 @@ watch(() => props.content, () => {
   nextTick(() => {
     addCopyButtons()
     handleImageClick()
+    // 延迟执行，确保 Prism.js 完成渲染
+    setTimeout(() => {
+      fixCodeBlockSpacing()
+    }, 100)
   })
 })
 </script>
@@ -135,6 +222,17 @@ watch(() => props.content, () => {
   width: 100%;
   word-wrap: break-word;
   word-break: break-word;
+  /* 确保正常文字的空格宽度正常 */
+  word-spacing: normal;
+  letter-spacing: normal;
+  white-space: normal;
+}
+
+/* 确保代码块不受父容器的 word-wrap 影响 */
+.comment-content :deep(pre),
+.comment-content :deep(pre code) {
+  word-wrap: normal !important;
+  word-break: normal !important;
 }
 
 .comment-content :deep(.vuepress-markdown-body) {
@@ -143,11 +241,27 @@ watch(() => props.content, () => {
   font-size: 14px;
   line-height: 1.6;
   color: inherit;
+  /* 确保代码块容器不受限制 */
+  overflow-x: visible;
+  /* 确保正常文字的空格宽度正常 */
+  word-spacing: normal;
+  letter-spacing: normal;
+  white-space: normal;
+}
+
+/* 确保代码块容器不受父容器宽度限制 */
+.comment-content :deep(.vuepress-markdown-body pre) {
+  max-width: none !important;
+  width: 100% !important;
 }
 
 /* 评论内容样式优化 */
 .comment-content :deep(.vuepress-markdown-body p) {
   margin: 8px 0;
+  /* 确保段落中的空格宽度正常 */
+  word-spacing: normal;
+  letter-spacing: normal;
+  white-space: normal;
 }
 
 .comment-content :deep(.vuepress-markdown-body p:first-child) {
@@ -158,113 +272,130 @@ watch(() => props.content, () => {
   margin-bottom: 0;
 }
 
-/* 标题样式（评论中较少使用，但保留） */
-.comment-content :deep(.vuepress-markdown-body h1),
-.comment-content :deep(.vuepress-markdown-body h2),
-.comment-content :deep(.vuepress-markdown-body h3),
-.comment-content :deep(.vuepress-markdown-body h4),
-.comment-content :deep(.vuepress-markdown-body h5),
-.comment-content :deep(.vuepress-markdown-body h6) {
-  margin: 12px 0 8px 0;
-  font-weight: 600;
-}
-
-.comment-content :deep(.vuepress-markdown-body h1) {
-  font-size: 1.5em;
-}
-
-.comment-content :deep(.vuepress-markdown-body h2) {
-  font-size: 1.3em;
-}
-
-.comment-content :deep(.vuepress-markdown-body h3) {
-  font-size: 1.1em;
-}
-
 /* 链接样式 */
 .comment-content :deep(.vuepress-markdown-body a) {
   color: #18a058;
   text-decoration: none;
   border-bottom: 1px solid transparent;
   transition: all 0.2s;
+  word-break: break-all;
 }
 
 .comment-content :deep(.vuepress-markdown-body a:hover) {
   border-bottom-color: #18a058;
 }
 
-/* 引用块样式 */
-.comment-content :deep(.vuepress-markdown-body blockquote) {
-  margin: 8px 0;
-  padding: 8px 12px;
-  border-left: 3px solid #18a058;
-  background: rgba(24, 160, 88, 0.05);
-  color: #666;
-  border-radius: 4px;
-}
-
-/* 代码块样式 */
+/* 代码块样式 - 确保长代码行不换行 */
 .comment-content :deep(pre) {
   position: relative;
   border-radius: 4px;
   margin: 8px 0;
-  padding: 12px;
-  background: #f5f5f5;
-  overflow-x: auto;
+  padding: 8px 12px;
+  /* 使用更深的背景色，提高对比度和可读性 */
+  background: #2d2d2d;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  overflow-x: auto !important;
+  overflow-y: hidden;
+  white-space: pre !important;
+  word-spacing: normal !important;
+  letter-spacing: normal !important;
+  word-wrap: normal !important;
+  word-break: normal !important;
+  font-size: 13px;
+  line-height: 1.4;
+  width: 100%;
+  box-sizing: border-box;
+  /* 确保代码块可以水平滚动 */
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
 }
 
 .comment-content :deep(pre code) {
   font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
   font-size: 13px;
-  line-height: 1.5;
-  color: #333;
+  line-height: 1.4;
+  /* 使用浅色文字，与深色背景形成良好对比 */
+  color: #f8f8f2;
+  display: block;
+  white-space: pre !important;
+  word-spacing: normal !important;
+  letter-spacing: normal !important;
+  word-wrap: normal !important;
+  word-break: normal !important;
+  padding: 0;
+  margin: 0;
+  /* 关键：使用 max-content 确保内容不被压缩 */
+  width: max-content;
+  min-width: 100%;
+  box-sizing: border-box;
 }
 
-/* 行内代码样式 */
+/* 强制重置所有 Prism.js token 样式，彻底消除间距，但保持空格正常显示 */
+.comment-content :deep(pre code .token),
+.comment-content :deep(pre code span),
+.comment-content :deep(pre code .token.string),
+.comment-content :deep(pre code .token.keyword),
+.comment-content :deep(pre code .token.function),
+.comment-content :deep(pre code .token.operator),
+.comment-content :deep(pre code .token.punctuation),
+.comment-content :deep(pre code .token.property),
+.comment-content :deep(pre code .token.attr-name),
+.comment-content :deep(pre code .token.attr-value),
+.comment-content :deep(pre code .token.comment),
+.comment-content :deep(pre code .token.number),
+.comment-content :deep(pre code .token.boolean),
+.comment-content :deep(pre code .token.variable),
+.comment-content :deep(pre code *) {
+  margin: 0 !important;
+  padding: 0 !important;
+  word-spacing: normal !important;
+  letter-spacing: normal !important;
+  word-wrap: normal !important;
+  word-break: normal !important;
+  white-space: inherit !important;
+  display: inline !important;
+  border: none !important;
+  background: transparent !important;
+  box-sizing: border-box !important;
+  line-height: inherit !important;
+  vertical-align: baseline !important;
+  font-size: inherit !important;
+}
+
+/* 移除所有相邻元素之间的间距 */
+.comment-content :deep(pre code .token + .token),
+.comment-content :deep(pre code span + span),
+.comment-content :deep(pre code .token + span),
+.comment-content :deep(pre code span + .token),
+.comment-content :deep(pre code * + *) {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  border-left: none !important;
+  border-right: none !important;
+}
+
+/* 确保代码块内文本紧凑 */
+.comment-content :deep(pre code) {
+  font-variant-ligatures: none;
+  font-feature-settings: normal;
+  text-rendering: auto;
+}
+
+/* 行内代码样式 - 优化间距，让看起来不那么密集 */
 .comment-content :deep(code:not(pre code)) {
   background: rgba(150, 150, 150, 0.1);
-  padding: 2px 6px;
+  padding: 3px 8px;
+  margin: 0 2px;
   border-radius: 3px;
   font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
   font-size: 0.9em;
   color: #e83e8c;
-}
-
-/* 列表样式 */
-.comment-content :deep(.vuepress-markdown-body ul),
-.comment-content :deep(.vuepress-markdown-body ol) {
-  margin: 8px 0;
-  padding-left: 24px;
-}
-
-.comment-content :deep(.vuepress-markdown-body li) {
-  margin: 4px 0;
-}
-
-/* 表格样式 */
-.comment-content :deep(.vuepress-markdown-body table) {
-  margin: 8px 0;
-  border-collapse: collapse;
-  width: 100%;
-  overflow-x: auto;
-  display: block;
-}
-
-.comment-content :deep(.vuepress-markdown-body table thead),
-.comment-content :deep(.vuepress-markdown-body table tbody) {
-  display: table;
-  width: 100%;
-}
-
-.comment-content :deep(.vuepress-markdown-body th),
-.comment-content :deep(.vuepress-markdown-body td) {
-  padding: 6px 12px;
-  border: 1px solid #ddd;
-}
-
-.comment-content :deep(.vuepress-markdown-body th) {
-  background: #f5f5f5;
-  font-weight: 600;
+  white-space: nowrap;
+  word-break: keep-all;
+  display: inline-block;
+  vertical-align: baseline;
 }
 
 /* 图片样式 */
@@ -275,17 +406,11 @@ watch(() => props.content, () => {
   margin: 8px 0;
   cursor: pointer;
   transition: opacity 0.2s;
+  display: block;
 }
 
 .comment-content :deep(.vuepress-markdown-body img:hover) {
   opacity: 0.9;
-}
-
-/* 分隔线 */
-.comment-content :deep(.vuepress-markdown-body hr) {
-  margin: 12px 0;
-  border: none;
-  border-top: 1px solid #ddd;
 }
 
 /* 复制按钮样式 */
@@ -315,6 +440,19 @@ watch(() => props.content, () => {
   opacity: 1;
 }
 
+/* 移动端优化 */
+@media (max-width: 768px) {
+  .comment-content :deep(.vuepress-markdown-body) {
+    font-size: 15px;
+    line-height: 1.7;
+  }
+  
+  .comment-content :deep(.vuepress-markdown-body img) {
+    margin: 12px 0;
+    border-radius: 6px;
+  }
+}
+
 /* 暗色模式支持 */
 html.dark .comment-content :deep(.vuepress-markdown-body) {
   color: #d1d5db !important;
@@ -324,19 +462,24 @@ html.dark .comment-content :deep(.vuepress-markdown-body a) {
   color: #38bdf8 !important;
 }
 
-html.dark .comment-content :deep(.vuepress-markdown-body blockquote) {
-  background: rgba(56, 189, 248, 0.05) !important;
-  border-left-color: #38bdf8 !important;
-  color: #9ca3af !important;
+html.dark .comment-content :deep(.vuepress-markdown-body a:hover) {
+  border-bottom-color: #38bdf8;
 }
 
 html.dark .comment-content :deep(pre) {
-  background: rgba(15, 23, 42, 0.8) !important;
+  background: #1e1e1e !important;
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 html.dark .comment-content :deep(pre code) {
-  color: #d1d5db !important;
+  color: #d4d4d4 !important;
+}
+
+html.dark .comment-content :deep(pre code .token) {
+  margin: 0;
+  padding: 0;
+  word-spacing: normal;
+  letter-spacing: normal;
 }
 
 html.dark .comment-content :deep(code:not(pre code)) {
