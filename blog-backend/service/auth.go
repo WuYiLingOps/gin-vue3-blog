@@ -14,9 +14,10 @@ import (
 )
 
 type AuthService struct {
-	userRepo         *repository.UserRepository
-	resetTokenRepo   *repository.PasswordResetRepository
-	emailChangeRepo  *repository.EmailChangeRepository
+	userRepo        *repository.UserRepository
+	resetTokenRepo  *repository.PasswordResetRepository
+	emailChangeRepo *repository.EmailChangeRepository
+	settingRepo     *repository.SettingRepository
 }
 
 func NewAuthService() *AuthService {
@@ -24,6 +25,7 @@ func NewAuthService() *AuthService {
 		userRepo:        repository.NewUserRepository(),
 		resetTokenRepo:  repository.NewPasswordResetRepository(),
 		emailChangeRepo: repository.NewEmailChangeRepository(),
+		settingRepo:     repository.NewSettingRepository(),
 	}
 }
 
@@ -280,6 +282,9 @@ func (s *AuthService) ForgotPassword(req *ForgotPasswordRequest, ip string) erro
 		return errors.New("系统错误，请稍后重试")
 	}
 
+	// 获取网站名称
+	siteName := s.getSiteName()
+
 	// 获取邮箱配置
 	emailConfig := util.EmailConfig{
 		Host:     config.Cfg.Email.Host,
@@ -287,6 +292,7 @@ func (s *AuthService) ForgotPassword(req *ForgotPasswordRequest, ip string) erro
 		Username: config.Cfg.Email.Username,
 		Password: config.Cfg.Email.Password,
 		FromName: config.Cfg.Email.FromName,
+		SiteName: siteName,
 	}
 
 	// 异步发送邮件，避免阻塞请求
@@ -454,6 +460,9 @@ func (s *AuthService) SendRegisterCode(req *SendRegisterCodeRequest, ip string) 
 		return errors.New("系统错误，请稍后重试")
 	}
 
+	// 获取网站名称
+	siteName := s.getSiteName()
+
 	// 获取邮箱配置
 	emailConfig := util.EmailConfig{
 		Host:     config.Cfg.Email.Host,
@@ -461,6 +470,7 @@ func (s *AuthService) SendRegisterCode(req *SendRegisterCodeRequest, ip string) 
 		Username: config.Cfg.Email.Username,
 		Password: config.Cfg.Email.Password,
 		FromName: config.Cfg.Email.FromName,
+		SiteName: siteName,
 	}
 
 	// 异步发送邮件，避免阻塞请求
@@ -472,4 +482,20 @@ func (s *AuthService) SendRegisterCode(req *SendRegisterCodeRequest, ip string) 
 	}(emailConfig, req.Email, code)
 
 	return nil
+}
+
+// getSiteName 获取网站名称
+func (s *AuthService) getSiteName() string {
+	settings, err := s.settingRepo.GetByGroup("site")
+	if err != nil {
+		return ""
+	}
+
+	for _, setting := range settings {
+		if setting.Key == "site_name" {
+			return setting.Value
+		}
+	}
+
+	return ""
 }
