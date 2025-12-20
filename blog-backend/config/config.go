@@ -30,6 +30,9 @@ type Config struct {
 		Password string `mapstructure:"password"`
 		DB       int    `mapstructure:"db"`
 	} `mapstructure:"redis"`
+	GiteeCalendar struct {
+		APIURL string `mapstructure:"api_url"` // gitee-calendar-api 地址
+	} `mapstructure:"gitee_calendar"`
 	JWT struct {
 		Secret      string `mapstructure:"secret"`
 		ExpireHours int    `mapstructure:"expire_hours"`
@@ -116,6 +119,11 @@ func loadEnvOverrides(env string) {
 	}
 	if v := os.Getenv("REDIS_PASSWORD"); v != "" {
 		Cfg.Redis.Password = v
+	}
+
+	// Gitee Calendar API
+	if v := os.Getenv("GITEE_CALENDAR_API_URL"); v != "" {
+		Cfg.GiteeCalendar.APIURL = v
 	}
 
 	// JWT
