@@ -43,7 +43,107 @@
                       <n-icon :component="moment.liked ? Heart : HeartOutline" :class="{ liked: moment.liked }" />
                       <span v-if="moment.like_count > 0" class="like-text">{{ moment.like_count }}</span>
                     </span>
+                    <span class="stat-item comment-button" @click="toggleCommentInput(moment.id)">
+                      <n-icon :component="ChatbubbleOutline" />
+                      <span v-if="getCommentCount(moment.id) > 0" class="comment-text">{{ getCommentCount(moment.id) }}</span>
+                    </span>
                   </n-space>
+                </div>
+
+                <!-- 评论区域 -->
+                <div v-if="momentComments[moment.id] && momentComments[moment.id].length > 0" class="comments-section">
+                  <div v-for="comment in momentComments[moment.id]" :key="comment.id" class="comment-item">
+                    <div class="comment-content">
+                      <span class="comment-author">{{ comment.user.nickname || comment.user.username }}</span>
+                      <template v-if="comment.parent">
+                        <span class="comment-reply-to">回复</span>
+                        <span class="comment-reply-target">{{ comment.parent.user.nickname || comment.parent.user.username }}</span>
+                      </template>
+                      <span class="comment-colon">:</span>
+                      <span class="comment-text">{{ comment.content }}</span>
+                    </div>
+                    <div class="comment-actions">
+                      <span class="comment-time">{{ formatRelativeTime(comment.created_at) }}</span>
+                      <n-button
+                        v-if="authStore.isLoggedIn"
+                        text
+                        size="tiny"
+                        @click="handleReply(moment.id, comment)"
+                      >
+                        回复
+                      </n-button>
+                      <n-popconfirm
+                        v-if="canDeleteComment(comment)"
+                        @positive-click="handleDeleteComment(comment.id, moment.id)"
+                      >
+                        <template #trigger>
+                          <n-button text size="tiny" type="error">删除</n-button>
+                        </template>
+                        确定要删除这条评论吗？
+                      </n-popconfirm>
+                    </div>
+                    <!-- 子评论 -->
+                    <div v-if="comment.children && comment.children.length > 0" class="reply-list">
+                      <div v-for="reply in comment.children" :key="reply.id" class="reply-item">
+                        <span class="comment-author">{{ reply.user.nickname || reply.user.username }}</span>
+                        <span class="comment-reply-to">回复</span>
+                        <span class="comment-reply-target">{{ comment.user.nickname || comment.user.username }}</span>
+                        <span class="comment-colon">：</span>
+                        <span class="comment-text">{{ reply.content }}</span>
+                        <div class="comment-actions">
+                          <span class="comment-time">{{ formatRelativeTime(reply.created_at) }}</span>
+                          <n-button
+                            v-if="authStore.isLoggedIn"
+                            text
+                            size="tiny"
+                            @click="handleReply(moment.id, comment, reply)"
+                          >
+                            回复
+                          </n-button>
+                          <n-popconfirm
+                            v-if="canDeleteComment(reply)"
+                            @positive-click="handleDeleteComment(reply.id, moment.id)"
+                          >
+                            <template #trigger>
+                              <n-button text size="tiny" type="error">删除</n-button>
+                            </template>
+                            确定要删除这条回复吗？
+                          </n-popconfirm>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 评论输入框 -->
+                <div v-if="activeCommentInput === moment.id" class="comment-input-section">
+                  <div v-if="replyToComment[moment.id]" class="reply-hint">
+                    回复 <strong>{{ getReplyTargetName(moment.id) }}</strong>
+                    <n-button text size="tiny" @click="cancelReply(moment.id)">取消回复</n-button>
+                  </div>
+                  <n-input
+                    v-model:value="commentInputs[moment.id]"
+                    type="textarea"
+                    :placeholder="replyToComment[moment.id] ? `回复 ${getReplyTargetName(moment.id)}...` : '写评论...'"
+                    :rows="2"
+                    :maxlength="500"
+                    show-count
+                    @keydown.enter.ctrl="handleSubmitComment(moment.id)"
+                  />
+                  <div class="comment-input-actions">
+                    <n-space justify="end">
+                      <n-button size="small" @click="cancelComment(moment.id)">取消</n-button>
+                      <n-button
+                        type="primary"
+                        size="small"
+                        :loading="submittingComments[moment.id]"
+                        :disabled="!commentInputs[moment.id]?.trim()"
+                        @click="handleSubmitComment(moment.id)"
+                      >
+                        发送
+                      </n-button>
+                    </n-space>
+                  </div>
                 </div>
               </div>
             </div>
@@ -82,13 +182,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, reactive } from 'vue'
 import { useMessage } from 'naive-ui'
-import { HeartOutline, Heart } from '@vicons/ionicons5'
+import { HeartOutline, Heart, ChatbubbleOutline } from '@vicons/ionicons5'
 import { getMoments, likeMoment } from '@/api/moment'
 import type { Moment, MomentParams } from '@/api/moment'
-import { formatDate } from '@/utils/format'
+import { formatDate, formatRelativeTime } from '@/utils/format'
 import { useAuthStore } from '@/stores/auth'
+import { getCommentsByTypeAndTarget, createComment, deleteComment } from '@/api/comment'
+import type { Comment } from '@/types/blog'
 import AuthorCard from '@/components/AuthorCard.vue'
 import AnnouncementBoard from '@/components/AnnouncementBoard.vue'
 import TagCloudWidget from '@/components/TagCloudWidget.vue'
@@ -101,6 +203,16 @@ const moments = ref<Moment[]>([])
 const currentPage = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
+
+// 评论相关
+const momentComments = reactive<Record<number, Comment[]>>({})
+const activeCommentInput = ref<number | null>(null)
+const commentInputs = reactive<Record<number, string>>({})
+const submittingComments = reactive<Record<number, boolean>>({})
+const replyToComment = reactive<Record<number, { parent: Comment; target?: Comment } | null>>({})
+
+// 说说评论类型
+const MOMENT_COMMENT_TYPE = 'moment'
 
 // 解析图片JSON
 function parseImages(images: string): string[] {
@@ -130,12 +242,174 @@ async function fetchMoments() {
     if (res && res.data) {
       moments.value = res.data.list || []
       total.value = res.data.total || 0
+      
+      // 获取每个说说的评论
+      for (const moment of moments.value) {
+        await fetchComments(moment.id)
+      }
     }
   } catch (error) {
     console.error('获取说说列表失败:', error)
   } finally {
     loading.value = false
   }
+}
+
+// 获取说说的评论列表
+async function fetchComments(momentId: number) {
+  try {
+    const res = await getCommentsByTypeAndTarget(MOMENT_COMMENT_TYPE, momentId)
+    if (res.data) {
+      momentComments[momentId] = res.data
+    }
+  } catch (error) {
+    console.error('获取评论失败:', error)
+    momentComments[momentId] = []
+  }
+}
+
+// 获取评论数量
+function getCommentCount(momentId: number): number {
+  const comments = momentComments[momentId] || []
+  let count = comments.length
+  comments.forEach(comment => {
+    if (comment.children) {
+      count += comment.children.length
+    }
+  })
+  return count
+}
+
+// 切换评论输入框
+function toggleCommentInput(momentId: number) {
+  if (!authStore.isLoggedIn) {
+    message.warning('请先登录')
+    return
+  }
+  
+  if (activeCommentInput.value === momentId) {
+    activeCommentInput.value = null
+    commentInputs[momentId] = ''
+    replyToComment[momentId] = null
+  } else {
+    activeCommentInput.value = momentId
+    if (!commentInputs[momentId]) {
+      commentInputs[momentId] = ''
+    }
+  }
+}
+
+// 取消评论
+function cancelComment(momentId: number) {
+  activeCommentInput.value = null
+  commentInputs[momentId] = ''
+  replyToComment[momentId] = null
+}
+
+// 取消回复
+function cancelReply(momentId: number) {
+  replyToComment[momentId] = null
+  commentInputs[momentId] = ''
+}
+
+// 获取回复目标名称
+function getReplyTargetName(momentId: number): string {
+  const replyInfo = replyToComment[momentId]
+  if (!replyInfo) {
+    return ''
+  }
+  if (replyInfo.target) {
+    return replyInfo.target.user.nickname || replyInfo.target.user.username
+  }
+  return replyInfo.parent.user.nickname || replyInfo.parent.user.username
+}
+
+// 回复评论
+function handleReply(momentId: number, parent: Comment, target?: Comment) {
+  if (!authStore.isLoggedIn) {
+    message.warning('请先登录')
+    return
+  }
+  
+  activeCommentInput.value = momentId
+  replyToComment[momentId] = { parent, target }
+  if (!commentInputs[momentId]) {
+    commentInputs[momentId] = ''
+  }
+  
+  // 聚焦输入框
+  setTimeout(() => {
+    const textarea = document.querySelector(`textarea[placeholder="写评论..."]`) as HTMLTextAreaElement
+    if (textarea) {
+      textarea.focus()
+    }
+  }, 100)
+}
+
+// 提交评论
+async function handleSubmitComment(momentId: number) {
+  if (!authStore.isLoggedIn) {
+    message.warning('请先登录')
+    return
+  }
+
+  const content = commentInputs[momentId]?.trim()
+  if (!content) {
+    message.warning('请输入评论内容')
+    return
+  }
+
+  try {
+    submittingComments[momentId] = true
+    const commentData: any = {
+      content,
+      comment_type: MOMENT_COMMENT_TYPE,
+      target_id: momentId
+    }
+    
+    // 如果是回复评论，添加 parent_id
+    const replyInfo = replyToComment[momentId]
+    if (replyInfo && replyInfo.parent) {
+      commentData.parent_id = replyInfo.parent.id
+    }
+    
+    await createComment(commentData)
+    message.success(replyInfo ? '回复成功' : '评论成功')
+    commentInputs[momentId] = ''
+    replyToComment[momentId] = null
+    activeCommentInput.value = null
+    
+    // 重新获取评论列表
+    await fetchComments(momentId)
+  } catch (error: any) {
+    message.error(error.message || '评论失败')
+  } finally {
+    submittingComments[momentId] = false
+  }
+}
+
+// 删除评论
+async function handleDeleteComment(commentId: number, momentId: number) {
+  try {
+    await deleteComment(commentId)
+    message.success('删除成功')
+    await fetchComments(momentId)
+  } catch (error: any) {
+    message.error(error.message || '删除失败')
+  }
+}
+
+// 检查是否可以删除评论
+function canDeleteComment(comment: Comment): boolean {
+  if (!authStore.isLoggedIn) {
+    return false
+  }
+  const user = authStore.user
+  if (!user) {
+    return false
+  }
+  // 管理员或评论作者可以删除
+  return user.role === 'admin' || user.id === comment.user_id
 }
 
 // 页码变化
@@ -342,6 +616,198 @@ html.dark .moment-image {
   padding-top: 12px;
   border-top: 1px solid #e5e7eb;
   margin-top: 4px;
+}
+
+.comment-button {
+  cursor: pointer;
+  user-select: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  background: transparent;
+  transition: all 0.3s;
+}
+
+.comment-button:hover {
+  color: #3b82f6;
+  background: rgba(59, 130, 246, 0.08);
+  transform: translateY(-1px);
+}
+
+html.dark .comment-button:hover {
+  color: #60a5fa;
+  background: rgba(96, 165, 250, 0.12);
+}
+
+.comment-text {
+  font-weight: 500;
+}
+
+/* 评论区域 */
+.comments-section {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e5e7eb;
+}
+
+html.dark .comments-section {
+  border-top-color: #374151;
+}
+
+.comment-item {
+  margin-bottom: 8px;
+  padding: 8px 12px;
+  background: #f8fafc;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+html.dark .comment-item {
+  background: #1e293b;
+}
+
+.comment-content {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px;
+  line-height: 1.6;
+  font-size: 14px;
+}
+
+.comment-author {
+  font-weight: 600;
+  color: #1e40af;
+  cursor: pointer;
+}
+
+html.dark .comment-author {
+  color: #60a5fa;
+}
+
+.comment-author:hover {
+  text-decoration: underline;
+}
+
+.comment-reply-to {
+  color: #64748b;
+  font-size: 13px;
+}
+
+html.dark .comment-reply-to {
+  color: #94a3b8;
+}
+
+.comment-reply-target {
+  font-weight: 600;
+  color: #1e40af;
+  cursor: pointer;
+}
+
+html.dark .comment-reply-target {
+  color: #60a5fa;
+}
+
+.comment-reply-target:hover {
+  text-decoration: underline;
+}
+
+.comment-colon {
+  color: #334155;
+  margin: 0 2px;
+}
+
+html.dark .comment-colon {
+  color: #cbd5e1;
+}
+
+.comment-text {
+  color: #334155;
+  word-break: break-word;
+}
+
+html.dark .comment-text {
+  color: #cbd5e1;
+}
+
+.comment-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
+  font-size: 12px;
+}
+
+.comment-time {
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+html.dark .comment-time {
+  color: #64748b;
+}
+
+/* 回复列表 */
+.reply-list {
+  margin-top: 8px;
+  padding-left: 12px;
+  border-left: 2px solid #e2e8f0;
+}
+
+html.dark .reply-list {
+  border-left-color: #475569;
+}
+
+.reply-item {
+  margin-top: 6px;
+  padding: 6px 10px;
+  background: #f1f5f9;
+  border-radius: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+html.dark .reply-item {
+  background: #0f172a;
+}
+
+/* 评论输入区域 */
+.comment-input-section {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e5e7eb;
+}
+
+html.dark .comment-input-section {
+  border-top-color: #374151;
+}
+
+.comment-input-actions {
+  margin-top: 8px;
+}
+
+.reply-hint {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  margin-bottom: 8px;
+  background: #eff6ff;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #1e40af;
+}
+
+html.dark .reply-hint {
+  background: #1e3a8a;
+  color: #93c5fd;
+}
+
+.reply-hint strong {
+  font-weight: 600;
 }
 
 html.dark .moment-footer {
