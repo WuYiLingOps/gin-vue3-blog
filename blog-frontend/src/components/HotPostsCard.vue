@@ -189,13 +189,21 @@ html.dark .hot-posts-card {
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+html.dark .card-title {
+  color: #fff;
+}
+
 html.dark .list-item {
   background: rgba(255, 255, 255, 0.06);
   border-color: rgba(255, 255, 255, 0.08);
 }
 
 html.dark .item-title {
-  color: #e5e7eb;
+  color: #fff;
+}
+
+html.dark .item-meta {
+  color: #94a3b8;
 }
 </style>
 
