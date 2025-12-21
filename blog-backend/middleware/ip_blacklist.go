@@ -38,6 +38,7 @@ func IPBlacklistMiddleware() gin.HandlerFunc {
 
 	return func(c *gin.Context) {
 		path := c.Request.URL.Path
+		// 从上下文获取IP（已通过IPContextMiddleware设置）
 		ip := util.GetClientIP(c)
 
 		// 1. 完全排除的路径：静态文件和 WebSocket
@@ -104,8 +105,11 @@ func IPBlacklistMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// 6. 记录访问（只记录非管理员、非白名单的访问）
-		recordAccess(ip)
+		// 6. 记录访问（只记录非管理员、非白名单、非本地IP的访问）
+		// 本地开发环境IP（127.0.0.1 和 ::1）不记录访问频率
+		if ip != "127.0.0.1" && ip != "::1" {
+			recordAccess(ip)
+		}
 
 		c.Next()
 	}
@@ -185,6 +189,21 @@ func shouldBanIP(ip string) bool {
 
 // banIP 封禁IP
 func banIP(ip string, reason string, banType int) {
+	// 如果IP为空，不进行封禁
+	if ip == "" {
+		return
+	}
+
+	// 本地开发环境IP不封禁（127.0.0.1 和 ::1）
+	if ip == "127.0.0.1" || ip == "::1" {
+		return
+	}
+
+	// 再次检查是否在白名单中（防止配置未加载的情况）
+	if isIPInWhitelist(ip) {
+		return
+	}
+
 	expireAt := time.Now().Add(time.Duration(banDuration) * time.Hour)
 
 	blacklist := model.IPBlacklist{
@@ -194,8 +213,23 @@ func banIP(ip string, reason string, banType int) {
 		ExpireAt: &expireAt,
 	}
 
-	// 使用 FirstOrCreate 避免重复插入
-	db.DB.Where("ip = ?", ip).FirstOrCreate(&blacklist)
+	// 检查是否已存在
+	var existing model.IPBlacklist
+	err := db.DB.Where("ip = ?", ip).First(&existing).Error
+
+	if err != nil {
+		// 不存在，创建新记录
+		if err := db.DB.Create(&blacklist).Error; err != nil {
+			// 创建失败，记录错误但不影响主流程
+			return
+		}
+	} else {
+		// 已存在，更新记录（更新过期时间和原因）
+		existing.Reason = reason
+		existing.BanType = banType
+		existing.ExpireAt = &expireAt
+		db.DB.Save(&existing)
+	}
 
 	// 标记为已封禁
 	ipMapMutex.Lock()
