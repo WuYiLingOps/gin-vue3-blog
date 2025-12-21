@@ -58,6 +58,13 @@ func (r *PostRepository) Delete(id uint) error {
 	return db.DB.Delete(&model.Post{}, id).Error
 }
 
+// GetPublishedCountByCategory 获取指定分类的已发布文章数量
+func (r *PostRepository) GetPublishedCountByCategory(categoryID uint) (int64, error) {
+	var count int64
+	err := db.DB.Model(&model.Post{}).Where("status = 1 AND category_id = ?", categoryID).Count(&count).Error
+	return count, err
+}
+
 // List 获取文章列表
 func (r *PostRepository) List(page, pageSize int, categoryID uint, keyword string, status int, visibility *int) ([]model.Post, int64, error) {
 	var posts []model.Post
