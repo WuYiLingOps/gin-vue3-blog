@@ -257,17 +257,25 @@ html.dark .announcement-card {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 }
 
+html.dark .card-title {
+  color: #fff;
+}
+
 html.dark .announcement-item {
   background: rgba(255, 255, 255, 0.03);
   border-color: rgba(255, 255, 255, 0.06);
 }
 
 html.dark .item-title {
-  color: #e5e7eb;
+  color: #fff;
 }
 
 html.dark .item-content {
-  color: #cbd5e1;
+  color: #e5e7eb;
+}
+
+html.dark .item-time {
+  color: #94a3b8;
 }
 
 html.dark .detail-content {
