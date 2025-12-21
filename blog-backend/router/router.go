@@ -15,6 +15,7 @@ func SetupRouter() *gin.Engine {
 
 	// 使用中间件
 	r.Use(gin.Recovery())
+	r.Use(middleware.IPContextMiddleware()) // IP上下文中间件（最先执行，确保IP可用）
 	r.Use(middleware.Logger())
 	r.Use(middleware.CORS())
 	r.Use(middleware.IPBlacklistMiddleware()) // IP黑名单和频率限制
