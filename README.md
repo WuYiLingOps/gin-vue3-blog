@@ -415,7 +415,7 @@ docker compose logs -f backend
 
 ```bash
 # 进入数据库容器
-docker exec -it pg-prod psql -U postgres -d blogdb
+docker exec -it pg-prod psql -U postgres
 
 # 创建数据库
 CREATE DATABASE blogdb
@@ -484,7 +484,16 @@ docker compose logs -f backend
 
 ##### 2. 配置后端 Gitee Calendar API 地址（必选，生产环境统一用环境变量）
 
-在后端根目录创建（或编辑）`.env.config.prod`，通过环境变量配置 `gitee-calendar-api` 服务地址（不再修改 `config/config-prod.yml`）。**模板已提供：`blog-backend/config/env.config.example`**，可直接复制为 `.env.config.prod` 后按需修改：
+1. **修改环境配置**  
+   修改 `config/config.yml` 中的 `env: dev` 为 `env: prod`，系统会自动加载 `config-prod.yml`：
+
+   ```yaml
+   # config/config.yml
+   env: prod
+   ```
+
+2. **创建环境变量文件**  
+   在后端根目录创建（或编辑）`.env.config.prod`，通过环境变量配置 `gitee-calendar-api` 服务地址（不再修改 `config/config-prod.yml`）。**模板已提供：`blog-backend/config/env.config.example`**，可直接复制为 `.env.config.prod` 后按需修改：
 
 ```env
 # .env.config.prod
@@ -544,7 +553,7 @@ nohup ./blog-backend > app.log 2>&1 &
    **HTTP 方式：**
    ```env
    # 后端主 API（博客业务接口）
-   # 方式一：只配置域名（推荐，更简洁）
+   # 方式一：只配置域名（推荐，更简洁）✅
    VITE_API_BASE_URL=http://your-domain.com
    
    # 方式二：配置包含 /api 的完整路径（也可以，函数会自动处理）
@@ -554,7 +563,7 @@ nohup ./blog-backend > app.log 2>&1 &
    **HTTPS 方式（SSL 证书）：**
    ```env
    # 后端主 API（博客业务接口）
-   # 方式一：只配置域名（推荐，更简洁）
+   # 方式一：只配置域名（推荐，更简洁）✅
    VITE_API_BASE_URL=https://your-domain.com
    # 示例：VITE_API_BASE_URL=https://huangjingblog.cn
    
@@ -755,7 +764,7 @@ pg_dump -h old-host -U old_user -d old_db -Fc -f backup.dump
 - `-f backup.dump`：输出文件路径
 示例：
 ```bash
-pg_dump -h 10.0.0.5 -U bloguser -d blogdb -Fc -f /tmp/blog_backup_2025-12-15.dump
+pg_dump -h 10.0.0.5 -U postgres -d blogdb -Fc -f /tmp/blog_backup_2025-12-15.dump
 ```
 
 2. 恢复到新库：
