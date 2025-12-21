@@ -515,6 +515,11 @@ html.dark .todo-meta {
   gap: 16px;
 }
 
+/* 统一侧边栏卡片圆角样式，与首页保持一致 */
+.todo-page :deep(.sidebar-card-wrapper .n-card) {
+  border-radius: 16px;
+}
+
 @media (max-width: 1024px) {
   .todo-layout {
     grid-template-columns: 1fr;
