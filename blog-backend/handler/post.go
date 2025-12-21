@@ -38,6 +38,17 @@ func (h *PostHandler) Create(c *gin.Context) {
 		return
 	}
 
+	// 确保 status 字段正确传递（0 或 1）
+	// 如果前端没有传递 status，默认为 1（发布）
+	if req.Status != 0 && req.Status != 1 {
+		req.Status = 1
+	}
+
+	// 处理可见性：如果前端传递了 visibility 字段（包括 0），确保正确接收
+	// 由于 JSON 中 0 是有效值，如果前端传递了 visibility: 0，应该能正确接收
+	// 但如果前端没有传递 visibility 字段，req.Visibility 会是 nil，此时使用默认值 1
+	// 这里不需要额外处理，因为 service 层会处理 nil 的情况
+
 	post, err := h.service.Create(userID.(uint), &req)
 	if err != nil {
 		util.Error(c, 400, err.Error())
