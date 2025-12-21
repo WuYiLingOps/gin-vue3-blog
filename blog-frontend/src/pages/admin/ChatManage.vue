@@ -157,7 +157,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, h } from 'vue'
+import { ref, onMounted, onBeforeUnmount, h } from 'vue'
 import {
   NCard,
   NSpace,
@@ -425,13 +425,29 @@ const handlePageSizeChange = (pageSize: number) => {
   fetchMessages()
 }
 
+// 定时器引用
+let onlineInfoTimer: number | null = null
+
 // 初始化
 onMounted(() => {
   fetchMessages()
   fetchOnlineInfo()
   
-  // 定时刷新在线人数
-  setInterval(fetchOnlineInfo, 10000)
+  // 定时刷新在线人数（每10秒）
+  onlineInfoTimer = window.setInterval(() => {
+    // 只在页面可见时刷新
+    if (!document.hidden) {
+      fetchOnlineInfo()
+    }
+  }, 10000)
+})
+
+// 组件卸载时清理定时器
+onBeforeUnmount(() => {
+  if (onlineInfoTimer !== null) {
+    clearInterval(onlineInfoTimer)
+    onlineInfoTimer = null
+  }
 })
 </script>
 
