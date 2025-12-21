@@ -147,7 +147,7 @@ type PostLike struct {
 // IPBlacklist IP黑名单模型
 type IPBlacklist struct {
 	ID        uint       `json:"id" gorm:"primaryKey"`
-	IP        string     `json:"ip" gorm:"uniqueIndex;not null;size:45"`
+	IP        string     `json:"ip" gorm:"column:ip;uniqueIndex;not null;size:45"` // 显式指定列名，确保正确映射
 	Reason    string     `json:"reason" gorm:"size:255"`
 	BanType   int        `json:"ban_type" gorm:"default:1"` // 1:自动封禁 2:手动封禁
 	ExpireAt  *time.Time `json:"expire_at"`                 // 过期时间，NULL表示永久封禁
@@ -158,9 +158,9 @@ type IPBlacklist struct {
 // IPWhitelist IP白名单模型
 type IPWhitelist struct {
 	ID        uint       `json:"id" gorm:"primaryKey"`
-	IP        string     `json:"ip" gorm:"uniqueIndex;not null;size:45"` // 支持 CIDR 格式
-	Reason    string     `json:"reason" gorm:"size:255"`                 // 添加原因
-	ExpireAt  *time.Time `json:"expire_at"`                              // 过期时间，NULL表示永久有效
+	IP        string     `json:"ip" gorm:"column:ip;uniqueIndex;not null;size:45"` // 支持 CIDR 格式，显式指定列名
+	Reason    string     `json:"reason" gorm:"size:255"`                           // 添加原因
+	ExpireAt  *time.Time `json:"expire_at"`                                        // 过期时间，NULL表示永久有效
 	CreatedAt time.Time  `json:"created_at"`
 	UpdatedAt time.Time  `json:"updated_at"`
 }
