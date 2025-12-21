@@ -6,6 +6,7 @@
       <n-layout-header class="header" position="absolute">
         <div class="header-content">
           <div class="logo" @click="router.push('/')">
+            <img src="/logo.svg" alt="Logo" class="logo-image" />
             <h2>{{ siteSettings.site_name || defaultSiteName }}</h2>
           </div>
 
@@ -771,12 +772,21 @@ html.dark .header {
   cursor: pointer;
   display: flex;
   align-items: center;
+  gap: 12px;
   transition: transform 0.3s;
   flex-shrink: 0;
 }
 
 .logo:hover {
   transform: scale(1.05);
+}
+
+.logo-image {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  flex-shrink: 0;
+  border-radius: 8px;
 }
 
 .logo h2 {
@@ -1162,6 +1172,11 @@ html.dark .running-time :deep(.time-number) {
     height: 60px;
   }
   
+  .logo-image {
+    width: 24px;
+    height: 24px;
+  }
+  
   .logo h2 {
     font-size: 20px;
   }
@@ -1254,6 +1269,11 @@ html.dark .user-role {
 
 /* 小屏幕优化 */
 @media (max-width: 480px) {
+  .logo-image {
+    width: 20px;
+    height: 20px;
+  }
+  
   .logo h2 {
     font-size: 18px;
   }
