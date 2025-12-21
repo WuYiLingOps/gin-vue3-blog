@@ -176,6 +176,7 @@ import {
   NAvatar,
   NText,
   NEmpty,
+  NTag,
   useMessage,
   useDialog,
   type DataTableColumns
@@ -233,13 +234,42 @@ const columns: DataTableColumns<ChatMessage> = [
   {
     title: '用户名',
     key: 'username',
-    width: 150
+    width: 150,
+    render: (row) => {
+      if (row.is_broadcast) {
+        return h(NSpace, { align: 'center', size: 'small' }, {
+          default: () => [
+            h(NTag, { type: 'error', size: 'small' }, { default: () => '系统' }),
+            h('span', row.username)
+          ]
+        })
+      }
+      return row.username
+    }
   },
   {
     title: '消息内容',
     key: 'content',
     ellipsis: {
       tooltip: true
+    }
+  },
+  {
+    title: '投递目标',
+    key: 'target',
+    width: 140,
+    render: (row) => {
+      if (!row.is_broadcast) {
+        return h('span', { style: { color: '#999' } }, '普通消息')
+      }
+      const targetMap: Record<string, { label: string; type: 'default' | 'info' | 'success' | 'warning' | 'error' }> = {
+        'announcement': { label: '公告栏', type: 'info' },
+        'chat': { label: '聊天室', type: 'success' },
+        'both': { label: '同时', type: 'warning' }
+      }
+      const target = row.target || 'announcement'
+      const config = targetMap[target] || { label: '未知', type: 'default' }
+      return h(NTag, { type: config.type, size: 'small' }, { default: () => config.label })
     }
   },
   {
