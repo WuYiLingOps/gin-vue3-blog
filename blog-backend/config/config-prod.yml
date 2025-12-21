@@ -9,7 +9,7 @@ db:
   user: postgres
   password: xxxxxxxxx
   dbname: blogdb
-  sslmode: require  # 生产环境建议使用 require 或 verify-full
+  sslmode: disable  # 本地开发或未配置SSL时使用 disable；配置SSL后可改为 require 或 verify-full
 
 redis:
   host: localhost
