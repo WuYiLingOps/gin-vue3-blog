@@ -89,6 +89,11 @@ func (h *ChatHandler) HandleWebSocket(c *gin.Context) {
 
 	// 获取IP地址
 	ip := util.GetClientIP(c)
+	// 确保IP地址不为空，如果为空则使用默认值
+	if ip == "" {
+		ip = "unknown"
+		log.Printf("警告: WebSocket连接时无法获取IP地址，使用默认值: %s", ip)
+	}
 
 	// 创建客户端
 	client := &service.Client{
