@@ -97,7 +97,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
+import { ref, reactive, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useMessage } from 'naive-ui'
 import type { FormInst, FormRules, SelectOption } from 'naive-ui'
@@ -136,6 +136,9 @@ const formData = reactive<PostForm>({
   is_top: false
 })
 
+// 保存用户之前选择的可见性（用于从草稿切换回发布时恢复）
+let previousVisibility = 1
+
 const rules: FormRules = {
   title: [{ required: true, message: '请输入文章标题', trigger: 'blur' }],
   content: [{ required: true, message: '请输入文章内容', trigger: 'blur' }],
@@ -167,6 +170,24 @@ const tagOptions = computed<SelectOption[]>(() => {
     value: tag.id
   }))
 })
+
+// 监听状态变化，当选择草稿时自动设置可见性为私密
+watch(
+  () => formData.status,
+  (newStatus, oldStatus) => {
+    if (newStatus === 0) {
+      // 草稿状态，保存当前可见性（如果之前是发布状态），然后自动设置为私密
+      if (oldStatus === 1) {
+        previousVisibility = formData.visibility
+      }
+      formData.visibility = 0
+    } else if (newStatus === 1 && oldStatus === 0) {
+      // 从草稿切换回发布状态，恢复之前保存的可见性
+      formData.visibility = previousVisibility
+    }
+  },
+  { immediate: false }
+)
 
 onMounted(async () => {
   checkMobile()
@@ -226,11 +247,11 @@ async function handleSubmit() {
       // 更新文章
       const id = Number(route.params.id)
       await updatePost(id, formData)
-      message.success('文章更新成功')
+      message.success(formData.status === 0 ? '草稿保存成功' : '文章更新成功')
     } else {
       // 创建文章
       await createPost(formData)
-      message.success('文章发布成功')
+      message.success(formData.status === 0 ? '草稿保存成功' : '文章发布成功')
     }
 
     handleBack()
