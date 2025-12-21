@@ -81,7 +81,7 @@ coverage/
 # ==================== Configuration Files ====================
 # Backend configuration with sensitive data
 !blog-backend/config/config.yml
-blog-backend/config/config-prod.yml
+!blog-backend/config/config-prod.yml  # 模板文件，允许提交
 !blog-backend/config/config-dev.yml
 !blog-backend/config/config.example.yml
 
