@@ -200,7 +200,11 @@ go mod download
 #     可参考 blog-backend/config/env.config.example 中的示例字段说明
 vim config/config-dev.yml
 
-# （2）在后端项目根目录（blog-backend）创建 .env.config.dev，仅填写真正的账号/密码等敏感信息，例如：
+# （2）在后端项目根目录（blog-backend）创建 .env.config.dev，仅填写真正的账号/密码等敏感信息
+#     模板文件：blog-backend/config/env.config.example
+#     复制模板并填写实际值：
+#     cp config/env.config.example .env.config.dev
+#     然后编辑 .env.config.dev，取消注释并填写实际值，例如：
 # DB_HOST=127.0.0.1
 # DB_PORT=5432
 # DB_USER=postgres
@@ -324,8 +328,20 @@ GOOS=linux GOARCH=amd64 go build -o blog-backend ./cmd/server
 
 > 生产环境同样推荐使用「YAML + .env.config.prod」方案，将敏感信息放到环境变量文件中，而不是写死在 `config-prod.yml` 里。
 
+- **创建生产环境配置文件**  
+  1. 创建 `config/config-prod.yml`（模板已提供，与 `config-dev.yml` 结构相同，主要区别是日志级别为 `info`）
+  2. 修改 `config/config.yml` 中的 `env: dev` 为 `env: prod`，系统会自动加载 `config-prod.yml`
+
 - **后端应用内部配置覆盖**  
-  在后端可执行文件的工作目录下创建 `.env.config.prod`，用于覆盖 `config/config-prod.yml` 中的敏感字段；可参考 `blog-backend/config/env.config.example` 中的字段说明，例如：
+  在后端可执行文件的工作目录下创建 `.env.config.prod`，用于覆盖 `config/config-prod.yml` 中的敏感字段。  
+  **模板文件**：`blog-backend/config/env.config.example`（与 `.env.config.dev` 使用相同的配置项，但值不同）  
+  复制模板并填写生产环境实际值：
+  ```bash
+  cp config/env.config.example .env.config.prod
+  vim .env.config.prod
+  ```
+  
+  示例配置：
 
   ```env
   # 数据库
@@ -503,7 +519,14 @@ go build -o blog-backend cmd/server/main.go
 nohup ./blog-backend > app.log 2>&1 &
 ```
 
-手动在主机安装并启动 PostgreSQL、Redis，按需配置 `config/config-prod.yml`，再以服务方式管理可执行文件。
+手动在主机安装并启动 PostgreSQL、Redis，按需配置 `config/config-prod.yml`（模板已提供），再以服务方式管理可执行文件。
+
+> **环境配置说明**：
+> - **开发环境**：使用 `config/config-dev.yml` + `.env.config.dev`，日志级别为 `debug`
+> - **生产环境**：使用 `config/config-prod.yml` + `.env.config.prod`，日志级别为 `info`
+> - **环境切换**：修改 `config/config.yml` 中的 `env` 字段（`dev` 或 `prod`）
+> - **环境变量文件**：`.env.config.dev` 和 `.env.config.prod` 使用相同的配置项（参考 `env.config.example`），但实际值不同
+> - **敏感信息**：建议全部通过环境变量文件管理，而不是写死在 YAML 配置文件中
 
 ### 第二步：前端构建与配置
 
