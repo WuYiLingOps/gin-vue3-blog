@@ -80,6 +80,7 @@ func (s *DashboardService) GetStats() (*DashboardStats, error) {
 }
 
 // GetCategoryStats 获取分类统计
+// 直接从文章表统计每个分类的已发布文章数量，确保统计准确性
 func (s *DashboardService) GetCategoryStats() ([]CategoryStats, error) {
 	categories, err := s.categoryRepo.List()
 	if err != nil {
@@ -88,10 +89,16 @@ func (s *DashboardService) GetCategoryStats() ([]CategoryStats, error) {
 
 	var stats []CategoryStats
 	for _, category := range categories {
-		if category.PostCount > 0 {
+		// 直接从文章表统计该分类的已发布文章数量
+		count, err := s.postRepo.GetPublishedCountByCategory(category.ID)
+		if err != nil {
+			continue // 如果统计失败，跳过该分类
+		}
+
+		if count > 0 {
 			stats = append(stats, CategoryStats{
 				Name:  category.Name,
-				Value: category.PostCount,
+				Value: int(count),
 				Color: category.Color,
 			})
 		}
