@@ -42,7 +42,7 @@
         <n-grid :cols="2" :x-gap="16">
           <n-gi>
             <n-form-item label="网站名称" path="name">
-              <n-input v-model:value="formData.name" placeholder="例如：清羽飞扬" />
+              <n-input v-model:value="formData.name" placeholder="例如：無以菱" />
             </n-form-item>
           </n-gi>
           <n-gi>
