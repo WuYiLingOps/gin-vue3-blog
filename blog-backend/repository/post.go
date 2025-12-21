@@ -227,10 +227,52 @@ func (r *PostRepository) DeleteTx(tx *gorm.DB, id uint) error {
 
 // CreateTx 在事务中创建文章
 func (r *PostRepository) CreateTx(tx *gorm.DB, post *model.Post) error {
-	err := tx.Create(post).Error
+	// 保存原始的 status 和 visibility 值
+	originalStatus := post.Status
+	originalVisibility := post.Visibility
+
+	// 使用原生 SQL 插入，完全绕过 GORM 的 default 标签逻辑
+	// 这样可以确保零值（0）能正确保存
+	var publishedAtValue interface{}
+	if post.PublishedAt != nil {
+		publishedAtValue = post.PublishedAt
+	} else {
+		publishedAtValue = nil
+	}
+
+	// 使用原生 SQL INSERT，明确指定所有字段的值
+	// PostgreSQL 使用 $1, $2... 占位符，GORM 会自动转换
+	err := tx.Raw(`
+		INSERT INTO posts (
+			title, content, summary, cover,
+			status, visibility, is_top,
+			user_id, category_id, published_at,
+			view_count, like_count,
+			created_at, updated_at
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW(), NOW())
+		RETURNING id
+	`,
+		post.Title,
+		post.Content,
+		post.Summary,
+		post.Cover,
+		originalStatus,     // 直接使用原始值，确保 0 能正确保存
+		originalVisibility, // 直接使用原始值，确保 0 能正确保存
+		post.IsTop,
+		post.UserID,
+		post.CategoryID,
+		publishedAtValue,
+		post.ViewCount,
+		post.LikeCount,
+	).Scan(&post.ID).Error
+
 	if err != nil {
 		return err
 	}
+
+	// 更新 post 对象的值，确保后续代码使用正确的值
+	post.Status = originalStatus
+	post.Visibility = originalVisibility
 
 	// 更新全文搜索向量
 	tx.Exec(
