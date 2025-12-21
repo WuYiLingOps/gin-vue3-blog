@@ -363,12 +363,19 @@ func (c *Client) ReadPump() {
 			}
 
 			// 保存消息到数据库
+			// 确保IP地址不为空
+			ip := c.IP
+			if ip == "" {
+				ip = "unknown"
+				log.Printf("警告: 保存消息时客户端IP为空，使用默认值: %s", ip)
+			}
+
 			chatMsg := &model.ChatMessage{
 				Content:  content,
 				UserID:   c.UserID,
 				Username: c.Username,
 				Avatar:   c.Avatar,
-				IP:       c.IP,
+				IP:       ip,
 				Status:   1,
 			}
 
