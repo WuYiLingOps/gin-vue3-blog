@@ -34,9 +34,9 @@
 ### 🎯 核心功能
 - 📝 **文章管理** - Markdown 编辑器，支持代码高亮、图片上传
 - 🏷️ **分类标签** - 灵活的分类和标签系统
-- 💬 **评论系统** - 支持嵌套回复的评论功能，支持多种评论类型（文章评论、友链评论等）
+- 💬 **评论系统** - 支持嵌套回复的评论功能，支持多种评论类型（文章评论、友链评论、说说评论等）
 - 🔗 **友情链接** - 友链管理功能，支持独立评论系统
-- 💭 **说说动态** - 类似朋友圈的动态发布
+- 💭 **说说动态** - 类似朋友圈的动态发布，支持评论和点赞
 - 💬 **实时聊天室** - WebSocket 实时通信，支持登录用户和匿名访问
 - 👤 **用户系统** - 完整的用户注册、登录、权限管理
 - 🔐 **安全认证** - 密码重置、邮箱修改、邮件验证码
@@ -812,15 +812,17 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
 - 评论审核
 - 评论状态管理
 - 用户头像显示
-- **多类型评论支持** - 支持文章评论、友链评论等多种评论类型
-- **独立评论系统** - 友链页面拥有独立的评论系统，不依赖文章
-- **评论通知功能** - 管理员可配置是否接收评论通知邮件（由于普通用户无权限写文章，文章作者只能是管理员，统一通过管理员通知处理）
+- **多类型评论支持** - 支持文章评论、友链评论、说说评论等多种评论类型
+- **独立评论系统** - 友链页面和说说页面都拥有独立的评论系统，不依赖文章
+- **朋友圈风格评论** - 说说评论采用类似微信朋友圈的紧凑布局设计
+- **评论通知功能** - 管理员可配置是否接收评论通知邮件（支持文章评论和说说评论通知）
 - **邮件通知优化** - 智能处理SMTP服务器响应，确保邮件发送稳定性
 
 ### 💭 说说动态
 - 发布图文动态
 - 多图上传（最多9张）
 - 点赞功能
+- **评论功能** - 支持评论和嵌套回复，采用朋友圈风格设计
 - 公开/私密状态
 
 ### 🔗 友情链接
@@ -949,12 +951,13 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
 
 ### 评论相关
 - `GET /api/comments/post/:id` - 获取文章评论
-- `GET /api/comments/type?type={type}&target_id={target_id}` - 根据评论类型和目标ID获取评论（用于友链等特殊页面）
-  - `type`: 评论类型（`post`-文章评论，`friendlink`-友链评论）
-  - `target_id`: 目标ID（友链评论时固定为0）
+- `GET /api/comments/type?type={type}&target_id={target_id}` - 根据评论类型和目标ID获取评论（用于友链、说说等特殊页面）
+  - `type`: 评论类型（`post`-文章评论，`friendlink`-友链评论，`moment`-说说评论）
+  - `target_id`: 目标ID（友链评论时固定为0，说说评论时为说说ID）
 - `POST /api/comments` - 创建评论（需认证）
   - 文章评论：`{ "content": "...", "comment_type": "post", "post_id": 1 }`
   - 友链评论：`{ "content": "...", "comment_type": "friendlink", "target_id": 0 }`
+  - 说说评论：`{ "content": "...", "comment_type": "moment", "target_id": 1 }`（target_id 为说说ID）
 - `PUT /api/comments/:id` - 更新评论（需认证）
 - `DELETE /api/comments/:id` - 删除评论（需认证）
 
@@ -989,7 +992,7 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
 - `PUT /api/settings/site` - 更新网站设置（管理员）
 - `GET /api/settings/notification` - 获取通知配置（管理员）
 - `PUT /api/settings/notification` - 更新通知配置（管理员）
-  - 支持配置管理员评论通知开关
+  - 支持配置管理员评论通知开关（包括文章评论和说说评论）
 
 ### 验证码相关
 - `GET /api/captcha` - 获取图形验证码
@@ -1055,6 +1058,19 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
 5. 提交 Pull Request
 
 ## 📝 更新日志
+
+### v1.5.0 (2025-12-21)
+- ✨ 新增说说评论功能
+  - 💬 说说页面支持评论和嵌套回复
+  - 🎨 朋友圈风格设计：紧凑的评论布局，类似微信朋友圈效果
+  - 📧 说说评论邮件通知：支持管理员接收说说评论通知邮件
+  - 🎯 评论显示格式优化：用户名：评论内容
+  - 🔄 实时评论数量统计
+  - 🛡️ 权限控制：评论作者和管理员可删除评论
+- 🔧 扩展评论系统
+  - 支持 `moment` 类型评论（说说评论）
+  - 后端评论服务支持多种评论类型（post、friendlink、moment）
+  - 评论通知功能扩展至说说评论
 
 ### v1.4.0 (2025-12-20)
 - ✨ 新增评论通知功能
