@@ -16,6 +16,7 @@ import (
 type CommentService struct {
 	repo        *repository.CommentRepository
 	postRepo    *repository.PostRepository
+	momentRepo  *repository.MomentRepository
 	userRepo    *repository.UserRepository
 	settingRepo *repository.SettingRepository
 }
@@ -24,6 +25,7 @@ func NewCommentService() *CommentService {
 	return &CommentService{
 		repo:        repository.NewCommentRepository(),
 		postRepo:    repository.NewPostRepository(),
+		momentRepo:  repository.NewMomentRepository(),
 		userRepo:    repository.NewUserRepository(),
 		settingRepo: repository.NewSettingRepository(),
 	}
@@ -32,7 +34,7 @@ func NewCommentService() *CommentService {
 // CreateCommentRequest 创建评论请求
 type CreateCommentRequest struct {
 	Content     string `json:"content" binding:"required"`
-	CommentType string `json:"comment_type"` // 评论类型：post-文章评论，friendlink-友链评论
+	CommentType string `json:"comment_type"` // 评论类型：post-文章评论，friendlink-友链评论，moment-说说评论
 	PostID      *uint  `json:"post_id"`      // 文章ID（文章评论时使用）
 	TargetID    *uint  `json:"target_id"`    // 目标ID（友链评论时使用，可以为0或友链ID）
 	ParentID    *uint  `json:"parent_id"`    // 父评论ID（用于回复）
@@ -66,6 +68,13 @@ func (s *CommentService) Create(userID uint, req *CreateCommentRequest) (*model.
 			targetID := uint(0)
 			req.TargetID = &targetID
 		}
+	} else if commentType == "moment" {
+		// 说说评论：必须提供target_id（说说ID）
+		if req.TargetID == nil || *req.TargetID == 0 {
+			return nil, errors.New("说说ID不能为空")
+		}
+		// 注意：这里不验证说说是否存在，因为可能没有 moment repository
+		// 如果需要验证，可以添加 moment repository
 	} else {
 		return nil, errors.New("不支持的评论类型")
 	}
@@ -146,7 +155,7 @@ func (s *CommentService) sendCommentNotifications(comment *model.Comment, commen
 	// 优先使用请求中的URL，其次使用数据库配置，最后使用默认值
 	siteURL := s.getSiteURL(requestSiteURL)
 
-	// 只处理文章评论的通知
+	// 处理文章评论的通知
 	if comment.CommentType == "post" && comment.PostID != nil {
 		// 获取文章信息
 		post, err := s.postRepo.GetByID(*comment.PostID)
@@ -177,6 +186,49 @@ func (s *CommentService) sendCommentNotifications(comment *model.Comment, commen
 						); err != nil {
 							// 记录错误，但不影响主流程（邮件发送是异步的）
 							fmt.Printf("发送评论通知邮件给管理员失败: %v\n", err)
+						}
+					}
+				}
+			}
+		}
+	} else if comment.CommentType == "moment" && comment.TargetID != nil && *comment.TargetID > 0 {
+		// 处理说说评论的通知
+		// 获取说说信息
+		moment, err := s.momentRepo.GetByID(*comment.TargetID)
+		if err != nil {
+			return
+		}
+
+		// 构建说说页面URL
+		momentURL := fmt.Sprintf("%s/moments", siteURL)
+		commentPreview := s.stripMarkdown(comment.Content)
+
+		// 截取说说内容作为标题（最多50个字符）
+		momentTitle := moment.Content
+		if len([]rune(momentTitle)) > 50 {
+			momentTitle = string([]rune(momentTitle)[:50]) + "..."
+		}
+		if momentTitle == "" {
+			momentTitle = "说说"
+		}
+
+		// 通知管理员（如果启用了管理员通知）
+		if s.shouldNotifyAdmin() {
+			admins, err := s.userRepo.GetAdmins()
+			if err == nil {
+				for _, admin := range admins {
+					// 不通知评论者本人（如果评论者是管理员）
+					if admin.ID != commenterID && admin.Email != "" {
+						if err := util.SendAdminCommentNotificationEmail(
+							emailConfig,
+							admin.Email,
+							commenterName,
+							"说说："+momentTitle,
+							commentPreview,
+							momentURL,
+						); err != nil {
+							// 记录错误，但不影响主流程（邮件发送是异步的）
+							fmt.Printf("发送说说评论通知邮件给管理员失败: %v\n", err)
 						}
 					}
 				}
