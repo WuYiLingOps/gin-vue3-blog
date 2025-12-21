@@ -35,7 +35,7 @@ type CreatePostRequest struct {
 	CategoryID uint   `json:"category_id" binding:"required"`
 	TagIDs     []uint `json:"tag_ids"`
 	Status     int    `json:"status"`     // 0:草稿 1:发布
-	Visibility *int   `json:"visibility"` // 1:公开 0:私密（nil 表示使用默认值 1）
+	Visibility int    `json:"visibility"` // 1:公开 0:私密（默认值 1 在前端设置）
 	IsTop      bool   `json:"is_top"`
 }
 
@@ -59,13 +59,28 @@ func (s *PostService) Create(userID uint, req *CreatePostRequest) (*model.Post, 
 		return nil, errors.New("分类不存在")
 	}
 
-	// 处理可见性：默认公开（1），仅允许 0 或 1
-	visibility := 1
-	if req.Visibility != nil {
-		if *req.Visibility != 0 && *req.Visibility != 1 {
-			return nil, errors.New("可见性参数错误")
+	// 处理状态：确保草稿状态（0）能正确保存
+	// 如果 status 为 0（草稿），需要明确设置，避免被默认值覆盖
+	postStatus := req.Status
+	if postStatus != 0 && postStatus != 1 {
+		// 如果状态值无效，默认为发布（1）
+		postStatus = 1
+	}
+
+	// 处理可见性：
+	// - 如果状态为草稿（0），自动设置为私密（0）
+	// - 如果状态为发布（1），使用用户选择的可见性，默认公开（1）
+	var visibility int
+	if postStatus == 0 {
+		// 草稿状态，强制设置为私密
+		visibility = 0
+	} else {
+		// 发布状态，使用用户选择的可见性
+		visibility = req.Visibility
+		if visibility != 0 && visibility != 1 {
+			// 如果可见性值无效，默认为公开（1）
+			visibility = 1
 		}
-		visibility = *req.Visibility
 	}
 
 	post := &model.Post{
@@ -74,7 +89,7 @@ func (s *PostService) Create(userID uint, req *CreatePostRequest) (*model.Post, 
 		Summary:    req.Summary,
 		Cover:      req.Cover,
 		CategoryID: req.CategoryID,
-		Status:     req.Status,
+		Status:     postStatus,
 		Visibility: visibility,
 		IsTop:      req.IsTop,
 		UserID:     userID,
@@ -202,13 +217,20 @@ func (s *PostService) Update(id, userID uint, role string, req *UpdatePostReques
 	post.Status = req.Status
 	post.IsTop = req.IsTop
 
-	// 更新可见性（仅当传入时才修改）
-	if req.Visibility != nil {
+	// 更新可见性：
+	// - 如果状态为草稿（0），自动设置为私密（0）
+	// - 如果状态为发布（1），使用用户选择的可见性（如果传入）
+	if req.Status == 0 {
+		// 草稿状态，强制设置为私密
+		post.Visibility = 0
+	} else if req.Visibility != nil {
+		// 发布状态，使用用户选择的可见性
 		if *req.Visibility != 0 && *req.Visibility != 1 {
 			return nil, errors.New("可见性参数错误")
 		}
 		post.Visibility = *req.Visibility
 	}
+	// 如果状态为发布且未传入可见性，保持原有可见性不变
 
 	// 如果从草稿变为发布，设置发布时间
 	if oldStatus == 0 && req.Status == 1 {
