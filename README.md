@@ -29,6 +29,10 @@
 ### 管理后台
 ![管理后台](./screenshots/admin-dashboard.png)
 
+### 友情链接
+
+![友情链接](./screenshots/FriendshipLinks.png)
+
 ## ✨ 特性
 
 ### 🎯 核心功能
@@ -470,7 +474,7 @@ docker compose logs -f backend
    ```bash
    # 前台调试运行
    ./gitee-calendar-api
-
+   
    # 或后台运行（输出到 gitee-calendar-api.log）
    nohup ./gitee-calendar-api > gitee-calendar-api.log 2>&1 &
    ```
