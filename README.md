@@ -810,6 +810,54 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
    - **注意**：如果使用 OSS/COS 存储，文件在云端，无需迁移本地文件；但普通用户头像强制使用本地存储，仍需迁移 `uploads/avatars/` 目录
 6. 如不需要历史会话，可清理 Redis（如果有登录态存储），再重启后端。
 
+### 第五步：每周自动备份 PostgreSQL（pg-prod / 物理机）
+
+> 默认每周日 00:00 备份 `blogdb`，备份存放 `/opt/backups/blogdb`，按需调整路径/时间/用户名/容器名。
+
+1. 创建备份目录（两种环境通用）：
+   ```bash
+   sudo mkdir -p /opt/backups/blogdb && sudo chown $(whoami) /opt/backups/blogdb
+   ```
+2. 在服务器上创建备份脚本（示例路径 `/usr/local/bin/backup_blogdb.sh`）：
+   ```bash
+   sudo tee /usr/local/bin/backup_blogdb.sh >/dev/null <<'EOF'
+   #!/usr/bin/env bash
+   set -e
+   
+   BACKUP_DIR="/data/backups/blogdb"
+   DB_NAME="blogdb"
+   DB_USER="postgres"
+   CONTAINER_NAME="pg-prod"   # 如无 Docker，请留空或调整
+   
+   mkdir -p "${BACKUP_DIR}"
+   DATE_STR="$(date +%Y%m%d)"
+   BACKUP_FILE="${BACKUP_DIR}/blogdb_${DATE_STR}.dump"
+   
+   if docker ps --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}\$"; then
+     echo "检测到 Docker 容器 ${CONTAINER_NAME}，使用容器内 pg_dump 备份..."
+     docker exec "${CONTAINER_NAME}" pg_dump -U "${DB_USER}" -d "${DB_NAME}" -Fc > "${BACKUP_FILE}"
+   else
+     echo "未检测到容器 ${CONTAINER_NAME}，使用本机 pg_dump 备份..."
+     pg_dump -h localhost -U "${DB_USER}" -d "${DB_NAME}" -Fc > "${BACKUP_FILE}"
+   fi
+   
+   # 可选：自动清理 30 天前的旧备份
+   find "${BACKUP_DIR}" -type f -mtime +30 -delete
+   EOF
+   
+   # 添加可执行权限
+   sudo chmod +x /usr/local/bin/backup_blogdb.sh
+   ```
+3. 使用 cron 每周日 00:00 自动执行备份脚本：
+   ```bash
+   ( crontab -l 2>/dev/null; echo "0 0 * * 0 /usr/local/bin/backup_blogdb.sh >> /var/log/backup_blogdb.log 2>&1" ) | crontab -
+   ```
+4. 如需免密码交互，配置运行该脚本用户的 `~/.pgpass`（权限 `chmod 600 ~/.pgpass`），格式：
+   ```
+   host:port:database:username:password
+   ```
+
+
 ## 🎨 主要功能模块
 
 ### 📝 文章管理
