@@ -5,7 +5,7 @@ import { useAuthStore } from '@/stores'
 import { getPublicSettings } from '@/api/setting'
 
 // 站点名称缓存，避免每次路由切换都请求
-let cachedSiteName = '無以菱'
+let cachedSiteName = '菱风叙'
 let siteNameLoaded = false
 let siteNameLoading: Promise<void> | null = null
 

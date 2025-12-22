@@ -269,7 +269,7 @@ const dialog = useDialog()
 const activeKey = ref(route.name as string)
 const isDark = computed(() => appStore.theme === 'dark')
 const siteSettings = ref<SiteSettings>({})
-const defaultSiteName = '無以菱'
+const defaultSiteName = '菱风叙'
 const runningTime = ref('')
 const searchKeyword = ref('')
 const showSearchModal = ref(false)

@@ -103,10 +103,10 @@
                 <li>我已添加 
                   <strong v-if="myFriendLinkInfo.url">
                     <a :href="myFriendLinkInfo.url" target="_blank" rel="noopener noreferrer" class="site-link">
-                      {{ myFriendLinkInfo.name || '無以菱' }}
+                      {{ myFriendLinkInfo.name || '菱风叙' }}
                     </a>
                   </strong>
-                  <strong v-else>{{ myFriendLinkInfo.name || '無以菱' }}</strong>
+                  <strong v-else>{{ myFriendLinkInfo.name || '菱风叙' }}</strong>
                   的友情链接。
                 </li>
                 <li><strong>请多多进行互动后再来进行友链添加</strong>，若为首次评论直接申请友链，将不会通过。</li>
@@ -123,7 +123,7 @@
               <div class="info-grid">
                 <div class="info-item">
                   <span class="info-label">名称：</span>
-                  <span class="info-value">{{ myFriendLinkInfo.name || '無以菱' }}</span>
+                  <span class="info-value">{{ myFriendLinkInfo.name || '菱风叙' }}</span>
                 </div>
                 <div class="info-item" v-if="myFriendLinkInfo.desc">
                   <span class="info-label">描述：</span>
@@ -324,7 +324,7 @@ const replyToUser = ref<Comment | null>(null)
 const expandedComments = ref<Set<number>>(new Set())
 const copyYamlSuccess = ref(false)
 const myFriendLinkInfo = ref<FriendLinkInfo>({
-  name: '無以菱',
+  name: '菱风叙',
   desc: '',
   url: '',
   avatar: '',
@@ -339,7 +339,7 @@ const FRIENDLINK_TARGET_ID = 0 // 友链页面的target_id固定为0
 const yamlCode = computed(() => {
   const info = myFriendLinkInfo.value
   const lines = [
-    `name: ${info.name || '無以菱'}`,
+    `name: ${info.name || '菱风叙'}`,
     `desc: ${info.desc || ''}`,
     `url: ${info.url || ''}`,
     `avatar: ${info.avatar || ''}`,
@@ -416,7 +416,7 @@ async function fetchMyFriendLinkInfo() {
     const res = await getFriendLinkInfo()
     if (res.data) {
       myFriendLinkInfo.value = {
-        name: res.data.name || '無以菱',
+        name: res.data.name || '菱风叙',
         desc: res.data.desc || '',
         url: res.data.url || '',
         avatar: res.data.avatar || '',

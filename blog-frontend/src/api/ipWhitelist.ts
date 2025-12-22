@@ -1,11 +1,3 @@
-/*
- * @Author: 無以菱 2794998160@qq.com
- * @Date: 2025-12-14 15:02:03
- * @LastEditors: 無以菱 2794998160@qq.com
- * @LastEditTime: 2025-12-14 15:20:54
- * @FilePath: \go-vue3-blog\blog-frontend\src\api\ipWhitelist.ts
- * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
- */
 // IP白名单管理相关 API
 
 import { request } from '@/utils/request'

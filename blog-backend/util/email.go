@@ -50,7 +50,7 @@ func SendResetPasswordEmail(config EmailConfig, to string, code string) error {
 		siteName = config.FromName
 	}
 	if siteName == "" {
-		siteName = "無以菱"
+		siteName = "菱风叙"
 	}
 	subject := fmt.Sprintf("【%s】密码重置验证码", siteName)
 
@@ -88,7 +88,7 @@ func SendRegisterVerificationEmail(config EmailConfig, to string, code string) e
 		siteName = config.FromName
 	}
 	if siteName == "" {
-		siteName = "無以菱"
+		siteName = "菱风叙"
 	}
 	subject := fmt.Sprintf("【%s】注册验证码", siteName)
 
@@ -126,7 +126,7 @@ func SendAdminCommentNotificationEmail(config EmailConfig, to string, commenterN
 		siteName = config.FromName
 	}
 	if siteName == "" {
-		siteName = "無以菱"
+		siteName = "菱风叙"
 	}
 	subject := fmt.Sprintf("【%s】系统收到新评论", siteName)
 
