@@ -220,12 +220,16 @@ watch(() => props.content, () => {
 <style scoped>
 .comment-content {
   width: 100%;
+  max-width: 100%;
   word-wrap: break-word;
   word-break: break-word;
   /* 确保正常文字的空格宽度正常 */
   word-spacing: normal;
   letter-spacing: normal;
   white-space: normal;
+  /* 防止溢出 */
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 /* 确保代码块不受父容器的 word-wrap 影响 */
@@ -241,8 +245,10 @@ watch(() => props.content, () => {
   font-size: 14px;
   line-height: 1.6;
   color: inherit;
-  /* 确保代码块容器不受限制 */
-  overflow-x: visible;
+  /* 防止溢出 */
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100%;
   /* 确保正常文字的空格宽度正常 */
   word-spacing: normal;
   letter-spacing: normal;
@@ -304,6 +310,7 @@ watch(() => props.content, () => {
   font-size: 13px;
   line-height: 1.4;
   width: 100%;
+  max-width: 100%;
   box-sizing: border-box;
   /* 确保代码块可以水平滚动 */
   -webkit-overflow-scrolling: touch;
@@ -324,10 +331,12 @@ watch(() => props.content, () => {
   word-break: normal !important;
   padding: 0;
   margin: 0;
-  /* 关键：使用 max-content 确保内容不被压缩 */
+  /* 关键：使用 max-content 确保内容不被压缩，但最小宽度为100% */
   width: max-content;
   min-width: 100%;
   box-sizing: border-box;
+  /* 确保代码内容可以完整显示，不会被裁剪 */
+  display: inline-block;
 }
 
 /* 强制重置所有 Prism.js token 样式，彻底消除间距，但保持空格正常显示 */
@@ -450,6 +459,77 @@ watch(() => props.content, () => {
   .comment-content :deep(.vuepress-markdown-body img) {
     margin: 12px 0;
     border-radius: 6px;
+  }
+  
+  .comment-content :deep(pre) {
+    padding: 6px 8px;
+    font-size: 12px;
+    margin: 6px 0;
+  }
+  
+  .comment-content :deep(pre code) {
+    font-size: 12px;
+  }
+}
+
+/* 小屏幕移动端优化（小于420px） */
+@media (max-width: 420px) {
+  .comment-content {
+    padding: 0;
+    /* 允许代码块溢出以便滚动查看 */
+    overflow-x: auto;
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  .comment-content :deep(.vuepress-markdown-body) {
+    font-size: 14px;
+    /* 允许代码块溢出以便滚动查看 */
+    overflow-x: auto;
+    padding: 0;
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  .comment-content :deep(pre) {
+    padding: 6px 12px;
+    font-size: 11px;
+    /* 使用负margin向右扩展，利用父容器的padding空间 */
+    margin: 6px -8px;
+    border-radius: 4px;
+    /* 代码块宽度扩展到父容器宽度加上左右负margin */
+    width: calc(100% + 16px);
+    min-width: calc(100% + 16px);
+    max-width: calc(100% + 16px);
+    box-sizing: border-box;
+    /* 确保代码块可以水平滚动 */
+    overflow-x: auto;
+    overflow-y: hidden;
+    /* 代码块向左对齐，确保左侧内容可见 */
+    display: block;
+    /* 确保滚动条显示正常 */
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    /* 确保代码块从左侧开始显示 */
+    direction: ltr;
+    text-align: left;
+  }
+  
+  .comment-content :deep(pre code) {
+    font-size: 11px;
+    padding: 0;
+    /* 确保代码内容可以完整显示，不被压缩 */
+    display: block;
+    width: max-content;
+    min-width: 100%;
+    white-space: pre !important;
+  }
+  
+  /* 确保代码块容器可以扩展 */
+  .comment-content :deep(.vuepress-markdown-body pre) {
+    max-width: calc(100% + 16px);
+    width: calc(100% + 16px);
+    min-width: calc(100% + 16px);
   }
 }
 
