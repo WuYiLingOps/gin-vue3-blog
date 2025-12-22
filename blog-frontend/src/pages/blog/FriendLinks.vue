@@ -1094,6 +1094,10 @@ html.dark .comment-item {
 .comment-content {
   flex: 1;
   min-width: 0;
+  max-width: 100%;
+  /* 允许代码块水平滚动，但不裁剪内容 */
+  overflow-x: visible;
+  box-sizing: border-box;
 }
 
 .comment-header {
@@ -1231,6 +1235,51 @@ html.dark .reply-content p {
 
   .friendlink-card {
     padding: 14px;
+  }
+  
+  .comment-item {
+    padding: 12px;
+  }
+}
+
+/* 小屏幕移动端优化（小于420px） */
+@media (max-width: 420px) {
+  .friendlinks-layout {
+    padding: 0 12px;
+  }
+  
+  .comment-item {
+    padding: 10px 0;
+    margin: 0;
+    /* 允许代码块溢出以便滚动查看 */
+    overflow-x: auto;
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  .comment-content {
+    padding: 0 8px;
+    /* 允许代码块溢出以便滚动查看 */
+    overflow-x: auto;
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  .reply-item {
+    padding: 8px 0;
+    margin: 0;
+    /* 允许代码块溢出以便滚动查看 */
+    overflow-x: auto;
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  .reply-content {
+    padding: 0 6px;
+    /* 允许代码块溢出以便滚动查看 */
+    overflow-x: auto;
+    width: 100%;
+    max-width: 100%;
   }
 }
 </style>
