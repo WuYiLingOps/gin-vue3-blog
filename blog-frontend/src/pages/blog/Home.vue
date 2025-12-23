@@ -73,6 +73,9 @@
                       <n-icon :component="EyeOutline" size="14" />
                       {{ post.view_count }}
                     </span>
+                    <n-tag v-if="post.visibility === 0" size="small" type="warning" class="private-badge">
+                      私密
+                    </n-tag>
                   </n-space>
                 </div>
 
@@ -525,6 +528,11 @@ html.dark .meta-item {
   align-items: center;
   flex-wrap: wrap;
   justify-content: flex-end;
+}
+
+.private-badge {
+  align-self: center;
+  margin-left: 4px;
 }
 
 .post-cover {
