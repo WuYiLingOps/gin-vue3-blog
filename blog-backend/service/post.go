@@ -141,14 +141,21 @@ func (s *PostService) Create(userID uint, req *CreatePostRequest) (*model.Post, 
 	return s.postRepo.GetByID(post.ID)
 }
 
-// GetByID 获取文章详情
-func (s *PostService) GetByID(id uint, userID *uint, ip string) (*model.Post, error) {
+// GetByID 获取文章详情（含权限校验）
+func (s *PostService) GetByID(id uint, userID *uint, role string, ip string) (*model.Post, error) {
 	post, err := s.postRepo.GetByID(id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("文章不存在")
 		}
 		return nil, errors.New("获取文章失败")
+	}
+
+	// 私密/草稿仅作者或管理员可见
+	if (post.Visibility == 0 || post.Status == 0) && role != "admin" {
+		if userID == nil || *userID != post.UserID {
+			return nil, errors.New("无权限查看")
+		}
 	}
 
 	// 检查是否已阅读，如果没有则记录并增加浏览量
@@ -478,11 +485,11 @@ func (s *PostService) GetHotPosts(limit int) ([]model.Post, error) {
 }
 
 // GetRecentPosts 获取最新文章
-func (s *PostService) GetRecentPosts(limit int) ([]model.Post, error) {
+func (s *PostService) GetRecentPosts(limit int, userID *uint, role string) ([]model.Post, error) {
 	if limit < 1 || limit > 50 {
 		limit = 10
 	}
-	return s.postRepo.GetRecentPosts(limit)
+	return s.postRepo.GetRecentPosts(limit, userID, role)
 }
 
 // GetByIDForAdmin 管理端获取文章（不计浏览、无权限限制）
