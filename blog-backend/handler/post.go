@@ -68,15 +68,19 @@ func (h *PostHandler) GetByID(c *gin.Context) {
 
 	// 获取用户ID（如果已登录）
 	var userID *uint
+	var role string
 	if uid, exists := c.Get("user_id"); exists {
 		id := uid.(uint)
 		userID = &id
+	}
+	if r, exists := c.Get("role"); exists {
+		role = r.(string)
 	}
 
 	// 获取客户端IP
 	ip := util.GetClientIP(c)
 
-	post, err := h.service.GetByID(uint(id), userID, ip)
+	post, err := h.service.GetByID(uint(id), userID, role, ip)
 	if err != nil {
 		util.Error(c, 404, err.Error())
 		return
@@ -235,7 +239,17 @@ func (h *PostHandler) GetHotPosts(c *gin.Context) {
 func (h *PostHandler) GetRecentPosts(c *gin.Context) {
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
 
-	posts, err := h.service.GetRecentPosts(limit)
+	var userID *uint
+	var role string
+	if uid, exists := c.Get("user_id"); exists {
+		id := uid.(uint)
+		userID = &id
+	}
+	if r, exists := c.Get("role"); exists {
+		role = r.(string)
+	}
+
+	posts, err := h.service.GetRecentPosts(limit, userID, role)
 	if err != nil {
 		util.ServerError(c, "获取最新文章失败")
 		return
