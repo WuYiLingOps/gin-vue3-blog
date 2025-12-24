@@ -168,6 +168,20 @@ import { getFriendLinksAdmin, createFriendLink, updateFriendLink, deleteFriendLi
 import type { FriendLink, FriendLinkForm, FriendLinkCategory } from '@/api/friendlink'
 import { getFriendLinkInfo, updateFriendLinkInfo, type FriendLinkInfo } from '@/api/setting'
 
+// 更宽松且可靠的 URL 校验：使用浏览器 URL 解析，限定 http/https
+const validateUrl = (_rule: unknown, value: string) => {
+  if (!value) return Promise.resolve()
+  try {
+    const urlObj = new URL(value)
+    if (urlObj.protocol === 'http:' || urlObj.protocol === 'https:') {
+      return Promise.resolve()
+    }
+  } catch (e) {
+    // ignore
+  }
+  return Promise.reject('请输入有效的网址')
+}
+
 const message = useMessage()
 const dialog = useDialog()
 
@@ -198,7 +212,7 @@ const myInfoRules = {
   name: [{ required: true, message: '请输入名称', trigger: 'blur' }],
   url: [
     { required: true, message: '请输入地址', trigger: 'blur' },
-    { type: 'url' as const, message: '请输入有效的网址', trigger: 'blur' }
+    { validator: validateUrl, trigger: 'blur' }
   ]
 }
 
@@ -232,7 +246,7 @@ const rules = {
   name: [{ required: true, message: '请输入网站名称', trigger: 'blur' }],
   url: [
     { required: true, message: '请输入网址', trigger: 'blur' },
-    { type: 'url' as const, message: '请输入有效的网址', trigger: 'blur' }
+    { validator: validateUrl, trigger: 'blur' }
   ],
   category_id: [{ required: true, message: '请选择分类', trigger: 'change', type: 'number' as const }]
 }
