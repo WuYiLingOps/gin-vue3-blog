@@ -2,15 +2,28 @@
   <div class="comment-manage-page">
     <h1 class="page-title">评论管理</h1>
 
-    <n-data-table
-      :columns="columns"
-      :data="comments"
-      :loading="loading"
-      :pagination="pagination"
-      :scroll-x="isMobile ? 1000 : undefined"
-      :single-line="false"
-      @update:page="handlePageChange"
-    />
+    <!-- 内容区域 -->
+    <div class="content-area">
+      <n-data-table
+        :columns="columns"
+        :data="comments"
+        :loading="loading"
+        :scroll-x="isMobile ? 1000 : undefined"
+        :single-line="false"
+      />
+      
+      <!-- 分页 - 位于表格右下角 -->
+      <div class="pagination-wrapper">
+        <n-pagination
+          v-if="total > 0"
+          v-model:page="currentPage"
+          :page-count="totalPages"
+          :page-size="pageSize"
+          :page-slot="7"
+          @update:page="handlePageChange"
+        />
+      </div>
+    </div>
   </div>
 </template>
 
@@ -29,7 +42,7 @@ const loading = ref(false)
 const comments = ref<Comment[]>([])
 const total = ref(0)
 const currentPage = ref(1)
-const pageSize = ref(10)
+const pageSize = 15 // 固定每页显示15条评论
 const isMobile = ref(false)
 
 // 检测移动设备
@@ -37,13 +50,8 @@ function checkMobile() {
   isMobile.value = window.innerWidth <= 768
 }
 
-const pagination = computed(() => ({
-  page: currentPage.value,
-  pageSize: pageSize.value,
-  pageCount: Math.ceil(total.value / pageSize.value),
-  showSizePicker: true,
-  pageSizes: [10, 20, 30, 50]
-}))
+// 计算总页数
+const totalPages = computed(() => Math.ceil(total.value / pageSize))
 
 const columns: DataTableColumns<Comment> = [
   { 
@@ -51,7 +59,7 @@ const columns: DataTableColumns<Comment> = [
     key: 'id', 
     width: 60,
     render: (_row, index) => {
-      return (currentPage.value - 1) * pageSize.value + index + 1
+      return (currentPage.value - 1) * pageSize + index + 1
     }
   },
   {
@@ -136,12 +144,17 @@ async function fetchComments() {
     loading.value = true
     const res = await getAllComments({
       page: currentPage.value,
-      page_size: pageSize.value
+      page_size: pageSize
     })
 
     if (res.data) {
       comments.value = res.data.list
       total.value = res.data.total
+      // 确保页码不超过最大页数
+      const maxPage = Math.ceil(total.value / pageSize) || 1
+      if (currentPage.value > maxPage && maxPage > 0) {
+        currentPage.value = maxPage
+      }
     }
   } catch (error: any) {
     message.error(error.message || '获取评论列表失败')
@@ -190,9 +203,31 @@ function handleDelete(id: number) {
 </script>
 
 <style scoped>
+.comment-manage-page {
+  position: relative;
+}
+
 .page-title {
   margin-bottom: 16px;
   font-size: 24px;
+}
+
+/* 内容区域 */
+.content-area {
+  position: relative;
+  padding-bottom: 50px; /* 为分页器预留空间 */
+}
+
+/* 分页样式 - 位于表格右下角 */
+.pagination-wrapper {
+  position: absolute;
+  bottom: 10px; /* 距离表格底部 */
+  right: 20px; /* 距离右侧 */
+  z-index: 10;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  box-sizing: border-box;
 }
 
 /* 移动端样式 */
@@ -203,6 +238,11 @@ function handleDelete(id: number) {
   
   .comment-manage-page :deep(.n-data-table) {
     font-size: 13px;
+  }
+  
+  .pagination-wrapper {
+    bottom: 16px;
+    right: 16px;
   }
 }
 </style>
