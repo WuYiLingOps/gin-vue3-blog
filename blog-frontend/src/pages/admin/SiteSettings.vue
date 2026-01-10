@@ -116,11 +116,11 @@
           </n-input>
         </n-form-item>
 
-        <n-form-item label="QQ号" path="social_qq">
+        <n-form-item label="QQ二维码" path="social_qq">
           <n-input
             v-model:value="formData.social_qq"
-            placeholder="例如：123456789"
-            maxlength="20"
+            placeholder="QQ二维码图片URL，例如：https://example.com/qq-qr.png"
+            maxlength="500"
             clearable
           >
             <template #suffix>
@@ -129,6 +129,9 @@
               </n-button>
             </template>
           </n-input>
+          <template #feedback>
+            <span style="font-size: 12px; color: #999;">上传QQ二维码图片后，将图片URL填入此处</span>
+          </template>
         </n-form-item>
 
         <n-form-item label="微信二维码" path="social_wechat">
@@ -251,7 +254,7 @@
         <p><strong>Gitee链接：</strong>您的Gitee主页地址</p>
         <p><strong>邮箱地址：</strong>联系邮箱</p>
         <p><strong>RSS链接：</strong>RSS订阅地址</p>
-        <p><strong>QQ号：</strong>QQ号码，点击后会打开QQ聊天窗口</p>
+        <p><strong>QQ二维码：</strong>QQ二维码图片的URL地址</p>
         <p><strong>微信二维码：</strong>微信二维码图片的URL地址</p>
         <n-divider />
         <p><strong>存储方式：</strong>选择文件上传的存储方式</p>
