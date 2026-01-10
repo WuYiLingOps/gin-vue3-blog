@@ -856,6 +856,31 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
    ```
    host:port:database:username:password
    ```
+5. **使用备份文件恢复数据**：
+   - **Docker 环境恢复**（推荐方式：复制文件到容器）：
+     ```bash
+     # 方式一：复制文件到容器内再恢复（推荐，适用于二进制 .dump 文件）
+     docker cp /opt/backups/blogdb/blogdb_20250101.dump pg-prod:/tmp/blogdb_backup.dump
+     docker exec -it pg-prod pg_restore -U postgres -d blogdb --clean --if-exists /tmp/blogdb_backup.dump
+     
+     # 恢复完成后可删除容器内的临时文件
+     docker exec -it pg-prod rm /tmp/blogdb_backup.dump
+     ```
+   - **物理机环境恢复**：
+     ```bash
+     # 直接使用 pg_restore 恢复
+     pg_restore -h localhost -U postgres -d blogdb --clean --if-exists /opt/backups/blogdb/blogdb_20250101.dump
+     ```
+   - **参数说明**：
+     - `--clean`：恢复前先删除现有对象（表、索引等）
+     - `--if-exists`：仅在对象存在时执行删除，避免报错
+     - `-d blogdb`：指定目标数据库名称
+     - `-U postgres`：指定数据库用户名
+   - **注意事项**：
+     - 恢复前建议先备份当前数据库
+     - 恢复操作会覆盖现有数据，请谨慎操作
+     - 确保目标数据库已创建（如未创建，先执行 `CREATE DATABASE blogdb;`）
+     - 恢复过程中如遇到错误，检查备份文件是否完整以及数据库连接是否正常
 
 
 ## 🎨 主要功能模块
