@@ -44,7 +44,7 @@
       <div v-if="visibleSocialLinks.length" class="social-links">
         <template v-for="link in visibleSocialLinks" :key="link.type">
           <a
-            v-if="link.type !== 'wechat'"
+            v-if="link.type !== 'wechat' && link.type !== 'qq'"
             :href="link.href"
             target="_blank"
             rel="noopener noreferrer"
@@ -55,13 +55,22 @@
             <SocialIcons :type="link.type" />
           </a>
           <a
-            v-else
+            v-else-if="link.type === 'wechat'"
             href="javascript:void(0)"
             class="social-icon wechat"
             :title="link.title"
             @click="showWechatQR = true"
           >
             <SocialIcons type="wechat" />
+          </a>
+          <a
+            v-else-if="link.type === 'qq'"
+            href="javascript:void(0)"
+            class="social-icon qq"
+            :title="link.title"
+            @click="showQQQR = true"
+          >
+            <SocialIcons type="qq" />
           </a>
         </template>
       </div>
@@ -86,6 +95,28 @@
             object-fit="contain"
           />
           <p v-else style="color: #999">未配置微信二维码</p>
+        </div>
+      </n-card>
+    </n-modal>
+
+    <!-- QQ二维码弹窗 -->
+    <n-modal v-model:show="showQQQR">
+      <n-card
+        title="QQ二维码"
+        :bordered="false"
+        style="max-width: 300px"
+        closable
+        @close="showQQQR = false"
+      >
+        <div style="text-align: center">
+          <n-image
+            v-if="socialLinks.qq"
+            :src="socialLinks.qq"
+            width="200"
+            height="200"
+            object-fit="contain"
+          />
+          <p v-else style="color: #999">未配置QQ二维码</p>
         </div>
       </n-card>
     </n-modal>
@@ -119,6 +150,7 @@ const socialLinks = ref({
   wechat: ''
 })
 const showWechatQR = ref(false)
+const showQQQR = ref(false)
 const loading = ref(false)
 const defaultAvatar = '/default-avatar.png'
 const router = useRouter()
@@ -141,7 +173,7 @@ const visibleSocialLinks = computed<SocialLink[]>(() => {
     links.push({ type: 'rss', href: data.rss.trim(), title: 'RSS' })
   }
   if (data.qq?.trim()) {
-    links.push({ type: 'qq', href: `tencent://message/?uin=${data.qq.trim()}`, title: 'QQ' })
+    links.push({ type: 'qq', title: 'QQ' })
   }
   if (data.wechat?.trim()) {
     links.push({ type: 'wechat', title: '微信' })
