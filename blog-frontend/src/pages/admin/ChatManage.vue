@@ -30,7 +30,7 @@
             </n-icon>
           </template>
         </n-statistic>
-        <n-statistic label="消息总数" :value="pagination.total">
+        <n-statistic label="消息总数" :value="total">
           <template #prefix>
             <n-icon>
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
@@ -91,17 +91,28 @@
       </n-space>
 
       <!-- 消息列表 -->
-      <n-data-table
-        :columns="columns"
-        :data="messages"
-        :loading="loading"
-        :pagination="pagination"
-        :row-key="(row: ChatMessage) => row.id"
-        v-model:checked-row-keys="selectedRowKeys"
-        @update:checked-row-keys="handleCheckedRowKeysChange"
-        @update:page="handlePageChange"
-        @update:page-size="handlePageSizeChange"
-      />
+      <div class="content-area">
+        <n-data-table
+          :columns="columns"
+          :data="messages"
+          :loading="loading"
+          :row-key="(row: ChatMessage) => row.id"
+          v-model:checked-row-keys="selectedRowKeys"
+          @update:checked-row-keys="handleCheckedRowKeysChange"
+        />
+        
+        <!-- 分页 - 位于表格右下角 -->
+        <div class="pagination-wrapper">
+          <n-pagination
+            v-if="total > 0"
+            v-model:page="currentPage"
+            :page-count="totalPages"
+            :page-size="pageSize"
+            :page-slot="7"
+            @update:page="handlePageChange"
+          />
+        </div>
+      </div>
     </n-card>
 
     <!-- 系统广播对话框 -->
@@ -157,7 +168,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, h } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, h } from 'vue'
 import {
   NCard,
   NSpace,
@@ -202,14 +213,13 @@ const onlineInfo = ref<OnlineInfo>({
   online_users: []
 })
 
-// 分页
-const pagination = ref({
-  page: 1,
-  pageSize: 20,
-  total: 0,
-  showSizePicker: true,
-  pageSizes: [10, 20, 50, 100]
-})
+// 分页 - 固定每页显示15条消息
+const currentPage = ref(1)
+const pageSize = 15 // 固定每页显示15条消息
+const total = ref(0)
+
+// 计算总页数
+const totalPages = computed(() => Math.ceil(total.value / pageSize))
 
 // 系统广播
 const showBroadcastModal = ref(false)
@@ -315,11 +325,16 @@ const fetchMessages = async () => {
   loading.value = true
   try {
     const res = await adminGetMessages({
-      page: pagination.value.page,
-      page_size: pagination.value.pageSize
+      page: currentPage.value,
+      page_size: pageSize
     })
     messages.value = res.data.list || []
-    pagination.value.total = res.data.total || 0
+    total.value = res.data.total || 0
+    // 确保页码不超过最大页数
+    const maxPage = Math.ceil(total.value / pageSize) || 1
+    if (currentPage.value > maxPage && maxPage > 0) {
+      currentPage.value = maxPage
+    }
   } catch (error) {
     message.error('获取消息列表失败')
   } finally {
@@ -445,13 +460,7 @@ const handleBroadcast = async () => {
 
 // 分页处理
 const handlePageChange = (page: number) => {
-  pagination.value.page = page
-  fetchMessages()
-}
-
-const handlePageSizeChange = (pageSize: number) => {
-  pagination.value.pageSize = pageSize
-  pagination.value.page = 1
+  currentPage.value = page
   fetchMessages()
 }
 
@@ -484,6 +493,7 @@ onBeforeUnmount(() => {
 <style scoped>
 .chat-manage {
   padding: 20px;
+  position: relative;
 }
 
 .stats-section {
@@ -499,6 +509,32 @@ onBeforeUnmount(() => {
 
 .online-user-item:hover {
   background: #f0f0f0;
+}
+
+/* 内容区域 */
+.content-area {
+  position: relative;
+  padding-bottom: 50px; /* 为分页器预留空间 */
+}
+
+/* 分页样式 - 位于表格右下角 */
+.pagination-wrapper {
+  position: absolute;
+  bottom: 10px; /* 距离表格底部 */
+  right: 20px; /* 距离右侧 */
+  z-index: 10;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+/* 移动端样式 */
+@media (max-width: 768px) {
+  .pagination-wrapper {
+    bottom: 8px;
+    right: 16px;
+  }
 }
 </style>
 
