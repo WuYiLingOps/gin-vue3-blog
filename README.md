@@ -36,7 +36,7 @@
 ## ✨ 特性
 
 ### 🎯 核心功能
-- 📝 **文章管理** - Markdown 编辑器，支持代码高亮、图片上传
+- 📝 **文章管理** - Markdown 编辑器，支持代码高亮、图片上传、Markdown 文件上传解析、HTML 图片标签自动转换
 - 🏷️ **分类标签** - 灵活的分类和标签系统
 - 💬 **评论系统** - 支持嵌套回复的评论功能，支持多种评论类型（文章评论、友链评论、说说评论等）
 - 🔗 **友情链接** - 友链管理功能，支持独立评论系统
@@ -889,6 +889,8 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
 - Markdown 编辑器，支持实时预览
 - 代码高亮（支持多种编程语言）
 - 图片上传和管理
+- **Markdown 文件上传解析** - 支持上传本地 Markdown 文件，自动解析 YAML front matter（标题、摘要、封面图）
+- **HTML 图片标签转换** - 自动将 HTML 格式的 `<img>` 标签转换为 Markdown 图片格式 `![alt](url)`
 - 文章分类和标签
 - 文章置顶和草稿
 - 点赞和浏览统计
@@ -1144,6 +1146,19 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
 5. 提交 Pull Request
 
 ## 📝 更新日志
+
+### v1.6.0 (2026-01-10)
+- ✨ 新增 Markdown 文件上传功能
+  - 📄 支持上传本地 Markdown 文件（.md、.markdown 格式）
+  - 🔍 自动解析 YAML front matter（标题、摘要、封面图）
+  - 📝 智能提取标题：优先使用 front matter，若无则从第一个 `#` 标题提取
+  - 📋 自动生成摘要：去除代码块、HTML 标签、Markdown 语法后提取前 200 字符
+  - 🖼️ HTML 图片标签转换：自动将 `<img src="url" />` 转换为 Markdown 格式 `![alt](url)`
+  - 🎯 智能 alt 文本提取：优先使用 img 标签的 alt 属性，若无则从 URL 提取文件名
+- 🎨 优化文章管理界面
+  - 新增"上传 Markdown"按钮，支持拖拽上传
+  - 文件大小限制：单个文件不超过 10MB
+  - 解析后自动填充文章表单，管理员确认后保存
 
 ### v1.5.0 (2025-12-21)
 - ✨ 新增说说评论功能
