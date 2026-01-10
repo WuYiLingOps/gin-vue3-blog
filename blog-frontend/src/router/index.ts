@@ -18,7 +18,6 @@ const Archive = () => import('@/pages/blog/Archive.vue')
 const FriendLinks = () => import('@/pages/blog/FriendLinks.vue')
 const Moments = () => import('@/pages/blog/Moments.vue')
 const Chat = () => import('@/pages/blog/Chat.vue')
-const TodoList = () => import('@/pages/blog/TodoList.vue')
 
 // 认证页面
 const Login = () => import('@/pages/auth/Login.vue')
@@ -106,12 +105,6 @@ const routes: RouteRecordRaw[] = [
         name: 'Chat',
         component: Chat,
         meta: { title: '聊天室' }
-      },
-      {
-        path: 'todo',
-        name: 'Todo',
-        component: TodoList,
-        meta: { title: '任务清单' }
       }
     ]
   },
