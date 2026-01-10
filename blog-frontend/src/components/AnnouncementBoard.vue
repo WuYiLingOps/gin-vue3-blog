@@ -33,21 +33,23 @@
               </span>
             </div>
           </div>
-          <div class="item-content">
-            {{ getPreview(item.content) }}
-          </div>
+          <div class="item-content" v-html="item.content"></div>
           <div class="item-footer">
             <span class="item-time">
               <n-time :time="new Date(item.created_at)" format="yyyy-MM-dd HH:mm" />
             </span>
           </div>
-          <n-button text type="primary" class="detail-btn" @click.stop="openDetail(item)">
-            查看详情
-          </n-button>
         </div>
       </div>
       <n-empty v-else description="暂无公告" />
     </n-spin>
+
+    <!-- 欢迎图片 -->
+    <div class="welcome-image-wrapper">
+      <div class="welcome-image-card">
+        <img src="/公告栏.gif" alt="欢迎" class="welcome-image" />
+      </div>
+    </div>
 
     <n-modal v-model:show="showDetail" preset="card" style="max-width: 640px" :bordered="false">
       <template #header>
@@ -99,15 +101,12 @@ function stripHTML(html: string) {
   return div.textContent || div.innerText || ''
 }
 
-function getPreview(content: string) {
-  const text = stripHTML(content)
-  return text.length > 80 ? `${text.slice(0, 80)}...` : text
-}
-
 function getTitle(item: Announcement) {
   // 若未来支持独立标题，可直接返回 title 字段；当前用内容前若干字符代替
   const text = stripHTML(item.content)
-  return text ? text.slice(0, 20) : '系统公告'
+  // 取第一行作为标题，如果没有换行则取前30个字符
+  const firstLine = text.split('\n')[0] || text
+  return firstLine ? (firstLine.length > 30 ? `${firstLine.slice(0, 30)}...` : firstLine) : '系统公告'
 }
 
 async function fetchAnnouncements() {
@@ -184,11 +183,11 @@ onMounted(fetchAnnouncements)
 }
 
 .title-text {
-  max-width: 220px;
+  max-width: 100%;
   display: inline-block;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  overflow: hidden;
+  white-space: normal;
+  word-wrap: break-word;
+  word-break: break-word;
 }
 
 .pin-tag {
@@ -204,9 +203,13 @@ onMounted(fetchAnnouncements)
 .item-content {
   color: #4b5563;
   font-size: 13px;
-  line-height: 1.6;
-  margin-top: 4px;
+  line-height: 1.8;
+  margin-top: 8px;
   min-height: 20px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .item-footer {
@@ -215,10 +218,6 @@ onMounted(fetchAnnouncements)
   margin-top: 6px;
 }
 
-.detail-btn {
-  padding-left: 0;
-  margin-top: 4px;
-}
 
 .detail-header {
   display: flex;
@@ -280,6 +279,56 @@ html.dark .item-time {
 
 html.dark .detail-content {
   color: #e2e8f0;
+}
+
+.welcome-image-wrapper {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+html.dark .welcome-image-wrapper {
+  border-top-color: rgba(255, 255, 255, 0.08);
+}
+
+.welcome-image-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.welcome-image-card:hover {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+html.dark .welcome-image-card {
+  background: rgba(30, 41, 59, 0.8);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+html.dark .welcome-image-card:hover {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+}
+
+.welcome-image {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 8px;
+  object-fit: contain;
+  image-rendering: auto;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
 }
 </style>
 
