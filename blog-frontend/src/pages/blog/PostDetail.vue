@@ -12,7 +12,9 @@
               <n-avatar :src="post.user.avatar" round />
               <span>{{ post.user.nickname }}</span>
               <n-divider vertical />
-              <span>{{ formatDate(post.created_at, 'YYYY-MM-DD HH:mm') }}</span>
+              <span>创建时间：{{ formatDate(post.created_at, 'YYYY-MM-DD HH:mm') }}</span>
+              <n-divider vertical />
+              <span>更新时间：{{ formatDate(post.updated_at || post.created_at, 'YYYY-MM-DD HH:mm') }}</span>
               <n-divider vertical />
               <span>
                 <n-icon :component="EyeOutline" />
@@ -32,6 +34,20 @@
                 {{ tag.name }}
               </n-tag>
             </n-space>
+          </div>
+        </div>
+
+        <n-divider />
+
+        <!-- 温馨提示 -->
+        <div v-if="post" class="update-tip">
+          <div class="tip-content">
+            <n-icon :component="WarningOutline" size="18" class="tip-icon" />
+            <span class="tip-text">
+              「温馨提示」本文更新已经
+              <strong class="tip-days">{{ getDaysSinceUpdate(post.updated_at || post.created_at) }}</strong>
+              天，若内容或图片失效，请留言反馈。
+            </span>
           </div>
         </div>
 
@@ -219,11 +235,13 @@ import {
   HeartOutline,
   Heart,
   CreateOutline,
-  ArrowUpOutline
+  ArrowUpOutline,
+  WarningOutline
 } from '@vicons/ionicons5'
 import { getPostById, likePost } from '@/api/post'
 import { getCommentsByPostId, createComment, deleteComment } from '@/api/comment'
 import { formatDate, formatRelativeTime } from '@/utils/format'
+import dayjs from 'dayjs'
 import { useAuthStore } from '@/stores'
 import type { Post, Comment } from '@/types/blog'
 import MarkdownPreview from '@/components/MarkdownPreview.vue'
@@ -441,6 +459,13 @@ async function handleDeleteComment(commentId: number) {
 
 function handleEdit() {
   router.push(`/admin/posts/edit/${postId.value}`)
+}
+
+// 计算距离更新的天数
+function getDaysSinceUpdate(updatedAt: string): number {
+  const now = dayjs()
+  const updated = dayjs(updatedAt)
+  return now.diff(updated, 'day')
 }
 
 // 生成目录
@@ -835,6 +860,52 @@ html.dark .post-meta {
 
 .post-tags {
   margin-top: 16px;
+}
+
+/* 温馨提示样式 */
+.update-tip {
+  margin: 16px 0;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #fff5f5 0%, #ffe5e5 100%);
+  border-left: 4px solid #ef4444;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.1);
+}
+
+html.dark .update-tip {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(239, 68, 68, 0.08) 100%);
+  border-left-color: #ef4444;
+}
+
+.tip-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tip-icon {
+  color: #ef4444;
+  flex-shrink: 0;
+}
+
+.tip-text {
+  color: #dc2626;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+html.dark .tip-text {
+  color: #fca5a5;
+}
+
+.tip-days {
+  color: #dc2626;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+html.dark .tip-days {
+  color: #fca5a5;
 }
 
 .post-content {
