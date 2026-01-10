@@ -3,6 +3,7 @@ package repository
 import (
 	"blog-backend/db"
 	"blog-backend/model"
+
 	"gorm.io/gorm"
 )
 
@@ -45,7 +46,28 @@ func (r *TagRepository) Delete(id uint) error {
 func (r *TagRepository) List() ([]model.Tag, error) {
 	var tags []model.Tag
 	err := db.DB.Order("post_count DESC, created_at DESC").Find(&tags).Error
-	return tags, err
+	if err != nil {
+		return nil, err
+	}
+
+	// 实时计算每个标签的已发布文章数，确保数据准确性
+	for i := range tags {
+		var count int64
+		err := db.DB.Model(&model.Post{}).
+			Joins("JOIN post_tags ON posts.id = post_tags.post_id").
+			Where("post_tags.tag_id = ? AND posts.status = 1", tags[i].ID).
+			Count(&count).Error
+		if err == nil {
+			// 如果计算出的数量与数据库中的不一致，更新返回的数据和数据库
+			if int64(tags[i].PostCount) != count {
+				tags[i].PostCount = int(count)
+				// 同步更新数据库中的 post_count，确保数据一致性
+				db.DB.Model(&model.Tag{}).Where("id = ?", tags[i].ID).Update("post_count", int(count))
+			}
+		}
+	}
+
+	return tags, nil
 }
 
 // GetOrCreate 获取或创建标签
@@ -83,4 +105,3 @@ func (r *TagRepository) IncrementPostCountTx(tx *gorm.DB, id uint) error {
 func (r *TagRepository) DecrementPostCountTx(tx *gorm.DB, id uint) error {
 	return tx.Model(&model.Tag{}).Where("id = ?", id).UpdateColumn("post_count", gorm.Expr("CASE WHEN post_count > 0 THEN post_count - 1 ELSE 0 END")).Error
 }
-
