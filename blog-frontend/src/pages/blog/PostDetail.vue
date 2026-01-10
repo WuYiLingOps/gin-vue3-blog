@@ -44,7 +44,7 @@
           <div class="tip-content">
             <n-icon :component="WarningOutline" size="18" class="tip-icon" />
             <span class="tip-text">
-              「温馨提示」本文更新已经
+              「温馨提示」距离上次本文更新已经
               <strong class="tip-days">{{ getDaysSinceUpdate(post.updated_at || post.created_at) }}</strong>
               天，若内容或图片失效，请留言反馈。
             </span>
