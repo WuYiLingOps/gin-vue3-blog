@@ -18,7 +18,7 @@
         placeholder="搜索文章..."
         clearable
         :style="{ width: isMobile ? '100%' : '250px' }"
-        @keyup.enter="fetchPosts"
+        @keyup.enter="handleSearch"
       />
       <n-select
         v-model:value="filterStatus"
@@ -26,21 +26,34 @@
         clearable
         :style="{ width: isMobile ? '100%' : '120px' }"
         :options="statusOptions"
-        @update:value="fetchPosts"
+        @update:value="handleFilterChange"
       />
-      <n-button :block="isMobile" @click="fetchPosts">搜索</n-button>
+      <n-button :block="isMobile" @click="handleSearch">搜索</n-button>
     </n-space>
 
-    <!-- 文章列表 -->
-    <n-data-table
-      :columns="columns"
-      :data="posts"
-      :loading="loading"
-      :pagination="pagination"
-      :scroll-x="isMobile ? 800 : undefined"
-      :single-line="false"
-      @update:page="handlePageChange"
-    />
+    <!-- 内容区域 -->
+    <div class="content-area">
+      <!-- 文章列表 -->
+      <n-data-table
+        :columns="columns"
+        :data="posts"
+        :loading="loading"
+        :scroll-x="isMobile ? 800 : undefined"
+        :single-line="false"
+      />
+    </div>
+
+    <!-- 分页 - 固定在右下角 -->
+    <div class="pagination-wrapper">
+      <n-pagination
+        v-if="total > 0"
+        v-model:page="currentPage"
+        :page-count="totalPages"
+        :page-size="pageSize"
+        :page-slot="7"
+        @update:page="handlePageChange"
+      />
+    </div>
 
     <!-- 创建/编辑文章对话框 -->
     <n-modal 
@@ -159,10 +172,13 @@ const formRef = ref<FormInst | null>(null)
 const posts = ref<Post[]>([])
 const total = ref(0)
 const currentPage = ref(1)
-const pageSize = ref(10)
+const pageSize = 10 // 固定每页显示10篇文章
 const searchKeyword = ref('')
 const filterStatus = ref<number | null>(null)
 const isMobile = ref(false)
+
+// 计算总页数
+const totalPages = computed(() => Math.ceil(total.value / pageSize))
 
 // 检测移动设备
 function checkMobile() {
@@ -192,21 +208,13 @@ const categoryOptions = computed(() =>
 
 const tagOptions = computed(() => blogStore.tags.map(t => ({ label: t.name, value: t.id })))
 
-const pagination = computed(() => ({
-  page: currentPage.value,
-  pageSize: pageSize.value,
-  pageCount: Math.ceil(total.value / pageSize.value),
-  showSizePicker: true,
-  pageSizes: [10, 20, 30, 50]
-}))
-
 const columns: DataTableColumns<Post> = [
   { 
     title: 'ID', 
     key: 'id', 
     width: 60,
     render: (_row, index) => {
-      return (currentPage.value - 1) * pageSize.value + index + 1
+      return (currentPage.value - 1) * pageSize + index + 1
     }
   },
   { title: '标题', key: 'title', ellipsis: { tooltip: true } },
@@ -310,7 +318,7 @@ async function fetchPosts() {
     loading.value = true
     const res = await getPosts({
       page: currentPage.value,
-      page_size: pageSize.value,
+      page_size: pageSize,
       keyword: searchKeyword.value,
       status: filterStatus.value ?? undefined
     })
@@ -318,6 +326,11 @@ async function fetchPosts() {
     if (res.data) {
       posts.value = res.data.list
       total.value = res.data.total
+      // 确保页码不超过最大页数
+      const maxPage = Math.ceil(total.value / pageSize) || 1
+      if (currentPage.value > maxPage && maxPage > 0) {
+        currentPage.value = maxPage
+      }
     }
   } catch (error: any) {
     message.error(error.message || '获取文章列表失败')
@@ -328,6 +341,16 @@ async function fetchPosts() {
 
 function handlePageChange(page: number) {
   currentPage.value = page
+  fetchPosts()
+}
+
+function handleSearch() {
+  currentPage.value = 1
+  fetchPosts()
+}
+
+function handleFilterChange() {
+  currentPage.value = 1
   fetchPosts()
 }
 
@@ -517,6 +540,11 @@ function handleModalClose() {
 </script>
 
 <style scoped>
+.post-manage-page {
+  position: relative;
+  /* 移除 min-height 和 padding-bottom，让页面高度自适应内容 */
+}
+
 .header {
   display: flex;
   justify-content: space-between;
@@ -530,6 +558,24 @@ function handleModalClose() {
   font-size: 24px;
 }
 
+/* 内容区域 */
+.content-area {
+  position: relative;
+  /* 移除 margin-bottom，让内容自然布局 */
+}
+
+/* 分页样式 - 固定在右下角，位置不变 */
+.pagination-wrapper {
+  position: fixed;
+  bottom: 130px; /* 距离底部固定距离，上移一些 */
+  right: 20px; /* 距离右侧固定距离 */
+  z-index: 100; /* 确保在其他内容之上 */
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  box-sizing: border-box;
+}
+
 /* 移动端样式 */
 @media (max-width: 768px) {
   .header h1 {
@@ -539,6 +585,12 @@ function handleModalClose() {
   .post-manage-page :deep(.n-data-table) {
     font-size: 13px;
   }
+  
+  .pagination-wrapper {
+    bottom: 16px;
+    right: 16px;
+  }
 }
+
 </style>
 
