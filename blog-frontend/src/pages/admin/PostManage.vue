@@ -2,13 +2,22 @@
   <div class="post-manage-page">
     <div class="header">
       <h1>文章管理</h1>
-      <n-button type="primary" :size="isMobile ? 'small' : 'medium'" @click="showCreateModal = true">
-        <template #icon>
-          <n-icon :component="AddOutline" />
-        </template>
-        <span v-if="!isMobile">新建文章</span>
-        <span v-else>新建</span>
-      </n-button>
+      <n-space>
+        <n-button type="info" :size="isMobile ? 'small' : 'medium'" @click="showUploadModal = true">
+          <template #icon>
+            <n-icon :component="DocumentOutline" />
+          </template>
+          <span v-if="!isMobile">上传Markdown</span>
+          <span v-else>上传</span>
+        </n-button>
+        <n-button type="primary" :size="isMobile ? 'small' : 'medium'" @click="showCreateModal = true">
+          <template #icon>
+            <n-icon :component="AddOutline" />
+          </template>
+          <span v-if="!isMobile">新建文章</span>
+          <span v-else>新建</span>
+        </n-button>
+      </n-space>
     </div>
 
     <!-- 筛选 -->
@@ -54,6 +63,53 @@
         @update:page="handlePageChange"
       />
     </div>
+
+    <!-- 上传Markdown文件对话框 -->
+    <n-modal 
+      v-model:show="showUploadModal" 
+      preset="card" 
+      title="上传Markdown文档" 
+      :style="{ width: isMobile ? '95%' : '600px', maxWidth: isMobile ? '95vw' : '600px' }"
+      :mask-closable="false"
+      :close-on-esc="false"
+    >
+      <n-upload
+        :file-list="markdownFileList"
+        :max="1"
+        accept=".md,.markdown"
+        :show-file-list="true"
+        @before-upload="handleBeforeUploadMarkdown"
+        @remove="handleRemoveMarkdown"
+      >
+        <n-upload-dragger>
+          <div style="margin-bottom: 12px">
+            <n-icon size="48" :depth="3">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10 9 9 9 8 9"></polyline>
+              </svg>
+            </n-icon>
+          </div>
+          <n-text style="font-size: 16px">
+            点击或拖拽文件到此区域上传
+          </n-text>
+          <n-p depth="3" style="margin: 8px 0 0 0">
+            支持上传 .md 或 .markdown 格式的文件
+          </n-p>
+        </n-upload-dragger>
+      </n-upload>
+      <template #footer>
+        <n-space justify="end">
+          <n-button @click="handleCancelUpload">取消</n-button>
+          <n-button type="primary" :disabled="!markdownContent" @click="handleParseMarkdown">
+            解析并创建文章
+          </n-button>
+        </n-space>
+      </template>
+    </n-modal>
 
     <!-- 创建/编辑文章对话框 -->
     <n-modal 
@@ -151,8 +207,8 @@
 import { ref, reactive, computed, onMounted, onUnmounted, h } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMessage, useDialog, NButton, NTag, NSpace } from 'naive-ui'
-import type { DataTableColumns, FormInst } from 'naive-ui'
-import { AddOutline } from '@vicons/ionicons5'
+import type { DataTableColumns, FormInst, UploadFileInfo } from 'naive-ui'
+import { AddOutline, DocumentOutline } from '@vicons/ionicons5'
 import { getPosts, createPost, deletePost, exportPost } from '@/api/post'
 import { useBlogStore } from '@/stores'
 import { formatDate } from '@/utils/format'
@@ -168,6 +224,7 @@ const blogStore = useBlogStore()
 const loading = ref(false)
 const submitting = ref(false)
 const showCreateModal = ref(false)
+const showUploadModal = ref(false)
 const formRef = ref<FormInst | null>(null)
 const posts = ref<Post[]>([])
 const total = ref(0)
@@ -176,6 +233,11 @@ const pageSize = 10 // 固定每页显示10篇文章
 const searchKeyword = ref('')
 const filterStatus = ref<number | null>(null)
 const isMobile = ref(false)
+
+// Markdown上传相关
+const markdownFileList = ref<UploadFileInfo[]>([])
+const markdownContent = ref('')
+const markdownFileName = ref('')
 
 // 计算总页数
 const totalPages = computed(() => Math.ceil(total.value / pageSize))
@@ -361,6 +423,208 @@ function handleEdit(id: number) {
 function handleCoverSuccess(url: string) {
   formData.cover = url
   message.success('封面图上传成功')
+}
+
+// 处理Markdown文件上传前的验证
+function handleBeforeUploadMarkdown(data: { file: UploadFileInfo }) {
+  const file = data.file.file
+  if (!file) {
+    message.error('文件读取失败')
+    return false
+  }
+  
+  // 检查文件类型
+  const fileName = file.name.toLowerCase()
+  if (!fileName.endsWith('.md') && !fileName.endsWith('.markdown')) {
+    message.error('只能上传 .md 或 .markdown 格式的文件')
+    return false
+  }
+  
+  // 检查文件大小（10MB）
+  const maxSize = 10 * 1024 * 1024
+  if (file.size > maxSize) {
+    message.error('文件大小不能超过 10MB')
+    return false
+  }
+  
+  // 添加到文件列表
+  markdownFileList.value = [data.file]
+  
+  // 读取文件内容
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    const content = e.target?.result as string
+    markdownContent.value = content
+    markdownFileName.value = file.name
+    message.success('文件读取成功，点击"解析并创建文章"继续')
+  }
+  reader.onerror = () => {
+    message.error('文件读取失败')
+    markdownFileList.value = []
+  }
+  reader.readAsText(file, 'UTF-8')
+  
+  return false // 阻止自动上传，我们手动处理
+}
+
+// 移除Markdown文件
+function handleRemoveMarkdown() {
+  markdownFileList.value = []
+  markdownContent.value = ''
+  markdownFileName.value = ''
+}
+
+// 解析Markdown内容并打开创建文章对话框
+function handleParseMarkdown() {
+  if (!markdownContent.value) {
+    message.warning('请先上传Markdown文件')
+    return
+  }
+  
+  try {
+    // 解析Markdown内容，尝试提取front matter
+    const parsed = parseMarkdownContent(markdownContent.value)
+    
+    // 填充表单数据
+    formData.title = parsed.title || markdownFileName.value.replace(/\.(md|markdown)$/i, '')
+    formData.content = parsed.content
+    formData.summary = parsed.summary || ''
+    formData.cover = parsed.cover || ''
+    
+    // 关闭上传对话框，打开创建文章对话框
+    showUploadModal.value = false
+    showCreateModal.value = true
+    
+    // 清空上传相关数据
+    markdownFileList.value = []
+    markdownContent.value = ''
+    markdownFileName.value = ''
+    
+    message.success('Markdown内容已解析，请完善文章信息后保存')
+  } catch (error: any) {
+    message.error('解析Markdown文件失败：' + (error.message || '未知错误'))
+  }
+}
+
+// 将HTML格式的img标签转换为Markdown格式
+function convertHtmlImgToMarkdown(content: string): string {
+  // 匹配HTML img标签，支持自闭合和普通格式
+  // 匹配 <img src="url" alt="alt" ... /> 或 <img src="url" alt="alt" ...>
+  const imgTagRegex = /<img\s+([^>]*?)\/?>/gi
+  
+  return content.replace(imgTagRegex, (match, attributes) => {
+    // 提取src属性
+    const srcMatch = attributes.match(/src\s*=\s*["']([^"']+)["']/i)
+    if (!srcMatch) {
+      return match // 如果没有src属性，保留原标签
+    }
+    
+    const imageUrl = srcMatch[1]
+    
+    // 提取alt属性，如果没有则从URL中提取文件名作为alt
+    const altMatch = attributes.match(/alt\s*=\s*["']([^"']*)["']/i)
+    let altText = altMatch ? altMatch[1] : ''
+    
+    // 如果alt为空，从URL中提取文件名（不含扩展名）
+    if (!altText && imageUrl) {
+      const urlMatch = imageUrl.match(/\/([^\/]+)\.(jpg|jpeg|png|gif|webp|svg)$/i)
+      if (urlMatch) {
+        altText = urlMatch[1]
+      } else {
+        // 如果无法提取文件名，使用默认值
+        altText = 'image'
+      }
+    }
+    
+    // 转换为Markdown格式
+    return `![${altText}](${imageUrl})`
+  })
+}
+
+// 解析Markdown内容，提取front matter和正文
+function parseMarkdownContent(content: string) {
+  const result: {
+    title?: string
+    summary?: string
+    cover?: string
+    content: string
+  } = {
+    content: content
+  }
+  
+  // 先将HTML格式的img标签转换为Markdown格式
+  content = convertHtmlImgToMarkdown(content)
+  
+  // 尝试解析YAML front matter
+  const frontMatterRegex = /^---\s*\n([\s\S]*?)\n---\s*\n([\s\S]*)$/
+  const match = content.match(frontMatterRegex)
+  
+  if (match) {
+    const frontMatter = match[1]
+    // 内容部分也需要转换HTML img标签
+    result.content = convertHtmlImgToMarkdown(match[2])
+    
+    // 解析YAML front matter中的字段
+    const titleMatch = frontMatter.match(/^title:\s*(.+)$/m)
+    const summaryMatch = frontMatter.match(/^summary:\s*(.+)$/m)
+    const coverMatch = frontMatter.match(/^cover:\s*(.+)$/m)
+    
+    if (titleMatch) {
+      result.title = titleMatch[1].trim().replace(/^["']|["']$/g, '')
+    }
+    if (summaryMatch) {
+      result.summary = summaryMatch[1].trim().replace(/^["']|["']$/g, '')
+    }
+    if (coverMatch) {
+      result.cover = coverMatch[1].trim().replace(/^["']|["']$/g, '')
+    }
+  } else {
+    // 如果没有front matter，尝试从内容中提取标题（第一个#标题）
+    const titleMatch = content.match(/^#\s+(.+)$/m)
+    if (titleMatch) {
+      result.title = titleMatch[1].trim()
+      // 移除第一个标题行，内容已经转换过HTML img标签
+      result.content = content.replace(/^#\s+.+$/m, '').trim()
+    } else {
+      // 如果没有标题，直接使用转换后的内容
+      result.content = content
+    }
+    
+    // 尝试提取摘要（前200个字符，去除markdown语法和HTML标签）
+    // 先移除代码块（包括多行和单行）
+    let plainText = result.content.replace(/```[\s\S]*?```/g, '')
+    // 移除行内代码
+    plainText = plainText.replace(/`[^`]+`/g, '')
+    // 移除所有HTML标签（包括自闭合标签如<img />和普通标签如<div></div>）
+    plainText = plainText.replace(/<[^>]*>/g, '')
+    // 移除markdown图片语法 ![alt](url)
+    plainText = plainText.replace(/!\[([^\]]*)\]\([^\)]+\)/g, '')
+    // 移除markdown语法符号（但保留必要的标点）
+    plainText = plainText.replace(/[#*_\[\]()!`]/g, '')
+    // 移除链接，保留文字
+    plainText = plainText.replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1')
+    // 移除HTML实体编码（如&nbsp;等）
+    plainText = plainText.replace(/&[a-z]+;/gi, ' ')
+    // 移除多余的空格和换行
+    plainText = plainText.replace(/\n+/g, ' ').replace(/\s+/g, ' ').trim()
+    
+    if (plainText.length > 0) {
+      result.summary = plainText.substring(0, 200)
+      if (plainText.length > 200) {
+        result.summary += '...'
+      }
+    }
+  }
+  
+  return result
+}
+
+// 取消上传
+function handleCancelUpload() {
+  markdownFileList.value = []
+  markdownContent.value = ''
+  markdownFileName.value = ''
+  showUploadModal.value = false
 }
 
 async function handleSubmit() {
