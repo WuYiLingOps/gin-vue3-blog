@@ -118,6 +118,9 @@
       <div class="sidebar-card-wrapper sidebar-tag-cloud">
         <TagCloudWidget />
       </div>
+      <div class="sidebar-card-wrapper sidebar-category-list">
+        <CategoryListWidget />
+      </div>
     </div>
     </div>
   </div>
@@ -137,6 +140,7 @@ import AuthorCard from '@/components/AuthorCard.vue'
 import AnnouncementBoard from '@/components/AnnouncementBoard.vue'
 import HotPostsCard from '@/components/HotPostsCard.vue'
 import TagCloudWidget from '@/components/TagCloudWidget.vue'
+import CategoryListWidget from '@/components/CategoryListWidget.vue'
 import GiteeCalendar from '@/components/GiteeCalendar.vue'
 
 const router = useRouter()
@@ -148,7 +152,7 @@ const loading = ref(false)
 const posts = ref<Post[]>([])
 const total = ref(0)
 const currentPage = ref(1)
-const pageSize = ref(6)
+const pageSize = ref(8)
 const searchKeyword = ref('')
 
 const totalPages = computed(() => Math.ceil(total.value / pageSize.value))
@@ -322,7 +326,8 @@ function getHighlightedSummary(post: Post): string {
 
   .sidebar-announcement,
   .sidebar-hot-posts,
-  .sidebar-tag-cloud {
+  .sidebar-tag-cloud,
+  .sidebar-category-list {
     display: none;
   }
 
