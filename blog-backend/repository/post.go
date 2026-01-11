@@ -37,6 +37,24 @@ func (r *PostRepository) GetByID(id uint) (*model.Post, error) {
 	return &post, err
 }
 
+// GetBySlug 根据slug获取文章
+func (r *PostRepository) GetBySlug(slug string) (*model.Post, error) {
+	var post model.Post
+	err := db.DB.Preload("User").Preload("Category").Preload("Tags").Where("slug = ?", slug).First(&post).Error
+	return &post, err
+}
+
+// CheckSlugExists 检查slug是否存在
+func (r *PostRepository) CheckSlugExists(slug string, excludeID uint) bool {
+	var count int64
+	query := db.DB.Model(&model.Post{}).Where("slug = ?", slug)
+	if excludeID > 0 {
+		query = query.Where("id != ?", excludeID)
+	}
+	query.Count(&count)
+	return count > 0
+}
+
 // Update 更新文章
 func (r *PostRepository) Update(post *model.Post) error {
 	err := db.DB.Save(post).Error
@@ -259,17 +277,19 @@ func (r *PostRepository) CreateTx(tx *gorm.DB, post *model.Post) error {
 
 	// 使用原生 SQL INSERT，明确指定所有字段的值
 	// PostgreSQL 使用 $1, $2... 占位符，GORM 会自动转换
+	// 注意：created_at 和 updated_at 使用 NOW()，不占用参数位置
 	err := tx.Raw(`
 		INSERT INTO posts (
-			title, content, summary, cover,
+			title, slug, content, summary, cover,
 			status, visibility, is_top,
 			user_id, category_id, published_at,
 			view_count, like_count,
 			created_at, updated_at
-		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW(), NOW())
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW(), NOW())
 		RETURNING id
 	`,
 		post.Title,
+		post.Slug,
 		post.Content,
 		post.Summary,
 		post.Cover,
@@ -304,7 +324,7 @@ func (r *PostRepository) CreateTx(tx *gorm.DB, post *model.Post) error {
 func (r *PostRepository) UpdateTx(tx *gorm.DB, post *model.Post) error {
 	// 使用 Select 明确指定要更新的字段，确保 category_id 被更新
 	err := tx.Model(post).
-		Select("title", "content", "summary", "cover", "category_id", "status", "visibility", "is_top", "published_at", "updated_at").
+		Select("title", "slug", "content", "summary", "cover", "category_id", "status", "visibility", "is_top", "published_at", "updated_at").
 		Updates(post).Error
 	if err != nil {
 		return err
