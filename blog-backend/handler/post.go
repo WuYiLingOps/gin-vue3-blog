@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"blog-backend/model"
 	"blog-backend/service"
 	"blog-backend/util"
 
@@ -55,16 +56,17 @@ func (h *PostHandler) Create(c *gin.Context) {
 		return
 	}
 
+	if post == nil {
+		util.Error(c, 500, "文章创建失败：返回数据为空")
+		return
+	}
+
 	util.SuccessWithMessage(c, "文章创建成功", post)
 }
 
-// GetByID 获取文章详情
+// GetByID 获取文章详情（支持ID或slug）
 func (h *PostHandler) GetByID(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
-	if err != nil {
-		util.BadRequest(c, "无效的文章ID")
-		return
-	}
+	identifier := c.Param("id")
 
 	// 获取用户ID（如果已登录）
 	var userID *uint
@@ -80,7 +82,18 @@ func (h *PostHandler) GetByID(c *gin.Context) {
 	// 获取客户端IP
 	ip := util.GetClientIP(c)
 
-	post, err := h.service.GetByID(uint(id), userID, role, ip)
+	var post *model.Post
+	var err error
+
+	// 尝试解析为数字ID，如果失败则作为slug处理
+	if id, parseErr := strconv.ParseUint(identifier, 10, 32); parseErr == nil {
+		// 是数字ID
+		post, err = h.service.GetByID(uint(id), userID, role, ip)
+	} else {
+		// 是slug
+		post, err = h.service.GetBySlug(identifier, userID, role, ip)
+	}
+
 	if err != nil {
 		util.Error(c, 404, err.Error())
 		return
