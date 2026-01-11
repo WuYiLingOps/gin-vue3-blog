@@ -30,6 +30,14 @@
         @keyup.enter="handleSearch"
       />
       <n-select
+        v-model:value="filterCategory"
+        placeholder="分类"
+        clearable
+        :style="{ width: isMobile ? '100%' : '150px' }"
+        :options="categoryOptions"
+        @update:value="handleFilterChange"
+      />
+      <n-select
         v-model:value="filterStatus"
         placeholder="状态"
         clearable
@@ -231,6 +239,7 @@ const total = ref(0)
 const currentPage = ref(1)
 const pageSize = 10 // 固定每页显示10篇文章
 const searchKeyword = ref('')
+const filterCategory = ref<number | null>(null)
 const filterStatus = ref<number | null>(null)
 const isMobile = ref(false)
 
@@ -382,6 +391,7 @@ async function fetchPosts() {
       page: currentPage.value,
       page_size: pageSize,
       keyword: searchKeyword.value,
+      category_id: filterCategory.value ?? undefined,
       status: filterStatus.value ?? undefined
     })
 
