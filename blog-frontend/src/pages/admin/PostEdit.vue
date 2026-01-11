@@ -246,7 +246,24 @@ async function handleSubmit() {
     if (isEdit.value) {
       // 更新文章
       const id = Number(route.params.id)
-      await updatePost(id, formData)
+      // 构建更新数据，确保 category_id 字段被正确传递
+      // 表单验证已确保 category_id 不为 null，但为了安全起见，再次检查
+      if (formData.category_id === null || formData.category_id === undefined) {
+        message.error('请选择分类')
+        return
+      }
+      const updateData: Partial<PostForm> = {
+        title: formData.title,
+        content: formData.content,
+        summary: formData.summary,
+        cover: formData.cover,
+        category_id: formData.category_id, // 确保是有效数字
+        tag_ids: formData.tag_ids,
+        status: formData.status,
+        visibility: formData.visibility,
+        is_top: formData.is_top
+      }
+      await updatePost(id, updateData)
       message.success(formData.status === 0 ? '草稿保存成功' : '文章更新成功')
     } else {
       // 创建文章

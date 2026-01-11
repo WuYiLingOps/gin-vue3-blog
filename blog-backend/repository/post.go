@@ -302,7 +302,10 @@ func (r *PostRepository) CreateTx(tx *gorm.DB, post *model.Post) error {
 
 // UpdateTx 在事务中更新文章
 func (r *PostRepository) UpdateTx(tx *gorm.DB, post *model.Post) error {
-	err := tx.Save(post).Error
+	// 使用 Select 明确指定要更新的字段，确保 category_id 被更新
+	err := tx.Model(post).
+		Select("title", "content", "summary", "cover", "category_id", "status", "visibility", "is_top", "published_at", "updated_at").
+		Updates(post).Error
 	if err != nil {
 		return err
 	}

@@ -45,7 +45,7 @@ type UpdatePostRequest struct {
 	Content    string `json:"content"`
 	Summary    string `json:"summary"`
 	Cover      string `json:"cover"`
-	CategoryID uint   `json:"category_id"`
+	CategoryID *uint  `json:"category_id"` // 使用指针类型，nil 表示不修改
 	TagIDs     []uint `json:"tag_ids"`
 	Status     int    `json:"status"`
 	Visibility *int   `json:"visibility"` // 1:公开 0:私密（nil 表示不修改）
@@ -214,12 +214,12 @@ func (s *PostService) Update(id, userID uint, role string, req *UpdatePostReques
 	if req.Cover != "" {
 		post.Cover = req.Cover
 	}
-	if req.CategoryID > 0 {
+	if req.CategoryID != nil {
 		// 检查新分类是否存在
-		if _, err := s.categoryRepo.GetByID(req.CategoryID); err != nil {
+		if _, err := s.categoryRepo.GetByID(*req.CategoryID); err != nil {
 			return nil, errors.New("分类不存在")
 		}
-		post.CategoryID = req.CategoryID
+		post.CategoryID = *req.CategoryID
 	}
 	post.Status = req.Status
 	post.IsTop = req.IsTop
