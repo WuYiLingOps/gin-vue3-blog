@@ -59,7 +59,7 @@
             :key="post.id"
             hoverable
             class="post-card"
-            @click="router.push(`/post/${post.id}`)"
+            @click="router.push(`/post/${post.slug}`)"
           >
             <h2 class="post-title">{{ post.title }}</h2>
             <p class="post-summary">{{ post.summary }}</p>
