@@ -12,7 +12,7 @@
           v-for="item in posts"
           :key="item.id"
           class="list-item"
-          @click="goPost(item.id)"
+          @click="goPost(item)"
         >
           <div class="item-cover">
             <n-image
@@ -75,8 +75,8 @@ async function fetchRecent() {
   }
 }
 
-function goPost(id: number) {
-  router.push(`/post/${id}`)
+function goPost(post: { id: number; slug: string }) {
+  router.push(`/post/${post.slug}`)
 }
 
 onMounted(fetchRecent)
