@@ -14,7 +14,7 @@
               v-for="post in group.posts"
               :key="post.id"
               class="post-item"
-              @click="router.push(`/post/${post.id}`)"
+              @click="router.push(`/post/${post.slug}`)"
             >
               <div class="post-date-box">
                 <span class="date-month">{{ formatDate(post.created_at, 'M月') }}</span>
