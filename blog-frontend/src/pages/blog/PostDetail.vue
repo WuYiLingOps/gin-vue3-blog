@@ -238,7 +238,7 @@ import {
   ArrowUpOutline,
   WarningOutline
 } from '@vicons/ionicons5'
-import { getPostById, likePost } from '@/api/post'
+import { getPostBySlug, likePost } from '@/api/post'
 import { getCommentsByPostId, createComment, deleteComment } from '@/api/comment'
 import { formatDate, formatRelativeTime } from '@/utils/format'
 import dayjs from 'dayjs'
@@ -275,7 +275,7 @@ const tocItems = ref<TocItem[]>([])
 const activeHeading = ref('')
 const readingProgress = ref(0)
 
-const postId = computed(() => Number(route.params.id))
+const postSlug = computed(() => route.params.slug as string)
 
 const canEdit = computed(() => {
   if (!post.value || !authStore.isLoggedIn) return false
@@ -314,7 +314,7 @@ onBeforeUnmount(() => {
 async function fetchPost() {
   try {
     loading.value = true
-    const res = await getPostById(postId.value)
+    const res = await getPostBySlug(postSlug.value)
     if (res.data) {
       post.value = res.data
       liked.value = res.data.liked || false
@@ -333,7 +333,8 @@ async function fetchPost() {
 
 async function fetchComments() {
   try {
-    const res = await getCommentsByPostId(postId.value)
+    if (!post.value) return
+    const res = await getCommentsByPostId(post.value.id)
     if (res.data) {
       comments.value = res.data
     }
@@ -349,7 +350,8 @@ async function handleLike() {
   }
 
   try {
-    const res = await likePost(postId.value)
+    if (!post.value) return
+    const res = await likePost(post.value.id)
     if (res.data) {
       const isLiked = res.data.liked
       liked.value = isLiked
@@ -377,9 +379,10 @@ async function handleSubmitComment() {
 
   try {
     submitting.value = true
+    if (!post.value) return
     const commentData: any = {
       content: commentContent.value,
-      post_id: postId.value
+      post_id: post.value.id
     }
     
     // 如果是回复评论，添加 parent_id
@@ -458,7 +461,8 @@ async function handleDeleteComment(commentId: number) {
 }
 
 function handleEdit() {
-  router.push(`/admin/posts/edit/${postId.value}`)
+  if (!post.value) return
+  router.push(`/admin/posts/edit/${post.value.id}`)
 }
 
 // 计算距离更新的天数
