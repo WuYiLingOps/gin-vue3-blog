@@ -91,6 +91,7 @@ COMMENT ON COLUMN tags.post_count IS '文章数量';
 CREATE TABLE IF NOT EXISTS posts (
     id SERIAL PRIMARY KEY,
     title VARCHAR(200) NOT NULL,
+    slug VARCHAR(255) NOT NULL,
     content TEXT,
     summary VARCHAR(500),
     cover VARCHAR(255),
@@ -111,6 +112,7 @@ CREATE TABLE IF NOT EXISTS posts (
 
 -- 文章表索引
 CREATE INDEX IF NOT EXISTS idx_posts_title ON posts(title);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_posts_slug ON posts(slug);
 CREATE INDEX IF NOT EXISTS idx_posts_status ON posts(status);
 CREATE INDEX IF NOT EXISTS idx_posts_visibility ON posts(visibility);
 CREATE INDEX IF NOT EXISTS idx_posts_category_id ON posts(category_id);
@@ -123,6 +125,7 @@ CREATE INDEX IF NOT EXISTS idx_posts_search_gin ON posts USING gin(search_tsv);
 -- 文章表注释
 COMMENT ON TABLE posts IS '文章表';
 COMMENT ON COLUMN posts.title IS '文章标题';
+COMMENT ON COLUMN posts.slug IS 'URL友好的标识符（拼音）';
 COMMENT ON COLUMN posts.content IS '文章内容（Markdown格式）';
 COMMENT ON COLUMN posts.summary IS '文章摘要';
 COMMENT ON COLUMN posts.cover IS '封面图URL';
