@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"strconv"
 
@@ -86,6 +87,11 @@ func LoadConfig(path string) error {
 
 // loadEnvOverrides 从环境变量（或 .env.config.<env> 文件）中覆盖敏感配置
 func loadEnvOverrides(env string) {
+	// 如果配置未加载，直接返回
+	if Cfg == nil {
+		return
+	}
+
 	// 尝试加载同级目录下的 .env.config.<env> 文件（不存在则忽略）
 	_ = gotenv.Load(".env.config." + env)
 
@@ -202,6 +208,11 @@ func LoadConfigByEnv() error {
 	configPath := "./config/config-" + env + ".yml"
 	if err := LoadConfig(configPath); err != nil {
 		return err
+	}
+
+	// 检查配置是否成功加载
+	if Cfg == nil {
+		return fmt.Errorf("配置加载失败：Cfg 为 nil")
 	}
 
 	// 保存环境变量到配置中
