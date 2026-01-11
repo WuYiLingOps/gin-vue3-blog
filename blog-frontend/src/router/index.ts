@@ -53,7 +53,7 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '首页' }
       },
       {
-        path: 'post/:id',
+        path: 'post/:slug',
         name: 'PostDetail',
         component: PostDetail,
         meta: { title: '文章详情' }
