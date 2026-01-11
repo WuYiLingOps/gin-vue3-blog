@@ -10,9 +10,14 @@ export function getPosts(params: PostQuery) {
   return request.get<PageData<Post>>('/posts', { params })
 }
 
-// 获取文章详情
-export function getPostById(id: number) {
-  return request.get<Post>(`/posts/${id}`)
+// 获取文章详情（支持ID或slug）
+export function getPostById(idOrSlug: number | string) {
+  return request.get<Post>(`/posts/${idOrSlug}`)
+}
+
+// 获取文章详情（通过slug，向后兼容）
+export function getPostBySlug(slug: string) {
+  return request.get<Post>(`/posts/${slug}`)
 }
 
 // 创建文章
