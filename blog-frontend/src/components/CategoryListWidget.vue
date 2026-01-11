@@ -9,12 +9,11 @@
           :key="category.id"
           class="category-item"
           @click="handleClick(category.id)"
+          :style="{ '--category-color': category.color || '#0891b2' }"
         >
+          <div class="category-item-indicator" :style="{ backgroundColor: category.color || '#0891b2' }"></div>
           <div class="category-item-content">
-            <div class="category-name-wrapper">
-              <span class="category-dot" :style="{ backgroundColor: category.color || '#2196F3' }"></span>
-              <span class="category-name">{{ category.name }}</span>
-            </div>
+            <span class="category-name">{{ category.name }}</span>
             <span class="category-count">{{ category.post_count }}</span>
           </div>
         </div>
@@ -86,50 +85,82 @@ onMounted(() => {
 .categories-wrap {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .category-item {
+  position: relative;
   cursor: pointer;
-  padding: 10px 12px;
+  padding: 8px 12px;
   border-radius: 8px;
-  transition: all 0.2s ease;
+  transition: all 0.25s ease;
   background: rgba(0, 0, 0, 0.02);
-}
-
-.category-item:hover {
-  background: rgba(8, 145, 178, 0.08);
-  transform: translateX(4px);
+  border: 1px solid transparent;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  overflow: hidden;
 }
 
 html.dark .category-item {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.category-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--category-color);
+  transform: scaleY(0);
+  transition: transform 0.25s ease;
+}
+
+.category-item:hover {
+  transform: translateX(4px);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--category-color) 8%, transparent) 0%, transparent 100%);
+  border-color: color-mix(in srgb, var(--category-color) 20%, transparent);
 }
 
 html.dark .category-item:hover {
-  background: rgba(56, 189, 248, 0.15);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--category-color) 12%, transparent) 0%, transparent 100%);
+}
+
+.category-item:hover::before {
+  transform: scaleY(1);
+}
+
+.category-item-indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.8), 0 0 0 3px color-mix(in srgb, var(--category-color) 20%, transparent);
+  transition: all 0.25s ease;
+}
+
+html.dark .category-item-indicator {
+  box-shadow: 0 0 0 2px rgba(30, 30, 30, 0.8), 0 0 0 3px color-mix(in srgb, var(--category-color) 20%, transparent);
+}
+
+.category-item:hover .category-item-indicator {
+  transform: scale(1.3);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.8), 0 0 0 4px color-mix(in srgb, var(--category-color) 30%, transparent), 0 0 8px color-mix(in srgb, var(--category-color) 40%, transparent);
+}
+
+html.dark .category-item:hover .category-item-indicator {
+  box-shadow: 0 0 0 2px rgba(30, 30, 30, 0.8), 0 0 0 4px color-mix(in srgb, var(--category-color) 30%, transparent), 0 0 8px color-mix(in srgb, var(--category-color) 40%, transparent);
 }
 
 .category-item-content {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-}
-
-.category-name-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 8px;
   flex: 1;
   min-width: 0;
-}
-
-.category-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
+  gap: 8px;
 }
 
 .category-name {
@@ -139,21 +170,36 @@ html.dark .category-item:hover {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  transition: color 0.25s ease;
 }
 
 html.dark .category-name {
   color: #e5e5e5;
 }
 
+.category-item:hover .category-name {
+  color: var(--category-color);
+}
+
 .category-count {
   font-size: 12px;
   color: #64748b;
-  font-weight: 500;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.04);
+  transition: all 0.25s ease;
   flex-shrink: 0;
 }
 
 html.dark .category-count {
   color: #94a3b8;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.category-item:hover .category-count {
+  background: color-mix(in srgb, var(--category-color) 15%, transparent);
+  color: var(--category-color);
 }
 
 @media (max-width: 1024px) {
