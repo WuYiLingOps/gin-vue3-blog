@@ -31,7 +31,7 @@
                 :key="post.id"
                 hoverable
                 class="post-card"
-                @click="router.push(`/post/${post.id}`)"
+                @click="router.push(`/post/${post.slug}`)"
               >
             <div class="post-card-wrapper">
               <div class="post-card-content">
