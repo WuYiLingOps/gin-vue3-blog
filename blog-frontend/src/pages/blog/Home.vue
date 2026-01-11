@@ -115,11 +115,11 @@
       <div class="sidebar-card-wrapper sidebar-hot-posts">
         <HotPostsCard />
       </div>
-      <div class="sidebar-card-wrapper sidebar-tag-cloud">
-        <TagCloudWidget />
-      </div>
       <div class="sidebar-card-wrapper sidebar-category-list">
         <CategoryListWidget />
+      </div>
+      <div class="sidebar-card-wrapper sidebar-tag-cloud">
+        <TagCloudWidget />
       </div>
     </div>
     </div>
