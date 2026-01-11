@@ -23,6 +23,7 @@ type User struct {
 type Post struct {
 	ID          uint       `json:"id" gorm:"primaryKey"`
 	Title       string     `json:"title" gorm:"not null;size:200;index"`
+	Slug        string     `json:"slug" gorm:"size:255;uniqueIndex"` // URL友好的标识符（拼音）
 	Content     string     `json:"content" gorm:"type:text"`
 	Summary     string     `json:"summary" gorm:"size:500"`
 	Cover       string     `json:"cover" gorm:"size:255"`
