@@ -4,23 +4,37 @@
       <!-- 分类列表视图 -->
       <div v-if="!categoryId" class="categories-list">
         <h1 class="page-title">文章分类</h1>
-        <n-grid :x-gap="16" :y-gap="16" :cols="responsive">
+        <n-grid :x-gap="20" :y-gap="20" :cols="responsive">
           <n-grid-item v-for="cat in categories" :key="cat.id">
-            <n-card
-              hoverable
+            <div
               class="category-card"
               @click="router.push(`/category/${cat.id}`)"
-              :style="{ borderTop: `4px solid ${cat.color}` }"
+              :style="{ '--category-color': cat.color || '#0891b2' }"
             >
-              <div class="category-info">
-                <h2 class="category-name">{{ cat.name }}</h2>
-                <p v-if="cat.description" class="category-desc">{{ cat.description }}</p>
-                <div class="category-count">
-                  <n-icon :component="DocumentTextOutline" size="18" />
-                  <span>{{ cat.post_count }} 篇文章</span>
+              <div class="category-card-bg"></div>
+              <div class="category-card-content">
+                <div class="category-icon-wrapper">
+                  <div class="category-icon" :style="{ backgroundColor: cat.color || '#0891b2' }">
+                    <n-icon :component="DocumentTextOutline" size="24" />
+                  </div>
+                </div>
+                <div class="category-info">
+                  <h2 class="category-name">{{ cat.name }}</h2>
+                  <p v-if="cat.description" class="category-desc">{{ cat.description }}</p>
+                  <div class="category-footer">
+                    <div class="category-count">
+                      <n-icon :component="DocumentTextOutline" size="16" />
+                      <span>{{ cat.post_count }} 篇文章</span>
+                    </div>
+                    <div class="category-arrow">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                      </svg>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </n-card>
+            </div>
           </n-grid-item>
         </n-grid>
         <n-empty v-if="!loading && categories.length === 0" description="暂无分类" style="margin-top: 48px" />
@@ -207,29 +221,88 @@ html.dark .page-title {
 }
 
 .category-card {
+  position: relative;
   cursor: pointer;
-  transition: all 0.3s ease;
   height: 100%;
+  min-height: 200px;
+  border-radius: 16px;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+html.dark .category-card {
+  background: #1e1e1e;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .category-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.12);
 }
 
 html.dark .category-card:hover {
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.5);
+}
+
+.category-card-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 120px;
+  background: linear-gradient(135deg, var(--category-color) 0%, color-mix(in srgb, var(--category-color) 80%, transparent) 100%);
+  opacity: 0.1;
+  transition: opacity 0.4s ease;
+}
+
+.category-card:hover .category-card-bg {
+  opacity: 0.15;
+}
+
+.category-card-content {
+  position: relative;
+  padding: 24px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  z-index: 1;
+}
+
+.category-icon-wrapper {
+  margin-bottom: 16px;
+}
+
+.category-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.4s ease;
+}
+
+.category-card:hover .category-icon {
+  transform: scale(1.1) rotate(5deg);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
 }
 
 .category-info {
-  padding: 8px 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .category-name {
-  font-size: 22px;
-  font-weight: 600;
+  font-size: 24px;
+  font-weight: 700;
   margin: 0 0 12px 0;
   color: #1a202c;
+  transition: color 0.3s ease;
 }
 
 html.dark .category-name {
@@ -240,28 +313,52 @@ html.dark .category-name {
   color: #64748b;
   font-size: 14px;
   line-height: 1.6;
-  margin: 0 0 16px 0;
+  margin: 0 0 20px 0;
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   overflow: hidden;
+  flex: 1;
 }
 
 html.dark .category-desc {
   color: #94a3b8;
 }
 
+.category-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+html.dark .category-footer {
+  border-top-color: rgba(255, 255, 255, 0.1);
+}
+
 .category-count {
   display: flex;
   align-items: center;
   gap: 6px;
-  color: #0891b2;
+  color: var(--category-color);
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
+  transition: color 0.3s ease;
 }
 
-html.dark .category-count {
-  color: #38bdf8;
+.category-arrow {
+  color: var(--category-color);
+  opacity: 0;
+  transform: translateX(-8px);
+  transition: all 0.4s ease;
+}
+
+.category-card:hover .category-arrow {
+  opacity: 1;
+  transform: translateX(0);
 }
 
 /* 分类详情样式 */
