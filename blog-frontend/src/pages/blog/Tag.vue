@@ -57,7 +57,7 @@
             v-for="post in posts"
             :key="post.id"
             class="post-item"
-            @click="router.push(`/post/${post.id}`)"
+            @click="router.push(`/post/${post.slug}`)"
           >
             <div class="post-item-header">
               <h2 class="post-item-title">{{ post.title }}</h2>
