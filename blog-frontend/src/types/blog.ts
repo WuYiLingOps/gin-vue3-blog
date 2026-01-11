@@ -30,6 +30,7 @@ export interface Tag {
 export interface Post {
   id: number
   title: string
+  slug: string // URL友好的标识符（拼音）
   content: string
   summary: string
   cover: string
