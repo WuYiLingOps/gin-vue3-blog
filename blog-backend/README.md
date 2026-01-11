@@ -85,6 +85,7 @@ blog-backend/
 
 - ✅ 用户认证（注册、登录、JWT）
 - ✅ 文章管理（CRUD、分类、标签）
+- ✅ 文章URL优化（自动生成拼音slug，支持中英文混合标题）
 - ✅ 评论系统（嵌套回复）
 - ✅ 说说动态
 - ✅ 实时聊天室（WebSocket）
@@ -591,12 +592,32 @@ curl -I http://localhost:8080/uploads/avatars/文件名.jpg
 
 ### 最新更新
 
+- ✅ 文章URL优化（自动生成拼音slug，支持中英文混合标题）
 - ✅ IP 黑名单管理 API（查看、添加、删除、检查、清理过期）
 - ✅ 管理员 IP 豁免功能（双重机制：角色豁免 + IP 白名单）
 - ✅ 图片上传存储优化（绝对路径、中间件排除）
 - ✅ Vite 代理配置完善
 
+### 文章URL优化功能
+
+**功能说明**：
+- 文章URL从数字ID改为基于标题的拼音slug
+- 自动根据文章标题生成URL友好的标识符
+- 支持中英文混合标题：中文转换为拼音，英文和数字直接保留
+- 标题更新时自动重新生成slug
+- 确保slug唯一性（重复时自动添加数字后缀）
+
+**使用示例**：
+- 标题：`Windows环境下安装Hadoop3.1.2全过程`
+- 生成的slug：`windows-huan-jing-xia-an-zhuang-hadoop3-1-2-quan-guo-cheng`
+- 访问URL：`/post/windows-huan-jing-xia-an-zhuang-hadoop3-1-2-quan-guo-cheng`
+
+**迁移说明**：
+- 新安装的数据库已包含slug字段
+- 从旧版本升级需要运行迁移脚本：`go run cmd/migrate-slug/main.go`
+- 迁移脚本会自动识别并更新临时格式的slug（如 `post-XX`）
+
 ---
 
-**最后更新**：2025-01-XX
+**最后更新**：2026-01-11
 
