@@ -161,7 +161,7 @@
         <div v-if="searchResults.length > 0 || (searchKeyword && searchLoading)" class="search-results">
           <n-divider style="margin: 20px 0" />
           <n-spin :show="searchLoading">
-            <div class="search-result-item" v-for="post in searchResults" :key="post.id" @click="goToPost(post.id)">
+            <div class="search-result-item" v-for="post in searchResults" :key="post.id" @click="goToPost(post)">
               <div class="result-title" v-html="highlightText(post.title)"></div>
               <div class="result-meta">
                 <span>{{ post.category.name }}</span>
@@ -567,9 +567,9 @@ async function handleSearchInput() {
 }
 
 // 跳转到文章详情
-function goToPost(postId: number) {
+function goToPost(post: { id: number; slug: string }) {
   showSearchModal.value = false
-  router.push(`/post/${postId}`)
+  router.push(`/post/${post.slug}`)
   // 清空搜索
   setTimeout(() => {
     searchKeyword.value = ''
