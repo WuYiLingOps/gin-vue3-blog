@@ -2,10 +2,12 @@ package service
 
 import (
 	"errors"
+	"strings"
 	"time"
 
 	"blog-backend/model"
 	"blog-backend/repository"
+	"blog-backend/util"
 
 	"gorm.io/gorm"
 )
@@ -83,8 +85,24 @@ func (s *PostService) Create(userID uint, req *CreatePostRequest) (*model.Post, 
 		}
 	}
 
+	// 生成slug
+	baseSlug := util.GenerateSlug(req.Title)
+	if baseSlug == "" {
+		return nil, errors.New("无法生成文章slug，请检查标题")
+	}
+
+	postRepo := s.postRepo // 在闭包外捕获
+	slug := util.GenerateUniqueSlug(baseSlug, func(slug string) bool {
+		return postRepo.CheckSlugExists(slug, 0)
+	})
+
+	if slug == "" {
+		return nil, errors.New("生成的slug为空")
+	}
+
 	post := &model.Post{
 		Title:      req.Title,
+		Slug:       slug,
 		Content:    req.Content,
 		Summary:    req.Summary,
 		Cover:      req.Cover,
@@ -105,7 +123,15 @@ func (s *PostService) Create(userID uint, req *CreatePostRequest) (*model.Post, 
 	err := s.postRepo.Transaction(func(tx *gorm.DB) error {
 		// 创建文章
 		if err := s.postRepo.CreateTx(tx, post); err != nil {
-			return err
+			// 如果是唯一性约束错误，返回更友好的错误信息
+			errStr := err.Error()
+			if strings.Contains(errStr, "duplicate key") ||
+				strings.Contains(errStr, "unique constraint") ||
+				strings.Contains(errStr, "violates unique constraint") {
+				return errors.New("文章slug已存在，请修改标题后重试")
+			}
+			// 返回原始错误，包含更多调试信息
+			return errors.New("创建文章失败: " + errStr)
 		}
 
 		// 更新标签关联
@@ -135,7 +161,7 @@ func (s *PostService) Create(userID uint, req *CreatePostRequest) (*model.Post, 
 	})
 
 	if err != nil {
-		return nil, errors.New("文章创建失败")
+		return nil, errors.New("文章创建失败: " + err.Error())
 	}
 
 	return s.postRepo.GetByID(post.ID)
@@ -151,6 +177,25 @@ func (s *PostService) GetByID(id uint, userID *uint, role string, ip string) (*m
 		return nil, errors.New("获取文章失败")
 	}
 
+	return s.checkPostPermission(post, userID, role, ip)
+}
+
+// GetBySlug 根据slug获取文章详情（含权限校验）
+func (s *PostService) GetBySlug(slug string, userID *uint, role string, ip string) (*model.Post, error) {
+	post, err := s.postRepo.GetBySlug(slug)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("文章不存在")
+		}
+		return nil, errors.New("获取文章失败")
+	}
+
+	return s.checkPostPermission(post, userID, role, ip)
+}
+
+// checkPostPermission 检查文章权限并记录浏览
+func (s *PostService) checkPostPermission(post *model.Post, userID *uint, role string, ip string) (*model.Post, error) {
+
 	// 私密/草稿仅作者或管理员可见
 	if (post.Visibility == 0 || post.Status == 0) && role != "admin" {
 		if userID == nil || *userID != post.UserID {
@@ -160,19 +205,19 @@ func (s *PostService) GetByID(id uint, userID *uint, role string, ip string) (*m
 
 	// 检查是否已阅读，如果没有则记录并增加浏览量
 	if ip != "" && ip != "unknown" {
-		hasViewed, _ := s.postViewRepo.HasViewed(id, userID, ip)
+		hasViewed, _ := s.postViewRepo.HasViewed(post.ID, userID, ip)
 		if !hasViewed {
 			// 记录阅读
-			if err := s.postViewRepo.RecordView(id, userID, ip); err == nil {
+			if err := s.postViewRepo.RecordView(post.ID, userID, ip); err == nil {
 				// 增加浏览量
-				s.postViewRepo.IncrementViewCount(id)
+				s.postViewRepo.IncrementViewCount(post.ID)
 				post.ViewCount++
 			}
 		}
 	}
 
 	// 检查是否已点赞
-	liked, _ := s.postRepo.CheckLiked(id, userID, ip)
+	liked, _ := s.postRepo.CheckLiked(post.ID, userID, ip)
 	post.Liked = liked
 
 	return post, nil
@@ -204,6 +249,13 @@ func (s *PostService) Update(id, userID uint, role string, req *UpdatePostReques
 	// 更新字段
 	if req.Title != "" {
 		post.Title = req.Title
+		// 如果标题改变，重新生成slug
+		baseSlug := util.GenerateSlug(req.Title)
+		postRepo := s.postRepo // 在闭包外捕获
+		postID := post.ID      // 在闭包外捕获
+		post.Slug = util.GenerateUniqueSlug(baseSlug, func(slug string) bool {
+			return postRepo.CheckSlugExists(slug, postID)
+		})
 	}
 	if req.Content != "" {
 		post.Content = req.Content
