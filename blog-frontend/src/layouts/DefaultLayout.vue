@@ -320,25 +320,9 @@ const menuOptions = computed(() => {
     },
     {
       label: '文章归档',
-      key: 'ArchiveMenu',
-      icon: () => h(NIcon, null, { default: () => h(ArchiveOutline) }),
-      children: [
-        {
-          label: '归档',
-          key: 'Archive',
-          path: '/archive'
-        },
-        {
-          label: '分类',
-          key: 'Category',
-          path: '/category'
-        },
-        {
-          label: '标签',
-          key: 'Tag',
-          path: '/tag'
-        }
-      ]
+      key: 'Archive',
+      path: '/archive',
+      icon: () => h(NIcon, null, { default: () => h(ArchiveOutline) })
     },
     {
       label: '友情链接',
@@ -397,11 +381,6 @@ const userMenuOptions = computed(() => {
 
 // 处理菜单选择
 function handleMenuSelect(key: string) {
-  // 如果是父菜单（ArchiveMenu），不做任何操作
-  if (key === 'ArchiveMenu') {
-    return
-  }
-  
   activeKey.value = key
   
   // 查找菜单项，优先使用 path，如果没有 path 则使用 name
@@ -442,11 +421,6 @@ function handleMenuSelect(key: string) {
 
 // 处理移动端菜单选择
 function handleMobileMenuSelect(key: string) {
-  // 如果是父菜单（ArchiveMenu），不做任何操作
-  if (key === 'ArchiveMenu') {
-    return
-  }
-  
   activeKey.value = key
   showMobileMenu.value = false
   
