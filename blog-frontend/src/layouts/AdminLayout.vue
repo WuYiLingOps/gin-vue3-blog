@@ -240,6 +240,11 @@ const menuOptions = [
     label: '网站设置',
     key: 'SiteSettings',
     icon: renderIcon(SettingsOutline)
+  },
+  {
+    label: '关于我管理',
+    key: 'AboutManage',
+    icon: renderIcon(PersonOutline)
   }
 ]
 
