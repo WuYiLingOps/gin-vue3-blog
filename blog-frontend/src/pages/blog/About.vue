@@ -60,6 +60,35 @@
                 </div>
               </div>
             </n-card>
+
+            <!-- 相册 -->
+            <n-card v-if="albums.length > 0" class="album-card" title="相册" :bordered="false">
+              <div class="album-grid">
+                <div v-for="album in albums" :key="album.id" class="album-item" @click="handleImageClick(album)">
+                  <n-image
+                    :src="album.image_url"
+                    :alt="album.title || '相册照片'"
+                    object-fit="cover"
+                    preview-disabled
+                    class="album-image"
+                  >
+                    <template #placeholder>
+                      <div class="image-placeholder">
+                        <n-spin size="small" />
+                      </div>
+                    </template>
+                  </n-image>
+                  <div v-if="album.title" class="album-title">{{ album.title }}</div>
+                </div>
+              </div>
+            </n-card>
+
+            <!-- 图片预览 -->
+            <n-image-preview
+              v-if="showImagePreview"
+              v-model:show="showImagePreview"
+              :src="previewImageUrl"
+            />
           </n-space>
         </n-spin>
       </div>
@@ -74,11 +103,14 @@ import type { ECharts } from 'echarts'
 import { getAuthorProfile, type AuthorProfile, getPublicCategoryStats, getPublicTagStats, type CategoryStat, type TagStat } from '@/api/blog'
 import { getArchives } from '@/api/post'
 import { getPublicAboutInfo } from '@/api/setting'
+import { getPublicAlbums, type Album } from '@/api/album'
 import { useAppStore } from '@/stores'
 import MarkdownPreview from '@/components/MarkdownPreview.vue'
+import { useMessage } from 'naive-ui'
 
 
 const appStore = useAppStore()
+const message = useMessage()
 const authorProfile = ref<AuthorProfile | null>(null)
 const loading = ref(false)
 const defaultAvatar = '/default-avatar.png'
@@ -100,6 +132,11 @@ const tagStats = ref<TagStat[]>([])
 
 // 个人介绍详情（从API获取，Markdown格式）
 const personalIntroMarkdown = ref<string>('')
+
+// 相册列表
+const albums = ref<Album[]>([])
+const previewImageUrl = ref<string>('')
+const showImagePreview = ref(false)
 
 
 // 获取博主信息
@@ -147,6 +184,25 @@ async function fetchAboutInfo() {
     // 如果获取失败，使用空字符串
     personalIntroMarkdown.value = ''
   }
+}
+
+// 获取相册数据
+async function fetchAlbums() {
+  try {
+    const res = await getPublicAlbums()
+    if (res.data) {
+      albums.value = res.data
+    }
+  } catch (error) {
+    console.error('获取相册数据失败:', error)
+    albums.value = []
+  }
+}
+
+// 处理图片点击
+function handleImageClick(album: Album) {
+  previewImageUrl.value = album.image_url
+  showImagePreview.value = true
 }
 
 // 获取归档统计数据
@@ -708,6 +764,7 @@ function handleMediaChange() {
 onMounted(() => {
   fetchAuthorProfile()
   fetchAboutInfo()
+  fetchAlbums()
   fetchArchiveStats()
   fetchCategoryStats()
   fetchTagStats()
@@ -1001,6 +1058,93 @@ html.dark .intro-detail-content.markdown-body :deep(a) {
   color: #38bdf8;
 }
 
+/* 相册卡片 */
+.album-card {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  border-radius: 16px;
+  margin-bottom: 24px;
+}
+
+html.dark .album-card {
+  background: rgba(30, 41, 59, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.album-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+  margin-top: 16px;
+}
+
+.album-item {
+  position: relative;
+  cursor: pointer;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.album-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+html.dark .album-item {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+html.dark .album-item:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.album-image {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+.album-image :deep(img) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.image-placeholder {
+  width: 100%;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 12px;
+}
+
+html.dark .image-placeholder {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.album-title {
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1a202c;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+}
+
+html.dark .album-title {
+  color: #e5e5e5;
+  background: rgba(30, 41, 59, 0.9);
+}
+
 /* 文章统计图卡片 */
 .stats-chart-card {
   background: rgba(255, 255, 255, 0.9);
@@ -1165,6 +1309,19 @@ html.dark .chart-title {
 
   .intro-detail-content {
     text-align: left;
+  }
+
+  .album-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+  }
+
+  .album-image {
+    height: 150px;
+  }
+
+  .image-placeholder {
+    height: 150px;
   }
 }
 
