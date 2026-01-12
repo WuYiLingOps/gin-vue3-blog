@@ -600,6 +600,12 @@ VALUES
 ('rss', '', 'text', 'friendlink_info', '订阅', NOW(), NOW())
 ON CONFLICT (key) DO NOTHING;
 
+-- 插入关于我信息默认配置
+INSERT INTO settings (key, value, type, "group", label, created_at, updated_at)
+VALUES 
+('about_content', '', 'text', 'about', '关于我内容', NOW(), NOW())
+ON CONFLICT (key) DO NOTHING;
+
 -- 注意：友链页面的评论功能已改为独立的评论系统，不再需要特殊文章
 -- 评论表已扩展支持 comment_type 和 target_id 字段，友链评论使用 comment_type='friendlink'
 
