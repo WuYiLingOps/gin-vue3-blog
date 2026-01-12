@@ -6,7 +6,6 @@
       <n-layout-header class="header" position="absolute">
         <div class="header-content">
           <div class="logo" @click="router.push('/')">
-            <img src="/logo.svg" alt="Logo" class="logo-image" />
             <h2>{{ siteSettings.site_name || defaultSiteName }}</h2>
           </div>
 
