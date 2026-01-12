@@ -168,3 +168,30 @@ func (h *SettingHandler) UpdateNotificationSettings(c *gin.Context) {
 
 	util.SuccessWithMessage(c, "更新成功", nil)
 }
+
+// GetRegisterSettings 获取注册配置（仅管理员）
+func (h *SettingHandler) GetRegisterSettings(c *gin.Context) {
+	settings, err := h.service.GetRegisterSettings()
+	if err != nil {
+		util.Error(c, 500, "获取注册配置失败")
+		return
+	}
+
+	util.Success(c, settings)
+}
+
+// UpdateRegisterSettings 更新注册配置（仅管理员）
+func (h *SettingHandler) UpdateRegisterSettings(c *gin.Context) {
+	var req map[string]string
+	if err := c.ShouldBindJSON(&req); err != nil {
+		util.BadRequest(c, "参数错误")
+		return
+	}
+
+	if err := h.service.UpdateRegisterSettings(req); err != nil {
+		util.Error(c, 400, err.Error())
+		return
+	}
+
+	util.SuccessWithMessage(c, "更新成功", nil)
+}
