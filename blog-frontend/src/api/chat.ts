@@ -75,3 +75,17 @@ export function adminBanIP(client_id: string, reason?: string, duration?: number
   return request.post('/admin/chat/ban', { client_id, reason, duration })
 }
 
+// 聊天室配置
+export interface ChatSettings {
+  chat_mute_all: string // 0/1
+}
+
+// 公开获取聊天室配置（前端展示禁言状态）
+export function getChatSettings() {
+  return request.get<ChatSettings>('/chat/settings')
+}
+
+// 管理员更新聊天室配置
+export function updateChatSettings(data: ChatSettings) {
+  return request.put('/admin/chat/settings', data)
+}
