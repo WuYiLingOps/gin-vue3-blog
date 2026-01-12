@@ -251,6 +251,12 @@ const routes: RouteRecordRaw[] = [
         name: 'AboutManage',
         component: AboutManage,
         meta: { title: '关于我管理', requiresAuth: true, requiresAdmin: true }
+      },
+      {
+        path: 'album',
+        name: 'AlbumManage',
+        component: () => import('@/pages/admin/AlbumManage.vue'),
+        meta: { title: '我的相册', requiresAuth: true, requiresAdmin: true }
       }
     ]
   },
