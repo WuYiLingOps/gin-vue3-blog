@@ -87,45 +87,10 @@ func (h *BlogHandler) GetAuthorProfile(c *gin.Context) {
 	util.Success(c, response)
 }
 
-// CategoryStat 分类统计数据
-type CategoryStat struct {
-	Name  string `json:"name"`
-	Value int    `json:"value"`
-	Color string `json:"color"`
-}
-
 // TagStat 标签统计数据
 type TagStat struct {
 	Name  string `json:"name"`
 	Value int    `json:"value"`
-}
-
-// GetCategoryStats 获取分类统计（公开接口）
-func (h *BlogHandler) GetCategoryStats(c *gin.Context) {
-	var stats []CategoryStat
-	
-	// 获取所有分类
-	var categories []model.Category
-	if err := db.DB.Find(&categories).Error; err != nil {
-		util.ServerError(c, "获取分类失败")
-		return
-	}
-
-	// 统计每个分类的已发布文章数
-	for _, category := range categories {
-		var count int64
-		if err := db.DB.Model(&model.Post{}).
-			Where("category_id = ? AND status = ?", category.ID, 1).
-			Count(&count).Error; err == nil && count > 0 {
-			stats = append(stats, CategoryStat{
-				Name:  category.Name,
-				Value: int(count),
-				Color: category.Color,
-			})
-		}
-	}
-
-	util.Success(c, stats)
 }
 
 // GetAboutInfo 获取关于我信息（公开接口）
