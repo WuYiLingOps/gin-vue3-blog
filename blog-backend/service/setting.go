@@ -1,6 +1,8 @@
 package service
 
 import (
+	"errors"
+
 	"blog-backend/model"
 	"blog-backend/repository"
 	"time"
@@ -194,6 +196,45 @@ func (s *SettingService) UpdateNotificationSettings(data map[string]string) erro
 			Value:     notifyAdmin,
 			Type:      "text",
 			Label:     "评论时通知管理员",
+			UpdatedAt: time.Now(),
+		})
+	}
+
+	return s.repo.BatchUpsert(settings)
+}
+
+// GetRegisterSettings 获取注册配置
+func (s *SettingService) GetRegisterSettings() (map[string]string, error) {
+	setting, err := s.repo.GetByKey("disable_register")
+	if err != nil {
+		// 如果配置不存在，返回默认值（允许注册）
+		return map[string]string{
+			"disable_register": "0",
+		}, nil
+	}
+
+	return map[string]string{
+		"disable_register": setting.Value,
+	}, nil
+}
+
+// UpdateRegisterSettings 更新注册配置
+func (s *SettingService) UpdateRegisterSettings(data map[string]string) error {
+	var settings []model.Setting
+
+	// 只允许修改 disable_register
+	if disableRegister, ok := data["disable_register"]; ok {
+		// 验证值只能是 "0" 或 "1"
+		if disableRegister != "0" && disableRegister != "1" {
+			return errors.New("disable_register 值只能是 0 或 1")
+		}
+
+		settings = append(settings, model.Setting{
+			Group:     "site",
+			Key:       "disable_register",
+			Value:     disableRegister,
+			Type:      "text",
+			Label:     "禁用用户注册",
 			UpdatedAt: time.Now(),
 		})
 	}
