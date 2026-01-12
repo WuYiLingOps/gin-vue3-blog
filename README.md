@@ -44,6 +44,7 @@
 - 💭 **说说动态** - 类似朋友圈的动态发布，支持评论和点赞
 - 💬 **实时聊天室** - WebSocket 实时通信，支持登录用户和匿名访问
 - 👤 **用户系统** - 完整的用户注册、登录、权限管理
+- 🚫 **注册控制** - 管理员可限制用户注册功能，支持一键开启/关闭
 - 🔐 **安全认证** - 密码重置、邮箱修改、邮件验证码
 - 🛡️ **验证码系统** - 图形验证码，基于 Redis 存储，支持 IP 限流和防暴力破解
 - 🔒 **权限控制** - 基于角色的访问控制（RBAC）
@@ -998,8 +999,8 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
 - 🔗 友链管理（添加、编辑、删除友链，配置我的友链信息）
 - 💭 说说管理
 - 💬 聊天室管理（消息管理、用户管理）
-- 👥 用户管理
-- ⚙️ 网站设置（包含通知配置）
+- 👥 用户管理（用户列表、状态管理、限制用户注册功能）
+- ⚙️ 网站设置（包含通知配置、注册控制）
 - 🚫 IP 访问控制（黑名单/白名单统一管理）
 
 ## 🛠️ 技术栈
@@ -1119,6 +1120,9 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
 - `GET /api/settings/notification` - 获取通知配置（管理员）
 - `PUT /api/settings/notification` - 更新通知配置（管理员）
   - 支持配置管理员评论通知开关（包括文章评论和说说评论）
+- `GET /api/admin/settings/register` - 获取注册配置（管理员）
+- `PUT /api/admin/settings/register` - 更新注册配置（管理员）
+  - 支持配置是否限制用户注册（`disable_register`: `"0"` 允许注册，`"1"` 禁止注册）
 
 ### 验证码相关
 - `GET /api/captcha` - 获取图形验证码
@@ -1184,6 +1188,14 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
 5. 提交 Pull Request
 
 ## 📝 更新日志
+
+### v1.9.0 (2026-01-12)
+- ✨ 新增限制用户注册功能
+  - 🚫 管理员可在用户管理页面一键开启/关闭用户注册功能
+  - 🔒 开启后，新用户将无法注册账号
+  - ⚙️ 配置存储在系统设置中，默认允许注册
+  - 🎨 优雅的开关界面，实时生效
+  - 🛡️ 后端注册接口自动检查配置，确保安全
 
 ### v1.8.0 (2026-01-11)
 - ✨ 新增文章URL优化功能
