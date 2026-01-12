@@ -22,16 +22,18 @@ type Client struct {
 	Username string          // 用户名
 	Avatar   string          // 头像
 	IP       string          // IP地址
+	Role     string          // 角色：admin/user/guest
 }
 
 // Hub WebSocket Hub，管理所有客户端
 type Hub struct {
-	Clients    map[*Client]bool // 注册的客户端
-	Broadcast  chan []byte      // 广播消息通道
-	Register   chan *Client     // 注册客户端通道
-	Unregister chan *Client     // 注销客户端通道
-	mutex      sync.RWMutex     // 读写锁
-	Repo       *repository.ChatRepository
+	Clients     map[*Client]bool // 注册的客户端
+	Broadcast   chan []byte      // 广播消息通道
+	Register    chan *Client     // 注册客户端通道
+	Unregister  chan *Client     // 注销客户端通道
+	mutex       sync.RWMutex     // 读写锁
+	Repo        *repository.ChatRepository
+	SettingRepo *repository.SettingRepository
 }
 
 // WebSocketMessage WebSocket消息结构
@@ -51,11 +53,12 @@ type UserInfo struct {
 // NewHub 创建新的Hub
 func NewHub() *Hub {
 	return &Hub{
-		Clients:    make(map[*Client]bool),
-		Broadcast:  make(chan []byte, 256),
-		Register:   make(chan *Client),
-		Unregister: make(chan *Client),
-		Repo:       repository.NewChatRepository(),
+		Clients:     make(map[*Client]bool),
+		Broadcast:   make(chan []byte, 256),
+		Register:    make(chan *Client),
+		Unregister:  make(chan *Client),
+		Repo:        repository.NewChatRepository(),
+		SettingRepo: repository.NewSettingRepository(),
 	}
 }
 
@@ -278,6 +281,15 @@ func (h *Hub) GetOnlineUsers() []UserInfo {
 	return users
 }
 
+// IsChatMuted 是否开启全员禁言（默认关闭）
+func (h *Hub) IsChatMuted() bool {
+	setting, err := h.SettingRepo.GetByKey("chat_mute_all")
+	if err != nil || setting == nil {
+		return false
+	}
+	return setting.Value == "1"
+}
+
 // KickClient 踢出客户端
 func (h *Hub) KickClient(clientID string, reason string) bool {
 	h.mutex.Lock()
@@ -359,6 +371,24 @@ func (c *Client) ReadPump() {
 		case "message":
 			content, _ := msg["content"].(string)
 			if content == "" {
+				continue
+			}
+
+			// 全员禁言校验：仅管理员可发言
+			if c.Role != "admin" && c.Hub.IsChatMuted() {
+				wsMsg := WebSocketMessage{
+					Type: "system",
+					Data: map[string]interface{}{
+						"message": "当前已开启全员禁言，只有管理员可发言",
+					},
+					Timestamp: time.Now().Unix(),
+				}
+				if data, err := json.Marshal(wsMsg); err == nil {
+					select {
+					case c.Send <- data:
+					default:
+					}
+				}
 				continue
 			}
 
