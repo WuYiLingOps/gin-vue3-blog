@@ -47,12 +47,6 @@
                   <div ref="postPublishChartRef" class="chart-wrapper"></div>
                 </div>
 
-                <!-- 文章分类统计图（饼图） -->
-                <div class="chart-item">
-                  <div class="chart-title">文章分类统计图</div>
-                  <div ref="categoryChartRef" class="chart-wrapper"></div>
-                </div>
-
                 <!-- TOP10 标签统计图（柱状图） -->
                 <div class="chart-item">
                   <div class="chart-title">TOP10 标签统计图</div>
@@ -89,8 +83,146 @@
               v-model:show="showImagePreview"
               :src="previewImageUrl"
             />
+
+            <!-- 评论区 -->
+            <div class="comments-section">
+              <n-card class="comments-card">
+                <h2 class="section-title">评论区 ({{ comments.length }})</h2>
+
+                <!-- 评论表单 -->
+                <n-card v-if="authStore.isLoggedIn" class="comment-form">
+                  <!-- 回复提示 -->
+                  <n-alert
+                    v-if="replyToComment"
+                    type="info"
+                    closable
+                    style="margin-bottom: 12px"
+                    @close="replyToComment = null; replyToUser = null; commentContent = ''"
+                  >
+                    正在回复 <strong>@{{ (replyToUser || replyToComment).user.nickname }}</strong> 的评论
+                  </n-alert>
+                  
+                  <CommentMarkdownEditor
+                    v-model="commentContent"
+                    height="250px"
+                    :max-length="5000"
+                  />
+                  <div style="margin-top: 12px; text-align: right">
+                    <n-button type="primary" :loading="submitting" @click="handleSubmitComment">
+                      {{ replyToComment ? '发表回复' : '发表评论' }}
+                    </n-button>
+                  </div>
+                </n-card>
+
+                <n-alert v-else type="info" style="margin-bottom: 16px">
+                  请 <n-button text type="primary" @click="router.push('/auth/login')">登录</n-button> 后发表评论
+                </n-alert>
+
+                <!-- 评论列表 -->
+                <div class="comments-list">
+                  <div v-if="comments.length === 0" class="empty-comments">
+                    <n-empty description="暂无评论，快来抢沙发吧~" size="small" />
+                  </div>
+                  <div v-for="comment in comments" :key="comment.id" class="comment-item">
+                    <n-space align="start">
+                      <n-avatar :src="comment.user.avatar" round />
+                      <div class="comment-content">
+                        <div class="comment-header">
+                          <strong>{{ comment.user.nickname }}</strong>
+                          <span class="comment-time">{{ formatRelativeTime(comment.created_at) }}</span>
+                        </div>
+                        <CommentContent :content="comment.content" />
+                        <div class="comment-actions">
+                          <n-button
+                            v-if="authStore.isLoggedIn"
+                            text
+                            size="small"
+                            @click="handleReply(comment)"
+                          >
+                            回复
+                          </n-button>
+                          <n-button 
+                            v-if="comment.children && comment.children.length > 0"
+                            text 
+                            size="small" 
+                            @click="toggleExpand(comment.id)"
+                          >
+                            {{ expandedComments.has(comment.id) ? '收起' : `展开 ${comment.children.length} 条回复` }}
+                          </n-button>
+                          <n-popconfirm
+                            v-if="canDeleteComment(comment)"
+                            @positive-click="handleDeleteComment(comment.id)"
+                          >
+                            <template #trigger>
+                              <n-button text size="small" type="error">删除</n-button>
+                            </template>
+                            确定要删除这条评论吗？
+                          </n-popconfirm>
+                        </div>
+
+                        <!-- 子评论 -->
+                        <div v-if="comment.children && comment.children.length > 0 && expandedComments.has(comment.id)" class="reply-list">
+                          <div
+                            v-for="reply in comment.children"
+                            :key="reply.id"
+                            class="reply-item"
+                          >
+                            <n-space align="start">
+                              <n-avatar :src="reply.user.avatar" round size="small" />
+                              <div class="reply-content">
+                                <div class="reply-header">
+                                  <strong>{{ reply.user.nickname }}</strong>
+                                  <span class="reply-to">回复 @{{ getReplyTargetName(reply, comment) }}</span>
+                                  <span class="comment-time">{{ formatRelativeTime(reply.created_at) }}</span>
+                                </div>
+                                <CommentContent :content="removeAtMention(reply.content)" />
+                                <div class="comment-actions">
+                                  <n-button
+                                    v-if="authStore.isLoggedIn"
+                                    text
+                                    size="small"
+                                    @click="handleReply(comment, reply)"
+                                  >
+                                    回复
+                                  </n-button>
+                                  <n-popconfirm
+                                    v-if="canDeleteComment(reply)"
+                                    @positive-click="handleDeleteComment(reply.id)"
+                                  >
+                                    <template #trigger>
+                                      <n-button text size="small" type="error">删除</n-button>
+                                    </template>
+                                    确定要删除这条回复吗？
+                                  </n-popconfirm>
+                                </div>
+                              </div>
+                            </n-space>
+                          </div>
+                        </div>
+                      </div>
+                    </n-space>
+                  </div>
+                </div>
+              </n-card>
+            </div>
           </n-space>
         </n-spin>
+      </div>
+
+      <!-- 右侧：公告栏 + 最新发布文章 + 分类列表 + 标签列表 -->
+      <div class="sidebar-section">
+        <div class="sidebar-card-wrapper sidebar-announcement">
+          <AnnouncementBoard :limit="3" />
+        </div>
+        <div class="sidebar-card-wrapper sidebar-hot-posts">
+          <HotPostsCard />
+        </div>
+        <div class="sidebar-card-wrapper sidebar-category-list">
+          <CategoryListWidget />
+        </div>
+        <div class="sidebar-card-wrapper sidebar-tag-cloud">
+          <TagCloudWidget />
+        </div>
       </div>
     </div>
   </div>
@@ -98,36 +230,57 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import * as echarts from 'echarts'
 import type { ECharts } from 'echarts'
-import { getAuthorProfile, type AuthorProfile, getPublicCategoryStats, getPublicTagStats, type CategoryStat, type TagStat } from '@/api/blog'
+import { getAuthorProfile, type AuthorProfile, getPublicTagStats, type TagStat } from '@/api/blog'
 import { getArchives } from '@/api/post'
 import { getPublicAboutInfo } from '@/api/setting'
 import { getPublicAlbums, type Album } from '@/api/album'
-import { useAppStore } from '@/stores'
+import { getCommentsByTypeAndTarget, createComment, deleteComment } from '@/api/comment'
+import { formatRelativeTime } from '@/utils/format'
+import { useAppStore, useAuthStore } from '@/stores'
 import MarkdownPreview from '@/components/MarkdownPreview.vue'
 import { useMessage } from 'naive-ui'
+import AnnouncementBoard from '@/components/AnnouncementBoard.vue'
+import HotPostsCard from '@/components/HotPostsCard.vue'
+import CategoryListWidget from '@/components/CategoryListWidget.vue'
+import TagCloudWidget from '@/components/TagCloudWidget.vue'
+import CommentMarkdownEditor from '@/components/CommentMarkdownEditor.vue'
+import CommentContent from '@/components/CommentContent.vue'
+import type { Comment } from '@/types/blog'
 
 
+const router = useRouter()
 const appStore = useAppStore()
+const authStore = useAuthStore()
 const message = useMessage()
 const authorProfile = ref<AuthorProfile | null>(null)
 const loading = ref(false)
 const defaultAvatar = '/default-avatar.png'
 
+// 评论相关
+const comments = ref<Comment[]>([])
+const commentContent = ref('')
+const replyToComment = ref<Comment | null>(null)
+const replyToUser = ref<Comment | null>(null)
+const expandedComments = ref<Set<number>>(new Set())
+const submitting = ref(false)
+
+// 关于我页面的评论类型
+const ABOUT_COMMENT_TYPE = 'about'
+const ABOUT_TARGET_ID = 0 // 关于我页面的target_id固定为0
+
 // 图表相关
 const postPublishChartRef = ref<HTMLElement>()
-const categoryChartRef = ref<HTMLElement>()
 const tagChartRef = ref<HTMLElement>()
 let postPublishChart: ECharts | null = null
-let categoryChart: ECharts | null = null
 let tagChart: ECharts | null = null
 // 记录上一次是否为移动端布局，用于判断是否跨越断点
 let lastIsMobile = window.innerWidth <= 1024
 
 // 统计数据
 const archiveStats = ref<Array<{ month: string; count: number }>>([])
-const categoryStats = ref<CategoryStat[]>([])
 const tagStats = ref<TagStat[]>([])
 
 // 个人介绍详情（从API获取，Markdown格式）
@@ -226,21 +379,114 @@ async function fetchArchiveStats() {
   }
 }
 
-// 获取分类统计数据
-async function fetchCategoryStats() {
+// 获取评论列表
+async function fetchComments() {
   try {
-    const res = await getPublicCategoryStats()
+    const res = await getCommentsByTypeAndTarget(ABOUT_COMMENT_TYPE, ABOUT_TARGET_ID)
     if (res.data) {
-      categoryStats.value = res.data
-      nextTick(() => {
-        // 延迟初始化，确保DOM完全渲染
-        setTimeout(() => {
-          initCategoryChart()
-        }, 100)
-      })
+      comments.value = res.data
     }
-  } catch (error) {
-    console.error('获取分类统计失败:', error)
+  } catch (error: any) {
+    console.error('获取评论失败:', error)
+  }
+}
+
+// 提交评论
+async function handleSubmitComment() {
+  if (!authStore.isLoggedIn) {
+    message.warning('请先登录')
+    return
+  }
+
+  if (!commentContent.value.trim()) {
+    message.warning('请输入评论内容')
+    return
+  }
+
+  try {
+    submitting.value = true
+    const commentData: any = {
+      content: commentContent.value,
+      comment_type: ABOUT_COMMENT_TYPE,
+      target_id: ABOUT_TARGET_ID
+    }
+    
+    // 如果是回复评论，添加 parent_id
+    if (replyToComment.value) {
+      commentData.parent_id = replyToComment.value.id
+    }
+    
+    await createComment(commentData)
+    message.success(replyToComment.value ? '回复成功' : '评论成功')
+    commentContent.value = ''
+    replyToComment.value = null
+    replyToUser.value = null
+    fetchComments()
+  } catch (error: any) {
+    message.error(error.message || '评论失败')
+  } finally {
+    submitting.value = false
+  }
+}
+
+// 回复评论
+function handleReply(parentComment: Comment, targetUser?: Comment) {
+  if (!authStore.isLoggedIn) {
+    message.warning('请先登录')
+    return
+  }
+  
+  replyToComment.value = parentComment
+  replyToUser.value = targetUser || parentComment
+  commentContent.value = `@${(targetUser || parentComment).user.nickname} `
+  
+  // 滚动到评论框
+  nextTick(() => {
+    const commentForm = document.querySelector('.comment-form textarea')
+    if (commentForm) {
+      (commentForm as HTMLElement).focus()
+      commentForm.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  })
+}
+
+// 获取回复目标的名称
+function getReplyTargetName(reply: Comment, parentComment: Comment): string {
+  const match = reply.content.match(/^@(\S+)\s/)
+  if (match) {
+    return match[1]
+  }
+  return parentComment.user.nickname
+}
+
+// 移除评论内容开头的 @xxx
+function removeAtMention(content: string): string {
+  return content.replace(/^@\S+\s/, '')
+}
+
+// 切换评论展开/收起
+function toggleExpand(commentId: number) {
+  if (expandedComments.value.has(commentId)) {
+    expandedComments.value.delete(commentId)
+  } else {
+    expandedComments.value.add(commentId)
+  }
+}
+
+// 判断是否可以删除评论
+function canDeleteComment(comment: Comment): boolean {
+  if (!authStore.isLoggedIn) return false
+  return authStore.isAdmin || comment.user_id === authStore.user?.id
+}
+
+// 删除评论
+async function handleDeleteComment(commentId: number) {
+  try {
+    await deleteComment(commentId)
+    message.success('删除成功')
+    fetchComments()
+  } catch (error: any) {
+    message.error(error.message || '删除失败')
   }
 }
 
@@ -435,113 +681,6 @@ function initPostPublishChart() {
   postPublishChart.setOption(option)
 }
 
-// 初始化分类统计图（饼图）
-function initCategoryChart() {
-  if (!categoryChartRef.value) return
-
-  // 检测是否为移动端
-  const isMobile = window.innerWidth <= 1024
-  const isSmallMobile = window.innerWidth <= 767
-
-  if (!categoryChart) {
-    categoryChart = echarts.init(categoryChartRef.value)
-  } else {
-    // 如果图表已存在，先resize确保尺寸正确
-    categoryChart.resize()
-  }
-
-  const defaultColors = ['#5470c6', '#91cc75', '#fac858', '#ee6666', '#73c0de', '#3ba272', '#fc8452', '#9a60b4', '#ea7ccc', '#ff9f7f']
-  
-  const chartData = categoryStats.value.map((item, index) => ({
-    value: item.value,
-    name: item.name,
-    itemStyle: {
-      color: item.color || defaultColors[index % defaultColors.length]
-    }
-  }))
-
-  const isDark = appStore.theme === 'dark'
-  
-  // 根据屏幕尺寸动态调整饼图配置
-  const radius = isSmallMobile ? ['30%', '60%'] : isMobile ? ['32%', '62%'] : ['35%', '65%']
-  const center = isSmallMobile ? ['50%', '50%'] : isMobile ? ['48%', '50%'] : ['45%', '50%']
-
-  const option = {
-    tooltip: {
-      trigger: 'item',
-      formatter: '{a} <br/>{b}: {c} ({d}%)'
-    },
-    // 隐藏右侧图例，直接在扇区外侧显示标签
-    legend: {
-      show: false
-    },
-    series: [
-      {
-        name: '文章分类',
-        type: 'pie',
-        radius: radius,
-        center: center,
-        avoidLabelOverlap: true,
-        itemStyle: {
-          borderRadius: 8,
-          borderColor: isDark ? '#1e293b' : '#fff',
-          borderWidth: 2
-        },
-        label: {
-          show: true,
-          formatter: (params: any) => {
-            // 根据百分比决定显示方式
-            if (params.percent < 5) {
-              // 小百分比只显示名称，不截断
-              return params.name
-            } else {
-              // 大百分比显示名称和百分比，不截断名称
-              return `${params.name}: ${params.percent.toFixed(1)}%`
-            }
-          },
-          color: isDark ? '#e5e7eb' : '#475569',
-          fontSize: isSmallMobile ? 10 : 12,
-          fontWeight: 500,
-          overflow: 'break',
-          width: isSmallMobile ? 100 : isMobile ? 120 : 150,
-          lineHeight: isSmallMobile ? 14 : 16,
-          rich: {
-            name: {
-              fontSize: isSmallMobile ? 10 : 12,
-              fontWeight: 500
-            },
-            percent: {
-              fontSize: isSmallMobile ? 9 : 11,
-              fontWeight: 600
-            }
-          }
-        },
-        emphasis: {
-          label: {
-            show: true,
-            fontSize: 14,
-            fontWeight: 'bold',
-            formatter: '{b}: {d}%'
-          }
-        },
-        labelLine: {
-          show: true,
-          length: isSmallMobile ? 15 : isMobile ? 20 : 30,
-          length2: isSmallMobile ? 10 : isMobile ? 15 : 20,
-          lineStyle: {
-            color: isDark ? '#94a3b8' : '#94a3b8',
-            width: 1
-          },
-          smooth: 0.2
-        },
-        data: chartData
-      }
-    ]
-  }
-
-  categoryChart.setOption(option)
-}
-
 // 初始化标签统计图（柱状图）
 function initTagChart() {
   if (!tagChartRef.value) return
@@ -681,7 +820,6 @@ function initTagChart() {
 watch(() => appStore.theme, () => {
   nextTick(() => {
     if (archiveStats.value.length > 0) initPostPublishChart()
-    if (categoryStats.value.length > 0) initCategoryChart()
     if (tagStats.value.length > 0) initTagChart()
   })
 })
@@ -714,10 +852,6 @@ const handleResize = debounce(() => {
           postPublishChart.dispose()
           postPublishChart = null
         }
-        if (categoryChart) {
-          categoryChart.dispose()
-          categoryChart = null
-        }
         if (tagChart) {
           tagChart.dispose()
           tagChart = null
@@ -727,9 +861,6 @@ const handleResize = debounce(() => {
         if (archiveStats.value.length > 0) {
           initPostPublishChart()
         }
-        if (categoryStats.value.length > 0) {
-          initCategoryChart()
-        }
         if (tagStats.value.length > 0) {
           initTagChart()
         }
@@ -737,9 +868,6 @@ const handleResize = debounce(() => {
         // 同一断点内只做自适应
         if (postPublishChart) {
           postPublishChart.resize()
-        }
-        if (categoryChart) {
-          categoryChart.resize()
         }
         if (tagChart) {
           tagChart.resize()
@@ -766,8 +894,8 @@ onMounted(() => {
   fetchAboutInfo()
   fetchAlbums()
   fetchArchiveStats()
-  fetchCategoryStats()
   fetchTagStats()
+  fetchComments()
   
   // 监听窗口resize
   window.addEventListener('resize', handleResize)
@@ -795,7 +923,6 @@ onUnmounted(() => {
     }
   }
   postPublishChart?.dispose()
-  categoryChart?.dispose()
   tagChart?.dispose()
 })
 </script>
@@ -809,18 +936,27 @@ onUnmounted(() => {
   z-index: 1;
 }
 
-/* 桌面端显示，移动端隐藏 */
-.desktop-only {
-  display: block;
-}
-
 .about-layout {
-  display: block;
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: 32px;
+  align-items: start;
 }
 
 .content-section {
   min-width: 0;
 }
+
+/* 右侧侧边栏 */
+.sidebar-section {
+  position: relative;
+  z-index: 10;
+  margin-left: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 
 /* 个人介绍卡片 */
 .intro-card {
@@ -1175,7 +1311,7 @@ html.dark .stats-chart-card:hover {
 
 .charts-container {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 32px;
   padding: 8px 16px;
   overflow: hidden;
@@ -1283,6 +1419,26 @@ html.dark .chart-title {
 
 
 
+/* 平板端和移动端布局 */
+@media (max-width: 1024px) {
+  .about-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar-section {
+    order: 0;
+    margin-left: 0;
+  }
+
+  /* 平板端和移动端隐藏侧边栏 */
+  .sidebar-announcement,
+  .sidebar-hot-posts,
+  .sidebar-category-list,
+  .sidebar-tag-cloud {
+    display: none;
+  }
+}
+
 /* 移动端布局（< 768px） */
 @media (max-width: 767px) {
   .profile-header {
@@ -1354,5 +1510,210 @@ html.dark .about-page :deep(.n-card) {
 html.dark .about-page :deep(.n-card):hover {
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
   border-color: rgba(56, 189, 248, 0.3);
+}
+
+/* 评论区样式 */
+.comments-section {
+  margin-top: 0;
+}
+
+.comments-card {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  border: 1px solid rgba(8, 145, 178, 0.1);
+}
+
+html.dark .comments-card {
+  background: rgba(30, 41, 59, 0.8);
+  border-color: rgba(56, 189, 248, 0.1);
+}
+
+.comments-card .section-title {
+  margin-bottom: 24px;
+}
+
+.comment-form {
+  margin-bottom: 24px;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+html.dark .comment-form {
+  background: rgba(30, 41, 59, 0.5);
+}
+
+.empty-comments {
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.comments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.comment-item {
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 8px;
+  border: 1px solid rgba(8, 145, 178, 0.1);
+}
+
+html.dark .comment-item {
+  background: rgba(30, 41, 59, 0.5);
+  border-color: rgba(56, 189, 248, 0.1);
+}
+
+.comment-content {
+  flex: 1;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: visible;
+  box-sizing: border-box;
+}
+
+.comment-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.comment-header strong {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1a202c;
+}
+
+html.dark .comment-header strong {
+  color: #e5e5e5;
+}
+
+.comment-time {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.comment-content p {
+  margin: 8px 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #64748b;
+  word-break: break-word;
+}
+
+html.dark .comment-content p {
+  color: #94a3b8;
+}
+
+.comment-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.reply-list {
+  margin-top: 16px;
+  padding-left: 16px;
+  border-left: 2px solid rgba(8, 145, 178, 0.2);
+}
+
+html.dark .reply-list {
+  border-left-color: rgba(56, 189, 248, 0.2);
+}
+
+.reply-item {
+  padding: 12px;
+  margin-bottom: 12px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+}
+
+html.dark .reply-item {
+  background: rgba(30, 41, 59, 0.3);
+}
+
+.reply-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.reply-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.reply-header strong {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a202c;
+}
+
+html.dark .reply-header strong {
+  color: #e5e5e5;
+}
+
+.reply-to {
+  font-size: 12px;
+  color: #0891b2;
+}
+
+html.dark .reply-to {
+  color: #38bdf8;
+}
+
+.reply-content p {
+  margin: 6px 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #64748b;
+}
+
+html.dark .reply-content p {
+  color: #94a3b8;
+}
+
+/* 响应式优化 */
+@media (max-width: 768px) {
+  .comment-item {
+    padding: 12px;
+  }
+}
+
+/* 小屏幕移动端优化（小于420px） */
+@media (max-width: 420px) {
+  .comment-item {
+    padding: 10px 0;
+    margin: 0;
+    overflow-x: auto;
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  .comment-content {
+    padding: 0 8px;
+    overflow-x: auto;
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  .reply-item {
+    padding: 8px 0;
+    margin: 0;
+    overflow-x: auto;
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  .reply-content {
+    padding: 0 6px;
+    overflow-x: auto;
+    width: 100%;
+    max-width: 100%;
+  }
 }
 </style>
