@@ -242,6 +242,29 @@ func (s *SettingService) UpdateRegisterSettings(data map[string]string) error {
 	return s.repo.BatchUpsert(settings)
 }
 
+// GetAboutInfo 获取关于我信息
+func (s *SettingService) GetAboutInfo() (string, error) {
+	setting, err := s.repo.GetByKey("about_content")
+	if err != nil {
+		// 如果配置不存在，返回空字符串
+		return "", nil
+	}
+	return setting.Value, nil
+}
+
+// UpdateAboutInfo 更新关于我信息
+func (s *SettingService) UpdateAboutInfo(content string) error {
+	setting := model.Setting{
+		Group:     "about",
+		Key:       "about_content",
+		Value:     content,
+		Type:      "text",
+		Label:     "关于我内容",
+		UpdatedAt: time.Now(),
+	}
+	return s.repo.BatchUpsert([]model.Setting{setting})
+}
+
 // getFriendLinkInfoLabel 获取字段标签
 func getFriendLinkInfoLabel(key string) string {
 	labels := map[string]string{
