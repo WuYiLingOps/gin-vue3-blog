@@ -80,6 +80,32 @@
 
         <n-divider />
 
+        <!-- 文章底部信息 -->
+        <div v-if="post" class="post-footer">
+          <div class="footer-info">
+            <div class="info-item">
+              <span class="info-label">文章作者</span>
+              <span class="info-value">{{ post.user.nickname }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">文章链接</span>
+              <span class="info-value link-value" @click="copyPostLink">
+                {{ postUrl }}
+              </span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">版权声明</span>
+              <span class="info-value">本博客所有文章除特别声明外，均采用 CC BY-NC-SA 4.0 许可协议。转载请注明来源！</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">技术内容</span>
+              <span class="info-value">若存在错误或不当之处，还望兄台不吝赐教，期待与您交流！</span>
+            </div>
+          </div>
+        </div>
+
+        <n-divider />
+
         <!-- 评论区 -->
         <div class="comments-section">
           <h3>评论 ({{ comments.length }})</h3>
@@ -281,6 +307,22 @@ const canEdit = computed(() => {
   if (!post.value || !authStore.isLoggedIn) return false
   return authStore.isAdmin || post.value.user_id === authStore.user?.id
 })
+
+// 文章完整URL
+const postUrl = computed(() => {
+  if (!post.value) return ''
+  return `${window.location.origin}/post/${post.value.slug}`
+})
+
+// 复制文章链接
+async function copyPostLink() {
+  try {
+    await navigator.clipboard.writeText(postUrl.value)
+    message.success('文章链接已复制到剪贴板')
+  } catch (error) {
+    message.error('复制失败，请手动复制')
+  }
+}
 
 onMounted(() => {
   fetchPost()
@@ -1233,6 +1275,90 @@ html.dark .back-top-button {
 html.dark .back-top-button:hover {
   background: rgba(56, 189, 248, 1);
   box-shadow: 0 8px 24px rgba(56, 189, 248, 0.5);
+}
+
+/* 文章底部信息样式 */
+.post-footer {
+  margin: 32px 0;
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+html.dark .post-footer {
+  background: rgba(30, 41, 59, 0.5);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.footer-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.info-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.info-label {
+  color: #64748b;
+  font-weight: 500;
+  min-width: 80px;
+  flex-shrink: 0;
+}
+
+html.dark .info-label {
+  color: #94a3b8;
+}
+
+.info-value {
+  color: #374151;
+  flex: 1;
+}
+
+html.dark .info-value {
+  color: #d1d5db;
+}
+
+.link-value {
+  color: #0891b2;
+  cursor: pointer;
+  text-decoration: underline;
+  transition: color 0.3s;
+}
+
+html.dark .link-value {
+  color: #38bdf8;
+}
+
+.link-value:hover {
+  color: #0e7490;
+}
+
+html.dark .link-value:hover {
+  color: #7dd3fc;
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .post-footer {
+    padding: 16px;
+  }
+
+  .info-item {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .info-label {
+    min-width: auto;
+  }
 }
 </style>
 
