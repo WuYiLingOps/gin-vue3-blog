@@ -19,6 +19,21 @@
         </n-space>
       </template>
 
+      <!-- 全员禁言开关 -->
+      <n-card size="small" style="margin-bottom: 16px">
+        <n-space align="center" justify="space-between">
+          <div>
+            <div style="font-weight: 600;">全员禁言</div>
+            <n-text depth="3">开启后仅管理员可发言，防止刷屏攻击</n-text>
+          </div>
+          <n-switch
+            :value="chatSettings.chat_mute_all === '1'"
+            :loading="chatSettingLoading"
+            @update:value="handleToggleChatMute"
+          />
+        </n-space>
+      </n-card>
+
       <!-- 统计信息 -->
       <n-space class="stats-section" size="large">
         <n-statistic label="在线人数" :value="onlineInfo.online_count">
@@ -198,9 +213,11 @@ import {
   adminBroadcastMessage, 
   getOnlineInfo,
   adminKickUser,
-  adminBanIP
+  adminBanIP,
+  getChatSettings,
+  updateChatSettings
 } from '@/api/chat'
-import type { ChatMessage, OnlineUser, OnlineInfo } from '@/api/chat'
+import type { ChatMessage, OnlineUser, OnlineInfo, ChatSettings } from '@/api/chat'
 
 const message = useMessage()
 const dialog = useDialog()
@@ -227,6 +244,8 @@ const broadcastContent = ref('')
 const broadcastPriority = ref(0)
 const broadcastTarget = ref<'announcement' | 'chat' | 'both'>('both')
 const broadcasting = ref(false)
+const chatSettings = ref({ chat_mute_all: '0' })
+const chatSettingLoading = ref(false)
 
 // 批量删除
 const selectedRowKeys = ref<Array<string | number>>([])
@@ -352,6 +371,33 @@ const fetchOnlineInfo = async () => {
   }
 }
 
+// 获取聊天室配置
+const fetchChatSettingsData = async () => {
+  try {
+    const res = await getChatSettings()
+    if (res.data) {
+      chatSettings.value = res.data
+    }
+  } catch (error) {
+    console.error('获取聊天室配置失败:', error)
+  }
+}
+
+// 切换全员禁言
+const handleToggleChatMute = async (val: boolean) => {
+  chatSettingLoading.value = true
+  try {
+    await updateChatSettings({ chat_mute_all: val ? '1' : '0' })
+    chatSettings.value.chat_mute_all = val ? '1' : '0'
+    message.success(val ? '已开启全员禁言' : '已关闭全员禁言')
+  } catch (error: any) {
+    console.error('更新聊天室配置失败', error)
+    message.error(error?.message || '更新失败')
+  } finally {
+    chatSettingLoading.value = false
+  }
+}
+
 // 踢出用户
 const handleKickUser = (user: OnlineUser) => {
   dialog.warning({
@@ -471,6 +517,7 @@ let onlineInfoTimer: number | null = null
 onMounted(() => {
   fetchMessages()
   fetchOnlineInfo()
+  fetchChatSettingsData()
   
   // 定时刷新在线人数（每10秒）
   onlineInfoTimer = window.setInterval(() => {
