@@ -49,6 +49,7 @@ func SetupRouter() *gin.Engine {
 	friendLinkHandler := handler.NewFriendLinkHandler()
 	friendLinkCategoryHandler := handler.NewFriendLinkCategoryHandler()
 	calendarHandler := handler.NewCalendarHandler()
+	albumHandler := handler.NewAlbumHandler()
 
 	// 健康检查接口
 	r.GET("/health", func(c *gin.Context) {
@@ -60,7 +61,7 @@ func SetupRouter() *gin.Engine {
 	{
 		setupAuthRoutes(api, authHandler)
 		setupCaptchaRoutes(api, captchaHandler)
-		setupBlogRoutes(api, blogHandler, announcementHandler, friendLinkHandler, friendLinkCategoryHandler)
+		setupBlogRoutes(api, blogHandler, announcementHandler, friendLinkHandler, friendLinkCategoryHandler, albumHandler)
 		setupCalendarRoutes(api, calendarHandler)
 		setupPostRoutes(api, postHandler)
 		setupCategoryRoutes(api, categoryHandler)
@@ -70,7 +71,7 @@ func SetupRouter() *gin.Engine {
 		setupSettingRoutes(api, settingHandler)
 		setupMomentRoutes(api, momentHandler)
 		setupChatRoutes(api, chatHandler)
-		setupAdminRoutes(api, userHandler, postHandler, commentHandler, dashboardHandler, momentHandler, ipBlacklistHandler, ipWhitelistHandler, chatHandler, friendLinkHandler, friendLinkCategoryHandler, settingHandler)
+		setupAdminRoutes(api, userHandler, postHandler, commentHandler, dashboardHandler, momentHandler, ipBlacklistHandler, ipWhitelistHandler, chatHandler, friendLinkHandler, friendLinkCategoryHandler, settingHandler, albumHandler)
 	}
 
 	return r
@@ -110,7 +111,7 @@ func setupCaptchaRoutes(api *gin.RouterGroup, h *handler.CaptchaHandler) {
 }
 
 // setupBlogRoutes 博客路由（公开接口）
-func setupBlogRoutes(api *gin.RouterGroup, h *handler.BlogHandler, a *handler.AnnouncementHandler, fl *handler.FriendLinkHandler, flc *handler.FriendLinkCategoryHandler) {
+func setupBlogRoutes(api *gin.RouterGroup, h *handler.BlogHandler, a *handler.AnnouncementHandler, fl *handler.FriendLinkHandler, flc *handler.FriendLinkCategoryHandler, al *handler.AlbumHandler) {
 	blog := api.Group("/blog")
 	{
 		// 获取博主资料和统计数据
@@ -126,6 +127,8 @@ func setupBlogRoutes(api *gin.RouterGroup, h *handler.BlogHandler, a *handler.An
 		// 友链（公开接口）
 		blog.GET("/friend-links", fl.ListPublic)
 		blog.GET("/friend-link-categories", flc.List) // 公开获取分类列表
+		// 相册（公开接口）
+		blog.GET("/albums", al.ListPublic)
 	}
 }
 
@@ -291,7 +294,7 @@ func setupChatRoutes(api *gin.RouterGroup, h *handler.ChatHandler) {
 }
 
 // setupAdminRoutes 管理后台路由
-func setupAdminRoutes(api *gin.RouterGroup, userHandler *handler.UserHandler, postHandler *handler.PostHandler, commentHandler *handler.CommentHandler, dashboardHandler *handler.DashboardHandler, momentHandler *handler.MomentHandler, ipBlacklistHandler *handler.IPBlacklistHandler, ipWhitelistHandler *handler.IPWhitelistHandler, chatHandler *handler.ChatHandler, friendLinkHandler *handler.FriendLinkHandler, friendLinkCategoryHandler *handler.FriendLinkCategoryHandler, settingHandler *handler.SettingHandler) {
+func setupAdminRoutes(api *gin.RouterGroup, userHandler *handler.UserHandler, postHandler *handler.PostHandler, commentHandler *handler.CommentHandler, dashboardHandler *handler.DashboardHandler, momentHandler *handler.MomentHandler, ipBlacklistHandler *handler.IPBlacklistHandler, ipWhitelistHandler *handler.IPWhitelistHandler, chatHandler *handler.ChatHandler, friendLinkHandler *handler.FriendLinkHandler, friendLinkCategoryHandler *handler.FriendLinkCategoryHandler, settingHandler *handler.SettingHandler, albumHandler *handler.AlbumHandler) {
 	admin := api.Group("/admin")
 	admin.Use(middleware.AuthMiddleware(), middleware.AdminMiddleware())
 	{
@@ -358,5 +361,12 @@ func setupAdminRoutes(api *gin.RouterGroup, userHandler *handler.UserHandler, po
 		// 关于我信息管理
 		admin.GET("/about", settingHandler.GetAboutInfo)
 		admin.PUT("/about", settingHandler.UpdateAboutInfo)
+
+		// 相册管理
+		admin.GET("/albums", albumHandler.List)
+		admin.GET("/albums/:id", albumHandler.GetByID)
+		admin.POST("/albums", albumHandler.Create)
+		admin.PUT("/albums/:id", albumHandler.Update)
+		admin.DELETE("/albums/:id", albumHandler.Delete)
 	}
 }
