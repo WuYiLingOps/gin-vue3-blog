@@ -49,3 +49,32 @@ export function getAnnouncements(limit = 3) {
 export function getAnnouncementDetail(id: number) {
   return request.get<Announcement>(`/blog/announcements/${id}`)
 }
+
+// 分类统计数据
+export interface CategoryStat {
+  name: string
+  value: number
+  color: string
+}
+
+// 标签统计数据
+export interface TagStat {
+  name: string
+  value: number
+}
+
+// 归档数据（按月）
+export interface ArchiveStat {
+  month: string  // 格式：YYYY-MM-DD HH:mm:ss
+  count: number
+}
+
+// 获取分类统计（公开接口）
+export function getPublicCategoryStats() {
+  return request.get<CategoryStat[]>('/blog/category-stats')
+}
+
+// 获取标签统计（TOP10，公开接口）
+export function getPublicTagStats() {
+  return request.get<TagStat[]>('/blog/tag-stats')
+}
