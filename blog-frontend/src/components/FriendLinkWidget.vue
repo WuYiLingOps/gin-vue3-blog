@@ -19,7 +19,7 @@
               height="32"
               object-fit="cover"
               :preview-disabled="true"
-              fallback-src="/logo.svg"
+              fallback-src="/logo.jpg"
             />
             <div v-else class="icon-placeholder">
               <n-icon :component="LinkOutline" size="20" />
