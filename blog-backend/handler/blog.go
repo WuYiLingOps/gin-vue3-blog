@@ -3,15 +3,20 @@ package handler
 import (
 	"blog-backend/db"
 	"blog-backend/model"
+	"blog-backend/service"
 	"blog-backend/util"
 
 	"github.com/gin-gonic/gin"
 )
 
-type BlogHandler struct{}
+type BlogHandler struct {
+	settingService *service.SettingService
+}
 
 func NewBlogHandler() *BlogHandler {
-	return &BlogHandler{}
+	return &BlogHandler{
+		settingService: service.NewSettingService(),
+	}
 }
 
 // AuthorInfo 博主信息
@@ -80,4 +85,86 @@ func (h *BlogHandler) GetAuthorProfile(c *gin.Context) {
 	}
 
 	util.Success(c, response)
+}
+
+// CategoryStat 分类统计数据
+type CategoryStat struct {
+	Name  string `json:"name"`
+	Value int    `json:"value"`
+	Color string `json:"color"`
+}
+
+// TagStat 标签统计数据
+type TagStat struct {
+	Name  string `json:"name"`
+	Value int    `json:"value"`
+}
+
+// GetCategoryStats 获取分类统计（公开接口）
+func (h *BlogHandler) GetCategoryStats(c *gin.Context) {
+	var stats []CategoryStat
+	
+	// 获取所有分类
+	var categories []model.Category
+	if err := db.DB.Find(&categories).Error; err != nil {
+		util.ServerError(c, "获取分类失败")
+		return
+	}
+
+	// 统计每个分类的已发布文章数
+	for _, category := range categories {
+		var count int64
+		if err := db.DB.Model(&model.Post{}).
+			Where("category_id = ? AND status = ?", category.ID, 1).
+			Count(&count).Error; err == nil && count > 0 {
+			stats = append(stats, CategoryStat{
+				Name:  category.Name,
+				Value: int(count),
+				Color: category.Color,
+			})
+		}
+	}
+
+	util.Success(c, stats)
+}
+
+// GetAboutInfo 获取关于我信息（公开接口）
+func (h *BlogHandler) GetAboutInfo(c *gin.Context) {
+	content, err := h.settingService.GetAboutInfo()
+	if err != nil {
+		util.ServerError(c, "获取关于我信息失败")
+		return
+	}
+
+	util.Success(c, map[string]string{
+		"content": content,
+	})
+}
+
+// GetTagStats 获取标签统计（TOP10，公开接口）
+func (h *BlogHandler) GetTagStats(c *gin.Context) {
+	var stats []TagStat
+	
+	// 获取所有标签，按文章数排序
+	var tags []model.Tag
+	if err := db.DB.Order("post_count DESC").Limit(10).Find(&tags).Error; err != nil {
+		util.ServerError(c, "获取标签失败")
+		return
+	}
+
+	// 实时计算每个标签的已发布文章数
+	for _, tag := range tags {
+		var count int64
+		if err := db.DB.Model(&model.Post{}).
+			Joins("JOIN post_tags ON posts.id = post_tags.post_id").
+			Where("post_tags.tag_id = ? AND posts.status = ?", tag.ID, 1).
+			Count(&count).Error; err == nil && count > 0 {
+			stats = append(stats, TagStat{
+				Name:  tag.Name,
+				Value: int(count),
+			})
+		}
+	}
+
+	util.Success(c, stats)
 }
