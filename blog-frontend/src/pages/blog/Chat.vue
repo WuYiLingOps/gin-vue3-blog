@@ -595,6 +595,7 @@ onUnmounted(() => {
   height: 100%;
   display: flex;
   flex-direction: column;
+  background-color: #ffffff;
 }
 
 .chat-container :deep(.n-card__content) {
@@ -742,6 +743,84 @@ onUnmounted(() => {
 .emoji-item:hover {
   background-color: #f5f5f5;
   transform: scale(1.2);
+}
+
+/* ==== 暗色模式适配 ==== */
+html.dark .chat-page {
+  color: #e5e7eb;
+}
+
+html.dark .chat-container {
+  background-color: #0f172a;
+  border-color: #1f2937;
+}
+
+html.dark .chat-container :deep(.n-card__content) {
+  background-color: transparent;
+}
+
+html.dark .chat-messages {
+  background: #0b1220;
+  border: 1px solid #1f2937;
+}
+
+html.dark .message-username {
+  color: #e2e8f0;
+}
+
+html.dark .message-time {
+  color: #94a3b8;
+}
+
+html.dark .message-text {
+  background: #1f2937;
+  color: #e5e7eb;
+  box-shadow: none;
+  border: 1px solid #243447;
+}
+
+html.dark .message-item.own-message .message-text {
+  background: #0ea5e9;
+  color: #f8fafc;
+  border-color: #0ea5e9;
+}
+
+html.dark .chat-input {
+  background: #0b1220;
+  border-color: #1f2937;
+}
+
+html.dark .emoji-btn {
+  color: #cbd5e1;
+}
+
+html.dark .emoji-btn:hover {
+  color: #38bdf8;
+}
+
+html.dark .emoji-item:hover {
+  background-color: #1f2937;
+}
+
+html.dark .chat-messages::-webkit-scrollbar-track {
+  background: #111827;
+}
+
+html.dark .chat-messages::-webkit-scrollbar-thumb {
+  background: #374151;
+}
+
+html.dark .chat-messages::-webkit-scrollbar-thumb:hover {
+  background: #4b5563;
+}
+
+html.dark .input-wrapper :deep(.n-input__textarea-el) {
+  color: #e5e7eb;
+  background: #0f172a;
+}
+
+html.dark .input-wrapper :deep(.n-input__textarea-el::placeholder) {
+  color: #94a3b8;
 }
 
 @keyframes fadeIn {
