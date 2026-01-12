@@ -2,6 +2,24 @@
   <div class="user-manage-page">
     <h1 class="page-title">用户管理</h1>
 
+    <!-- 注册开关 -->
+    <n-card class="register-settings-card" style="margin-bottom: 16px">
+      <n-space align="center" justify="space-between">
+        <div>
+          <n-text strong>限制用户注册</n-text>
+          <n-text depth="3" style="margin-left: 8px; font-size: 13px">
+            开启后将禁止新用户注册
+          </n-text>
+        </div>
+        <n-switch
+          v-model:value="registerDisabled"
+          :loading="settingLoading"
+          :disabled="settingLoading"
+          @update:value="handleToggleRegister"
+        />
+      </n-space>
+    </n-card>
+
     <!-- 内容区域 -->
     <div class="content-area">
       <n-data-table
@@ -29,9 +47,9 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, h } from 'vue'
-import { useMessage, useDialog, NButton, NTag, NSpace, NAvatar } from 'naive-ui'
+import { useMessage, useDialog, NButton, NTag, NSpace, NAvatar, NCard, NText, NSwitch } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
-import { getUsers, updateUserStatus, deleteUser } from '@/api/user'
+import { getUsers, updateUserStatus, deleteUser, getRegisterSettings, updateRegisterSettings } from '@/api/user'
 import { formatDate } from '@/utils/format'
 import type { User } from '@/types/auth'
 
@@ -44,6 +62,8 @@ const total = ref(0)
 const currentPage = ref(1)
 const pageSize = 15 // 固定每页显示15个用户
 const isMobile = ref(false)
+const registerDisabled = ref(false)
+const settingLoading = ref(false)
 
 // 检测移动设备
 function checkMobile() {
@@ -132,6 +152,10 @@ onMounted(() => {
   checkMobile()
   window.addEventListener('resize', checkMobile)
   fetchUsers()
+  // 异步获取注册配置，不阻塞页面渲染
+  fetchRegisterSettings().catch(() => {
+    // 静默处理错误
+  })
 })
 
 onUnmounted(() => {
@@ -207,6 +231,43 @@ function handleDelete(user: User) {
       }
     }
   })
+}
+
+async function fetchRegisterSettings() {
+  try {
+    settingLoading.value = true
+    const res = await getRegisterSettings()
+    // 安全地获取配置值
+    if (res?.data?.disable_register !== undefined) {
+      const value = String(res.data.disable_register)
+      registerDisabled.value = value === '1' || value === 'true'
+    } else {
+      // 如果数据格式不对，使用默认值
+      registerDisabled.value = false
+    }
+  } catch (error: any) {
+    // 静默处理错误，不影响页面正常显示
+    // 如果配置不存在或获取失败，使用默认值（允许注册）
+    console.warn('获取注册配置失败，使用默认值（允许注册）:', error?.message || error)
+    registerDisabled.value = false
+  } finally {
+    settingLoading.value = false
+  }
+}
+
+async function handleToggleRegister(value: boolean) {
+  const oldValue = !value // 保存旧值
+  try {
+    settingLoading.value = true
+    await updateRegisterSettings({ disable_register: value ? '1' : '0' })
+    message.success(value ? '已关闭用户注册' : '已开启用户注册')
+  } catch (error: any) {
+    // 恢复原值
+    registerDisabled.value = oldValue
+    message.error(error.message || '更新配置失败')
+  } finally {
+    settingLoading.value = false
+  }
 }
 </script>
 
