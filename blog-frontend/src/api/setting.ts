@@ -82,3 +82,16 @@ export function updateNotificationSettings(data: Record<string, string>) {
   return request.put('/settings/notification', data)
 }
 
+// 关于我信息
+export function getAboutInfo() {
+  return request.get<{ content: string }>('/admin/about')
+}
+
+export function updateAboutInfo(content: string) {
+  return request.put('/admin/about', { content })
+}
+
+// 公开接口：获取关于我信息
+export function getPublicAboutInfo() {
+  return request.get<{ content: string }>('/blog/about')
+}
