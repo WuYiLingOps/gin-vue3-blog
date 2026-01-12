@@ -108,10 +108,11 @@
 
         <!-- 评论区 -->
         <div class="comments-section">
-          <h3>评论 ({{ comments.length }})</h3>
+          <n-card class="comments-card">
+            <h2 class="section-title">评论区 ({{ comments.length }})</h2>
 
-          <!-- 评论表单 -->
-          <n-card v-if="authStore.isLoggedIn" class="comment-form">
+            <!-- 评论表单 -->
+            <n-card v-if="authStore.isLoggedIn" class="comment-form">
             <!-- 回复提示 -->
             <n-alert
               v-if="replyToComment"
@@ -139,9 +140,12 @@
             请 <n-button text type="primary" @click="router.push('/auth/login')">登录</n-button> 后发表评论
           </n-alert>
 
-          <!-- 评论列表 -->
-          <div class="comments-list">
-            <div v-for="comment in comments" :key="comment.id" class="comment-item">
+            <!-- 评论列表 -->
+            <div class="comments-list">
+              <div v-if="comments.length === 0" class="empty-comments">
+                <n-empty description="暂无评论，快来抢沙发吧~" size="small" />
+              </div>
+              <div v-for="comment in comments" :key="comment.id" class="comment-item">
               <n-space align="start">
                 <n-avatar :src="comment.user.avatar" round />
                 <div class="comment-content">
@@ -151,7 +155,14 @@
                   </div>
                   <CommentContent :content="comment.content" />
                   <div class="comment-actions">
-                    <n-button text size="small" @click="handleReply(comment)">回复</n-button>
+                    <n-button
+                      v-if="authStore.isLoggedIn"
+                      text
+                      size="small"
+                      @click="handleReply(comment)"
+                    >
+                      回复
+                    </n-button>
                     <n-button 
                       v-if="comment.children && comment.children.length > 0"
                       text 
@@ -190,7 +201,14 @@
                           </div>
                           <CommentContent :content="removeAtMention(reply.content)" />
                           <div class="comment-actions">
-                            <n-button text size="small" @click="handleReply(comment, reply)">回复</n-button>
+                            <n-button
+                              v-if="authStore.isLoggedIn"
+                              text
+                              size="small"
+                              @click="handleReply(comment, reply)"
+                            >
+                              回复
+                            </n-button>
                             <n-popconfirm
                               v-if="canDeleteComment(reply)"
                               @positive-click="handleDeleteComment(reply.id)"
@@ -209,10 +227,9 @@
               </n-space>
             </div>
           </div>
-
-          <n-empty v-if="comments.length === 0" description="暂无评论" />
+          </n-card>
         </div>
-      </n-card>
+        </n-card>
       </div>
     </n-spin>
 
@@ -650,7 +667,9 @@ function handleScroll() {
   width: 260px;
   position: fixed;
   right: max(24px, calc((100vw - 1400px) / 2 + 24px));
-  top: 104px;
+  /* 固定位置，与文章内容区域对齐 */
+  /* header 高度 104px + 文章头部区域（标题、元信息、标签、温馨提示等）约 250px */
+  top: 31px;
   height: 500px;
   max-height: calc(100vh - 124px);
   overflow-y: auto;
@@ -980,39 +999,60 @@ html.dark .post-content {
   margin-top: 32px;
 }
 
-.comments-section h3 {
-  margin-bottom: 16px;
-  font-weight: 700;
-  color: #1a202c;
+.comments-card {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  border: 1px solid rgba(8, 145, 178, 0.1);
 }
 
-html.dark .comments-section h3 {
-  color: #e5e5e5;
+html.dark .comments-card {
+  background: rgba(30, 41, 59, 0.8);
+  border-color: rgba(56, 189, 248, 0.1);
+}
+
+.comments-card .section-title {
+  margin-bottom: 24px;
 }
 
 .comment-form {
   margin-bottom: 24px;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+html.dark .comment-form {
+  background: rgba(30, 41, 59, 0.5);
+}
+
+.empty-comments {
+  padding: 40px 20px;
+  text-align: center;
 }
 
 .comments-list {
-  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .comment-item {
-  padding: 16px 0;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 8px;
+  border: 1px solid rgba(8, 145, 178, 0.1);
 }
 
 html.dark .comment-item {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.comment-item:last-child {
-  border-bottom: none;
+  background: rgba(30, 41, 59, 0.5);
+  border-color: rgba(56, 189, 248, 0.1);
 }
 
 .comment-content {
   flex: 1;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: visible;
+  box-sizing: border-box;
 }
 
 .comment-header {
@@ -1022,79 +1062,135 @@ html.dark .comment-item {
   margin-bottom: 8px;
 }
 
+.comment-header strong {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1a202c;
+}
+
+html.dark .comment-header strong {
+  color: #e5e5e5;
+}
+
 .comment-time {
-  color: #999;
   font-size: 12px;
+  color: #94a3b8;
 }
 
 .comment-content p {
   margin: 8px 0;
+  font-size: 14px;
   line-height: 1.6;
+  color: #64748b;
+  word-break: break-word;
 }
 
-.comment-actions {
-  margin-top: 8px;
-  display: flex;
-  gap: 16px;
+html.dark .comment-content p {
+  color: #94a3b8;
 }
 
 .reply-list {
-  margin-top: 12px;
+  margin-top: 16px;
   padding-left: 16px;
-  margin-left: 48px;
-  border-left: 3px solid rgba(16, 185, 129, 0.15);
-  background: rgba(16, 185, 129, 0.02);
-  border-radius: 0 8px 8px 0;
-  padding-top: 8px;
-  padding-bottom: 4px;
+  border-left: 2px solid rgba(8, 145, 178, 0.2);
 }
 
 html.dark .reply-list {
-  border-left-color: rgba(52, 211, 153, 0.2);
-  background: rgba(52, 211, 153, 0.03);
+  border-left-color: rgba(56, 189, 248, 0.2);
 }
 
 .reply-item {
-  padding: 8px 0;
-  position: relative;
+  padding: 12px;
+  margin-bottom: 12px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
 }
 
-.reply-item:not(:last-child) {
-  border-bottom: 1px solid rgba(148, 163, 184, 0.08);
-}
-
-html.dark .reply-item:not(:last-child) {
-  border-bottom-color: rgba(255, 255, 255, 0.05);
+html.dark .reply-item {
+  background: rgba(30, 41, 59, 0.3);
 }
 
 .reply-content {
   flex: 1;
+  min-width: 0;
 }
 
 .reply-header {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.reply-header strong {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a202c;
+}
+
+html.dark .reply-header strong {
+  color: #e5e5e5;
 }
 
 .reply-to {
-  color: #10b981;
   font-size: 12px;
-  font-weight: 400;
-  padding: 2px 6px;
-  background: rgba(16, 185, 129, 0.08);
-  border-radius: 4px;
+  color: #0891b2;
 }
 
 html.dark .reply-to {
-  color: #34d399;
-  background: rgba(52, 211, 153, 0.12);
+  color: #38bdf8;
 }
 
 .reply-content p {
-  margin: 4px 0;
+  margin: 6px 0;
+  font-size: 13px;
   line-height: 1.6;
+  color: #64748b;
+}
+
+html.dark .reply-content p {
+  color: #94a3b8;
+}
+
+/* 响应式优化 */
+@media (max-width: 768px) {
+  .comment-item {
+    padding: 12px;
+  }
+}
+
+/* 小屏幕移动端优化（小于420px） */
+@media (max-width: 420px) {
+  .comment-item {
+    padding: 10px 0;
+    margin: 0;
+    overflow-x: auto;
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  .comment-content {
+    padding: 0 8px;
+    overflow-x: auto;
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  .reply-item {
+    padding: 8px 0;
+    margin: 0;
+    overflow-x: auto;
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  .reply-content {
+    padding: 0 6px;
+    overflow-x: auto;
+    width: 100%;
+    max-width: 100%;
+  }
 }
 
 /* 目录样式 */
