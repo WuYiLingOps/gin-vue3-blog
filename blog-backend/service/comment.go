@@ -34,7 +34,7 @@ func NewCommentService() *CommentService {
 // CreateCommentRequest 创建评论请求
 type CreateCommentRequest struct {
 	Content     string `json:"content" binding:"required"`
-	CommentType string `json:"comment_type"` // 评论类型：post-文章评论，friendlink-友链评论，moment-说说评论
+	CommentType string `json:"comment_type"` // 评论类型：post-文章评论，friendlink-友链评论，about-关于我评论，moment-说说评论
 	PostID      *uint  `json:"post_id"`      // 文章ID（文章评论时使用）
 	TargetID    *uint  `json:"target_id"`    // 目标ID（友链评论时使用，可以为0或友链ID）
 	ParentID    *uint  `json:"parent_id"`    // 父评论ID（用于回复）
@@ -64,6 +64,12 @@ func (s *CommentService) Create(userID uint, req *CreateCommentRequest) (*model.
 		}
 	} else if commentType == "friendlink" {
 		// 友链评论：不需要post_id，使用target_id（可以为0表示友链页面）
+		if req.TargetID == nil {
+			targetID := uint(0)
+			req.TargetID = &targetID
+		}
+	} else if commentType == "about" {
+		// 关于我页面评论：不需要post_id，使用target_id（可以为0表示关于我页面）
 		if req.TargetID == nil {
 			targetID := uint(0)
 			req.TargetID = &targetID
