@@ -606,6 +606,31 @@ VALUES
 ('about_content', '', 'text', 'about', '关于我内容', NOW(), NOW())
 ON CONFLICT (key) DO NOTHING;
 
+-- =============================================================================
+-- 相册系统
+-- =============================================================================
+
+-- 创建相册表
+CREATE TABLE IF NOT EXISTS albums (
+    id SERIAL PRIMARY KEY,
+    image_url VARCHAR(500) NOT NULL,
+    title VARCHAR(200),
+    description VARCHAR(500),
+    sort_order INT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 相册表索引
+CREATE INDEX IF NOT EXISTS idx_albums_sort_order ON albums(sort_order DESC, id DESC);
+
+-- 相册表注释
+COMMENT ON TABLE albums IS '相册表';
+COMMENT ON COLUMN albums.image_url IS '图片URL';
+COMMENT ON COLUMN albums.title IS '图片标题';
+COMMENT ON COLUMN albums.description IS '图片描述';
+COMMENT ON COLUMN albums.sort_order IS '排序顺序（数字越大越靠前）';
+
 -- 注意：友链页面的评论功能已改为独立的评论系统，不再需要特殊文章
 -- 评论表已扩展支持 comment_type 和 target_id 字段，友链评论使用 comment_type='friendlink'
 
