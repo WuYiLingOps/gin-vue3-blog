@@ -217,7 +217,7 @@ import {
   getChatSettings,
   updateChatSettings
 } from '@/api/chat'
-import type { ChatMessage, OnlineUser, OnlineInfo, ChatSettings } from '@/api/chat'
+import type { ChatMessage, OnlineUser, OnlineInfo } from '@/api/chat'
 
 const message = useMessage()
 const dialog = useDialog()
