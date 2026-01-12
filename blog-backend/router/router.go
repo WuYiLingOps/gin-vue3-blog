@@ -281,6 +281,7 @@ func setupChatRoutes(api *gin.RouterGroup, h *handler.ChatHandler) {
 		// 公开接口
 		chat.GET("/messages", h.GetMessages)
 		chat.GET("/online", h.GetOnlineInfo)
+		chat.GET("/settings", h.GetChatSettings)
 	}
 }
 
@@ -331,6 +332,8 @@ func setupAdminRoutes(api *gin.RouterGroup, userHandler *handler.UserHandler, po
 		admin.POST("/chat/broadcast", chatHandler.BroadcastSystemMessage)
 		admin.POST("/chat/kick", chatHandler.KickUser) // 踢出用户
 		admin.POST("/chat/ban", chatHandler.BanIP)     // 封禁IP
+		admin.GET("/chat/settings", chatHandler.GetChatSettings)
+		admin.PUT("/chat/settings", chatHandler.UpdateChatSettings)
 
 		// 友链管理
 		// 友链管理
