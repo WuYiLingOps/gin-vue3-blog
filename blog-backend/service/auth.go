@@ -53,6 +53,11 @@ type LoginResponse struct {
 
 // Register 用户注册
 func (s *AuthService) Register(req *RegisterRequest, ip string) (*model.User, error) {
+	// 检查注册功能是否被禁用
+	if isRegisterDisabled, err := s.isRegisterDisabled(); err == nil && isRegisterDisabled {
+		return nil, errors.New("用户注册功能已关闭")
+	}
+
 	// 验证邮箱验证码
 	resetToken, err := s.resetTokenRepo.GetValidToken(req.Email, req.Code)
 	if err != nil {
@@ -424,6 +429,11 @@ type SendRegisterCodeRequest struct {
 
 // SendRegisterCode 发送注册验证码
 func (s *AuthService) SendRegisterCode(req *SendRegisterCodeRequest, ip string) error {
+	// 检查注册功能是否被禁用
+	if isRegisterDisabled, err := s.isRegisterDisabled(); err == nil && isRegisterDisabled {
+		return errors.New("用户注册功能已关闭")
+	}
+
 	// 验证邮箱格式
 	if !util.ValidateEmail(req.Email) {
 		return errors.New("邮箱格式不正确")
@@ -498,4 +508,15 @@ func (s *AuthService) getSiteName() string {
 	}
 
 	return ""
+}
+
+// isRegisterDisabled 检查注册功能是否被禁用
+func (s *AuthService) isRegisterDisabled() (bool, error) {
+	setting, err := s.settingRepo.GetByKey("disable_register")
+	if err != nil {
+		// 如果配置不存在，默认允许注册（返回false）
+		return false, nil
+	}
+	// "1" 表示禁用，"0" 或空表示允许
+	return setting.Value == "1", nil
 }
