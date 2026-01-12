@@ -195,3 +195,34 @@ func (h *SettingHandler) UpdateRegisterSettings(c *gin.Context) {
 
 	util.SuccessWithMessage(c, "更新成功", nil)
 }
+
+// GetAboutInfo 获取关于我信息（仅管理员）
+func (h *SettingHandler) GetAboutInfo(c *gin.Context) {
+	content, err := h.service.GetAboutInfo()
+	if err != nil {
+		util.Error(c, 500, "获取关于我信息失败")
+		return
+	}
+
+	util.Success(c, map[string]string{
+		"content": content,
+	})
+}
+
+// UpdateAboutInfo 更新关于我信息（仅管理员）
+func (h *SettingHandler) UpdateAboutInfo(c *gin.Context) {
+	var req struct {
+		Content string `json:"content" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		util.BadRequest(c, "参数错误")
+		return
+	}
+
+	if err := h.service.UpdateAboutInfo(req.Content); err != nil {
+		util.Error(c, 500, "更新关于我信息失败")
+		return
+	}
+
+	util.SuccessWithMessage(c, "更新成功", nil)
+}
