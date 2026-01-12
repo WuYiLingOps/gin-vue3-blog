@@ -70,7 +70,7 @@ func SetupRouter() *gin.Engine {
 		setupSettingRoutes(api, settingHandler)
 		setupMomentRoutes(api, momentHandler)
 		setupChatRoutes(api, chatHandler)
-		setupAdminRoutes(api, userHandler, postHandler, commentHandler, dashboardHandler, momentHandler, ipBlacklistHandler, ipWhitelistHandler, chatHandler, friendLinkHandler, friendLinkCategoryHandler)
+		setupAdminRoutes(api, userHandler, postHandler, commentHandler, dashboardHandler, momentHandler, ipBlacklistHandler, ipWhitelistHandler, chatHandler, friendLinkHandler, friendLinkCategoryHandler, settingHandler)
 	}
 
 	return r
@@ -115,6 +115,11 @@ func setupBlogRoutes(api *gin.RouterGroup, h *handler.BlogHandler, a *handler.An
 	{
 		// 获取博主资料和统计数据
 		blog.GET("/author", h.GetAuthorProfile)
+		// 关于我信息（公开）
+		blog.GET("/about", h.GetAboutInfo)
+		// 统计接口（公开）
+		blog.GET("/category-stats", h.GetCategoryStats)
+		blog.GET("/tag-stats", h.GetTagStats)
 		// 公告/系统广播
 		blog.GET("/announcements", a.GetAnnouncements)
 		blog.GET("/announcements/:id", a.GetAnnouncementDetail)
@@ -286,7 +291,7 @@ func setupChatRoutes(api *gin.RouterGroup, h *handler.ChatHandler) {
 }
 
 // setupAdminRoutes 管理后台路由
-func setupAdminRoutes(api *gin.RouterGroup, userHandler *handler.UserHandler, postHandler *handler.PostHandler, commentHandler *handler.CommentHandler, dashboardHandler *handler.DashboardHandler, momentHandler *handler.MomentHandler, ipBlacklistHandler *handler.IPBlacklistHandler, ipWhitelistHandler *handler.IPWhitelistHandler, chatHandler *handler.ChatHandler, friendLinkHandler *handler.FriendLinkHandler, friendLinkCategoryHandler *handler.FriendLinkCategoryHandler) {
+func setupAdminRoutes(api *gin.RouterGroup, userHandler *handler.UserHandler, postHandler *handler.PostHandler, commentHandler *handler.CommentHandler, dashboardHandler *handler.DashboardHandler, momentHandler *handler.MomentHandler, ipBlacklistHandler *handler.IPBlacklistHandler, ipWhitelistHandler *handler.IPWhitelistHandler, chatHandler *handler.ChatHandler, friendLinkHandler *handler.FriendLinkHandler, friendLinkCategoryHandler *handler.FriendLinkCategoryHandler, settingHandler *handler.SettingHandler) {
 	admin := api.Group("/admin")
 	admin.Use(middleware.AuthMiddleware(), middleware.AdminMiddleware())
 	{
@@ -349,5 +354,9 @@ func setupAdminRoutes(api *gin.RouterGroup, userHandler *handler.UserHandler, po
 		admin.POST("/friend-link-categories", friendLinkCategoryHandler.Create)
 		admin.PUT("/friend-link-categories/:id", friendLinkCategoryHandler.Update)
 		admin.DELETE("/friend-link-categories/:id", friendLinkCategoryHandler.Delete)
+
+		// 关于我信息管理
+		admin.GET("/about", settingHandler.GetAboutInfo)
+		admin.PUT("/about", settingHandler.UpdateAboutInfo)
 	}
 }
