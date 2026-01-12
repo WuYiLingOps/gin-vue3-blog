@@ -118,7 +118,8 @@
               <n-input
                 v-model:value="messageInput"
                 type="textarea"
-                placeholder="输入消息..."
+                :placeholder="isChatMutedForUser ? '已开启全员禁言，只有管理员可发言' : '输入消息...'"
+                :disabled="isChatMutedForUser"
                 :autosize="{ minRows: 2, maxRows: 4 }"
                 @keydown.enter.prevent="handleSendMessage"
               />
@@ -152,10 +153,11 @@
             <n-space justify="space-between">
               <n-text depth="3" style="font-size: 12px">
                 按 Enter 发送，Shift + Enter 换行
+                <span v-if="isChatMutedForUser" style="color: #f59e0b; margin-left: 8px;">已开启全员禁言</span>
               </n-text>
               <n-button
                 type="primary"
-                :disabled="!messageInput.trim() || !isConnected"
+                :disabled="!messageInput.trim() || !isConnected || isChatMutedForUser"
                 @click="handleSendMessage"
               >
                 发送
@@ -196,7 +198,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick, h } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick, h, computed } from 'vue'
 import {
   NCard,
   NSpace,
@@ -217,9 +219,9 @@ import {
 } from 'naive-ui'
 import { useAuthStore } from '@/stores/auth'
 import { createChatWebSocket, ChatWebSocket } from '@/utils/websocket'
-import type { ChatMessage, OnlineUser } from '@/api/chat'
-import { adminDeleteMessage, adminKickUser } from '@/api/chat'
+import { adminDeleteMessage, adminKickUser, type ChatMessage, type OnlineUser } from '@/api/chat'
 import { formatDistanceToNow } from '@/utils/format'
+import request from '@/utils/request'
 
 const authStore = useAuthStore()
 const message = useMessage()
@@ -234,6 +236,9 @@ const messages = ref<ChatMessage[]>([])
 const messageInput = ref('')
 const onlineCount = ref(0)
 const onlineUsers = ref<OnlineUser[]>([])
+type ChatSettingState = { chat_mute_all: string }
+const chatSettings = ref<ChatSettingState>({ chat_mute_all: '0' })
+const isChatMutedForUser = computed(() => chatSettings.value.chat_mute_all === '1' && !authStore.isAdmin)
 
 // 用户设置
 const showUserSetup = ref(false)
@@ -381,6 +386,16 @@ const scrollToBottom = () => {
   })
 }
 
+// 获取聊天室配置（用于禁言提示）
+const fetchChatSettingsData = async () => {
+  try {
+    const res = await request.get<ChatSettingState>('/chat/settings')
+    chatSettings.value = res.data || { chat_mute_all: '0' }
+  } catch (error) {
+    console.error('获取聊天室配置失败', error)
+  }
+}
+
 // 连接WebSocket
 const connectWebSocket = () => {
   const username = authStore.isLoggedIn 
@@ -447,14 +462,19 @@ const connectWebSocket = () => {
   })
 
   // 系统消息
-  ws.on('system', (data: ChatMessage) => {
+  ws.on('system', (data: any) => {
     // 如果仅投递到公告栏，则不在聊天室展示
-    if (data.is_broadcast && data.target === 'announcement') {
+    if (data?.is_broadcast && data?.target === 'announcement') {
       return
     }
-    messages.value.push(data)
-    scrollToBottom()
-    message.info('系统消息: ' + data.content)
+    const content = data?.content || data?.message
+    if (content) {
+      message.info('系统消息: ' + content)
+    }
+    if (data && data.content) {
+      messages.value.push(data as ChatMessage)
+      scrollToBottom()
+    }
   })
 
   // 被踢出
@@ -545,6 +565,11 @@ const handleSendMessage = () => {
     return
   }
 
+  if (isChatMutedForUser.value) {
+    message.warning('当前已开启全员禁言，只有管理员可发言')
+    return
+  }
+
   if (!isConnected.value) {
     message.error('未连接到聊天室')
     return
@@ -566,6 +591,7 @@ const confirmUserSetup = () => {
 
 // 初始化
 onMounted(() => {
+  fetchChatSettingsData()
   // 如果已登录，直接连接
   if (authStore.isLoggedIn) {
     connectWebSocket()
