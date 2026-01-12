@@ -116,7 +116,8 @@ import {
   MenuOutline,
   ChatbubbleEllipsesOutline,
   ShieldCheckmarkOutline,
-  LinkOutline
+  LinkOutline,
+  ImagesOutline
 } from '@vicons/ionicons5'
 import { useAuthStore } from '@/stores'
 import { NIcon, useLoadingBar } from 'naive-ui'
@@ -245,6 +246,11 @@ const menuOptions = [
     label: '关于我管理',
     key: 'AboutManage',
     icon: renderIcon(PersonOutline)
+  },
+  {
+    label: '我的相册',
+    key: 'AlbumManage',
+    icon: renderIcon(ImagesOutline)
   }
 ]
 
