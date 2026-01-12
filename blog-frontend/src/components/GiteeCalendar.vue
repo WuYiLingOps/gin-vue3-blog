@@ -452,11 +452,25 @@ watch(
   color: #64748b;
 }
 
+/* 夜间模式标题优化 */
+html.dark .title {
+  color: #e5e7eb;
+}
+
+html.dark .subtitle {
+  color: #9ca3af;
+}
+
 .calendar-loading {
   padding: 24px;
   text-align: center;
   font-size: 14px;
   color: #64748b;
+}
+
+/* 夜间模式加载文字 */
+html.dark .calendar-loading {
+  color: #9ca3af;
 }
 
 .calendar-error {
@@ -474,6 +488,11 @@ watch(
   text-align: center;
   font-size: 13px;
   color: #9ca3af;
+}
+
+/* 夜间模式空数据文字 */
+html.dark .calendar-empty {
+  color: #6b7280;
 }
 
 /* --- 核心布局，参考 go-code-calendar-api/web/index.html --- */
@@ -510,6 +529,11 @@ watch(
   line-height: 12px;
 }
 
+/* 夜间模式星期标签 */
+html.dark .weekdays-col {
+  color: #9ca3af;
+}
+
 /* 右侧：包含月份和网格的内容区 */
 .graph-content-col {
   display: flex;
@@ -526,6 +550,11 @@ watch(
   font-size: 12px;
   color: #6e7781;
   box-sizing: border-box;
+}
+
+/* 夜间模式月份标签 */
+html.dark .months-row {
+  color: #9ca3af;
 }
 
 .month-label {
@@ -636,6 +665,11 @@ watch(
   color: #57606a;
 }
 
+/* 夜间模式数据来源 */
+html.dark .source {
+  color: #9ca3af;
+}
+
 .source a {
   color: #0969da;
   text-decoration: none;
@@ -650,6 +684,11 @@ watch(
   align-items: center;
   gap: 4px;
   font-size: 12px;
+}
+
+/* 夜间模式图例文字 */
+html.dark .legend {
+  color: #9ca3af;
 }
 
 .legend-box {
@@ -680,6 +719,11 @@ watch(
   border-top: 1px dashed #e1e4e8;
 }
 
+/* 夜间模式分割线 */
+html.dark .divider {
+  border-top-color: #374151;
+}
+
 /* 底部统计数据 */
 .stats {
   display: flex;
@@ -707,6 +751,20 @@ watch(
   color: #9ca3af;
   display: block;
   margin-top: 4px;
+}
+
+/* 夜间模式优化 */
+html.dark .stat-item h3 {
+  color: #e5e7eb;
+  font-weight: 500;
+}
+
+html.dark .stat-item p {
+  color: #d1d5db;
+}
+
+html.dark .stat-item .range {
+  color: #9ca3af;
 }
 
 .hidden-label {
