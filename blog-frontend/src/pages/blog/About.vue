@@ -60,26 +60,6 @@
                 </div>
               </div>
             </n-card>
-
-            <!-- 技能展示 -->
-            <n-card v-if="skills.length > 0" class="skills-card" title="我的技能" :bordered="false">
-              <div class="skills-grid">
-                <div v-for="skill in skills" :key="skill.name" class="skill-item">
-                  <div class="skill-header">
-                    <span class="skill-name">{{ skill.name }}</span>
-                    <span class="skill-percent">{{ skill.percent }}%</span>
-                  </div>
-                  <n-progress
-                    :percentage="skill.percent"
-                    :show-indicator="false"
-                    :height="8"
-                    :border-radius="4"
-                    :fill-border-radius="4"
-                    status="success"
-                  />
-                </div>
-              </div>
-            </n-card>
           </n-space>
         </n-spin>
       </div>
@@ -120,39 +100,6 @@ const tagStats = ref<TagStat[]>([])
 
 // 个人介绍详情（从API获取，Markdown格式）
 const personalIntroMarkdown = ref<string>('')
-
-// 技能列表（可以根据需要修改）
-interface Skill {
-  name: string
-  percent: number
-}
-
-const skills = ref<Skill[]>([
-  { name: 'C语言', percent: 90 },
-  { name: 'Linux System Program', percent: 88 },
-  { name: 'Linux Device Driver', percent: 90 },
-  { name: 'BSP(board support package)', percent: 85 },
-  { name: 'Uboot', percent: 80 },
-  { name: 'Shell', percent: 65 },
-  { name: 'Linux Kernel', percent: 60 },
-  { name: 'C++', percent: 35 },
-  { name: 'QT', percent: 40 },
-  { name: 'MFC', percent: 35 },
-  { name: 'Java', percent: 25 },
-  { name: 'PCB设计', percent: 28 },
-  { name: 'Android', percent: 25 },
-  { name: 'Python', percent: 18 },
-  { name: 'Go', percent: 18 },
-  { name: 'DeepLearning', percent: 15 },
-  { name: '3A(AWB/AE/AF)', percent: 60 },
-  { name: 'Docker', percent: 80 },
-  { name: 'Nginx', percent: 65 },
-  { name: 'Mysql', percent: 48 },
-  { name: 'HTML', percent: 75 },
-  { name: 'CSS', percent: 43 },
-  { name: 'JS', percent: 35 },
-  { name: '程序设计', percent: 85 }
-])
 
 
 // 获取博主信息
@@ -1054,22 +1001,6 @@ html.dark .intro-detail-content.markdown-body :deep(a) {
   color: #38bdf8;
 }
 
-/* 技能卡片 */
-.skills-card {
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
-  border-radius: 16px;
-  margin-bottom: 24px;
-}
-
-html.dark .skills-card {
-  background: rgba(30, 41, 59, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-}
-
 /* 文章统计图卡片 */
 .stats-chart-card {
   background: rgba(255, 255, 255, 0.9);
@@ -1205,59 +1136,6 @@ html.dark .chart-title {
   }
 }
 
-/* 技能卡片 */
-.skills-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 20px;
-}
-
-.skill-item {
-  padding: 16px;
-  background: rgba(8, 145, 178, 0.05);
-  border-radius: 12px;
-  transition: all 0.3s;
-}
-
-.skill-item:hover {
-  background: rgba(8, 145, 178, 0.1);
-  transform: translateY(-2px);
-}
-
-html.dark .skill-item {
-  background: rgba(56, 189, 248, 0.1);
-}
-
-html.dark .skill-item:hover {
-  background: rgba(56, 189, 248, 0.15);
-}
-
-.skill-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.skill-name {
-  font-size: 14px;
-  font-weight: 600;
-  color: #1a202c;
-}
-
-html.dark .skill-name {
-  color: #e5e5e5;
-}
-
-.skill-percent {
-  font-size: 14px;
-  font-weight: 600;
-  color: #0891b2;
-}
-
-html.dark .skill-percent {
-  color: #38bdf8;
-}
 
 
 
@@ -1274,10 +1152,6 @@ html.dark .skill-percent {
 
   .profile-info {
     align-items: center;
-  }
-
-  .skills-grid {
-    grid-template-columns: 1fr;
   }
 
   .author-name {
