@@ -302,3 +302,18 @@ type FriendLink struct {
 func (FriendLink) TableName() string {
 	return "friend_links"
 }
+
+// Album 相册模型
+type Album struct {
+	ID          uint      `json:"id" gorm:"primaryKey"`
+	ImageURL    string    `json:"image_url" gorm:"not null;size:500"`
+	Title       string    `json:"title" gorm:"size:200"`
+	Description string    `json:"description" gorm:"size:500"`
+	SortOrder   int       `json:"sort_order" gorm:"default:0;index"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+}
+
+func (Album) TableName() string {
+	return "albums"
+}
