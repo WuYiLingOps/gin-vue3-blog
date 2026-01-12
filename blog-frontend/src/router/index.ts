@@ -18,6 +18,7 @@ const Archive = () => import('@/pages/blog/Archive.vue')
 const FriendLinks = () => import('@/pages/blog/FriendLinks.vue')
 const Moments = () => import('@/pages/blog/Moments.vue')
 const Chat = () => import('@/pages/blog/Chat.vue')
+const About = () => import('@/pages/blog/About.vue')
 
 // 认证页面
 const Login = () => import('@/pages/auth/Login.vue')
@@ -39,6 +40,7 @@ const ChatManage = () => import('@/pages/admin/ChatManage.vue')
 const IPAccessControl = () => import('@/pages/admin/IPAccessControl.vue')
 const FriendLinkManage = () => import('@/pages/admin/FriendLinkManage.vue')
 const FriendLinkCategoryManage = () => import('@/pages/admin/FriendLinkCategoryManage.vue')
+const AboutManage = () => import('@/pages/admin/AboutManage.vue')
 
 const routes: RouteRecordRaw[] = [
   // 博客前台路由
@@ -105,6 +107,12 @@ const routes: RouteRecordRaw[] = [
         name: 'Chat',
         component: Chat,
         meta: { title: '聊天室' }
+      },
+      {
+        path: 'about',
+        name: 'About',
+        component: About,
+        meta: { title: '关于我' }
       }
     ]
   },
@@ -237,6 +245,12 @@ const routes: RouteRecordRaw[] = [
         name: 'FriendLinkCategoryManage',
         component: FriendLinkCategoryManage,
         meta: { title: '友链分类管理', requiresAuth: true, requiresAdmin: true }
+      },
+      {
+        path: 'about',
+        name: 'AboutManage',
+        component: AboutManage,
+        meta: { title: '关于我管理', requiresAuth: true, requiresAdmin: true }
       }
     ]
   },
