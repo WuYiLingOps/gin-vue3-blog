@@ -24,3 +24,12 @@ export function deleteUser(id: number) {
   return request.delete(`/admin/users/${id}`)
 }
 
+// 获取注册配置
+export function getRegisterSettings() {
+  return request.get<{ disable_register: string }>('/admin/settings/register')
+}
+
+// 更新注册配置
+export function updateRegisterSettings(data: { disable_register: string }) {
+  return request.put('/admin/settings/register', data)
+}
