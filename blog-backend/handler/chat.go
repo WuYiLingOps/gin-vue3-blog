@@ -2,6 +2,7 @@ package handler
 
 import (
 	"blog-backend/model"
+	"blog-backend/repository"
 	"blog-backend/service"
 	"blog-backend/util"
 	"encoding/json"
@@ -26,15 +27,20 @@ var upgrader = websocket.Upgrader{
 
 // ChatHandler 聊天处理器
 type ChatHandler struct {
-	service *service.ChatService
-	hub     *service.Hub
+	service  *service.ChatService
+	hub      *service.Hub
+	settings *repository.SettingRepository
 }
 
 // NewChatHandler 创建聊天处理器
 func NewChatHandler(hub *service.Hub) *ChatHandler {
+	settingRepo := repository.NewSettingRepository()
+	// 让 Hub 与 Handler 共享同一 SettingRepository
+	hub.SettingRepo = settingRepo
 	return &ChatHandler{
-		service: service.NewChatService(hub),
-		hub:     hub,
+		service:  service.NewChatService(hub),
+		hub:      hub,
+		settings: settingRepo,
 	}
 }
 
@@ -54,6 +60,7 @@ func (h *ChatHandler) HandleWebSocket(c *gin.Context) {
 	var userID *uint
 	var username string
 	var avatar string
+	role := "guest"
 
 	// 尝试从JWT获取用户信息（注意：键名是 user_id 不是 userID）
 	if userIDInterface, exists := c.Get("user_id"); exists {
@@ -64,6 +71,12 @@ func (h *ChatHandler) HandleWebSocket(c *gin.Context) {
 			if usernameInterface, exists := c.Get("username"); exists {
 				if uname, ok := usernameInterface.(string); ok {
 					username = uname
+				}
+			}
+			// 角色
+			if roleInterface, exists := c.Get("role"); exists {
+				if r, ok := roleInterface.(string); ok {
+					role = r
 				}
 			}
 
@@ -105,6 +118,7 @@ func (h *ChatHandler) HandleWebSocket(c *gin.Context) {
 		Username: username,
 		Avatar:   avatar,
 		IP:       ip,
+		Role:     role,
 	}
 
 	// 注册客户端
@@ -163,6 +177,42 @@ func (h *ChatHandler) GetOnlineInfo(c *gin.Context) {
 		"online_count": h.service.GetOnlineCount(),
 		"online_users": h.service.GetOnlineUsers(),
 	})
+}
+
+// GetChatSettings 获取聊天室配置（公开，便于前端展示禁言状态）
+func (h *ChatHandler) GetChatSettings(c *gin.Context) {
+	setting, err := h.settings.GetByKey("chat_mute_all")
+	if err != nil || setting == nil {
+		util.Success(c, gin.H{"chat_mute_all": "0"})
+		return
+	}
+	util.Success(c, gin.H{"chat_mute_all": setting.Value})
+}
+
+// UpdateChatSettings 更新聊天室配置（仅管理员）
+func (h *ChatHandler) UpdateChatSettings(c *gin.Context) {
+	var req struct {
+		ChatMuteAll string `json:"chat_mute_all" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		util.BadRequest(c, "参数错误")
+		return
+	}
+	if req.ChatMuteAll != "0" && req.ChatMuteAll != "1" {
+		util.BadRequest(c, "chat_mute_all 只能是 0 或 1")
+		return
+	}
+	if err := h.settings.BatchUpsert([]model.Setting{
+		{
+			Group: "site",
+			Key:   "chat_mute_all",
+			Value: req.ChatMuteAll,
+		},
+	}); err != nil {
+		util.Error(c, 500, "更新失败")
+		return
+	}
+	util.SuccessWithMessage(c, "更新成功", nil)
 }
 
 // GetStats 获取聊天室统计信息
