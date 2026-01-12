@@ -1,9 +1,9 @@
 <template>
   <div class="default-layout">
     <CanvasBackground />
-    <n-layout position="absolute">
+<n-layout position="absolute">
       <!-- 头部 -->
-      <n-layout-header class="header" position="absolute">
+      <n-layout-header class="header" :class="{ 'header-hidden': headerHidden }" position="absolute">
         <div class="header-content">
           <div class="logo" @click="router.push('/')">
             <h2>{{ siteSettings.site_name || defaultSiteName }}</h2>
@@ -53,7 +53,12 @@
       </n-layout-header>
 
       <!-- 主体内容 -->
-      <n-layout-content class="main-content" content-style="padding: 0;" :native-scrollbar="false">
+      <n-layout-content
+        ref="mainContentRef"
+        class="main-content"
+        content-style="padding: 0;"
+        :native-scrollbar="false"
+      >
         <div class="content-wrapper">
           <router-view />
         </div>
@@ -242,7 +247,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, h, onMounted, onBeforeUnmount, reactive } from 'vue'
+import { ref, computed, h, onMounted, onBeforeUnmount, reactive, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { MoonOutline, SunnyOutline, PersonOutline, LogOutOutline, SettingsOutline, SearchOutline, MenuOutline, HomeOutline, ArchiveOutline, ChatbubblesOutline, ChatboxEllipsesOutline, LinkOutline } from '@vicons/ionicons5'
 import { useAuthStore, useAppStore } from '@/stores'
@@ -270,6 +275,10 @@ const isDark = computed(() => appStore.theme === 'dark')
 const siteSettings = ref<SiteSettings>({})
 const defaultSiteName = '菱风叙'
 const runningTime = ref('')
+const headerHidden = ref(false)
+const mainContentRef = ref<any>(null) // 取到组件实例后通过 $el 获取真实 DOM
+const scrollEl = ref<HTMLElement | null>(null)
+let lastScrollTop = 0
 const searchKeyword = ref('')
 const showSearchModal = ref(false)
 const showMobileMenu = ref(false)
@@ -505,7 +514,14 @@ function calculateRunningTime() {
 
 let timer: number | null = null
 
-onMounted(() => {
+onMounted(async () => {
+  await nextTick()
+  scrollEl.value = getScrollElement()
+  if (scrollEl.value) {
+    scrollEl.value.addEventListener('scroll', handleScroll, { passive: true })
+  }
+  window.addEventListener('scroll', handleScroll, { passive: true })
+
   fetchSiteSettings()
   calculateRunningTime()
   // 每秒更新一次运行时间
@@ -526,7 +542,41 @@ onBeforeUnmount(() => {
   if (timer) {
     clearInterval(timer)
   }
+  if (scrollEl.value) {
+    scrollEl.value.removeEventListener('scroll', handleScroll)
+  }
+  window.removeEventListener('scroll', handleScroll)
 })
+
+function getScrollElement(): HTMLElement | null {
+  const root = (mainContentRef.value as any)?.$el as HTMLElement | undefined
+  if (!root) return null
+  // 当 native-scrollbar=false 时，Naive UI 使用自定义滚动容器
+  const candidates = ['.n-scrollbar-container', '.n-scrollbar-content']
+  for (const selector of candidates) {
+    const el = root.querySelector(selector) as HTMLElement | null
+    if (el) return el
+  }
+  return root
+}
+
+function handleScroll() {
+  const el = scrollEl.value || getScrollElement()
+  const current = el ? el.scrollTop : window.scrollY || 0
+  const delta = current - lastScrollTop
+
+  if (Math.abs(delta) < 5) {
+    return
+  }
+
+  if (delta > 0 && current > 40) {
+    headerHidden.value = true
+  } else if (delta < 0) {
+    headerHidden.value = false
+  }
+
+  lastScrollTop = current
+}
 
 // 实时搜索
 async function handleSearchInput() {
@@ -720,6 +770,11 @@ async function handlePasswordSubmit() {
   transition: all 0.3s;
 }
 
+.header.header-hidden {
+  transform: translateY(-100%);
+  opacity: 0;
+}
+
 html.dark .header {
   background: rgba(15, 23, 42, 0.8);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
@@ -845,6 +900,17 @@ html.dark .logo h2 {
   z-index: 1;
   overflow-y: auto;
   height: calc(100vh - 72px);
+  transition: transform 0.3s ease, height 0.3s ease;
+  transform: translateY(0);
+}
+
+.header + .main-content {
+  transition: transform 0.3s ease, height 0.3s ease;
+}
+
+.header.header-hidden + .main-content {
+  transform: translateY(-72px);
+  height: 100vh;
 }
 
 .main-content :deep(.n-scrollbar-content) {
