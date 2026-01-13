@@ -3,7 +3,7 @@
     <n-spin :show="loading">
       <div class="author-content">
       <!-- 头像 -->
-      <div class="avatar-wrapper">
+      <div class="avatar-wrapper" @click="goToAbout" title="点击查看关于我">
         <n-avatar
           :src="authorProfile?.author.avatar || ''"
           :size="104"
@@ -195,6 +195,11 @@ function goToTags() {
 // 跳转到分类列表
 function goToCategories() {
   router.push('/category')
+}
+
+// 跳转到关于我页面
+function goToAbout() {
+  router.push('/about')
 }
 
 // 获取博主信息
