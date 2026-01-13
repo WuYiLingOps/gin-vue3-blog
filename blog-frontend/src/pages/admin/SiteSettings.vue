@@ -167,6 +167,47 @@
           </template>
         </n-form-item>
 
+        <n-divider />
+
+        <n-form-item label="社交链接排序">
+          <div class="social-link-sort-container">
+            <div class="sort-tip">
+              <n-text depth="3" style="font-size: 12px;">
+                拖拽下方项目可调整显示顺序（仅显示已配置的链接，未配置的链接不会显示。新配置的链接会自动添加到末尾）
+              </n-text>
+              <div style="margin-top: 8px;">
+                <n-text depth="3" style="font-size: 12px; color: #f90;">
+                  ⚠️ 注意：前端个人名片最多只显示前 5 个已配置的社交链接，请将重要的链接排在前面
+                </n-text>
+              </div>
+            </div>
+            <div class="sortable-list">
+              <div
+                v-for="(item, index) in sortedSocialLinks"
+                :key="item.type"
+                class="sortable-item"
+                :class="{ dragging: draggedIndex === index }"
+                :draggable="true"
+                @dragstart="handleDragStart(index, $event)"
+                @dragover.prevent="handleDragOver(index, $event)"
+                @drop="handleDrop(index, $event)"
+                @dragend="handleDragEnd"
+              >
+                <div class="drag-handle">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width: 18px; height: 18px; color: #999; cursor: move;">
+                    <path d="M9 5h2v2H9V5zm0 6h2v2H9v-2zm0 6h2v2H9v-2zm4-12h2v2h-2V5zm0 6h2v2h-2v-2zm0 6h2v2h-2v-2z"/>
+                  </svg>
+                </div>
+                <div class="item-content">
+                  <span class="item-label">{{ item.label }}</span>
+                  <n-tag v-if="formData[item.key]?.trim()" size="small" type="success">已配置</n-tag>
+                  <n-tag v-else size="small" type="default">未配置</n-tag>
+                </div>
+              </div>
+            </div>
+          </div>
+        </n-form-item>
+
         <n-form-item>
           <n-space>
             <n-button type="primary" @click="handleSubmit" :loading="loading">
@@ -272,6 +313,7 @@
         <p><strong>CSDN链接：</strong>您的CSDN博客主页地址</p>
         <p><strong>QQ二维码：</strong>QQ二维码图片的URL地址</p>
         <p><strong>微信二维码：</strong>微信二维码图片的URL地址</p>
+        <p><strong>社交链接排序：</strong>拖拽列表项可调整社交链接的显示顺序，最多显示前5个已配置的链接</p>
         <n-divider />
         <p><strong>存储方式：</strong>选择文件上传的存储方式</p>
         <p><strong>本地存储：</strong>文件保存在服务器本地，适合小型网站或开发环境</p>
@@ -286,7 +328,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useMessage, type FormInst } from 'naive-ui'
 import { getSiteSettings, updateSiteSettings, getUploadSettings, updateUploadSettings, getNotificationSettings, updateNotificationSettings } from '@/api/setting'
 
@@ -338,6 +380,115 @@ const uploadLoading = ref(false)
 const notificationLoading = ref(false)
 const isMobile = ref(false)
 
+// 社交链接配置
+const socialLinkConfig = [
+  { type: 'github', key: 'social_github', label: 'GitHub' },
+  { type: 'gitee', key: 'social_gitee', label: 'Gitee' },
+  { type: 'email', key: 'social_email', label: '邮箱' },
+  { type: 'rss', key: 'social_rss', label: 'RSS' },
+  { type: 'csdn', key: 'social_csdn', label: 'CSDN' },
+  { type: 'qq', key: 'social_qq', label: 'QQ' },
+  { type: 'wechat', key: 'social_wechat', label: '微信' }
+]
+
+// 社交链接排序
+const socialLinkOrder = ref<string[]>([])
+const draggedIndex = ref<number | null>(null)
+
+// 计算排序后的社交链接列表（只显示已配置的链接）
+const sortedSocialLinks = computed(() => {
+  // 先筛选出已配置的链接
+  const configuredLinks = socialLinkConfig.filter(item => {
+    const value = formData.value[item.key as keyof typeof formData.value]
+    return value && String(value).trim()
+  })
+  
+  if (configuredLinks.length === 0) {
+    return []
+  }
+  
+  // 如果没有排序配置，返回默认顺序的已配置链接
+  if (socialLinkOrder.value.length === 0) {
+    return configuredLinks
+  }
+  
+  // 按照保存的顺序排序已配置的链接
+  const ordered = socialLinkOrder.value
+    .map(type => configuredLinks.find(item => item.type === type))
+    .filter(Boolean) as typeof socialLinkConfig
+  
+  // 添加未在排序中的已配置链接（新配置的链接）到末尾
+  const orderedTypes = new Set(socialLinkOrder.value)
+  const unordered = configuredLinks.filter(item => !orderedTypes.has(item.type))
+  
+  return [...ordered, ...unordered]
+})
+
+// 拖拽开始
+function handleDragStart(index: number, event: DragEvent) {
+  draggedIndex.value = index
+  if (event.dataTransfer) {
+    event.dataTransfer.effectAllowed = 'move'
+    event.dataTransfer.setData('text/html', '')
+  }
+}
+
+// 拖拽悬停
+function handleDragOver(index: number, event: DragEvent) {
+  event.preventDefault()
+  if (event.dataTransfer) {
+    event.dataTransfer.dropEffect = 'move'
+  }
+}
+
+// 放置
+function handleDrop(index: number, event: DragEvent) {
+  event.preventDefault()
+  if (draggedIndex.value === null || draggedIndex.value === index) {
+    return
+  }
+  
+  const items = [...sortedSocialLinks.value]
+  const draggedItem = items[draggedIndex.value]
+  items.splice(draggedIndex.value, 1)
+  items.splice(index, 0, draggedItem)
+  
+  // 更新排序顺序
+  socialLinkOrder.value = items.map(item => item.type)
+  
+  draggedIndex.value = null
+}
+
+// 拖拽结束
+function handleDragEnd() {
+  draggedIndex.value = null
+}
+
+// 更新社交链接排序：移除未配置的，添加新配置的到末尾
+function updateSocialLinkOrder() {
+  // 获取当前已配置的链接类型
+  const configuredTypes = socialLinkConfig
+    .filter(item => {
+      const value = formData.value[item.key as keyof typeof formData.value]
+      return value && String(value).trim()
+    })
+    .map(item => item.type)
+  
+  if (configuredTypes.length === 0) {
+    socialLinkOrder.value = []
+    return
+  }
+  
+  // 保留排序中已配置的链接
+  const existingOrdered = socialLinkOrder.value.filter(type => configuredTypes.includes(type))
+  
+  // 添加新配置的链接到末尾
+  const existingOrderedSet = new Set(existingOrdered)
+  const newConfigured = configuredTypes.filter(type => !existingOrderedSet.has(type))
+  
+  socialLinkOrder.value = [...existingOrdered, ...newConfigured]
+}
+
 // 检测移动设备
 function checkMobile() {
   isMobile.value = window.innerWidth <= 768
@@ -360,6 +511,18 @@ async function fetchSettings() {
         social_qq: res.data.social_qq || '',
         social_wechat: res.data.social_wechat || ''
       }
+      
+      // 初始化社交链接排序
+      if (res.data.social_link_order) {
+        socialLinkOrder.value = res.data.social_link_order.split(',').filter(Boolean)
+      } else {
+        // 默认顺序（只包含已配置的）
+        socialLinkOrder.value = []
+      }
+      
+      // 更新排序列表：移除未配置的，添加新配置的到末尾
+      updateSocialLinkOrder()
+      
       originalData.value = { ...formData.value }
     }
   } catch (error: any) {
@@ -401,12 +564,18 @@ async function fetchNotificationSettings() {
 async function handleSubmit() {
   loading.value = true
   try {
+    // 更新社交链接排序（移除未配置的，添加新配置的到末尾）
+    updateSocialLinkOrder()
+    
     // 提交全部字段（包含空字符串），以便支持清空配置
     const dataToSubmit: Record<string, string> = {}
     Object.keys(formData.value).forEach(key => {
       const value = (formData.value as any)[key]
       dataToSubmit[key] = value === null || value === undefined ? '' : String(value).trim()
     })
+    
+    // 添加社交链接排序顺序
+    dataToSubmit.social_link_order = socialLinkOrder.value.join(',')
 
     await updateSiteSettings(dataToSubmit)
     message.success('设置保存成功')
@@ -479,6 +648,26 @@ function clearField(key: keyof typeof formData.value) {
   formData.value[key] = ''
 }
 
+// 监听表单数据变化，自动更新排序列表
+watch(
+  () => [
+    formData.value.social_github,
+    formData.value.social_gitee,
+    formData.value.social_email,
+    formData.value.social_rss,
+    formData.value.social_csdn,
+    formData.value.social_qq,
+    formData.value.social_wechat
+  ],
+  () => {
+    // 延迟更新，避免频繁触发
+    setTimeout(() => {
+      updateSocialLinkOrder()
+    }, 100)
+  },
+  { deep: true }
+)
+
 onMounted(() => {
   checkMobile()
   window.addEventListener('resize', checkMobile)
@@ -525,6 +714,85 @@ html.dark .site-settings-page :deep(.n-card) {
   line-height: 1.6;
 }
 
+/* 社交链接排序样式 */
+.social-link-sort-container {
+  width: 100%;
+}
+
+.sort-tip {
+  margin-bottom: 12px;
+}
+
+.sortable-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sortable-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #f5f5f5;
+  border-radius: 6px;
+  cursor: move;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+
+.sortable-item:hover {
+  background: #e8e8e8;
+  border-color: #d9d9d9;
+}
+
+.sortable-item.dragging {
+  opacity: 0.5;
+  background: #e0e0e0;
+}
+
+.drag-handle {
+  display: flex;
+  align-items: center;
+  cursor: grab;
+  user-select: none;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.item-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.item-label {
+  font-weight: 500;
+  color: #333;
+}
+
+html.dark .sortable-item {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+html.dark .sortable-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+html.dark .sortable-item.dragging {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+html.dark .item-label {
+  color: #e5e5e5;
+}
+
 /* 移动端样式 */
 @media (max-width: 768px) {
   .site-settings-page :deep(.n-form-item) {
@@ -533,6 +801,16 @@ html.dark .site-settings-page :deep(.n-card) {
   
   .site-settings-page p {
     font-size: 14px;
+  }
+  
+  .sortable-item {
+    padding: 10px;
+  }
+  
+  .item-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
   }
 }
 </style>
