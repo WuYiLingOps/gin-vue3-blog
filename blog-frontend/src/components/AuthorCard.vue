@@ -172,7 +172,7 @@ const socialLinkMap: Record<string, { href?: (val: string) => string; title: str
 const visibleSocialLinks = computed<SocialLink[]>(() => {
   const links: SocialLink[] = []
   const data = socialLinks.value
-  
+
   // 确定排序顺序：优先使用保存的顺序，否则使用默认顺序
   const order = socialLinkOrder.value.length > 0 
     ? socialLinkOrder.value 
@@ -193,8 +193,8 @@ const visibleSocialLinks = computed<SocialLink[]>(() => {
     
     if (config.href && (type === 'github' || type === 'gitee' || type === 'email' || type === 'rss' || type === 'csdn')) {
       link.href = config.href(value)
-    }
-    
+  }
+
     links.push(link)
     
     // 最多显示 5 个
