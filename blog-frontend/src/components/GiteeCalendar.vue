@@ -51,9 +51,9 @@
                   v-for="day in flatDays"
                   :key="day.date"
                   class="cell"
-                  :class="cellLevelClass(day.count)"
+                  :class="[cellLevelClass(day.count), { 'cell-empty': day.count < 0 }]"
                   :data-date="day.date"
-                  :data-count="day.count"
+                  :data-count="day.count >= 0 ? day.count : 0"
                 />
               </div>
             </div>
@@ -255,6 +255,7 @@ const monthPositions = computed(() => {
 
 // 颜色等级
 function cellLevelClass(count: number) {
+  if (count < 0) return '' // 超出范围的日期不显示
   if (count === 0) return ''
   if (count <= 5) return 'l1'
   if (count <= 10) return 'l2'
@@ -283,23 +284,140 @@ function getCalendarApiBase() {
   return `${baseURL}/calendar/gitee`
 }
 
+// 规范化周数据，确保每一周都从周日开始，不足7天的用空白天数补齐
+function normalizeWeeks(weeks: CalendarWeek[]): CalendarWeek[] {
+  if (!weeks.length) return []
+  
+  const normalized: CalendarWeek[] = []
+  
+  // 处理第一周：确保从周日开始
+  const firstWeek = weeks[0]
+  if (firstWeek && firstWeek.length > 0) {
+    const firstDate = new Date(firstWeek[0].date + 'T00:00:00') // 明确指定时区，避免时区问题
+    const firstDayOfWeek = firstDate.getDay() // 0=周日, 1=周一, ..., 6=周六
+    
+    // 如果第一天不是周日，需要在前面补全空白天数
+    if (firstDayOfWeek !== 0) {
+      const paddedWeek: CalendarDay[] = []
+      // 补全前面的空白天数（从周日开始）
+      for (let i = 0; i < firstDayOfWeek; i++) {
+        const emptyDate = new Date(firstDate)
+        emptyDate.setDate(firstDate.getDate() - (firstDayOfWeek - i))
+        paddedWeek.push({ date: emptyDate.toISOString().slice(0, 10), count: -1 }) // 用-1标记超出范围的日期
+      }
+      // 添加原有的天数
+      paddedWeek.push(...firstWeek)
+      normalized.push(paddedWeek)
+    } else {
+      normalized.push([...firstWeek])
+    }
+  }
+  
+  // 处理中间周：确保每周都有7天
+  for (let i = 1; i < weeks.length - 1; i++) {
+    const week = weeks[i]
+    if (week && week.length === 7) {
+      normalized.push([...week])
+    } else if (week && week.length > 0) {
+      // 如果周数据不足7天，补齐到7天
+      const paddedWeek: CalendarDay[] = [...week]
+      const lastDate = new Date(week[week.length - 1].date + 'T00:00:00')
+      while (paddedWeek.length < 7) {
+        const nextDate = new Date(lastDate)
+        nextDate.setDate(lastDate.getDate() + (paddedWeek.length - week.length + 1))
+        paddedWeek.push({ date: nextDate.toISOString().slice(0, 10), count: -1 }) // 用-1标记超出范围的日期
+      }
+      normalized.push(paddedWeek)
+    }
+  }
+  
+  // 处理最后一周：确保补齐到7天
+  if (weeks.length > 1) {
+    const lastWeek = weeks[weeks.length - 1]
+    if (lastWeek && lastWeek.length > 0) {
+      const paddedWeek: CalendarDay[] = [...lastWeek]
+      const lastDate = new Date(lastWeek[lastWeek.length - 1].date + 'T00:00:00')
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      
+      while (paddedWeek.length < 7) {
+        const nextDate = new Date(lastDate)
+        nextDate.setDate(lastDate.getDate() + (paddedWeek.length - lastWeek.length + 1))
+        // 如果日期超过今天，标记为超出范围
+        const isFuture = nextDate > today
+        paddedWeek.push({ 
+          date: nextDate.toISOString().slice(0, 10), 
+          count: isFuture ? -1 : 0 
+        })
+      }
+      normalized.push(paddedWeek)
+    }
+  } else if (weeks.length === 1) {
+    // 如果只有一周，也需要补齐到7天
+    const lastWeek = weeks[0]
+    if (lastWeek && lastWeek.length > 0 && lastWeek.length < 7) {
+      const paddedWeek: CalendarDay[] = [...lastWeek]
+      const lastDate = new Date(lastWeek[lastWeek.length - 1].date + 'T00:00:00')
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      
+      while (paddedWeek.length < 7) {
+        const nextDate = new Date(lastDate)
+        nextDate.setDate(lastDate.getDate() + (paddedWeek.length - lastWeek.length + 1))
+        const isFuture = nextDate > today
+        paddedWeek.push({ 
+          date: nextDate.toISOString().slice(0, 10), 
+          count: isFuture ? -1 : 0 
+        })
+      }
+      normalized[0] = paddedWeek
+    }
+  }
+  
+  return normalized
+}
+
 // 构造一整年的「空」数据，用于无数据 / 请求失败时仍然展示完整网格样式
 function buildEmptyWeeks(): CalendarWeek[] {
   const days: CalendarDay[] = []
   const today = new Date()
+  today.setHours(0, 0, 0, 0) // 设置为当天0点
 
-  // 过去 365 天
-  for (let i = 364; i >= 0; i--) {
-    const d = new Date(today)
-    d.setDate(today.getDate() - i)
-    const dateStr = d.toISOString().slice(0, 10)
-    days.push({ date: dateStr, count: 0 })
-  }
+  // 计算一年前的日期（365天前）
+  const oneYearAgo = new Date(today)
+  oneYearAgo.setDate(today.getDate() - 364) // 包含今天，所以是364天前
+  
+  // 找到一年前那个日期所在周的周日（作为起始日期）
+  const startDate = new Date(oneYearAgo)
+  const dayOfWeek = startDate.getDay() // 0=周日, 1=周一, ..., 6=周六
+  startDate.setDate(startDate.getDate() - dayOfWeek) // 回退到周日
 
+  // 从起始周日开始，生成数据直到今天所在周的周六（补齐到完整的周）
+  const endDate = new Date(today)
+  const endDayOfWeek = endDate.getDay() // 今天是一周的第几天
+  // 计算到今天所在周的周六需要多少天
+  const daysToEndOfWeek = 6 - endDayOfWeek
+  const finalDate = new Date(today)
+  finalDate.setDate(today.getDate() + daysToEndOfWeek)
+  
+  // 计算需要多少周（从起始周日到最终周六）
+  const daysDiff = Math.ceil((finalDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
+  const weeksNeeded = Math.ceil(daysDiff / 7)
+  
   const weeksArr: CalendarWeek[] = []
-  for (let i = 0; i < days.length; i += 7) {
-    weeksArr.push(days.slice(i, i + 7))
+  for (let weekIdx = 0; weekIdx < weeksNeeded; weekIdx++) {
+    const week: CalendarDay[] = []
+    for (let dayIdx = 0; dayIdx < 7; dayIdx++) {
+      const date = new Date(startDate)
+      date.setDate(startDate.getDate() + weekIdx * 7 + dayIdx)
+      const dateStr = date.toISOString().slice(0, 10)
+      // 只包含一年前到今天之间的日期，其他日期标记为空
+      const isInRange = date >= oneYearAgo && date <= today
+      week.push({ date: dateStr, count: isInRange ? 0 : -1 }) // 用-1标记超出范围的日期
+    }
+    weeksArr.push(week)
   }
+  
   return weeksArr
 }
 
@@ -355,12 +473,14 @@ async function fetchData() {
       weeks.value = buildEmptyWeeks()
     } else {
       total.value = data.total || 0
-      weeks.value = data.contributions.map((week) =>
+      // 先映射数据，然后规范化周数据以确保周几对齐
+      const mappedWeeks = data.contributions.map((week) =>
         week.map((d) => ({
           date: d.date,
           count: d.count
         }))
       )
+      weeks.value = normalizeWeeks(mappedWeeks)
     }
   } catch (e: any) {
     console.error(e)
@@ -582,6 +702,12 @@ html.dark .months-row {
   cursor: pointer;
   box-sizing: border-box;
   border: 1px solid transparent;
+}
+
+.cell-empty {
+  background-color: transparent !important;
+  cursor: default;
+  pointer-events: none;
 }
 
 .cell.l1 {
