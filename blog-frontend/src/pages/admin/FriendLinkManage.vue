@@ -29,16 +29,16 @@
 
     <n-tabs v-model:value="activeTab" type="line" animated>
       <n-tab-pane name="links" tab="友链管理">
-        <n-data-table 
-          :columns="columns" 
-          :data="friendLinks" 
-          :loading="loading"
-          :scroll-x="isMobile ? 1200 : undefined"
-          :single-line="false"
-          :pagination="pagination"
-          @update:page="handlePageChange"
-          @update:page-size="handlePageSizeChange"
-        />
+    <n-data-table 
+      :columns="columns" 
+      :data="friendLinks" 
+      :loading="loading"
+      :scroll-x="isMobile ? 1200 : undefined"
+      :single-line="false"
+      :pagination="pagination"
+      @update:page="handlePageChange"
+      @update:page-size="handlePageSizeChange"
+    />
       </n-tab-pane>
       <n-tab-pane name="categories" tab="友链分类">
         <n-data-table 
