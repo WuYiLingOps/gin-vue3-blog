@@ -233,14 +233,9 @@ const menuOptions = [
     icon: renderIcon(LinkOutline)
   },
   {
-    label: '友链分类',
-    key: 'FriendLinkCategoryManage',
-    icon: renderIcon(FolderOutline)
-  },
-  {
-    label: '网站设置',
-    key: 'SiteSettings',
-    icon: renderIcon(SettingsOutline)
+    label: '我的相册',
+    key: 'AlbumManage',
+    icon: renderIcon(ImagesOutline)
   },
   {
     label: '关于我管理',
@@ -248,9 +243,9 @@ const menuOptions = [
     icon: renderIcon(PersonOutline)
   },
   {
-    label: '我的相册',
-    key: 'AlbumManage',
-    icon: renderIcon(ImagesOutline)
+    label: '网站设置',
+    key: 'SiteSettings',
+    icon: renderIcon(SettingsOutline)
   }
 ]
 
