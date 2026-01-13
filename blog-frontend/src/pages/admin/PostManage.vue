@@ -292,8 +292,17 @@ const columns: DataTableColumns<Post> = [
   {
     title: '分类',
     key: 'category',
-    width: 100,
-    render: row => h(NTag, { type: 'info', size: 'small' }, { default: () => row.category.name })
+    width: 150,
+    ellipsis: { tooltip: true },
+    render: row =>
+      h(
+        NTag,
+        {
+          type: 'info',
+          size: 'small'
+        },
+        { default: () => row.category?.name || '' }
+      )
   },
   {
     title: '状态',
