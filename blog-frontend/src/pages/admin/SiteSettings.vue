@@ -200,7 +200,7 @@
                 </div>
                 <div class="item-content">
                   <span class="item-label">{{ item.label }}</span>
-                  <n-tag v-if="formData[item.key]?.trim()" size="small" type="success">已配置</n-tag>
+                  <n-tag v-if="formData[item.key as keyof typeof formData]?.trim()" size="small" type="success">已配置</n-tag>
                   <n-tag v-else size="small" type="default">未配置</n-tag>
                 </div>
               </div>
@@ -434,7 +434,7 @@ function handleDragStart(index: number, event: DragEvent) {
 }
 
 // 拖拽悬停
-function handleDragOver(index: number, event: DragEvent) {
+function handleDragOver(_index: number, event: DragEvent) {
   event.preventDefault()
   if (event.dataTransfer) {
     event.dataTransfer.dropEffect = 'move'
