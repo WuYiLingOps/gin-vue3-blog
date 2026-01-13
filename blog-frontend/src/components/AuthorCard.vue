@@ -150,40 +150,58 @@ const socialLinks = ref({
   qq: '',
   wechat: ''
 })
+const socialLinkOrder = ref<string[]>([])
 const showWechatQR = ref(false)
 const showQQQR = ref(false)
 const loading = ref(false)
 const defaultAvatar = '/default-avatar.png'
 const router = useRouter()
 
-// 计算需展示的社交链接（最多 5 个，按优先顺序）
+// 社交链接映射配置
+const socialLinkMap: Record<string, { href?: (val: string) => string; title: string }> = {
+  github: { href: (val) => val, title: 'GitHub' },
+  gitee: { href: (val) => val, title: 'Gitee' },
+  email: { href: (val) => `mailto:${val}`, title: 'Email' },
+  rss: { href: (val) => val, title: 'RSS' },
+  csdn: { href: (val) => val, title: 'CSDN' },
+  qq: { title: 'QQ' },
+  wechat: { title: '微信' }
+}
+
+// 计算需展示的社交链接（最多 5 个，按配置的排序顺序）
 const visibleSocialLinks = computed<SocialLink[]>(() => {
   const links: SocialLink[] = []
   const data = socialLinks.value
+  
+  // 确定排序顺序：优先使用保存的顺序，否则使用默认顺序
+  const order = socialLinkOrder.value.length > 0 
+    ? socialLinkOrder.value 
+    : ['github', 'gitee', 'email', 'rss', 'csdn', 'qq', 'wechat']
+  
+  // 按照排序顺序添加链接
+  for (const type of order) {
+    const value = data[type as keyof typeof data]?.trim()
+    if (!value) continue
+    
+    const config = socialLinkMap[type]
+    if (!config) continue
+    
+    const link: SocialLink = {
+      type: type as SocialLinkType,
+      title: config.title
+    }
+    
+    if (config.href && (type === 'github' || type === 'gitee' || type === 'email' || type === 'rss' || type === 'csdn')) {
+      link.href = config.href(value)
+    }
+    
+    links.push(link)
+    
+    // 最多显示 5 个
+    if (links.length >= MAX_SOCIAL_LINKS) break
+  }
 
-  if (data.github?.trim()) {
-    links.push({ type: 'github', href: data.github.trim(), title: 'GitHub' })
-  }
-  if (data.gitee?.trim()) {
-    links.push({ type: 'gitee', href: data.gitee.trim(), title: 'Gitee' })
-  }
-  if (data.email?.trim()) {
-    links.push({ type: 'email', href: `mailto:${data.email.trim()}`, title: 'Email' })
-  }
-  if (data.rss?.trim()) {
-    links.push({ type: 'rss', href: data.rss.trim(), title: 'RSS' })
-  }
-  if (data.csdn?.trim()) {
-    links.push({ type: 'csdn', href: data.csdn.trim(), title: 'CSDN' })
-  }
-  if (data.qq?.trim()) {
-    links.push({ type: 'qq', title: 'QQ' })
-  }
-  if (data.wechat?.trim()) {
-    links.push({ type: 'wechat', title: '微信' })
-  }
-
-  return links.slice(0, MAX_SOCIAL_LINKS)
+  return links
 })
 
 // 跳转到文章列表
@@ -254,7 +272,14 @@ async function fetchSettings() {
         qq: (res.data.social_qq || '').trim(),
         wechat: (res.data.social_wechat || '').trim()
       }
+      
+      // 获取社交链接排序顺序
+      if (res.data.social_link_order) {
+        socialLinkOrder.value = res.data.social_link_order.split(',').filter(Boolean)
+      }
+      
       console.log('社交链接:', socialLinks.value)
+      console.log('社交链接排序:', socialLinkOrder.value)
     }
   } catch (error: any) {
     console.error('获取网站设置失败:', error)
