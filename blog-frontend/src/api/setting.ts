@@ -13,6 +13,7 @@ export interface SiteSettings {
   social_rss?: string
   social_qq?: string
   social_wechat?: string
+  social_csdn?: string
 }
 
 export interface UploadSettings {
