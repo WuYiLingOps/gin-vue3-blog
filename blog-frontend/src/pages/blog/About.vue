@@ -129,7 +129,7 @@
                       <div class="comment-content">
                         <div class="comment-header">
                           <strong>{{ comment.user.nickname }}</strong>
-                          <span class="comment-time">{{ formatRelativeTime(comment.created_at) }}</span>
+                          <span class="comment-time">{{ formatDate(comment.created_at, 'YYYY年MM月DD日 HH:mm') }}</span>
                         </div>
                         <CommentContent :content="comment.content" />
                         <div class="comment-actions">
@@ -173,7 +173,7 @@
                                 <div class="reply-header">
                                   <strong>{{ reply.user.nickname }}</strong>
                                   <span class="reply-to">回复 @{{ getReplyTargetName(reply, comment) }}</span>
-                                  <span class="comment-time">{{ formatRelativeTime(reply.created_at) }}</span>
+                                  <span class="comment-time">{{ formatDate(reply.created_at, 'YYYY年MM月DD日 HH:mm') }}</span>
                                 </div>
                                 <CommentContent :content="removeAtMention(reply.content)" />
                                 <div class="comment-actions">
@@ -238,7 +238,7 @@ import { getArchives } from '@/api/post'
 import { getPublicAboutInfo } from '@/api/setting'
 import { getPublicAlbums, type Album } from '@/api/album'
 import { getCommentsByTypeAndTarget, createComment, deleteComment } from '@/api/comment'
-import { formatRelativeTime } from '@/utils/format'
+import { formatDate } from '@/utils/format'
 import { useAppStore, useAuthStore } from '@/stores'
 import MarkdownPreview from '@/components/MarkdownPreview.vue'
 import { useMessage } from 'naive-ui'
