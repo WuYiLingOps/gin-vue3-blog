@@ -293,6 +293,26 @@ async function handleUploadImage(
 .comment-markdown-editor :deep(.v-md-editor) {
   border-radius: 6px;
   border: 1px solid var(--n-border-color);
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+html.dark .comment-markdown-editor :deep(.v-md-editor) {
+  /* 使用 !important 覆盖编辑器内置的白色背景 */
+  background: rgba(15, 23, 42, 0.96) !important;
+  border-color: rgba(56, 189, 248, 0.18);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+}
+
+.comment-markdown-editor :deep(.v-md-editor:hover) {
+  border-color: #22c55e;
+}
+
+.comment-markdown-editor :deep(.v-md-editor:focus-within) {
+  border-color: #22c55e;
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 /* 隐藏编辑器自带的工具栏 */
@@ -312,23 +332,85 @@ async function handleUploadImage(
 .comment-markdown-editor :deep(.v-md-editor__left-area) {
   font-size: 14px;
   line-height: 1.6;
+  background: transparent;
 }
 
 .comment-markdown-editor :deep(.v-md-editor__left-area textarea) {
   font-size: 14px;
-  line-height: 1.6;
+  line-height: 1.7;
   padding: 12px;
+  background: transparent;
+  color: #0f172a;
+  border: none;
+  box-shadow: none;
+}
+
+.comment-markdown-editor :deep(.v-md-editor__left-area textarea::placeholder) {
+  color: rgba(15, 23, 42, 0.45);
+}
+
+html.dark .comment-markdown-editor :deep(.v-md-editor__left-area textarea) {
+  color: #f9fafb;
+  font-weight: 500;
+  caret-color: #38bdf8;
+  border: none;
+  background: transparent;
+}
+
+html.dark .comment-markdown-editor :deep(.v-md-editor__left-area textarea::placeholder) {
+  color: rgba(226, 232, 240, 0.55);
 }
 
 /* 预览区域样式 */
 .comment-markdown-editor :deep(.v-md-editor__right-area) {
   font-size: 14px;
   line-height: 1.6;
+  background: transparent;
 }
 
 .comment-markdown-editor :deep(.v-md-editor__right-area .vuepress-markdown-body) {
   padding: 12px;
   font-size: 14px;
+  color: #0f172a;
+  background: transparent;
+}
+
+html.dark .comment-markdown-editor :deep(.v-md-editor__right-area .vuepress-markdown-body) {
+  color: #f9fafb;
+  background: transparent;
+}
+
+/* 夜间模式下预览文字与标题对比度增强 */
+html.dark .comment-markdown-editor :deep(.vuepress-markdown-body p),
+html.dark .comment-markdown-editor :deep(.vuepress-markdown-body li) {
+  color: #f9fafb;
+}
+
+html.dark .comment-markdown-editor :deep(.vuepress-markdown-body h1),
+html.dark .comment-markdown-editor :deep(.vuepress-markdown-body h2),
+html.dark .comment-markdown-editor :deep(.vuepress-markdown-body h3),
+html.dark .comment-markdown-editor :deep(.vuepress-markdown-body h4),
+html.dark .comment-markdown-editor :deep(.vuepress-markdown-body h5),
+html.dark .comment-markdown-editor :deep(.vuepress-markdown-body h6) {
+  color: #f9fafb;
+}
+
+/* 确保编辑区域整体为暗色背景 */
+html.dark .comment-markdown-editor :deep(.v-md-editor__main),
+html.dark .comment-markdown-editor :deep(.v-md-editor__editor-wrapper),
+html.dark .comment-markdown-editor :deep(.v-md-editor__content),
+html.dark .comment-markdown-editor :deep(.v-md-textarea-editor),
+html.dark .comment-markdown-editor :deep(.v-md-textarea-editor pre),
+html.dark .comment-markdown-editor :deep(.v-md-textarea-editor textarea) {
+  background: rgba(15, 23, 42, 0.96) !important;
+}
+
+/* 夜间模式下进一步强制编辑区文字颜色和粗细，避免被库默认样式覆盖 */
+html.dark .comment-markdown-editor :deep(.v-md-textarea-editor textarea),
+html.dark .comment-markdown-editor :deep(.v-md-textarea-editor pre) {
+  color: #f9fafb !important;
+  font-weight: 500;
+  text-shadow: 0 0 1px rgba(0, 0, 0, 0.6);
 }
 
 /* 代码块样式 */
