@@ -996,8 +996,8 @@ html.dark .intro-card:hover {
   display: flex;
   gap: 32px;
   align-items: flex-start;
-  margin-bottom: 32px;
-  padding-bottom: 32px;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 }
 
@@ -1067,7 +1067,7 @@ html.dark .author-bio {
 }
 
 .section-title {
-  margin: 0 0 20px 0;
+  margin: 0 0 12px 0;
   font-size: 22px;
   font-weight: 600;
   color: #1a202c;
@@ -1091,7 +1091,7 @@ html.dark .intro-detail-content {
 }
 
 .intro-detail-content p {
-  margin: 0 0 16px 0;
+  margin: 0 0 10px 0;
   text-align: justify;
 }
 
@@ -1446,8 +1446,8 @@ html.dark .chart-title {
     align-items: center;
     text-align: center;
     gap: 20px;
-    margin-bottom: 24px;
-    padding-bottom: 24px;
+    margin-bottom: 16px;
+    padding-bottom: 16px;
   }
 
   .profile-info {
