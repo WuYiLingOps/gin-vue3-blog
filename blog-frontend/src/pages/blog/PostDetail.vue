@@ -151,7 +151,7 @@
                 <div class="comment-content">
                   <div class="comment-header">
                     <strong>{{ comment.user.nickname }}</strong>
-                    <span class="comment-time">{{ formatRelativeTime(comment.created_at) }}</span>
+                    <span class="comment-time">{{ formatDate(comment.created_at, 'YYYY年MM月DD日 HH:mm') }}</span>
                   </div>
                   <CommentContent :content="comment.content" />
                   <div class="comment-actions">
@@ -196,7 +196,7 @@
                             <strong>{{ reply.user.nickname }}</strong>
                             <span class="reply-to">回复 @{{ getReplyTargetName(reply, comment) }}</span>
                             <span class="comment-time">{{
-                              formatRelativeTime(reply.created_at)
+                              formatDate(reply.created_at, 'YYYY年MM月DD日 HH:mm')
                             }}</span>
                           </div>
                           <CommentContent :content="removeAtMention(reply.content)" />
@@ -283,7 +283,7 @@ import {
 } from '@vicons/ionicons5'
 import { getPostBySlug, likePost } from '@/api/post'
 import { getCommentsByPostId, createComment, deleteComment } from '@/api/comment'
-import { formatDate, formatRelativeTime } from '@/utils/format'
+import { formatDate } from '@/utils/format'
 import dayjs from 'dayjs'
 import { useAuthStore } from '@/stores'
 import type { Post, Comment } from '@/types/blog'
