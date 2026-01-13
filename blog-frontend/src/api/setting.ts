@@ -14,6 +14,7 @@ export interface SiteSettings {
   social_qq?: string
   social_wechat?: string
   social_csdn?: string
+  social_link_order?: string  // 社交链接排序顺序，逗号分隔的类型列表，如 "github,gitee,email,rss,csdn,qq,wechat"
 }
 
 export interface UploadSettings {
