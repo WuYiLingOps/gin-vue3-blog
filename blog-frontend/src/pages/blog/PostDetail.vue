@@ -343,7 +343,6 @@ async function copyPostLink() {
 
 onMounted(() => {
   fetchPost()
-  fetchComments()
   
   // 监听滚动 - 需要监听 n-layout-content 的滚动
   nextTick(() => {
@@ -381,6 +380,8 @@ async function fetchPost() {
       nextTick(() => {
         generateToc()
       })
+      // 文章数据就绪后再拉取评论，避免第一次进入页面看不到已有评论
+      await fetchComments()
     }
   } catch (error: any) {
     message.error(error.message || '获取文章失败')
