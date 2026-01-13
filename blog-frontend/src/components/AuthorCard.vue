@@ -132,7 +132,7 @@ import type { SiteSettings } from '@/api/setting'
 import SocialIcons from './SocialIcons.vue'
 
 const MAX_SOCIAL_LINKS = 5
-type SocialLinkType = 'github' | 'gitee' | 'email' | 'rss' | 'qq' | 'wechat'
+type SocialLinkType = 'github' | 'gitee' | 'email' | 'rss' | 'csdn' | 'qq' | 'wechat'
 interface SocialLink {
   type: SocialLinkType
   href?: string
@@ -146,6 +146,7 @@ const socialLinks = ref({
   gitee: '',
   email: '',
   rss: '',
+  csdn: '',
   qq: '',
   wechat: ''
 })
@@ -171,6 +172,9 @@ const visibleSocialLinks = computed<SocialLink[]>(() => {
   }
   if (data.rss?.trim()) {
     links.push({ type: 'rss', href: data.rss.trim(), title: 'RSS' })
+  }
+  if (data.csdn?.trim()) {
+    links.push({ type: 'csdn', href: data.csdn.trim(), title: 'CSDN' })
   }
   if (data.qq?.trim()) {
     links.push({ type: 'qq', title: 'QQ' })
@@ -246,6 +250,7 @@ async function fetchSettings() {
         gitee: (res.data.social_gitee || '').trim(),
         email: (res.data.social_email || '').trim(),
         rss: (res.data.social_rss || '').trim(),
+        csdn: (res.data.social_csdn || '').trim(),
         qq: (res.data.social_qq || '').trim(),
         wechat: (res.data.social_wechat || '').trim()
       }
@@ -497,6 +502,10 @@ html.dark .social-icon.disabled {
 .social-icon.gitee {
   background: transparent;
   /* Gitee 图标 SVG 内部已包含红色背景，无需额外设置 */
+}
+
+.social-icon.csdn {
+  background: #FC5531;
 }
 
 /* 移动端适配 */
