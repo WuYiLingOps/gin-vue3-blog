@@ -116,6 +116,21 @@
           </n-input>
         </n-form-item>
 
+        <n-form-item label="CSDN链接" path="social_csdn">
+          <n-input
+            v-model:value="formData.social_csdn"
+            placeholder="例如：https://blog.csdn.net/username"
+            maxlength="200"
+            clearable
+          >
+            <template #suffix>
+              <n-button text tertiary size="tiny" @click="clearField('social_csdn')" type="error">
+                清空
+              </n-button>
+            </template>
+          </n-input>
+        </n-form-item>
+
         <n-form-item label="QQ二维码" path="social_qq">
           <n-input
             v-model:value="formData.social_qq"
@@ -254,6 +269,7 @@
         <p><strong>Gitee链接：</strong>您的Gitee主页地址</p>
         <p><strong>邮箱地址：</strong>联系邮箱</p>
         <p><strong>RSS链接：</strong>RSS订阅地址</p>
+        <p><strong>CSDN链接：</strong>您的CSDN博客主页地址</p>
         <p><strong>QQ二维码：</strong>QQ二维码图片的URL地址</p>
         <p><strong>微信二维码：</strong>微信二维码图片的URL地址</p>
         <n-divider />
@@ -288,6 +304,7 @@ const defaultFormData = {
   social_gitee: '',
   social_email: '',
   social_rss: '',
+  social_csdn: '',
   social_qq: '',
   social_wechat: ''
 }
@@ -300,6 +317,7 @@ const formData = ref({
   social_gitee: '',
   social_email: '',
   social_rss: '',
+  social_csdn: '',
   social_qq: '',
   social_wechat: ''
 })
@@ -338,6 +356,7 @@ async function fetchSettings() {
         social_gitee: res.data.social_gitee || '',
         social_email: res.data.social_email || '',
         social_rss: res.data.social_rss || '',
+        social_csdn: res.data.social_csdn || '',
         social_qq: res.data.social_qq || '',
         social_wechat: res.data.social_wechat || ''
       }
