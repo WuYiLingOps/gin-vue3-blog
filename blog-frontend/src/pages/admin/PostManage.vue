@@ -55,7 +55,7 @@
         :columns="columns"
         :data="posts"
         :loading="loading"
-        :scroll-x="isMobile ? 800 : undefined"
+        :scroll-x="isMobile ? undefined : 800"
         :single-line="false"
       />
     </div>
@@ -251,9 +251,10 @@ const markdownFileName = ref('')
 // 计算总页数
 const totalPages = computed(() => Math.ceil(total.value / pageSize))
 
-// 检测移动设备
+// 检测是否为「非桌面端」（移动端 + 平板）
+// 小于等于 1024 视为移动/平板，只展示精简列
 function checkMobile() {
-  isMobile.value = window.innerWidth <= 768
+  isMobile.value = window.innerWidth <= 1024
 }
 
 const formData = reactive<PostForm>({
@@ -279,7 +280,8 @@ const categoryOptions = computed(() =>
 
 const tagOptions = computed(() => blogStore.tags.map(t => ({ label: t.name, value: t.id })))
 
-const columns: DataTableColumns<Post> = [
+// 桌面端完整列
+const desktopColumns: DataTableColumns<Post> = [
   { 
     title: 'ID', 
     key: 'id', 
@@ -363,6 +365,46 @@ const columns: DataTableColumns<Post> = [
       })
   }
 ]
+
+// 移动端精简列：突出标题，保留分类和状态
+const mobileColumns: DataTableColumns<Post> = [
+  {
+    title: '标题',
+    key: 'title',
+    ellipsis: { tooltip: true }
+  },
+  {
+    title: '分类',
+    key: 'category',
+    width: 120,
+    ellipsis: { tooltip: true },
+    render: row =>
+      h(
+        NTag,
+        {
+          type: 'info',
+          size: 'small'
+        },
+        { default: () => row.category?.name || '' }
+      )
+  },
+  {
+    title: '状态',
+    key: 'status',
+    width: 80,
+    render: row =>
+      h(
+        NTag,
+        { type: row.status === 1 ? 'success' : 'default', size: 'small' },
+        { default: () => (row.status === 1 ? '已发布' : '草稿') }
+      )
+  }
+]
+
+// 根据当前是否为移动端切换列配置
+const columns = computed<DataTableColumns<Post>>(() =>
+  isMobile.value ? mobileColumns : desktopColumns
+)
 
 const rules = {
   title: [{ required: true, message: '请输入标题', trigger: 'blur' }],
@@ -844,15 +886,11 @@ function handleModalClose() {
 /* 内容区域 */
 .content-area {
   position: relative;
-  /* 移除 margin-bottom，让内容自然布局 */
 }
 
-/* 分页样式 - 固定在右下角，位置不变 */
+/* 分页样式 - 自适应布局，跟随内容流动，保持在表格下方居右 */
 .pagination-wrapper {
-  position: fixed;
-  bottom: 130px; /* 距离底部固定距离，上移一些 */
-  right: 20px; /* 距离右侧固定距离 */
-  z-index: 100; /* 确保在其他内容之上 */
+  margin-top: 16px;
   display: flex;
   justify-content: flex-end;
   align-items: center;
@@ -870,8 +908,8 @@ function handleModalClose() {
   }
   
   .pagination-wrapper {
-    bottom: 16px;
-    right: 16px;
+    justify-content: center; /* 手机上居中显示分页器，避免贴边 */
+    margin-top: 12px;
   }
 }
 
