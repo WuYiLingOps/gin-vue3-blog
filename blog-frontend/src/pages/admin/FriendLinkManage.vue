@@ -2,7 +2,7 @@
   <div class="friendlink-manage-page">
     <div class="header">
       <h1>友链管理</h1>
-      <n-space>
+      <n-space v-if="activeTab === 'links'">
         <n-button :size="isMobile ? 'small' : 'medium'" @click="showMyInfoModal = true">
           <template #icon>
             <n-icon :component="PersonOutline" />
@@ -18,18 +18,38 @@
           <span v-else>新建</span>
         </n-button>
       </n-space>
+      <n-button v-else type="primary" :size="isMobile ? 'small' : 'medium'" @click="handleCreateCategory">
+        <template #icon>
+          <n-icon :component="AddOutline" />
+        </template>
+        <span v-if="!isMobile">新建分类</span>
+        <span v-else>新建</span>
+      </n-button>
     </div>
 
-    <n-data-table 
-      :columns="columns" 
-      :data="friendLinks" 
-      :loading="loading"
-      :scroll-x="isMobile ? 1200 : undefined"
-      :single-line="false"
-      :pagination="pagination"
-      @update:page="handlePageChange"
-      @update:page-size="handlePageSizeChange"
-    />
+    <n-tabs v-model:value="activeTab" type="line" animated>
+      <n-tab-pane name="links" tab="友链管理">
+        <n-data-table 
+          :columns="columns" 
+          :data="friendLinks" 
+          :loading="loading"
+          :scroll-x="isMobile ? 1200 : undefined"
+          :single-line="false"
+          :pagination="pagination"
+          @update:page="handlePageChange"
+          @update:page-size="handlePageSizeChange"
+        />
+      </n-tab-pane>
+      <n-tab-pane name="categories" tab="友链分类">
+        <n-data-table 
+          :columns="categoryColumns" 
+          :data="categories" 
+          :loading="categoryLoading"
+          :scroll-x="isMobile ? 800 : undefined"
+          :single-line="false"
+        />
+      </n-tab-pane>
+    </n-tabs>
 
     <!-- 创建/编辑对话框 -->
     <n-modal 
@@ -156,6 +176,45 @@
         </n-space>
       </template>
     </n-modal>
+
+    <!-- 创建/编辑分类对话框 -->
+    <n-modal 
+      v-model:show="showCategoryModal" 
+      preset="card" 
+      :title="editingCategoryId ? '编辑分类' : '新建分类'" 
+      :style="{ width: isMobile ? '95%' : '600px', maxWidth: isMobile ? '95vw' : '600px' }"
+    >
+      <n-form ref="categoryFormRef" :model="categoryFormData" :rules="categoryRules">
+        <n-form-item label="分类名称" path="name">
+          <n-input v-model:value="categoryFormData.name" placeholder="例如：推荐" />
+        </n-form-item>
+
+        <n-form-item label="分类描述">
+          <n-input
+            v-model:value="categoryFormData.description"
+            type="textarea"
+            :rows="2"
+            placeholder="分类描述，例如：都是大佬,推荐关注"
+          />
+        </n-form-item>
+
+        <n-form-item label="排序">
+          <n-input-number v-model:value="categoryFormData.sort_order" :min="0" style="width: 100%" />
+          <template #feedback>
+            <span style="color: #909399; font-size: 12px;">数字越大越靠前</span>
+          </template>
+        </n-form-item>
+      </n-form>
+
+      <template #footer>
+        <n-space justify="end">
+          <n-button @click="showCategoryModal = false">取消</n-button>
+          <n-button type="primary" :loading="categorySubmitting" @click="handleSubmitCategory">
+            保存
+          </n-button>
+        </n-space>
+      </template>
+    </n-modal>
   </div>
 </template>
 
@@ -164,8 +223,17 @@ import { ref, reactive, computed, onMounted, onUnmounted, h } from 'vue'
 import { useMessage, useDialog, NButton, NTag, NSpace, NImage } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
 import { AddOutline, PersonOutline } from '@vicons/ionicons5'
-import { getFriendLinksAdmin, createFriendLink, updateFriendLink, deleteFriendLink, getFriendLinkCategoriesAdmin } from '@/api/friendlink'
-import type { FriendLink, FriendLinkForm, FriendLinkCategory } from '@/api/friendlink'
+import { 
+  getFriendLinksAdmin, 
+  createFriendLink, 
+  updateFriendLink, 
+  deleteFriendLink, 
+  getFriendLinkCategoriesAdmin,
+  createFriendLinkCategory,
+  updateFriendLinkCategory,
+  deleteFriendLinkCategory
+} from '@/api/friendlink'
+import type { FriendLink, FriendLinkForm, FriendLinkCategory, FriendLinkCategoryForm } from '@/api/friendlink'
 import { getFriendLinkInfo, updateFriendLinkInfo, type FriendLinkInfo } from '@/api/setting'
 
 // 更宽松且可靠的 URL 校验：使用浏览器 URL 解析，限定 http/https
@@ -185,6 +253,7 @@ const validateUrl = (_rule: unknown, value: string) => {
 const message = useMessage()
 const dialog = useDialog()
 
+const activeTab = ref<'links' | 'categories'>('links')
 const loading = ref(false)
 const submitting = ref(false)
 const showModal = ref(false)
@@ -195,6 +264,17 @@ const isMobile = ref(false)
 const total = ref(0)
 const currentPage = ref(1)
 const pageSize = ref(10)
+
+// 分类管理相关
+const categoryLoading = ref(false)
+const categorySubmitting = ref(false)
+const showCategoryModal = ref(false)
+const editingCategoryId = ref<number | null>(null)
+const categoryFormData = reactive<FriendLinkCategoryForm>({
+  name: '',
+  description: '',
+  sort_order: 0
+})
 
 // 我的友链信息相关
 const showMyInfoModal = ref(false)
@@ -249,6 +329,10 @@ const rules = {
     { validator: validateUrl, trigger: 'blur' }
   ],
   category_id: [{ required: true, message: '请选择分类', trigger: 'change', type: 'number' as const }]
+}
+
+const categoryRules = {
+  name: [{ required: true, message: '请输入分类名称', trigger: 'blur' }]
 }
 
 const columns: DataTableColumns<FriendLink> = [
@@ -318,6 +402,52 @@ const columns: DataTableColumns<FriendLink> = [
   }
 ]
 
+// 分类表格列
+const categoryColumns: DataTableColumns<FriendLinkCategory> = [
+  { 
+    title: 'ID', 
+    key: 'id', 
+    width: 60
+  },
+  {
+    title: '分类名称',
+    key: 'name',
+    width: 150
+  },
+  {
+    title: '描述',
+    key: 'description',
+    width: 250,
+    ellipsis: { tooltip: true }
+  },
+  {
+    title: '排序',
+    key: 'sort_order',
+    width: 100
+  },
+  {
+    title: '操作',
+    key: 'actions',
+    width: 150,
+    fixed: 'right',
+    render: row =>
+      h(NSpace, null, {
+        default: () => [
+          h(
+            NButton,
+            { size: 'small', onClick: () => handleEditCategory(row) },
+            { default: () => '编辑' }
+          ),
+          h(
+            NButton,
+            { size: 'small', type: 'error', onClick: () => handleDeleteCategory(row.id) },
+            { default: () => '删除' }
+          )
+        ]
+      })
+  }
+]
+
 // 分类选项
 const categoryOptions = computed(() => {
   return categories.value.map(cat => ({
@@ -345,6 +475,83 @@ onMounted(() => {
   fetchFriendLinks()
   fetchMyInfo()
 })
+
+// 分类管理相关函数
+function resetCategoryForm() {
+  editingCategoryId.value = null
+  categoryFormData.name = ''
+  categoryFormData.description = ''
+  categoryFormData.sort_order = 0
+}
+
+function handleCreateCategory() {
+  resetCategoryForm()
+  showCategoryModal.value = true
+}
+
+function handleEditCategory(category: FriendLinkCategory) {
+  editingCategoryId.value = category.id
+  categoryFormData.name = category.name
+  categoryFormData.description = category.description || ''
+  categoryFormData.sort_order = category.sort_order
+  showCategoryModal.value = true
+}
+
+async function handleSubmitCategory() {
+  try {
+    await categoryFormRef.value?.validate()
+    categorySubmitting.value = true
+
+    if (editingCategoryId.value) {
+      await updateFriendLinkCategory(editingCategoryId.value, categoryFormData)
+      message.success('分类更新成功')
+    } else {
+      await createFriendLinkCategory(categoryFormData)
+      message.success('分类创建成功')
+    }
+
+    showCategoryModal.value = false
+    fetchCategories()
+    // 如果友链表单正在使用分类，刷新分类选项
+    if (showModal.value) {
+      // 如果编辑的是当前选中的分类，保持选中状态
+      if (editingCategoryId.value && formData.category_id === editingCategoryId.value) {
+        // 保持选中
+      }
+    }
+  } catch (error: any) {
+    if (error.message && !error.message.includes('验证')) {
+      message.error(error.message || '操作失败')
+    }
+  } finally {
+    categorySubmitting.value = false
+  }
+}
+
+function handleDeleteCategory(id: number) {
+  const category = categories.value.find(c => c.id === id)
+  const categoryName = category?.name || '该分类'
+  
+  dialog.warning({
+    title: '确认删除',
+    content: `确定要删除分类"${categoryName}"吗？删除后该分类下的友链需要重新分配分类。`,
+    positiveText: '确定',
+    negativeText: '取消',
+    onPositiveClick: async () => {
+      try {
+        await deleteFriendLinkCategory(id)
+        message.success('删除成功')
+        fetchCategories()
+        // 如果删除的是当前选中的分类，重置友链表单的分类选择
+        if (formData.category_id === id && categories.value.length > 0) {
+          formData.category_id = categories.value[0].id
+        }
+      } catch (error: any) {
+        message.error(error.message || '删除失败')
+      }
+    }
+  })
+}
 
 async function fetchMyInfo() {
   try {
@@ -498,6 +705,7 @@ function handleDelete(id: number) {
 
 const formRef = ref()
 const myInfoFormRef = ref()
+const categoryFormRef = ref()
 </script>
 
 <style scoped>
