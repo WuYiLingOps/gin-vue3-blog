@@ -39,7 +39,6 @@ const MomentManage = () => import('@/pages/admin/MomentManage.vue')
 const ChatManage = () => import('@/pages/admin/ChatManage.vue')
 const IPAccessControl = () => import('@/pages/admin/IPAccessControl.vue')
 const FriendLinkManage = () => import('@/pages/admin/FriendLinkManage.vue')
-const FriendLinkCategoryManage = () => import('@/pages/admin/FriendLinkCategoryManage.vue')
 const AboutManage = () => import('@/pages/admin/AboutManage.vue')
 
 const routes: RouteRecordRaw[] = [
@@ -239,12 +238,6 @@ const routes: RouteRecordRaw[] = [
         name: 'FriendLinkManage',
         component: FriendLinkManage,
         meta: { title: '友链管理', requiresAuth: true, requiresAdmin: true }
-      },
-      {
-        path: 'friend-link-categories',
-        name: 'FriendLinkCategoryManage',
-        component: FriendLinkCategoryManage,
-        meta: { title: '友链分类管理', requiresAuth: true, requiresAdmin: true }
       },
       {
         path: 'about',
