@@ -45,11 +45,17 @@
   <svg v-else-if="type === 'weibo'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
     <path d="M9.422 10.723c-.285 0-.564-.12-.769-.33a.985.985 0 0 1-.3-.716c0-.27.11-.528.3-.717.205-.21.484-.33.77-.33.285 0 .563.12.768.33.19.189.3.447.3.717 0 .269-.11.527-.3.716a1.09 1.09 0 0 1-.768.33zm4.598 0c-.285 0-.563-.12-.768-.33a.985.985 0 0 1-.3-.716c0-.27.11-.528.3-.717.205-.21.483-.33.769-.33.284 0 .562.12.768.33.19.189.3.447.3.717 0 .269-.11.527-.3.716a1.09 1.09 0 0 1-.769.33zm-5.35 3.265c1.236 0 2.23-.99 2.23-2.206 0-1.217-.994-2.207-2.23-2.207-1.237 0-2.23.99-2.23 2.207 0 1.216.993 2.206 2.23 2.206zm5.35 0c1.236 0 2.23-.99 2.23-2.206 0-1.217-.994-2.207-2.23-2.207-1.237 0-2.23.99-2.23 2.207 0 1.216.993 2.206 2.23 2.206zM12 .48C5.373.48 0 5.373 0 12s5.373 11.52 12 11.52S24 18.627 24 12 18.627.48 12 .48zm6.344 13.713c-.08 1.58-1.13 2.906-2.803 3.733-1.674.827-3.9 1.24-6.54 1.24-2.64 0-4.866-.413-6.54-1.24-1.673-.827-2.723-2.153-2.803-3.733-.01-.12-.01-.24-.01-.36 0-1.58.413-3.05 1.14-4.28.728-1.23 1.76-2.19 3.05-2.78 1.29-.59 2.72-.89 4.16-.89 1.44 0 2.87.3 4.16.89 1.29.59 2.32 1.55 3.05 2.78.727 1.23 1.14 2.7 1.14 4.28 0 .12 0 .24-.01.36z"/>
   </svg>
+
+  <!-- CSDN Icon -->
+  <svg v-else-if="type === 'csdn'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="csdn-icon">
+    <circle cx="12" cy="12" r="12" fill="#FC5531"/>
+    <text x="12" y="12" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="600" fill="#FFFFFF" text-anchor="middle" dominant-baseline="central" alignment-baseline="central" style="user-select: none; letter-spacing: -1px;">C</text>
+  </svg>
 </template>
 
 <script setup lang="ts">
 interface Props {
-  type: 'github' | 'email' | 'rss' | 'qq' | 'wechat' | 'gitee' | 'facebook' | 'twitter' | 'weibo'
+  type: 'github' | 'email' | 'rss' | 'qq' | 'wechat' | 'gitee' | 'facebook' | 'twitter' | 'weibo' | 'csdn'
 }
 
 defineProps<Props>()
@@ -66,6 +72,13 @@ svg {
 .gitee-icon {
   transform: scale(1.6);
   transform-origin: center;
+}
+
+/* CSDN 图标样式 */
+.csdn-icon {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 </style>
 
