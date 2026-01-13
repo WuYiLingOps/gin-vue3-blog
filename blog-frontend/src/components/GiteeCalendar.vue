@@ -379,7 +379,6 @@ function normalizeWeeks(weeks: CalendarWeek[]): CalendarWeek[] {
 
 // 构造一整年的「空」数据，用于无数据 / 请求失败时仍然展示完整网格样式
 function buildEmptyWeeks(): CalendarWeek[] {
-  const days: CalendarDay[] = []
   const today = new Date()
   today.setHours(0, 0, 0, 0) // 设置为当天0点
 
