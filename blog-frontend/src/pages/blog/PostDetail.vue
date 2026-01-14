@@ -283,6 +283,8 @@ import {
 } from '@vicons/ionicons5'
 import { getPostBySlug, likePost } from '@/api/post'
 import { getCommentsByPostId, createComment, deleteComment } from '@/api/comment'
+import { getPublicSettings } from '@/api/setting'
+import type { SiteSettings } from '@/api/setting'
 import { formatDate } from '@/utils/format'
 import dayjs from 'dayjs'
 import { useAuthStore } from '@/stores'
@@ -306,6 +308,7 @@ const scrollContainer = ref<HTMLElement | null>(null)
 const replyToComment = ref<Comment | null>(null) // 记录正在回复的主评论
 const replyToUser = ref<Comment | null>(null) // 记录正在回复的具体用户
 const expandedComments = ref<Set<number>>(new Set()) // 记录展开的评论ID
+const siteSettings = ref<SiteSettings>({}) // 网站设置
 
 // TOC 相关
 interface TocItem {
@@ -331,6 +334,70 @@ const postUrl = computed(() => {
   return `${window.location.origin}/post/${post.value.slug}`
 })
 
+// 获取网站设置
+async function fetchSiteSettings() {
+  try {
+    const res = await getPublicSettings()
+    if (res.data) {
+      siteSettings.value = res.data
+    }
+  } catch (error) {
+    console.error('获取网站设置失败:', error)
+  }
+}
+
+// 处理复制事件
+function handleCopy(e: ClipboardEvent) {
+  if (!post.value) return
+  
+  const selection = window.getSelection()
+  if (!selection || selection.rangeCount === 0) return
+  
+  const selectedText = selection.toString().trim()
+  
+  // 检查复制内容长度是否超过500字符
+  if (selectedText.length < 500) return
+  
+  // 检查是否在文章内容区域内
+  const postContentElement = document.querySelector('.post-content')
+  if (!postContentElement) return
+  
+  const range = selection.getRangeAt(0)
+  // 获取包含选中内容的元素节点
+  let container: Node | null = range.commonAncestorContainer
+  // 如果是文本节点，获取其父元素
+  if (container.nodeType === Node.TEXT_NODE) {
+    container = container.parentElement
+  }
+  // 检查是否在文章内容区域内
+  if (!container || !postContentElement.contains(container)) return
+  
+  // 阻止默认复制行为
+  e.preventDefault()
+  
+  // 构建版权信息
+  const author = post.value.user.nickname || post.value.user.username || '作者'
+  const link = postUrl.value
+  const siteName = siteSettings.value.site_name || '网站'
+  
+  const copyrightInfo = `\n\n作者: ${author}\n链接: ${link}\n来源: ${siteName}\n著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。`
+  
+  const textWithCopyright = selectedText + copyrightInfo
+  
+  // 设置剪贴板内容
+  if (e.clipboardData) {
+    e.clipboardData.setData('text/plain', textWithCopyright)
+    message.success('已自动添加版权信息')
+  } else {
+    // 降级方案：使用 Clipboard API
+    navigator.clipboard.writeText(textWithCopyright).then(() => {
+      message.success('已自动添加版权信息')
+    }).catch(() => {
+      message.error('复制失败')
+    })
+  }
+}
+
 // 复制文章链接
 async function copyPostLink() {
   try {
@@ -343,6 +410,10 @@ async function copyPostLink() {
 
 onMounted(() => {
   fetchPost()
+  fetchSiteSettings()
+  
+  // 监听复制事件
+  document.addEventListener('copy', handleCopy)
   
   // 监听滚动 - 需要监听 n-layout-content 的滚动
   nextTick(() => {
@@ -364,6 +435,9 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+  // 移除复制事件监听
+  document.removeEventListener('copy', handleCopy)
+  
   if (scrollContainer.value) {
     scrollContainer.value.removeEventListener('scroll', handleScroll)
   }
