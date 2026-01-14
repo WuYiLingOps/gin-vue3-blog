@@ -1,12 +1,12 @@
-# ==================== IDEs and Editors ====================
-# Visual Studio Code
+# ==================== IDEs and Editors ====================  IDE 与编辑器相关配置
+# Visual Studio Code  VSCode 相关配置
 .vscode/*
 !.vscode/extensions.json
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
 
-# JetBrains IDEs (IntelliJ IDEA, GoLand, WebStorm, etc.)
+# JetBrains IDEs (IntelliJ IDEA, GoLand, WebStorm, etc.)  JetBrains 系列 IDE 配置
 .idea/
 *.iml
 *.ipr
@@ -14,11 +14,11 @@
 out/
 
 
-# Emacs
+# Emacs  Emacs 编辑器配置
 
 
-# ==================== Go Backend ====================
-# Binaries
+# ==================== Go Backend ====================  Go 后端相关配置
+# Binaries  编译生成的二进制文件
 *.exe
 *.exe~
 *.dll
@@ -29,32 +29,32 @@ blog-backend/server
 blog-backend/cmd/server/blog-backend
 blog-backend/blog-backend.exe
 
-# Test binary, built with `go test -c`
+# Test binary, built with `go test -c`  通过 `go test -c` 生成的测试二进制文件
 *.test
 
 
-# Go workspace file
+# Go workspace file  Go 模块工作区文件
 go.work
 go.work.sum
 
-# Dependency directories
+# Dependency directories  依赖目录（vendor）
 vendor/
 
-# Air (live reload)
+# Air (live reload)  Air 热重载工具相关文件
 tmp/
 .air.toml
 
-# ==================== Node.js / Frontend ====================
-# Dependencies
+# ==================== Node.js / Frontend ====================  Node.js / 前端相关配置
+# Dependencies  前端依赖目录
 node_modules/
 
-# Build outputs
+# Build outputs  构建产物输出目录
 dist/
 dist-ssr/
 build/
 .cache/
 
-# Logs
+# Logs  日志文件
 logs/
 *.log
 npm-debug.log*
@@ -67,70 +67,75 @@ lerna-debug.log*
 package-lock.json
 yarn.lock
 
-# Environment variables
+# Environment variables  环境变量文件
 # 通用：忽略所有 .env* 文件（包括 .env.config.dev / .env.config.prod 等）
 .env*
 
-# Testing
+# Testing  测试相关文件
 coverage/
 .nyc_output/
 
-# Vite
+# Vite  Vite 相关配置/缓存
 *.local
 
-# ==================== Configuration Files ====================
-# Backend configuration with sensitive data
+# Auto-generated frontend files（锁文件和自动生成的类型声明不需要提交）  前端自动生成文件，无需提交
+blog-frontend/pnpm-lock.yaml
+blog-frontend/src/types/auto-imports.d.ts
+blog-frontend/src/types/components.d.ts
+
+# ==================== Configuration Files ====================  配置文件相关
+# Backend configuration with sensitive data  含敏感信息的后端配置文件
 !blog-backend/config/config.yml
 !blog-backend/config/config-prod.yml  # 模板文件，允许提交
 !blog-backend/config/config-dev.yml
 !blog-backend/config/config.example.yml
 
-# ==================== Uploads and User Content ====================
-# Uploaded files
+# ==================== Uploads and User Content ====================  上传文件和用户内容
+# Uploaded files  上传的文件
 blog-backend/uploads/*
 !blog-backend/uploads/.gitkeep
 
-# Keep avatar directory structure but ignore contents
+# Keep avatar directory structure but ignore contents  保留头像目录结构但忽略文件内容
 blog-backend/uploads/avatars/*
 !blog-backend/uploads/avatars/.gitkeep
 
-# ==================== Database ====================
-# Database files
+# ==================== Database ====================  数据库相关
+# Database files  数据库文件
 *.db
 *.sqlite
 *.sqlite3
 
-# Database dumps
+# Database dumps  数据转储文件
 *.sql.gz
 *.sql.bak
 dump.sql
 add*.sql
 
-# Database backups with real data (keep init.sql)
+# Database backups with real data (keep init.sql)  含真实数据的数据库备份（保留 init.sql 模板）
 blog-backend/sql/blogdb.sql
 blog-backend/sql/backup_*.sql
 
-# Docker volumes
+# Docker volumes  Docker 数据卷目录
 postgres-data/
 redis-data/
 
-# ==================== Docker ====================
-# Docker override files
+# ==================== Docker ====================  Docker 相关配置
+# Docker override files  Docker 覆盖配置文件
 docker-compose.override.yml
 
-# ==================== Logs ====================
-# Application logs
+# ==================== Logs ====================  日志相关
+# Application logs  应用运行日志
 *.log
 logs/
 log/
 
-# ==================== Build Artifacts ====================
-# Compiled binaries
+# ==================== Build Artifacts ====================  构建产物
+# Compiled binaries  编译生成的二进制/构建目录
 bin/
 build/
 dist/
 
-# JWT secrets
+# JWT secrets  JWT 密钥等敏感配置
 secrets/
 
 
