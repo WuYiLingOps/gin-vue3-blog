@@ -9,7 +9,7 @@
 
 ## 🌐 在线演示
 
-**网站地址**: [https://blog.leadcode.top/](https://blog.leadcode.top/)
+**网站地址**: [https://huangjingblog.cn/](https://huangjingblog.cn/)
 
 - 📱 支持 PC、平板、手机访问
 - 💬 可以访问聊天室与其他用户实时交流
@@ -32,6 +32,14 @@
 ### 友情链接
 
 ![友情链接](./screenshots/FriendshipLinks.png)
+
+### 关于我
+
+![关于我](./screenshots/aboutMe.png)
+
+### 说说
+
+![说说](./screenshots/shuoshuo.png)
 
 ## ✨ 特性
 
