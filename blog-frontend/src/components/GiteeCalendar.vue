@@ -232,148 +232,144 @@ const lastMonthStats = computed(() => {
 // 网格尺寸（需与下方 CSS 中 .grid 的宽高 / gap 保持一致）
 const CELL_SIZE = 12
 const CELL_GAP = 5
+// 月份标签最小间距，避免重叠
+const MIN_MONTH_GAP = (CELL_SIZE + CELL_GAP) * 2
 
 // 月份标签（中文）
 const monthLabelsArray = ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月']
 
-// 动态生成月份标签：根据实际数据中出现的月份（支持跨年）
-const monthLabels = computed(() => {
-  if (!weeks.value.length) {
-    return monthLabelsArray
+// 构造「需要展示的月份」时间轴：以当前月份为结束，回溯 12 个月
+const monthTimeline = computed(() => {
+  const months: Array<{ year: number; month: number }> = []
+  const end = new Date()
+  end.setDate(1)
+  const start = new Date(end)
+  start.setMonth(start.getMonth() - 11)
+  for (let i = 0; i < 12; i++) {
+    const cur = new Date(start)
+    cur.setMonth(start.getMonth() + i)
+    months.push({ year: cur.getFullYear(), month: cur.getMonth() })
   }
+  return months
+})
 
-  // 从实际数据中提取所有出现的月份（包括跨年情况）
-  // 使用 Map 记录每个年月组合及其首次出现的位置
-  const monthYearList: Array<{ month: number; year: number; firstCol: number }> = []
-  const seenKeys = new Set<string>()
-  
+// 收集各月份出现位置与有效日期范围
+const monthMeta = computed(() => {
+  const info = new Map<
+    string,
+    {
+      firstCol: number
+      firstDate: Date
+    }
+  >()
+  let earliest: Date | null = null
+  let latest: Date | null = null
+
   weeks.value.forEach((week, colIndex) => {
     week.forEach((d) => {
-      if (!d.date || d.count < 0) return // 跳过无效日期
+      if (!d.date || d.count < 0) return
       const date = new Date(d.date + 'T00:00:00')
       if (Number.isNaN(date.getTime())) return
-      
-      const month = date.getMonth() // 0-11
-      const year = date.getFullYear()
-      const key = `${year}-${month}`
-      
-      // 记录每个年月组合的首次出现位置
-      if (!seenKeys.has(key)) {
-        seenKeys.add(key)
-        monthYearList.push({ month, year, firstCol: colIndex })
+
+      if (!earliest || date < earliest) earliest = date
+      if (!latest || date > latest) latest = date
+
+      const key = `${date.getFullYear()}-${date.getMonth()}`
+      if (!info.has(key)) {
+        info.set(key, { firstCol: colIndex, firstDate: date })
       }
     })
   })
 
-  if (monthYearList.length === 0) {
-    return monthLabelsArray
-  }
-
-  // 按时间顺序排序（先按年份，再按月份）
-  monthYearList.sort((a, b) => {
-    if (a.year !== b.year) return a.year - b.year
-    return a.month - b.month
-  })
-
-  // 提取唯一的月份（如果跨年，12月和1月都会出现）
-  const uniqueMonths: number[] = []
-  monthYearList.forEach(({ month }) => {
-    if (!uniqueMonths.includes(month)) {
-      uniqueMonths.push(month)
-    }
-  })
-
-  // 如果数据跨越了年份（比如从去年2月到今年1月），需要特殊处理
-  // 检查是否同时包含12月和1月，且12月在前，1月在后
-  const hasDec = uniqueMonths.includes(11)
-  const hasJan = uniqueMonths.includes(0)
-  
-  if (hasDec && hasJan) {
-    // 找到12月和1月的位置
-    const decIndex = uniqueMonths.indexOf(11)
-    const janIndex = uniqueMonths.indexOf(0)
-    
-    // 如果12月在前，1月在后，说明跨年了
-    if (decIndex < janIndex) {
-      // 跨年情况：保持原有顺序，但确保12月和1月都显示
-      return uniqueMonths.map(m => monthLabelsArray[m])
-    }
-  }
-
-  // 非跨年或正常情况：返回所有出现的月份标签
-  return uniqueMonths.map(m => monthLabelsArray[m])
+  const maxPos = Math.max(0, (weeks.value.length - 1) * (CELL_SIZE + CELL_GAP))
+  return { info, earliest, latest, maxPos }
 })
 
-// 每个月份对应的像素位置（相对于网格左侧），用于让月份文字精确对齐到对应列上方
+// 动态月份标签（支持跨年、缺失月份插值、最小间距防重叠）
+const monthLabels = computed(() => monthTimeline.value.map((m) => monthLabelsArray[m.month]))
+
+// 每个月份对应的像素位置（相对于网格左侧），支持缺失月份插值与最小间距防重叠
 const monthPositions = computed(() => {
-  if (!weeks.value.length) {
-    return [] as (number | null)[]
+  if (!weeks.value.length) return [] as (number | null)[]
+
+  const { info, maxPos } = monthMeta.value
+  const timeline = monthTimeline.value
+  if (!timeline.length) return []
+
+  // 基于现有数据的基准位置（使用该月第一列的位置，贴近自然左对齐）
+  const basePositions = timeline.map(({ year, month }) => {
+    const key = `${year}-${month}`
+    const meta = info.get(key)
+    if (!meta) return null
+    return meta.firstCol * (CELL_SIZE + CELL_GAP)
+  })
+  const anchors = basePositions.map((p) => p !== null)
+
+  // 兜底参考间距（均匀分布，避免全空导致无法插值）
+  const uniformSpacing =
+    timeline.length > 1 ? maxPos / Math.max(1, timeline.length - 1) : maxPos
+
+  // 缺失月份插值：向左右寻找最近已知位置，线性推断
+  const interpolated = [...basePositions]
+  for (let i = 0; i < interpolated.length; i++) {
+    if (interpolated[i] !== null) continue
+
+    // 找到左侧最近的已知位置
+    let leftIdx = i - 1
+    while (leftIdx >= 0 && interpolated[leftIdx] === null) leftIdx--
+    // 找到右侧最近的已知位置
+    let rightIdx = i + 1
+    while (rightIdx < interpolated.length && interpolated[rightIdx] === null) rightIdx++
+
+    if (leftIdx >= 0 && rightIdx < interpolated.length && interpolated[leftIdx] !== null && interpolated[rightIdx] !== null) {
+      const leftPos = interpolated[leftIdx] as number
+      const rightPos = interpolated[rightIdx] as number
+      const gap = rightIdx - leftIdx
+      const ratio = (i - leftIdx) / gap
+      interpolated[i] = leftPos + (rightPos - leftPos) * ratio
+    } else if (leftIdx >= 0 && interpolated[leftIdx] !== null) {
+      // 只有左侧：沿用均匀步进
+      interpolated[i] = (interpolated[leftIdx] as number) + uniformSpacing * (i - leftIdx)
+    } else if (rightIdx < interpolated.length && interpolated[rightIdx] !== null) {
+      // 只有右侧：反向均匀步进
+      interpolated[i] = (interpolated[rightIdx] as number) - uniformSpacing * (rightIdx - i)
+    } else {
+      // 全部为空：完全均匀分布
+      interpolated[i] = uniformSpacing * i
+    }
   }
 
-  // 记录每个年月组合最后一次出现的列位置
-  const monthPositionMap = new Map<string, number>() // key: "year-month", value: position
-  
-  weeks.value.forEach((week, colIndex) => {
-    week.forEach((d) => {
-      if (!d.date || d.count < 0) return // 跳过无效日期
-      const date = new Date(d.date + 'T00:00:00')
-      if (Number.isNaN(date.getTime())) return
-      
-      const month = date.getMonth() // 0-11
-      const year = date.getFullYear()
-      const key = `${year}-${month}`
-      
-      // 不断覆盖，保证取到"该月最后一次出现"的列
-      monthPositionMap.set(key, colIndex * (CELL_SIZE + CELL_GAP))
-    })
-  })
-
-  // 获取当前要显示的月份标签
-  const labels = monthLabels.value
-  const positions: (number | null)[] = []
-  
-  // 收集所有年月组合，按时间顺序排序
-  const monthYearList: Array<{ month: number; year: number; position: number }> = []
-  monthPositionMap.forEach((position, key) => {
-    const [year, month] = key.split('-').map(Number)
-    monthYearList.push({ month, year, position })
-  })
-  
-  // 按时间顺序排序
-  monthYearList.sort((a, b) => {
-    if (a.year !== b.year) return a.year - b.year
-    return a.month - b.month
-  })
-
-  // 为每个标签找到对应的位置
-  // 如果跨年（比如12月和1月），需要找到对应的年月组合
-  labels.forEach((label) => {
-    const monthIndex = monthLabelsArray.indexOf(label)
-    if (monthIndex === -1) {
-      positions.push(null)
-      return
+  // 防重叠：只移动非锚点，保持已有月份严格对齐网格列
+  const adjusted = [...interpolated] as number[]
+  for (let i = 1; i < adjusted.length; i++) {
+    if (adjusted[i] === null) continue
+    if (anchors[i]) continue
+    if (adjusted[i] < adjusted[i - 1] + MIN_MONTH_GAP) {
+      adjusted[i] = adjusted[i - 1] + MIN_MONTH_GAP
     }
-    
-    // 找到该月份最后一次出现的位置
-    // 如果跨年，12月和1月可能出现在不同年份
-    const matchingEntries = monthYearList.filter(e => e.month === monthIndex)
-    
-    if (matchingEntries.length > 0) {
-      // 取最后一次出现的位置（通常是最后一个）
-      const lastEntry = matchingEntries[matchingEntries.length - 1]
-      positions.push(lastEntry.position)
-    } else {
-      positions.push(null)
-    }
-  })
+  }
 
-  // 整体向左平移一点，让文字更居中贴近对应月份
-  const OFFSET = 2 * (CELL_SIZE + CELL_GAP)
-  return positions.map(pos => {
-    if (pos !== null) {
-      return Math.max(0, pos - OFFSET)
+  // 末端限制：只回拉非锚点，避免整体平移导致锚点偏离网格
+  for (let i = adjusted.length - 2; i >= 0; i--) {
+    if (adjusted[i] === null) continue
+    if (anchors[i]) continue
+    if (adjusted[i] > adjusted[i + 1] - MIN_MONTH_GAP) {
+      adjusted[i] = adjusted[i + 1] - MIN_MONTH_GAP
     }
-    return null
+  }
+
+  // 边界收缩：非锚点超过右界则回拉到 maxPos
+  for (let i = 0; i < adjusted.length; i++) {
+    if (adjusted[i] === null) continue
+    if (anchors[i]) continue
+    if (adjusted[i] > maxPos) adjusted[i] = maxPos
+  }
+
+  const SHIFT_RIGHT = CELL_SIZE * 4.5 // 向右微移 4.5 个单元格，使标签更贴合首日所在列
+  return adjusted.map((pos) => {
+    if (pos === null) return null
+    const shifted = pos + SHIFT_RIGHT
+    return Math.min(Math.max(0, shifted), maxPos)
   })
 })
 
