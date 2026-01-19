@@ -231,7 +231,6 @@ async function fetchAuthorProfile() {
     const res = await getAuthorProfile()
     if (res.data) {
       authorProfile.value = res.data
-      console.log('博主信息:', res.data)
     }
   } catch (error: any) {
     console.error('获取博主信息失败:', error)
@@ -259,7 +258,6 @@ async function fetchAuthorProfile() {
 async function fetchSettings() {
   try {
     const res = await getPublicSettings()
-    console.log('网站设置响应:', res)
     if (res.data) {
       siteSettings.value = res.data
       // 从设置中提取社交链接（如果存在）
@@ -278,8 +276,6 @@ async function fetchSettings() {
         socialLinkOrder.value = res.data.social_link_order.split(',').filter(Boolean)
       }
       
-      console.log('社交链接:', socialLinks.value)
-      console.log('社交链接排序:', socialLinkOrder.value)
     }
   } catch (error: any) {
     console.error('获取网站设置失败:', error)
