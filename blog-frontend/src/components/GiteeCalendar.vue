@@ -140,12 +140,33 @@ const flatDays = computed(() => weeks.value.flat())
 const outerRef = ref<HTMLElement | null>(null)
 const innerRef = ref<HTMLElement | null>(null)
 const scale = ref(1)
+// 是否桌面端，用于控制桌面/移动端不同的视觉对齐策略（响应式，支持尺寸切换）
+const isDesktop = ref(true)
 let resizeObserver: ResizeObserver | null = null
 
 function updateScale() {
   const outer = outerRef.value
   const inner = innerRef.value
   if (!outer || !inner) return
+
+  if (typeof window !== 'undefined') {
+    isDesktop.value = window.innerWidth >= 769
+  }
+
+  // 移动端（< 769px）保留原始尺寸，改用横向滚动，并默认对齐到最新数据（最右侧）
+  if (!isDesktop.value) {
+    scale.value = 1
+    // 下一帧将滚动条滚动到最右，优先展示最近的提交数据
+    requestAnimationFrame(() => {
+      const el = outerRef.value
+      if (!el) return
+      const maxScrollLeft = el.scrollWidth - el.clientWidth
+      if (maxScrollLeft > 0) {
+        el.scrollLeft = maxScrollLeft
+      }
+    })
+    return
+  }
 
   const outerWidth = outer.clientWidth
   // 获取未缩放时的原始宽度
@@ -289,6 +310,7 @@ const monthMeta = computed(() => {
 const monthLabels = computed(() => monthTimeline.value.map((m) => monthLabelsArray[m.month]))
 
 // 每个月份对应的像素位置（相对于网格左侧），支持缺失月份插值与最小间距防重叠
+// 位置以「月份首列单元格的中心点」为基准，确保缩放/压缩后仍与网格精确对齐
 const monthPositions = computed(() => {
   if (!weeks.value.length) return [] as (number | null)[]
 
@@ -296,18 +318,20 @@ const monthPositions = computed(() => {
   const timeline = monthTimeline.value
   if (!timeline.length) return []
 
-  // 基于现有数据的基准位置（使用该月第一列的位置，贴近自然左对齐）
+  // 基于现有数据的基准位置（使用该月第一列所在列的中心点）
   const basePositions = timeline.map(({ year, month }) => {
     const key = `${year}-${month}`
     const meta = info.get(key)
     if (!meta) return null
-    return meta.firstCol * (CELL_SIZE + CELL_GAP)
+    return meta.firstCol * (CELL_SIZE + CELL_GAP) + CELL_SIZE / 2
   })
   const anchors = basePositions.map((p) => p !== null)
 
-  // 兜底参考间距（均匀分布，避免全空导致无法插值）
+  // 兜底参考间距（均匀分布，避免全空导致无法插值），同样以中心点为单位
   const uniformSpacing =
-    timeline.length > 1 ? maxPos / Math.max(1, timeline.length - 1) : maxPos
+    timeline.length > 1
+      ? (maxPos + CELL_SIZE / 2) / Math.max(1, timeline.length - 1)
+      : maxPos + CELL_SIZE / 2
 
   // 缺失月份插值：向左右寻找最近已知位置，线性推断
   const interpolated = [...basePositions]
@@ -358,18 +382,29 @@ const monthPositions = computed(() => {
     }
   }
 
-  // 边界收缩：非锚点超过右界则回拉到 maxPos
+  // 边界收缩：非锚点超过右界则回拉到 (maxPos + CELL_SIZE/2)，保证中心点仍在网格内
   for (let i = 0; i < adjusted.length; i++) {
     if (adjusted[i] === null) continue
     if (anchors[i]) continue
-    if (adjusted[i] > maxPos) adjusted[i] = maxPos
+    const maxCenter = maxPos + CELL_SIZE / 2
+    if (adjusted[i] > maxCenter) adjusted[i] = maxCenter
   }
 
-  const SHIFT_RIGHT = CELL_SIZE * 4.5 // 向右微移 4.5 个单元格，使标签更贴合首日所在列
   return adjusted.map((pos) => {
     if (pos === null) return null
-    const shifted = pos + SHIFT_RIGHT
-    return Math.min(Math.max(0, shifted), maxPos)
+    // 中心点不能小于第一列中心，也不能大于最后一列中心
+    const minCenter = CELL_SIZE / 2
+    const maxCenter = maxPos + CELL_SIZE / 2
+    let center = Math.min(Math.max(pos, minCenter), maxCenter)
+
+    // 仅在「桌面端」时做视觉微调；移动端横向滚动模式不受影响
+    if (isDesktop.value) {
+      center += CELL_SIZE * 4.5
+      center = Math.min(Math.max(center, minCenter), maxCenter)
+    }
+
+    // month-label 使用 translateX(-50%)，此处直接返回中心点 x 即可
+    return center
   })
 })
 
@@ -1113,6 +1148,25 @@ html.dark .stat-item .range {
   /* 移动端数据来源优化 */
   .source {
     font-size: 11px;
+  }
+
+  /* 移动端：保留原始尺寸，使用横向滚动展示，避免过度缩放 */
+  .graph-body-outer {
+    overflow-x: auto;
+    overflow-y: visible;
+    padding-bottom: 8px;
+  }
+
+  .graph-body-inner {
+    min-width: max-content;
+  }
+
+  .months-row {
+    min-width: max-content;
+  }
+
+  .grid {
+    width: max-content;
   }
 }
 </style>
