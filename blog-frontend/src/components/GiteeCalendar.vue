@@ -174,25 +174,59 @@ const dateRange = computed(() => {
 
 const lastWeekStats = computed(() => {
   if (!flatDays.value.length) return { total: 0, from: '', to: '' }
-  const len = flatDays.value.length
-  const last = flatDays.value[len - 1]
+  
+  // 过滤掉无效日期（count < 0 表示超出范围的空白天数）
+  const validDays = flatDays.value.filter((d) => d.count >= 0)
+  if (!validDays.length) return { total: 0, from: '', to: '' }
+  
+  // 获取最后一个有效日期作为结束日期
+  const last = validDays[validDays.length - 1]
   const to = last.date
-  const fromIdx = Math.max(0, len - 7)
-  const slice = flatDays.value.slice(fromIdx, len)
-  const sum = slice.reduce((s, d) => s + d.count, 0)
-  return { total: sum, from: slice[0].date, to }
+  
+  // 计算7天前的日期（包含今天，所以是6天前）
+  const toDate = new Date(to + 'T00:00:00')
+  const fromDate = new Date(toDate)
+  fromDate.setDate(toDate.getDate() - 6)
+  const fromStr = fromDate.toISOString().slice(0, 10)
+  
+  // 筛选出最近7天的有效数据（基于日期范围，而不是数组索引）
+  const slice = validDays.filter((d) => d.date >= fromStr && d.date <= to)
+  // 只累加有效的提交次数（确保 count >= 0）
+  const sum = slice.reduce((s, d) => s + Math.max(0, d.count), 0)
+  
+  return { 
+    total: sum, 
+    from: slice.length ? slice[0].date : fromStr, 
+    to 
+  }
 })
 
 const lastMonthStats = computed(() => {
   if (!flatDays.value.length) return { total: 0, from: '', to: '' }
-  const last = flatDays.value[flatDays.value.length - 1]
+  
+  // 过滤掉无效日期（count < 0 表示超出范围的空白天数）
+  const validDays = flatDays.value.filter((d) => d.count >= 0)
+  if (!validDays.length) return { total: 0, from: '', to: '' }
+  
+  // 获取最后一个有效日期作为结束日期
+  const last = validDays[validDays.length - 1]
   const to = last.date
-  const fromDate = new Date(to)
+  
+  // 计算30天前的日期（包含今天，所以是29天前）
+  const fromDate = new Date(to + 'T00:00:00')
   fromDate.setDate(fromDate.getDate() - 29)
   const fromStr = fromDate.toISOString().slice(0, 10)
-  const slice = flatDays.value.filter((d) => d.date >= fromStr && d.date <= to)
-  const sum = slice.reduce((s, d) => s + d.count, 0)
-  return { total: sum, from: slice.length ? slice[0].date : fromStr, to }
+  
+  // 筛选出最近30天的有效数据（基于日期范围）
+  const slice = validDays.filter((d) => d.date >= fromStr && d.date <= to)
+  // 只累加有效的提交次数（确保 count >= 0）
+  const sum = slice.reduce((s, d) => s + Math.max(0, d.count), 0)
+  
+  return { 
+    total: sum, 
+    from: slice.length ? slice[0].date : fromStr, 
+    to 
+  }
 })
 
 // 网格尺寸（需与下方 CSS 中 .grid 的宽高 / gap 保持一致）
