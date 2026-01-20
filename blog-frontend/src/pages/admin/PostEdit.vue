@@ -31,9 +31,13 @@
           <n-form-item label="标签" path="tag_ids">
             <n-select
               v-model:value="formData.tag_ids"
-              :options="tagOptions"
+              :options="tagOptionsWithSearchHint"
               multiple
-              placeholder="请选择标签"
+              filterable
+              clearable
+              :filter="filterTagOption"
+              :on-search="handleTagSearch"
+              placeholder="请输入关键词搜索标签"
             />
           </n-form-item>
 
@@ -164,12 +168,44 @@ const categoryOptions = computed<SelectOption[]>(() => {
   }))
 })
 
+// 标签搜索关键词（仅用于展示当前输入的提示项）
+const tagSearchKeyword = ref('')
+
 const tagOptions = computed<SelectOption[]>(() => {
   return blogStore.tags.map((tag) => ({
     label: tag.name,
     value: tag.id
   }))
 })
+
+// 在下拉列表顶部显示“当前输入：xxx”的只读提示项，方便在无匹配结果时仍能看到自己的输入
+const tagOptionsWithSearchHint = computed<SelectOption[]>(() => {
+  const base = tagOptions.value
+  const keyword = tagSearchKeyword.value.trim()
+  if (!keyword) return base
+
+  return [
+    {
+      label: `当前输入：${keyword}`,
+      value: -1,
+      disabled: true
+    },
+    ...base
+  ]
+})
+
+function handleTagSearch(value: string) {
+  tagSearchKeyword.value = value
+}
+
+function filterTagOption(pattern: string, option: SelectOption) {
+  const keyword = (pattern || '').trim().toLowerCase()
+  if (!keyword) return true
+
+  const label = String(option.label ?? '').toLowerCase()
+  // 模糊查询：包含匹配（足够解决“标签过多难找”的问题）
+  return label.includes(keyword)
+}
 
 // 监听状态变化，当选择草稿时自动设置可见性为私密
 watch(
