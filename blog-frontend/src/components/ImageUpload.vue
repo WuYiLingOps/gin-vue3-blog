@@ -1,5 +1,10 @@
 <template>
-  <div class="image-upload">
+  <div
+    class="image-upload"
+    ref="rootRef"
+    @mouseenter="handleMouseEnter"
+    @mouseleave="handleMouseLeave"
+  >
     <div v-if="imageUrl" class="image-preview">
       <n-image
         :src="imageUrl"
@@ -24,6 +29,11 @@
           </n-button>
         </n-space>
       </div>
+
+      <!-- 粘贴提示：悬停时允许 Ctrl+V 替换图片 -->
+      <div v-if="isHover && isVisible" class="paste-hint">
+        <n-text depth="3" style="font-size: 12px">悬停时按 Ctrl+V 可替换图片</n-text>
+      </div>
     </div>
 
     <n-upload
@@ -34,13 +44,26 @@
       @before-upload="handleBeforeUpload"
     >
       <n-upload-dragger>
-        <div class="upload-area" :style="{ width: width + 'px', height: height + 'px' }">
+        <div
+          ref="pasteTargetRef"
+          class="upload-area"
+          :class="{ paste_active: isHover && isVisible }"
+          :style="{ width: width + 'px', height: height + 'px' }"
+          tabindex="0"
+          @paste="handlePaste"
+        >
           <n-icon size="48" :component="CloudUploadOutline" />
           <n-text style="margin-top: 12px; display: block">
             点击或拖拽图片上传
           </n-text>
           <n-text depth="3" style="font-size: 12px; margin-top: 8px; display: block">
             支持 jpg、png、gif 格式，文件大小不超过 {{ maxSizeMB }}MB
+          </n-text>
+          <n-text depth="3" style="font-size: 12px; margin-top: 6px; display: block">
+            悬停此区域可 Ctrl+V 粘贴上传（支持截图/复制图片）
+          </n-text>
+          <n-text v-if="!isVisible" depth="3" style="font-size: 12px; margin-top: 6px; display: block">
+            组件不在可视区域时不响应粘贴
           </n-text>
         </div>
       </n-upload-dragger>
@@ -59,7 +82,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, onBeforeUnmount, onMounted } from 'vue'
 import { useMessage } from 'naive-ui'
 import type { UploadFileInfo, UploadCustomRequestOptions } from 'naive-ui'
 import { CloudUploadOutline, EyeOutline, TrashOutline } from '@vicons/ionicons5'
@@ -92,6 +115,12 @@ const message = useMessage()
 
 const imageUrl = ref(props.modelValue)
 const showPreview = ref(false)
+const uploading = ref(false)
+const rootRef = ref<HTMLElement | null>(null)
+const pasteTargetRef = ref<HTMLElement | null>(null)
+const isHover = ref(false)
+const isVisible = ref(true)
+let io: IntersectionObserver | null = null
 
 // 监听外部传入的值变化
 watch(() => props.modelValue, (newVal) => {
@@ -121,6 +150,116 @@ function handleBeforeUpload(data: { file: UploadFileInfo }) {
 
   return true
 }
+
+function handleMouseEnter() {
+  isHover.value = true
+  // 让上传区域更容易接收到粘贴事件（需要聚焦）。预览状态无此 ref，但有全局 paste 兜底。
+  pasteTargetRef.value?.focus?.()
+}
+
+function handleMouseLeave() {
+  isHover.value = false
+}
+
+function validateImageFile(file: File): boolean {
+  if (!file.type.startsWith('image/')) {
+    message.error('只能上传图片文件')
+    return false
+  }
+
+  const maxSize = props.maxSizeMB * 1024 * 1024
+  if (file.size > maxSize) {
+    message.error(`图片大小不能超过 ${props.maxSizeMB}MB`)
+    return false
+  }
+
+  return true
+}
+
+async function uploadAndSet(file: File) {
+  if (uploading.value) return
+  if (!validateImageFile(file)) return
+
+  uploading.value = true
+  try {
+    const result = await uploadImage(file)
+    if (result.data?.url) {
+      imageUrl.value = result.data.url
+      emit('update:modelValue', result.data.url)
+      emit('success', result.data.url)
+      message.success('图片上传成功')
+    } else {
+      message.error('上传失败：未获取到图片地址')
+    }
+  } catch (error: any) {
+    console.error('粘贴上传失败:', error)
+    message.error(error.message || '上传失败，请重试')
+  } finally {
+    uploading.value = false
+  }
+}
+
+async function handlePaste(event: ClipboardEvent) {
+  if (!isHover.value || !isVisible.value) return
+  if (uploading.value) return
+
+  const items = event.clipboardData?.items
+  if (!items || items.length === 0) return
+
+  // 仅处理剪贴板中的图片（如截图、复制图片）
+  const imageItem = Array.from(items).find((it) => it.type?.startsWith('image/'))
+  if (!imageItem) return
+
+  const file = imageItem.getAsFile()
+  if (!file) {
+    message.error('读取剪贴板图片失败')
+    return
+  }
+
+  event.preventDefault()
+  await uploadAndSet(file)
+}
+
+function handleGlobalPaste(event: ClipboardEvent) {
+  // 预览状态下无法保证有聚焦区域，因此用全局粘贴兜底；但必须悬停才处理，避免误触
+  if (!isHover.value || !isVisible.value) return
+  void handlePaste(event)
+}
+
+onMounted(() => {
+  window.addEventListener('paste', handleGlobalPaste)
+
+  // 组件可见性：只有在视口内才允许响应粘贴（双保险）
+  if (!('IntersectionObserver' in window)) {
+    isVisible.value = true
+    return
+  }
+
+  io = new IntersectionObserver(
+    (entries) => {
+      const entry = entries[0]
+      // intersectionRatio 有些浏览器/场景会抖动，这里用 isIntersecting + ratio 双判断更稳
+      isVisible.value = !!entry && (entry.isIntersecting || entry.intersectionRatio > 0)
+    },
+    {
+      root: null,
+      // 只要进入视口就算可见
+      threshold: [0, 0.01]
+    }
+  )
+
+  if (rootRef.value) {
+    io.observe(rootRef.value)
+  }
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('paste', handleGlobalPaste)
+  if (io) {
+    io.disconnect()
+    io = null
+  }
+})
 
 // 使用自定义上传请求
 async function customRequest(options: UploadCustomRequestOptions) {
@@ -191,6 +330,16 @@ function handleRemove() {
   cursor: pointer;
   transition: all 0.3s;
   color: #666;
+  outline: none;
+}
+
+.upload-area.paste_active {
+  box-shadow: 0 0 0 2px rgba(8, 145, 178, 0.35) inset;
+}
+
+.paste-hint {
+  margin-top: 8px;
+  text-align: center;
 }
 
 .upload-area:hover {
