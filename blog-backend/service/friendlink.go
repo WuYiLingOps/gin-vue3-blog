@@ -1,6 +1,11 @@
 package service
 
 import (
+	"context"
+	"encoding/json"
+	"time"
+
+	"blog-backend/db"
 	"blog-backend/model"
 	"blog-backend/repository"
 )
@@ -69,6 +74,12 @@ func (s *FriendLinkService) Create(req *CreateFriendLinkRequest) (*model.FriendL
 		return nil, err
 	}
 
+	// 创建成功后，清理前台友链列表缓存
+	go func() {
+		ctx := context.Background()
+		db.RDB.Del(ctx, "friend_links:public:list")
+	}()
+
 	return s.repo.GetByID(friendLink.ID)
 }
 
@@ -90,7 +101,29 @@ func (s *FriendLinkService) List(page, pageSize int) ([]model.FriendLink, int64,
 
 // ListPublic 获取公开的友链列表（前端用）
 func (s *FriendLinkService) ListPublic() ([]model.FriendLink, error) {
-	return s.repo.ListPublic()
+	ctx := context.Background()
+	cacheKey := "friend_links:public:list"
+
+	// 1. 先尝试从 Redis 获取缓存
+	if cached, err := db.RDB.Get(ctx, cacheKey).Result(); err == nil && cached != "" {
+		var list []model.FriendLink
+		if err := json.Unmarshal([]byte(cached), &list); err == nil {
+			return list, nil
+		}
+	}
+
+	// 2. 缓存未命中，从数据库获取
+	list, err := s.repo.ListPublic()
+	if err != nil {
+		return nil, err
+	}
+
+	// 3. 写入缓存，设置过期时间 1 小时
+	if data, err := json.Marshal(list); err == nil {
+		_ = db.RDB.Set(ctx, cacheKey, string(data), time.Hour).Err()
+	}
+
+	return list, nil
 }
 
 // Update 更新友链
@@ -147,10 +180,26 @@ func (s *FriendLinkService) Update(id uint, req *UpdateFriendLinkRequest) (*mode
 		return nil, err
 	}
 
+	// 更新成功后，清理前台友链列表缓存
+	go func() {
+		ctx := context.Background()
+		db.RDB.Del(ctx, "friend_links:public:list")
+	}()
+
 	return s.repo.GetByID(friendLink.ID)
 }
 
 // Delete 删除友链
 func (s *FriendLinkService) Delete(id uint) error {
-	return s.repo.Delete(id)
+	if err := s.repo.Delete(id); err != nil {
+		return err
+	}
+
+	// 删除成功后，清理前台友链列表缓存
+	go func() {
+		ctx := context.Background()
+		db.RDB.Del(ctx, "friend_links:public:list")
+	}()
+
+	return nil
 }
