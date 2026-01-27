@@ -1,6 +1,10 @@
 package handler
 
 import (
+	"context"
+	"encoding/json"
+	"time"
+
 	"blog-backend/db"
 	"blog-backend/model"
 	"blog-backend/service"
@@ -43,6 +47,18 @@ type AuthorProfileResponse struct {
 
 // GetAuthorProfile 获取博主资料和统计数据（公开接口）
 func (h *BlogHandler) GetAuthorProfile(c *gin.Context) {
+	// 先尝试从 Redis 获取缓存
+	ctx := context.Background()
+	cacheKey := "blog:author_profile"
+	if cached, err := db.RDB.Get(ctx, cacheKey).Result(); err == nil && cached != "" {
+		var resp AuthorProfileResponse
+		if err := json.Unmarshal([]byte(cached), &resp); err == nil {
+			util.Success(c, resp)
+			return
+		}
+		// 如果解析失败则继续从数据库获取
+	}
+
 	// 获取管理员用户（博主）
 	var author model.User
 	err := db.DB.Where("role = ? AND status = ?", "admin", 1).First(&author).Error
@@ -84,6 +100,11 @@ func (h *BlogHandler) GetAuthorProfile(c *gin.Context) {
 		Stats: stats,
 	}
 
+	// 将结果写入 Redis，适当设置过期时间（例如 10 分钟）
+	if data, err := json.Marshal(response); err == nil {
+		_ = db.RDB.Set(ctx, cacheKey, string(data), 15*time.Minute).Err()
+	}
+
 	util.Success(c, response)
 }
 
@@ -108,9 +129,21 @@ func (h *BlogHandler) GetAboutInfo(c *gin.Context) {
 
 // GetTagStats 获取标签统计（TOP10，公开接口）
 func (h *BlogHandler) GetTagStats(c *gin.Context) {
+	ctx := context.Background()
+	cacheKey := "tag:stats:top10"
+
+	// 1. 先尝试从 Redis 获取缓存
+	if cached, err := db.RDB.Get(ctx, cacheKey).Result(); err == nil && cached != "" {
+		var stats []TagStat
+		if err := json.Unmarshal([]byte(cached), &stats); err == nil {
+			util.Success(c, stats)
+			return
+		}
+	}
+
 	var stats []TagStat
-	
-	// 获取所有标签，按文章数排序
+
+	// 2. 缓存未命中，从数据库获取
 	var tags []model.Tag
 	if err := db.DB.Order("post_count DESC").Limit(10).Find(&tags).Error; err != nil {
 		util.ServerError(c, "获取标签失败")
@@ -129,6 +162,11 @@ func (h *BlogHandler) GetTagStats(c *gin.Context) {
 				Value: int(count),
 			})
 		}
+	}
+
+	// 3. 写入缓存，设置过期时间（例如 10 分钟）
+	if data, err := json.Marshal(stats); err == nil {
+		_ = db.RDB.Set(ctx, cacheKey, string(data), 10*time.Minute).Err()
 	}
 
 	util.Success(c, stats)
