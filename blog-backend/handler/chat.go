@@ -1,16 +1,20 @@
 package handler
 
 import (
-	"blog-backend/model"
-	"blog-backend/repository"
-	"blog-backend/service"
-	"blog-backend/util"
+	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
+
+	"blog-backend/db"
+	"blog-backend/model"
+	"blog-backend/repository"
+	"blog-backend/service"
+	"blog-backend/util"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -168,6 +172,16 @@ func (h *ChatHandler) DeleteMessage(c *gin.Context) {
 		return
 	}
 
+	// 删除公告消息后，清理公告列表缓存（如果该消息是公告）
+	go func() {
+		ctx := context.Background()
+		// 公告通常使用少量 limit，这里简单清理常用的几个
+		for _, limit := range []int{3, 5, 10} {
+			key := fmt.Sprintf("announcement:list:%d", limit)
+			db.RDB.Del(ctx, key)
+		}
+	}()
+
 	util.Success(c, nil)
 }
 
@@ -318,6 +332,17 @@ func (h *ChatHandler) BroadcastSystemMessage(c *gin.Context) {
 		util.ServerError(c, "发送消息失败")
 		return
 	}
+
+	// 如果是公告或同时发送到公告，清理公告列表缓存
+	go func() {
+		if target == "announcement" || target == "both" {
+			ctx := context.Background()
+			for _, limit := range []int{3, 5, 10} {
+				key := fmt.Sprintf("announcement:list:%d", limit)
+				db.RDB.Del(ctx, key)
+			}
+		}
+	}()
 
 	// 如选择投递到聊天室，才走 WebSocket 广播
 	if target == "chat" || target == "both" {
