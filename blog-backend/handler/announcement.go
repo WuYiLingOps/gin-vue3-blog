@@ -1,6 +1,12 @@
 package handler
 
 import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"time"
+
+	"blog-backend/db"
 	"blog-backend/repository"
 	"blog-backend/util"
 	"strconv"
@@ -30,10 +36,28 @@ func (h *AnnouncementHandler) GetAnnouncements(c *gin.Context) {
 		limit = 20 // 防止一次拉取过多
 	}
 
+	ctx := context.Background()
+	cacheKey := fmt.Sprintf("announcement:list:%d", limit)
+
+	// 1. 先尝试从 Redis 获取缓存
+	if cached, err := db.RDB.Get(ctx, cacheKey).Result(); err == nil && cached != "" {
+		var list []interface{}
+		if err := json.Unmarshal([]byte(cached), &list); err == nil {
+			util.Success(c, list)
+			return
+		}
+	}
+
+	// 2. 缓存未命中，从数据库获取
 	list, err := h.repo.GetBroadcasts(limit)
 	if err != nil {
 		util.ServerError(c, "获取公告失败")
 		return
+	}
+
+	// 3. 写入缓存，设置适当过期时间（例如 10 分钟）
+	if data, err := json.Marshal(list); err == nil {
+		_ = db.RDB.Set(ctx, cacheKey, string(data), 10*time.Minute).Err()
 	}
 
 	util.Success(c, list)
