@@ -1,10 +1,14 @@
 package service
 
 import (
+	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 
+	"blog-backend/db"
 	"blog-backend/model"
 	"blog-backend/repository"
 	"blog-backend/util"
@@ -163,6 +167,19 @@ func (s *PostService) Create(userID uint, req *CreatePostRequest) (*model.Post, 
 	if err != nil {
 		return nil, errors.New("文章创建失败: " + err.Error())
 	}
+
+	// 写操作成功后，删除与文章列表相关的缓存（最新文章等）
+	go func() {
+		ctx := context.Background()
+		// 删除常用的最新文章缓存（不同 limit 可以按需扩展）
+		for _, limit := range []int{5, 10, 20} {
+			key := fmt.Sprintf("post:recent:%d", limit)
+			db.RDB.Del(ctx, key)
+		}
+		// 文章数、标签统计等也会受影响，清理相关缓存
+		db.RDB.Del(ctx, "blog:author_profile")
+		db.RDB.Del(ctx, "tag:stats:top10")
+	}()
 
 	return s.postRepo.GetByID(post.ID)
 }
@@ -404,6 +421,17 @@ func (s *PostService) Update(id, userID uint, role string, req *UpdatePostReques
 		return nil, errors.New("文章更新失败")
 	}
 
+	// 写操作成功后，删除与文章列表相关的缓存（最新文章等）
+	go func() {
+		ctx := context.Background()
+		for _, limit := range []int{5, 10, 20} {
+			key := fmt.Sprintf("post:recent:%d", limit)
+			db.RDB.Del(ctx, key)
+		}
+		db.RDB.Del(ctx, "blog:author_profile")
+		db.RDB.Del(ctx, "tag:stats:top10")
+	}()
+
 	return s.postRepo.GetByID(post.ID)
 }
 
@@ -433,6 +461,19 @@ func (s *PostService) Delete(id, userID uint, role string) error {
 					if err := s.tagRepo.DecrementPostCountTx(tx, tag.ID); err != nil {
 						return err
 					}
+
+					// 删除成功后，清理与文章列表相关的缓存
+					go func() {
+						ctx := context.Background()
+						for _, limit := range []int{5, 10, 20} {
+							key := fmt.Sprintf("post:recent:%d", limit)
+							db.RDB.Del(ctx, key)
+						}
+						db.RDB.Del(ctx, "blog:author_profile")
+						db.RDB.Del(ctx, "tag:stats:top10")
+					}()
+
+					return nil
 				}
 			}
 		}
@@ -541,6 +582,35 @@ func (s *PostService) GetRecentPosts(limit int, userID *uint, role string) ([]mo
 	if limit < 1 || limit > 50 {
 		limit = 10
 	}
+	// 对公开接口的最新文章列表做缓存（管理员视图通常不缓存）
+	if role == "" || role == "user" {
+		ctx := context.Background()
+		cacheKey := fmt.Sprintf("post:recent:%d", limit)
+
+		// 1. 先尝试从 Redis 获取缓存
+		if cached, err := db.RDB.Get(ctx, cacheKey).Result(); err == nil && cached != "" {
+			var posts []model.Post
+			if err := json.Unmarshal([]byte(cached), &posts); err == nil {
+				return posts, nil
+			}
+			// 解析失败则继续走数据库查询
+		}
+
+		// 2. 缓存未命中，从数据库获取
+		posts, err := s.postRepo.GetRecentPosts(limit, userID, role)
+		if err != nil {
+			return nil, err
+		}
+
+		// 3. 将结果写入 Redis，设置适当过期时间（例如 10 分钟）
+		if data, err := json.Marshal(posts); err == nil {
+			_ = db.RDB.Set(ctx, cacheKey, string(data), 10*time.Minute).Err()
+		}
+
+		return posts, nil
+	}
+
+	// 管理员等角色直接走数据库，避免缓存带来的视图差异
 	return s.postRepo.GetRecentPosts(limit, userID, role)
 }
 
