@@ -1044,6 +1044,8 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
     - 分类列表 `category:list`（30 分钟过期，分类增删改后自动失效）
     - 标签列表 `tag:list`（30 分钟过期，标签增删改后自动失效）
     - 标签统计 TOP10 `tag:stats:top10`（10 分钟过期，文章或标签变化时自动失效）
+    - 友情链接列表 `friend_links:public:list`（1 小时过期，友链增删改或分类变更后自动失效）
+    - 友情链接分类列表 `friendlink_category:list`（1 小时过期，友链分类增删改后自动失效）
 - **认证**: JWT
 - **WebSocket**: Gorilla WebSocket
 - **邮件发送**: SMTP (支持QQ邮箱、163邮箱等)
