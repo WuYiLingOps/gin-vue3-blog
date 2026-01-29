@@ -26,9 +26,10 @@ var (
 	ipMapMutex  sync.RWMutex
 
 	// 配置参数
-	maxRequestsPerMinute = 60  // 每分钟最大请求数
-	maxRequestsPer10Min  = 300 // 10分钟最大请求数
-	banDuration          = 1   // 自动封禁时长（小时）
+	maxRequestsPerMinute    = 120 // 每分钟最大请求数（原来为 60）
+	maxRequestsPer10Min     = 600 // 10分钟最大请求数（原来为 300）
+	banDurationMinutes      = 30  // 自动封禁时长（分钟，原来为 1 小时）
+	adminAutoWhitelistHours = 2   // 管理员登录后当前IP自动加入白名单的时长（小时）
 )
 
 // IPBlacklistMiddleware IP黑名单检查中间件
@@ -62,8 +63,19 @@ func IPBlacklistMiddleware() gin.HandlerFunc {
 		isAdmin := isAdminUser(c)
 		isWhitelisted := isIPInWhitelist(ip)
 
-		if isAdmin || isWhitelisted {
-			// 管理员和白名单IP完全豁免，不记录访问，不检查黑名单
+		// 3.1 如果是管理员用户：即使当前 IP 在黑名单或频率记录中，也自动解除封禁并加入临时白名单
+		// 这样从该 IP 发出的后续请求（包括未携带 Token 的公开接口）都不会再被误封
+		if isAdmin {
+			if isIPBanned(ip) {
+				unbanIP(ip)
+			}
+			addIPToTemporaryWhitelist(ip)
+			c.Next()
+			return
+		}
+
+		// 3.2 如果是白名单 IP：直接放行，不做任何限制
+		if isWhitelisted {
 			c.Next()
 			return
 		}
@@ -71,11 +83,6 @@ func IPBlacklistMiddleware() gin.HandlerFunc {
 		// 4. 检查是否在黑名单中
 		// 关键优化：认证相关路径（登录、验证码等）跳过黑名单检查，给管理员登录的机会
 		if !isAuthPath && isIPBanned(ip) {
-			// 再次检查是否是管理员或白名单（防止Token在后续处理中才被正确解析）
-			if isAdminUser(c) || isIPInWhitelist(ip) {
-				c.Next()
-				return
-			}
 			util.Error(c, 403, "您的IP已被封禁，请联系管理员")
 			c.Abort()
 			return
@@ -204,7 +211,7 @@ func banIP(ip string, reason string, banType int) {
 		return
 	}
 
-	expireAt := time.Now().Add(time.Duration(banDuration) * time.Hour)
+	expireAt := time.Now().Add(time.Duration(banDurationMinutes) * time.Minute)
 
 	blacklist := model.IPBlacklist{
 		IP:       ip,
@@ -237,6 +244,62 @@ func banIP(ip string, reason string, banType int) {
 		record.banned = true
 	}
 	ipMapMutex.Unlock()
+}
+
+// unbanIP 解除 IP 封禁（供管理员身份自动解封使用）
+// 注意：仅在当前请求已被确认是管理员用户时调用
+func unbanIP(ip string) {
+	if ip == "" {
+		return
+	}
+
+	// 删除数据库中的黑名单记录
+	db.DB.Where("ip = ?", ip).Delete(&model.IPBlacklist{})
+
+	// 清理内存中的访问记录封禁标记
+	ipMapMutex.Lock()
+	if record, exists := ipAccessMap[ip]; exists {
+		record.banned = false
+	}
+	ipMapMutex.Unlock()
+}
+
+// addIPToTemporaryWhitelist 管理员登录后，将当前 IP 加入一个有限期的白名单
+// 目的是：管理员确认无异常后，该 IP 在一段时间内不再因高频访问被自动封禁
+func addIPToTemporaryWhitelist(ip string) {
+	if ip == "" {
+		return
+	}
+
+	// 本地开发 IP 无需加入白名单
+	if ip == "127.0.0.1" || ip == "::1" {
+		return
+	}
+
+	// 计算新的过期时间
+	now := time.Now()
+	newExpire := now.Add(time.Duration(adminAutoWhitelistHours) * time.Hour)
+
+	var existing model.IPWhitelist
+	if err := db.DB.Where("ip = ?", ip).First(&existing).Error; err == nil {
+		// 已存在白名单记录：如果是永久白名单或过期时间晚于新的时间，则不修改
+		if existing.ExpireAt == nil || existing.ExpireAt.After(newExpire) {
+			return
+		}
+
+		// 否则延长白名单有效期
+		existing.ExpireAt = &newExpire
+		db.DB.Save(&existing)
+		return
+	}
+
+	// 不存在白名单记录，创建临时白名单
+	whitelist := model.IPWhitelist{
+		IP:       ip,
+		Reason:   "管理员登录自动加入临时白名单",
+		ExpireAt: &newExpire,
+	}
+	_ = db.DB.Create(&whitelist).Error
 }
 
 // shouldSkipRateLimit 判断是否应该跳过频率限制
