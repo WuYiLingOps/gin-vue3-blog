@@ -26,9 +26,9 @@ var (
 	ipMapMutex  sync.RWMutex
 
 	// 配置参数
-	maxRequestsPerMinute = 60  // 每分钟最大请求数
-	maxRequestsPer10Min  = 300 // 10分钟最大请求数
-	banDuration          = 1   // 自动封禁时长（小时）
+	maxRequestsPerMinute = 120 // 每分钟最大请求数（原来为 60）
+	maxRequestsPer10Min  = 600 // 10分钟最大请求数（原来为 300）
+	banDurationMinutes   = 30  // 自动封禁时长（分钟，原来为 1 小时）
 )
 
 // IPBlacklistMiddleware IP黑名单检查中间件
@@ -71,11 +71,20 @@ func IPBlacklistMiddleware() gin.HandlerFunc {
 		// 4. 检查是否在黑名单中
 		// 关键优化：认证相关路径（登录、验证码等）跳过黑名单检查，给管理员登录的机会
 		if !isAuthPath && isIPBanned(ip) {
-			// 再次检查是否是管理员或白名单（防止Token在后续处理中才被正确解析）
-			if isAdminUser(c) || isIPInWhitelist(ip) {
+			// 如果当前请求携带有效的管理员身份，则自动解除该 IP 的封禁
+			// 这样管理员登录后，访问后台和前台时不会再被 IP 黑名单拦截
+			if isAdminUser(c) {
+				unbanIP(ip)
 				c.Next()
 				return
 			}
+
+			// 再次检查是否在白名单中（双重兜底）
+			if isIPInWhitelist(ip) {
+				c.Next()
+				return
+			}
+
 			util.Error(c, 403, "您的IP已被封禁，请联系管理员")
 			c.Abort()
 			return
@@ -204,7 +213,7 @@ func banIP(ip string, reason string, banType int) {
 		return
 	}
 
-	expireAt := time.Now().Add(time.Duration(banDuration) * time.Hour)
+	expireAt := time.Now().Add(time.Duration(banDurationMinutes) * time.Minute)
 
 	blacklist := model.IPBlacklist{
 		IP:       ip,
@@ -235,6 +244,24 @@ func banIP(ip string, reason string, banType int) {
 	ipMapMutex.Lock()
 	if record, exists := ipAccessMap[ip]; exists {
 		record.banned = true
+	}
+	ipMapMutex.Unlock()
+}
+
+// unbanIP 解除 IP 封禁（供管理员身份自动解封使用）
+// 注意：仅在当前请求已被确认是管理员用户时调用
+func unbanIP(ip string) {
+	if ip == "" {
+		return
+	}
+
+	// 删除数据库中的黑名单记录
+	db.DB.Where("ip = ?", ip).Delete(&model.IPBlacklist{})
+
+	// 清理内存中的访问记录封禁标记
+	ipMapMutex.Lock()
+	if record, exists := ipAccessMap[ip]; exists {
+		record.banned = false
 	}
 	ipMapMutex.Unlock()
 }
