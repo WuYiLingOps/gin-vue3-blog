@@ -62,8 +62,17 @@ func IPBlacklistMiddleware() gin.HandlerFunc {
 		isAdmin := isAdminUser(c)
 		isWhitelisted := isIPInWhitelist(ip)
 
-		if isAdmin || isWhitelisted {
-			// 管理员和白名单IP完全豁免，不记录访问，不检查黑名单
+		// 3.1 如果是管理员用户：即使当前 IP 在黑名单中，也自动解除封禁并放行
+		if isAdmin {
+			if isIPBanned(ip) {
+				unbanIP(ip)
+			}
+			c.Next()
+			return
+		}
+
+		// 3.2 如果是白名单 IP：直接放行，不做任何限制
+		if isWhitelisted {
 			c.Next()
 			return
 		}
@@ -71,20 +80,6 @@ func IPBlacklistMiddleware() gin.HandlerFunc {
 		// 4. 检查是否在黑名单中
 		// 关键优化：认证相关路径（登录、验证码等）跳过黑名单检查，给管理员登录的机会
 		if !isAuthPath && isIPBanned(ip) {
-			// 如果当前请求携带有效的管理员身份，则自动解除该 IP 的封禁
-			// 这样管理员登录后，访问后台和前台时不会再被 IP 黑名单拦截
-			if isAdminUser(c) {
-				unbanIP(ip)
-				c.Next()
-				return
-			}
-
-			// 再次检查是否在白名单中（双重兜底）
-			if isIPInWhitelist(ip) {
-				c.Next()
-				return
-			}
-
 			util.Error(c, 403, "您的IP已被封禁，请联系管理员")
 			c.Abort()
 			return
