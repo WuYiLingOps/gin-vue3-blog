@@ -120,6 +120,8 @@ func setupBlogRoutes(api *gin.RouterGroup, h *handler.BlogHandler, a *handler.An
 		blog.GET("/about", h.GetAboutInfo)
 		// 统计接口（公开）
 		blog.GET("/tag-stats", h.GetTagStats)
+		// 网站资讯（公开）
+		blog.GET("/website-info", h.GetWebsiteInfo)
 		// 公告/系统广播
 		blog.GET("/announcements", a.GetAnnouncements)
 		blog.GET("/announcements/:id", a.GetAnnouncementDetail)
