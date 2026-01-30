@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"encoding/json"
+	"regexp"
 	"time"
 
 	"blog-backend/db"
@@ -170,4 +171,72 @@ func (h *BlogHandler) GetTagStats(c *gin.Context) {
 	}
 
 	util.Success(c, stats)
+}
+
+// WebsiteInfo 网站资讯数据
+type WebsiteInfo struct {
+	TotalWords     int64  `json:"total_words"`      // 本站总字数
+	TotalVisitors  int64  `json:"total_visitors"`   // 本站访客数（去重IP）
+	TotalViews     int64  `json:"total_views"`      // 本站总访问量
+	LastUpdateTime string `json:"last_update_time"` // 最后更新时间
+}
+
+// GetWebsiteInfo 获取网站资讯（公开接口）
+func (h *BlogHandler) GetWebsiteInfo(c *gin.Context) {
+	ctx := context.Background()
+	cacheKey := "blog:website_info"
+
+	// 1. 先尝试从 Redis 获取缓存
+	if cached, err := db.RDB.Get(ctx, cacheKey).Result(); err == nil && cached != "" {
+		var info WebsiteInfo
+		if err := json.Unmarshal([]byte(cached), &info); err == nil {
+			util.Success(c, info)
+			return
+		}
+	}
+
+	var info WebsiteInfo
+
+	// 2. 获取总字数（统计所有已发布文章的内容长度，去除HTML标签后计算）
+	var totalWords int64
+	var posts []model.Post
+	if err := db.DB.Model(&model.Post{}).Where("status = ?", 1).Select("content").Find(&posts).Error; err == nil {
+		// 正则表达式去除HTML标签
+		htmlTagRegex := regexp.MustCompile(`<[^>]+>`)
+		for _, post := range posts {
+			// 去除HTML标签后计算字符数（中文字符按1个计算）
+			content := htmlTagRegex.ReplaceAllString(post.Content, "")
+			totalWords += int64(len([]rune(content)))
+		}
+	}
+	info.TotalWords = totalWords
+
+	// 3. 获取访客数（去重IP统计）
+	var visitorCount int64
+	if err := db.DB.Model(&model.PostView{}).
+		Select("COUNT(DISTINCT ip)").Scan(&visitorCount).Error; err == nil {
+		info.TotalVisitors = visitorCount
+	}
+
+	// 4. 获取总访问量
+	var totalViews int64
+	if err := db.DB.Model(&model.Post{}).Where("status = ?", 1).
+		Select("COALESCE(SUM(view_count), 0)").Scan(&totalViews).Error; err == nil {
+		info.TotalViews = totalViews
+	}
+
+	// 5. 获取最后更新时间（最近一篇文章的更新时间）
+	var lastPost model.Post
+	if err := db.DB.Where("status = ?", 1).Order("updated_at DESC").First(&lastPost).Error; err == nil {
+		info.LastUpdateTime = lastPost.UpdatedAt.Format("2006-01-02 15:04:05")
+	} else {
+		info.LastUpdateTime = ""
+	}
+
+	// 6. 写入缓存，设置过期时间（例如 10 分钟）
+	if data, err := json.Marshal(info); err == nil {
+		_ = db.RDB.Set(ctx, cacheKey, string(data), 10*time.Minute).Err()
+	}
+
+	util.Success(c, info)
 }
