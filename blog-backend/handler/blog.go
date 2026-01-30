@@ -211,10 +211,9 @@ func (h *BlogHandler) GetWebsiteInfo(c *gin.Context) {
 	}
 	info.TotalWords = totalWords
 
-	// 3. 获取访客数（去重IP统计）
+	// 3. 获取访客数（按访问记录总数统计，不再按 IP 去重）
 	var visitorCount int64
-	if err := db.DB.Model(&model.PostView{}).
-		Select("COUNT(DISTINCT ip)").Scan(&visitorCount).Error; err == nil {
+	if err := db.DB.Model(&model.PostView{}).Count(&visitorCount).Error; err == nil {
 		info.TotalVisitors = visitorCount
 	}
 
