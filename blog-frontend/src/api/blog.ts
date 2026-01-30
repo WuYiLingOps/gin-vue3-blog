@@ -66,3 +66,16 @@ export interface ArchiveStat {
 export function getPublicTagStats() {
   return request.get<TagStat[]>('/blog/tag-stats')
 }
+
+// 网站资讯
+export interface WebsiteInfo {
+  total_words: number       // 本站总字数
+  total_visitors: number    // 本站访客数
+  total_views: number       // 本站总访问量
+  last_update_time: string  // 最后更新时间
+}
+
+// 获取网站资讯（公开接口）
+export function getWebsiteInfo() {
+  return request.get<WebsiteInfo>('/blog/website-info')
+}
