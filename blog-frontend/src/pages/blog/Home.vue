@@ -107,8 +107,8 @@
     </n-space>
       </div>
 
-    <!-- 右侧：公告栏 + 热门文章（保持原有组件和顺序） -->
-    <div class="sidebar-section">
+    <!-- 右侧：公告栏 + 热门文章（保持原有组件和顺序，部分仅桌面端显示） -->
+    <div class="sidebar-section desktop-only">
       <div class="sidebar-card-wrapper sidebar-announcement">
         <AnnouncementBoard :limit="3" />
       </div>
@@ -120,6 +120,9 @@
       </div>
       <div class="sidebar-card-wrapper sidebar-tag-cloud">
         <TagCloudWidget />
+      </div>
+      <div class="sidebar-card-wrapper sidebar-website-info">
+        <WebsiteInfoWidget />
       </div>
     </div>
     </div>
@@ -141,6 +144,7 @@ import AnnouncementBoard from '@/components/AnnouncementBoard.vue'
 import HotPostsCard from '@/components/HotPostsCard.vue'
 import TagCloudWidget from '@/components/TagCloudWidget.vue'
 import CategoryListWidget from '@/components/CategoryListWidget.vue'
+import WebsiteInfoWidget from '@/components/WebsiteInfoWidget.vue'
 import GiteeCalendar from '@/components/GiteeCalendar.vue'
 
 const router = useRouter()
@@ -579,7 +583,7 @@ html.dark .post-cover {
 }
 
 /* 响应式布局 */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .post-card-content {
     flex-direction: column-reverse;
   }
@@ -592,6 +596,11 @@ html.dark .post-cover {
   .post-footer {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  /* 平板及以下隐藏网站资讯模块 */
+  .sidebar-website-info {
+    display: none;
   }
 }
 
