@@ -209,8 +209,8 @@
         </n-spin>
       </div>
 
-      <!-- 右侧：公告栏 + 最新发布文章 + 分类列表 + 标签列表 -->
-      <div class="sidebar-section">
+      <!-- 右侧：公告栏 + 最新发布文章 + 分类列表 + 标签列表（仅桌面端显示） -->
+      <div class="sidebar-section desktop-only">
         <div class="sidebar-card-wrapper sidebar-announcement">
           <AnnouncementBoard :limit="3" />
         </div>
@@ -222,6 +222,9 @@
         </div>
         <div class="sidebar-card-wrapper sidebar-tag-cloud">
           <TagCloudWidget />
+        </div>
+        <div class="sidebar-card-wrapper sidebar-website-info">
+          <WebsiteInfoWidget />
         </div>
       </div>
     </div>
@@ -246,6 +249,7 @@ import AnnouncementBoard from '@/components/AnnouncementBoard.vue'
 import HotPostsCard from '@/components/HotPostsCard.vue'
 import CategoryListWidget from '@/components/CategoryListWidget.vue'
 import TagCloudWidget from '@/components/TagCloudWidget.vue'
+import WebsiteInfoWidget from '@/components/WebsiteInfoWidget.vue'
 import CommentMarkdownEditor from '@/components/CommentMarkdownEditor.vue'
 import CommentContent from '@/components/CommentContent.vue'
 import type { Comment } from '@/types/blog'
@@ -1434,7 +1438,8 @@ html.dark .chart-title {
   .sidebar-announcement,
   .sidebar-hot-posts,
   .sidebar-category-list,
-  .sidebar-tag-cloud {
+  .sidebar-tag-cloud,
+  .sidebar-website-info {
     display: none;
   }
 }
