@@ -44,13 +44,6 @@
       <n-empty v-else description="暂无公告" />
     </n-spin>
 
-    <!-- 欢迎图片 -->
-    <div class="welcome-image-wrapper">
-      <div class="welcome-image-card">
-        <img src="/公告栏.gif" alt="欢迎" class="welcome-image" />
-      </div>
-    </div>
-
     <n-modal v-model:show="showDetail" preset="card" style="max-width: 640px" :bordered="false">
       <template #header>
         <div class="detail-header">
@@ -279,56 +272,6 @@ html.dark .item-time {
 
 html.dark .detail-content {
   color: #e2e8f0;
-}
-
-.welcome-image-wrapper {
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid rgba(0, 0, 0, 0.06);
-}
-
-html.dark .welcome-image-wrapper {
-  border-top-color: rgba(255, 255, 255, 0.08);
-}
-
-.welcome-image-card {
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 12px;
-  padding: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-  transition: all 0.3s ease;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.welcome-image-card:hover {
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
-}
-
-html.dark .welcome-image-card {
-  background: rgba(30, 41, 59, 0.8);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-html.dark .welcome-image-card:hover {
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
-}
-
-.welcome-image {
-  width: 100%;
-  max-width: 100%;
-  height: auto;
-  display: block;
-  border-radius: 8px;
-  object-fit: contain;
-  image-rendering: auto;
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  -webkit-transform: translateZ(0);
-  transform: translateZ(0);
 }
 </style>
 
