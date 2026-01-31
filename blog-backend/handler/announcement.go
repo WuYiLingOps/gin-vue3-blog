@@ -1,3 +1,13 @@
+/*
+ * 项目名称：blog-backend
+ * 文件名称：announcement.go
+ * 创建时间：2026-01-31 16:05:15
+ *
+ * 系统用户：Administrator
+ * 作　　者：無以菱
+ * 联系邮箱：huangjing510@126.com
+ * 功能描述：公告处理器，提供系统公告和广播消息的查询功能，支持Redis缓存
+ */
 package handler
 
 import (
@@ -14,11 +24,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// AnnouncementHandler 公告/系统广播相关接口
+// AnnouncementHandler 公告/系统广播处理器结构体
 type AnnouncementHandler struct {
 	repo *repository.ChatRepository
 }
 
+// NewAnnouncementHandler 创建公告处理器实例
 func NewAnnouncementHandler() *AnnouncementHandler {
 	return &AnnouncementHandler{
 		repo: repository.NewChatRepository(),
