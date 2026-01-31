@@ -1,3 +1,13 @@
+/*
+ * 项目名称：blog-backend
+ * 文件名称：post.go
+ * 创建时间：2026-01-31 16:34:35
+ *
+ * 系统用户：Administrator
+ * 作　　者：無以菱
+ * 联系邮箱：huangjing510@126.com
+ * 功能描述：文章业务逻辑层，提供文章的增删改查、点赞、归档、热门文章等业务处理，支持全文搜索和Redis缓存
+ */
 package service
 
 import (
@@ -16,6 +26,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// PostService 文章业务逻辑层结构体
 type PostService struct {
 	postRepo     *repository.PostRepository
 	categoryRepo *repository.CategoryRepository
@@ -23,6 +34,7 @@ type PostService struct {
 	postViewRepo *repository.PostViewRepository
 }
 
+// NewPostService 创建文章业务逻辑层实例
 func NewPostService() *PostService {
 	return &PostService{
 		postRepo:     repository.NewPostRepository(),
