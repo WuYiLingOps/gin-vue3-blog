@@ -1,3 +1,13 @@
+/*
+ * 项目名称：blog-backend
+ * 文件名称：album.go
+ * 创建时间：2026-01-31 16:05:15
+ *
+ * 系统用户：Administrator
+ * 作　　者：無以菱
+ * 联系邮箱：huangjing510@126.com
+ * 功能描述：相册管理处理器，提供相册照片的增删改查功能
+ */
 package handler
 
 import (
@@ -9,10 +19,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// AlbumHandler 相册处理器结构体
 type AlbumHandler struct {
 	service *service.AlbumService
 }
 
+// NewAlbumHandler 创建相册处理器实例
 func NewAlbumHandler() *AlbumHandler {
 	return &AlbumHandler{
 		service: service.NewAlbumService(),
