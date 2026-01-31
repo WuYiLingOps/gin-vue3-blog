@@ -1,3 +1,13 @@
+/*
+ * 项目名称：blog-backend
+ * 文件名称：auth.go
+ * 创建时间：2026-01-31 16:05:15
+ *
+ * 系统用户：Administrator
+ * 作　　者：無以菱
+ * 联系邮箱：huangjing510@126.com
+ * 功能描述：认证处理器，提供用户注册、登录、登出、个人信息管理等认证相关功能
+ */
 package handler
 
 import (
@@ -7,10 +17,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// AuthHandler 认证处理器结构体
 type AuthHandler struct {
 	service *service.AuthService
 }
 
+// NewAuthHandler 创建认证处理器实例
 func NewAuthHandler() *AuthHandler {
 	return &AuthHandler{
 		service: service.NewAuthService(),
