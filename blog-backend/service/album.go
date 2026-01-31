@@ -1,3 +1,13 @@
+/*
+ * 项目名称：blog-backend
+ * 文件名称：album.go
+ * 创建时间：2026-01-31 16:34:35
+ *
+ * 系统用户：Administrator
+ * 作　　者：無以菱
+ * 联系邮箱：huangjing510@126.com
+ * 功能描述：相册业务逻辑层，提供相册照片的增删改查业务处理
+ */
 package service
 
 import (
@@ -5,10 +15,12 @@ import (
 	"blog-backend/repository"
 )
 
+// AlbumService 相册业务逻辑层结构体
 type AlbumService struct {
 	repo *repository.AlbumRepository
 }
 
+// NewAlbumService 创建相册业务逻辑层实例
 func NewAlbumService() *AlbumService {
 	return &AlbumService{
 		repo: repository.NewAlbumRepository(),
