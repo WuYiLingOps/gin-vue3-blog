@@ -1,3 +1,13 @@
+/*
+ * 项目名称：blog-backend
+ * 文件名称：captcha.go
+ * 创建时间：2026-01-31 16:41:24
+ *
+ * 系统用户：Administrator
+ * 作　　者：無以菱
+ * 联系邮箱：huangjing510@126.com
+ * 功能描述：验证码工具函数，提供图形验证码生成和验证功能，支持IP限流和错误次数限制
+ */
 package util
 
 import (
@@ -11,12 +21,13 @@ import (
 	"github.com/mojocn/base64Captcha"
 )
 
+// store 验证码存储实例（内存存储）
 var store = base64Captcha.DefaultMemStore
 
-// CaptchaResponse 验证码响应
+// CaptchaResponse 验证码响应结构体
 type CaptchaResponse struct {
-	CaptchaID string `json:"captcha_id"`
-	ImageData string `json:"image_data"`
+	CaptchaID string `json:"captcha_id"` // 验证码ID，用于后续验证
+	ImageData string `json:"image_data"` // Base64编码的验证码图片数据
 }
 
 const (
@@ -83,7 +94,7 @@ func IncrCaptchaRetryCount(ip string) {
 	key := fmt.Sprintf("captcha:retry:%s", ip)
 
 	count, _ := db.RDB.Get(ctx, key).Int()
-	
+
 	pipe := db.RDB.Pipeline()
 	pipe.Incr(ctx, key)
 	if count == 0 {
@@ -161,4 +172,3 @@ func VerifyCaptcha(captchaID, answer, ip string) error {
 
 	return nil
 }
-
