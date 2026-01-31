@@ -1,3 +1,13 @@
+/*
+ * 项目名称：blog-backend
+ * 文件名称：setting.go
+ * 创建时间：2026-01-31 16:05:15
+ *
+ * 系统用户：Administrator
+ * 作　　者：無以菱
+ * 联系邮箱：huangjing510@126.com
+ * 功能描述：系统设置处理器，提供网站配置、上传配置、通知配置、注册配置、关于我等设置管理功能
+ */
 package handler
 
 import (
@@ -8,10 +18,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// SettingHandler 系统设置处理器结构体
 type SettingHandler struct {
 	service *service.SettingService
 }
 
+// NewSettingHandler 创建系统设置处理器实例
 func NewSettingHandler() *SettingHandler {
 	return &SettingHandler{
 		service: service.NewSettingService(),
