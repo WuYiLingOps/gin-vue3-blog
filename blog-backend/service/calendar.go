@@ -1,3 +1,13 @@
+/*
+ * 项目名称：blog-backend
+ * 文件名称：calendar.go
+ * 创建时间：2026-01-31 16:34:35
+ *
+ * 系统用户：Administrator
+ * 作　　者：無以菱
+ * 联系邮箱：huangjing510@126.com
+ * 功能描述：日历业务逻辑层，提供Gitee贡献热力图数据查询功能，支持Redis缓存
+ */
 package service
 
 import (
@@ -12,8 +22,10 @@ import (
 	"blog-backend/db"
 )
 
+// CalendarService 日历业务逻辑层结构体
 type CalendarService struct{}
 
+// NewCalendarService 创建日历业务逻辑层实例
 func NewCalendarService() *CalendarService {
 	return &CalendarService{}
 }
