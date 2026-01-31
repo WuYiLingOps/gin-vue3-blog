@@ -1,3 +1,13 @@
+/*
+ * 项目名称：blog-backend
+ * 文件名称：comment.go
+ * 创建时间：2026-01-31 16:05:15
+ *
+ * 系统用户：Administrator
+ * 作　　者：無以菱
+ * 联系邮箱：huangjing510@126.com
+ * 功能描述：评论管理处理器，提供评论的增删改查功能，支持文章评论和友链评论
+ */
 package handler
 
 import (
@@ -9,10 +19,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// CommentHandler 评论处理器结构体
 type CommentHandler struct {
 	service *service.CommentService
 }
 
+// NewCommentHandler 创建评论处理器实例
 func NewCommentHandler() *CommentHandler {
 	return &CommentHandler{
 		service: service.NewCommentService(),
