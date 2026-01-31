@@ -1,3 +1,13 @@
+/*
+ * 项目名称：blog-backend
+ * 文件名称：pinyin.go
+ * 创建时间：2026-01-31 16:41:24
+ *
+ * 系统用户：Administrator
+ * 作　　者：無以菱
+ * 联系邮箱：huangjing510@126.com
+ * 功能描述：拼音转换工具函数，提供中文转拼音生成URL友好的slug功能
+ */
 package util
 
 import (
