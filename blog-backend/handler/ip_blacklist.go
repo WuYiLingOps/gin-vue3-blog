@@ -1,3 +1,13 @@
+/*
+ * 项目名称：blog-backend
+ * 文件名称：ip_blacklist.go
+ * 创建时间：2026-01-31 16:05:15
+ *
+ * 系统用户：Administrator
+ * 作　　者：無以菱
+ * 联系邮箱：huangjing510@126.com
+ * 功能描述：IP黑名单管理处理器，提供IP封禁、查询、过期清理等功能
+ */
 package handler
 
 import (
@@ -10,8 +20,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// IPBlacklistHandler IP黑名单处理器结构体
 type IPBlacklistHandler struct{}
 
+// NewIPBlacklistHandler 创建IP黑名单处理器实例
 func NewIPBlacklistHandler() *IPBlacklistHandler {
 	return &IPBlacklistHandler{}
 }
