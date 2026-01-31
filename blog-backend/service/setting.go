@@ -1,3 +1,13 @@
+/*
+ * 项目名称：blog-backend
+ * 文件名称：setting.go
+ * 创建时间：2026-01-31 16:34:35
+ *
+ * 系统用户：Administrator
+ * 作　　者：無以菱
+ * 联系邮箱：huangjing510@126.com
+ * 功能描述：系统设置业务逻辑层，提供网站配置、上传配置、通知配置、注册配置、关于我等设置管理功能
+ */
 package service
 
 import (
@@ -8,10 +18,12 @@ import (
 	"time"
 )
 
+// SettingService 系统设置业务逻辑层结构体
 type SettingService struct {
 	repo *repository.SettingRepository
 }
 
+// NewSettingService 创建系统设置业务逻辑层实例
 func NewSettingService() *SettingService {
 	return &SettingService{
 		repo: repository.NewSettingRepository(),
