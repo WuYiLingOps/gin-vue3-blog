@@ -1,3 +1,13 @@
+/*
+ * 项目名称：blog-backend
+ * 文件名称：tag.go
+ * 创建时间：2026-01-31 16:34:35
+ *
+ * 系统用户：Administrator
+ * 作　　者：無以菱
+ * 联系邮箱：huangjing510@126.com
+ * 功能描述：标签业务逻辑层，提供文章标签的增删改查业务处理，支持Redis缓存
+ */
 package service
 
 import (
@@ -9,13 +19,16 @@ import (
 	"blog-backend/db"
 	"blog-backend/model"
 	"blog-backend/repository"
+
 	"gorm.io/gorm"
 )
 
+// TagService 标签业务逻辑层结构体
 type TagService struct {
 	repo *repository.TagRepository
 }
 
+// NewTagService 创建标签业务逻辑层实例
 func NewTagService() *TagService {
 	return &TagService{
 		repo: repository.NewTagRepository(),
@@ -170,4 +183,3 @@ func (s *TagService) List() ([]model.Tag, error) {
 
 	return list, nil
 }
-
