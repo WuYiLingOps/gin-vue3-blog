@@ -1,3 +1,13 @@
+/*
+ * 项目名称：blog-backend
+ * 文件名称：jwt.go
+ * 创建时间：2026-01-31 16:41:24
+ *
+ * 系统用户：Administrator
+ * 作　　者：無以菱
+ * 联系邮箱：huangjing510@126.com
+ * 功能描述：JWT工具函数，提供Token生成、解析和刷新功能
+ */
 package util
 
 import (
@@ -5,15 +15,17 @@ import (
 	"time"
 
 	"blog-backend/config"
+
 	"github.com/golang-jwt/jwt/v5"
 )
 
-// Claims JWT 声明
+// Claims JWT声明结构体
+// 包含用户ID、用户名、角色等自定义声明，以及JWT标准声明（过期时间、签发时间等）
 type Claims struct {
-	UserID   uint   `json:"user_id"`
-	Username string `json:"username"`
-	Role     string `json:"role"`
-	jwt.RegisteredClaims
+	UserID               uint   `json:"user_id"`  // 用户ID
+	Username             string `json:"username"` // 用户名
+	Role                 string `json:"role"`     // 用户角色：admin或user
+	jwt.RegisteredClaims        // JWT标准声明（过期时间、签发时间、签发者等）
 }
 
 // GenerateToken 生成 JWT Token
@@ -72,4 +84,3 @@ func RefreshToken(tokenString string) (string, error) {
 func GetTimeAfterMinutes(minutes int) time.Time {
 	return time.Now().Add(time.Duration(minutes) * time.Minute)
 }
-
