@@ -1,3 +1,13 @@
+/*
+ * 项目名称：blog-backend
+ * 文件名称：auth.go
+ * 创建时间：2026-01-31 16:34:35
+ *
+ * 系统用户：Administrator
+ * 作　　者：無以菱
+ * 联系邮箱：huangjing510@126.com
+ * 功能描述：认证业务逻辑层，提供用户注册、登录、密码重置、邮箱修改等认证相关业务处理
+ */
 package service
 
 import (
@@ -13,6 +23,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// AuthService 认证业务逻辑层结构体
 type AuthService struct {
 	userRepo        *repository.UserRepository
 	resetTokenRepo  *repository.PasswordResetRepository
@@ -20,6 +31,7 @@ type AuthService struct {
 	settingRepo     *repository.SettingRepository
 }
 
+// NewAuthService 创建认证业务逻辑层实例
 func NewAuthService() *AuthService {
 	return &AuthService{
 		userRepo:        repository.NewUserRepository(),
