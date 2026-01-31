@@ -1,3 +1,13 @@
+/*
+ * 项目名称：blog-backend
+ * 文件名称：comment.go
+ * 创建时间：2026-01-31 16:29:06
+ *
+ * 系统用户：Administrator
+ * 作　　者：無以菱
+ * 联系邮箱：huangjing510@126.com
+ * 功能描述：评论数据访问层，提供评论的数据库操作功能，支持文章评论和友链评论
+ */
 package repository
 
 import (
@@ -7,8 +17,10 @@ import (
 	"gorm.io/gorm"
 )
 
+// CommentRepository 评论数据访问层结构体
 type CommentRepository struct{}
 
+// NewCommentRepository 创建评论数据访问层实例
 func NewCommentRepository() *CommentRepository {
 	return &CommentRepository{}
 }
