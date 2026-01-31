@@ -1,3 +1,13 @@
+/*
+ * 项目名称：blog-backend
+ * 文件名称：email.go
+ * 创建时间：2026-01-31 16:41:24
+ *
+ * 系统用户：Administrator
+ * 作　　者：無以菱
+ * 联系邮箱：huangjing510@126.com
+ * 功能描述：邮件发送工具函数，提供验证码邮件、密码重置邮件、评论通知邮件等发送功能
+ */
 package util
 
 import (
@@ -11,14 +21,14 @@ import (
 	"strings"
 )
 
-// EmailConfig 邮件配置
+// EmailConfig 邮件配置结构体
 type EmailConfig struct {
 	Host     string // SMTP服务器地址
-	Port     int    // 端口
+	Port     int    // SMTP服务器端口
 	Username string // 发件人邮箱
-	Password string // 授权码
+	Password string // 邮箱授权码或密码
 	FromName string // 发件人名称
-	SiteName string // 网站名称（可选，优先使用）
+	SiteName string // 网站名称（可选，优先使用，用于邮件模板）
 }
 
 // GenerateVerificationCode 生成6位数字验证码
