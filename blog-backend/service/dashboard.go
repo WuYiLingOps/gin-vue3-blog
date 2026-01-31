@@ -1,3 +1,13 @@
+/*
+ * 项目名称：blog-backend
+ * 文件名称：dashboard.go
+ * 创建时间：2026-01-31 16:34:35
+ *
+ * 系统用户：Administrator
+ * 作　　者：無以菱
+ * 联系邮箱：huangjing510@126.com
+ * 功能描述：仪表盘业务逻辑层，提供统计数据查询功能，包括文章、用户、评论、访问量等统计
+ */
 package service
 
 import (
@@ -5,6 +15,7 @@ import (
 	"time"
 )
 
+// DashboardService 仪表盘业务逻辑层结构体
 type DashboardService struct {
 	postRepo     *repository.PostRepository
 	userRepo     *repository.UserRepository
@@ -13,6 +24,7 @@ type DashboardService struct {
 	postViewRepo *repository.PostViewRepository
 }
 
+// NewDashboardService 创建仪表盘业务逻辑层实例
 func NewDashboardService() *DashboardService {
 	return &DashboardService{
 		postRepo:     repository.NewPostRepository(),
