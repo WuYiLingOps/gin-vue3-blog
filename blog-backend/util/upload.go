@@ -1,3 +1,13 @@
+/*
+ * 项目名称：blog-backend
+ * 文件名称：upload.go
+ * 创建时间：2026-01-31 16:41:24
+ *
+ * 系统用户：Administrator
+ * 作　　者：無以菱
+ * 联系邮箱：huangjing510@126.com
+ * 功能描述：文件上传工具函数，提供本地文件上传、保存和删除功能
+ */
 package util
 
 import (
@@ -113,4 +123,3 @@ func GetFileURL(filePath string) string {
 	// 将本地路径转换为 URL 路径
 	return "/" + strings.ReplaceAll(filePath, "\\", "/")
 }
-
