@@ -1,3 +1,13 @@
+/*
+ * 项目名称：blog-backend
+ * 文件名称：oss.go
+ * 创建时间：2026-01-31 16:41:24
+ *
+ * 系统用户：Administrator
+ * 作　　者：無以菱
+ * 联系邮箱：huangjing510@126.com
+ * 功能描述：对象存储工具函数，提供本地存储、阿里云OSS和腾讯云COS的统一文件上传接口
+ */
 package util
 
 import (
@@ -19,13 +29,13 @@ import (
 	"github.com/tencentyun/cos-go-sdk-v5"
 )
 
-// StorageType 存储类型
+// StorageType 存储类型枚举
 type StorageType string
 
 const (
-	StorageLocal StorageType = "local"
-	StorageOSS   StorageType = "oss"
-	StorageCOS   StorageType = "cos"
+	StorageLocal StorageType = "local" // 本地存储
+	StorageOSS   StorageType = "oss"   // 阿里云OSS对象存储
+	StorageCOS   StorageType = "cos"   // 腾讯云COS对象存储
 )
 
 // getUploadSettings 从数据库获取上传配置（仅存储类型）
