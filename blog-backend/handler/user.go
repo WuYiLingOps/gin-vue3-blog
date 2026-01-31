@@ -1,3 +1,13 @@
+/*
+ * 项目名称：blog-backend
+ * 文件名称：user.go
+ * 创建时间：2026-01-31 16:05:15
+ *
+ * 系统用户：Administrator
+ * 作　　者：無以菱
+ * 联系邮箱：huangjing510@126.com
+ * 功能描述：用户管理处理器，提供用户信息查询、状态更新、删除等管理功能
+ */
 package handler
 
 import (
@@ -9,10 +19,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// UserHandler 用户处理器结构体
 type UserHandler struct {
 	service *service.UserService
 }
 
+// NewUserHandler 创建用户处理器实例
 func NewUserHandler() *UserHandler {
 	return &UserHandler{
 		service: service.NewUserService(),
