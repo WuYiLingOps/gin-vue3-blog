@@ -1,3 +1,13 @@
+/*
+ * 项目名称：blog-backend
+ * 文件名称：cleanup.go
+ * 创建时间：2026-01-31 16:34:35
+ *
+ * 系统用户：Administrator
+ * 作　　者：無以菱
+ * 联系邮箱：huangjing510@126.com
+ * 功能描述：清理任务业务逻辑层，提供定期清理过期数据的功能
+ */
 package service
 
 import (
@@ -7,10 +17,12 @@ import (
 	"blog-backend/repository"
 )
 
+// CleanupService 清理任务业务逻辑层结构体
 type CleanupService struct {
 	resetTokenRepo *repository.PasswordResetRepository
 }
 
+// NewCleanupService 创建清理任务业务逻辑层实例
 func NewCleanupService() *CleanupService {
 	return &CleanupService{
 		resetTokenRepo: repository.NewPasswordResetRepository(),
@@ -45,4 +57,3 @@ func (s *CleanupService) cleanupExpiredTokens() {
 		fmt.Printf("过期令牌清理完成: %s\n", time.Now().Format("2006-01-02 15:04:05"))
 	}
 }
-
