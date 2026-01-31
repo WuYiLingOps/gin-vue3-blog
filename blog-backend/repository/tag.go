@@ -1,3 +1,13 @@
+/*
+ * 项目名称：blog-backend
+ * 文件名称：tag.go
+ * 创建时间：2026-01-31 16:29:06
+ *
+ * 系统用户：Administrator
+ * 作　　者：無以菱
+ * 联系邮箱：huangjing510@126.com
+ * 功能描述：标签数据访问层，提供文章标签的数据库操作功能
+ */
 package repository
 
 import (
@@ -7,8 +17,10 @@ import (
 	"gorm.io/gorm"
 )
 
+// TagRepository 标签数据访问层结构体
 type TagRepository struct{}
 
+// NewTagRepository 创建标签数据访问层实例
 func NewTagRepository() *TagRepository {
 	return &TagRepository{}
 }
