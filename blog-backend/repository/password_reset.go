@@ -1,3 +1,13 @@
+/*
+ * 项目名称：blog-backend
+ * 文件名称：password_reset.go
+ * 创建时间：2026-01-31 16:29:06
+ *
+ * 系统用户：Administrator
+ * 作　　者：無以菱
+ * 联系邮箱：huangjing510@126.com
+ * 功能描述：密码重置令牌数据访问层，提供密码重置和注册验证令牌的数据库操作功能
+ */
 package repository
 
 import (
@@ -7,8 +17,10 @@ import (
 	"blog-backend/model"
 )
 
+// PasswordResetRepository 密码重置令牌数据访问层结构体
 type PasswordResetRepository struct{}
 
+// NewPasswordResetRepository 创建密码重置令牌数据访问层实例
 func NewPasswordResetRepository() *PasswordResetRepository {
 	return &PasswordResetRepository{}
 }
@@ -47,4 +59,3 @@ func (r *PasswordResetRepository) GetRecentByEmail(email string, duration time.D
 		First(&token).Error
 	return &token, err
 }
-
