@@ -1,3 +1,13 @@
+/*
+ * 项目名称：blog-backend
+ * 文件名称：chat.go
+ * 创建时间：2026-01-31 16:29:06
+ *
+ * 系统用户：Administrator
+ * 作　　者：無以菱
+ * 联系邮箱：huangjing510@126.com
+ * 功能描述：聊天消息数据访问层，提供聊天消息和系统公告的数据库操作功能
+ */
 package repository
 
 import (
@@ -5,10 +15,10 @@ import (
 	"blog-backend/model"
 )
 
-// ChatRepository 聊天仓储
+// ChatRepository 聊天消息数据访问层结构体
 type ChatRepository struct{}
 
-// NewChatRepository 创建聊天仓储
+// NewChatRepository 创建聊天消息数据访问层实例
 func NewChatRepository() *ChatRepository {
 	return &ChatRepository{}
 }
