@@ -1,3 +1,13 @@
+/*
+ * 项目名称：blog-backend
+ * 文件名称：ip_blacklist.go
+ * 创建时间：2026-01-31 16:17:29
+ *
+ * 系统用户：Administrator
+ * 作　　者：無以菱
+ * 联系邮箱：huangjing510@126.com
+ * 功能描述：IP黑名单检查中间件，实现IP封禁、访问频率限制、白名单管理等功能，支持管理员自动解封
+ */
 package middleware
 
 import (
@@ -13,26 +23,35 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// IP访问记录
+// ipAccessRecord IP访问记录结构体
 type ipAccessRecord struct {
-	count     int
-	firstTime time.Time
-	banned    bool
+	count     int       // 访问次数
+	firstTime time.Time // 首次访问时间
+	banned    bool      // 是否已被封禁
 }
 
 var (
-	// IP访问记录映射
+	// ipAccessMap IP访问记录映射表，key为IP地址
 	ipAccessMap = make(map[string]*ipAccessRecord)
-	ipMapMutex  sync.RWMutex
+	// ipMapMutex 读写互斥锁，保护ipAccessMap的并发访问
+	ipMapMutex sync.RWMutex
 
 	// 配置参数
-	maxRequestsPerMinute    = 120 // 每分钟最大请求数（原来为 60）
-	maxRequestsPer10Min     = 600 // 10分钟最大请求数（原来为 300）
-	banDurationMinutes      = 30  // 自动封禁时长（分钟，原来为 1 小时）
+	maxRequestsPerMinute    = 120 // 每分钟最大请求数
+	maxRequestsPer10Min     = 600 // 10分钟最大请求数
+	banDurationMinutes      = 30  // 自动封禁时长（分钟）
 	adminAutoWhitelistHours = 2   // 管理员登录后当前IP自动加入白名单的时长（小时）
 )
 
 // IPBlacklistMiddleware IP黑名单检查中间件
+// 功能说明：
+//  1. 检查IP是否在黑名单中，封禁的IP将被拒绝访问（认证路径除外）
+//  2. 监控IP访问频率，超过限制的IP将被自动封禁
+//  3. 管理员和白名单IP不受限制
+//  4. 管理员登录后，其IP会自动加入临时白名单
+//
+// 返回:
+//   - gin.HandlerFunc: Gin中间件处理函数
 func IPBlacklistMiddleware() gin.HandlerFunc {
 	// 启动定时清理过期记录的协程
 	go cleanupExpiredRecords()
