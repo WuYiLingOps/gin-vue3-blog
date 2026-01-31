@@ -1,3 +1,13 @@
+/*
+ * 项目名称：blog-backend
+ * 文件名称：models.go
+ * 创建时间：2026-01-31 16:26:19
+ *
+ * 系统用户：Administrator
+ * 作　　者：無以菱
+ * 联系邮箱：huangjing510@126.com
+ * 功能描述：数据模型定义文件，包含所有数据库表的模型结构体和关联关系
+ */
 package model
 
 import (
@@ -5,6 +15,7 @@ import (
 )
 
 // User 用户模型
+// 功能说明：存储系统用户信息，包括管理员和普通用户
 type User struct {
 	ID        uint      `json:"id" gorm:"primaryKey"`
 	Username  string    `json:"username" gorm:"uniqueIndex;not null;size:50"`
@@ -20,6 +31,7 @@ type User struct {
 }
 
 // Post 文章模型
+// 功能说明：存储博客文章信息，支持草稿、发布、删除等状态，支持公开和私密可见性
 type Post struct {
 	ID          uint       `json:"id" gorm:"primaryKey"`
 	Title       string     `json:"title" gorm:"not null;size:200;index"`
@@ -47,6 +59,7 @@ type Post struct {
 }
 
 // Category 分类模型
+// 功能说明：存储文章分类信息，用于对文章进行分类管理
 type Category struct {
 	ID          uint      `json:"id" gorm:"primaryKey"`
 	Name        string    `json:"name" gorm:"uniqueIndex;not null;size:50"`
@@ -59,6 +72,7 @@ type Category struct {
 }
 
 // Tag 标签模型
+// 功能说明：存储文章标签信息，支持自定义颜色和样式，用于文章标签云展示
 type Tag struct {
 	ID        uint      `json:"id" gorm:"primaryKey"`
 	Name      string    `json:"name" gorm:"uniqueIndex;not null;size:50"`
@@ -71,6 +85,7 @@ type Tag struct {
 }
 
 // Comment 评论模型
+// 功能说明：存储评论信息，支持文章评论和友链评论，支持评论回复（父子关系）
 type Comment struct {
 	ID          uint      `json:"id" gorm:"primaryKey"`
 	Content     string    `json:"content" gorm:"not null;type:text"`
@@ -91,6 +106,7 @@ type Comment struct {
 }
 
 // Setting 系统配置模型
+// 功能说明：存储系统配置信息，采用键值对形式，支持分组管理（网站配置、上传配置等）
 type Setting struct {
 	ID        uint      `json:"id" gorm:"primaryKey"`
 	Key       string    `json:"key" gorm:"uniqueIndex;not null;size:100"`
@@ -103,6 +119,7 @@ type Setting struct {
 }
 
 // PostView 文章阅读记录模型
+// 功能说明：记录文章访问记录，用于统计文章阅读量和访客信息
 type PostView struct {
 	ID        uint      `json:"id" gorm:"primaryKey"`
 	PostID    uint      `json:"post_id" gorm:"index;not null"`
@@ -112,6 +129,7 @@ type PostView struct {
 }
 
 // Moment 说说模型
+// 功能说明：存储说说（动态）信息，支持公开和私密状态，支持图片上传
 type Moment struct {
 	ID        uint      `json:"id" gorm:"primaryKey"`
 	Content   string    `json:"content" gorm:"not null;type:text"`
@@ -128,6 +146,7 @@ type Moment struct {
 }
 
 // MomentLike 说说点赞记录模型
+// 功能说明：记录说说的点赞信息，支持登录用户和匿名用户点赞
 type MomentLike struct {
 	ID        uint      `json:"id" gorm:"primaryKey"`
 	MomentID  uint      `json:"moment_id" gorm:"index;not null"`
@@ -137,6 +156,7 @@ type MomentLike struct {
 }
 
 // PostLike 文章点赞记录模型
+// 功能说明：记录文章的点赞信息，支持登录用户和匿名用户点赞
 type PostLike struct {
 	ID        uint      `json:"id" gorm:"primaryKey"`
 	PostID    uint      `json:"post_id" gorm:"index;not null"`
@@ -146,6 +166,7 @@ type PostLike struct {
 }
 
 // IPBlacklist IP黑名单模型
+// 功能说明：存储被封禁的IP地址信息，支持自动封禁和手动封禁，支持过期时间设置
 type IPBlacklist struct {
 	ID        uint       `json:"id" gorm:"primaryKey"`
 	IP        string     `json:"ip" gorm:"column:ip;uniqueIndex;not null;size:45"` // 显式指定列名，确保正确映射
@@ -157,6 +178,7 @@ type IPBlacklist struct {
 }
 
 // IPWhitelist IP白名单模型
+// 功能说明：存储白名单IP地址信息，支持CIDR格式，支持过期时间设置
 type IPWhitelist struct {
 	ID        uint       `json:"id" gorm:"primaryKey"`
 	IP        string     `json:"ip" gorm:"column:ip;uniqueIndex;not null;size:45"` // 支持 CIDR 格式，显式指定列名
@@ -167,6 +189,7 @@ type IPWhitelist struct {
 }
 
 // PasswordResetToken 密码重置令牌模型
+// 功能说明：存储密码重置和注册验证的令牌信息，包含验证码和过期时间
 type PasswordResetToken struct {
 	ID        uint      `json:"id" gorm:"primaryKey"`
 	UserID    *uint     `json:"user_id" gorm:"index"` // 注册时为NULL，密码重置时为实际用户ID
@@ -179,6 +202,7 @@ type PasswordResetToken struct {
 }
 
 // EmailChangeRecord 邮箱修改记录模型
+// 功能说明：记录用户邮箱修改历史，用于追踪和审计
 type EmailChangeRecord struct {
 	ID        uint      `json:"id" gorm:"primaryKey"`
 	UserID    uint      `json:"user_id" gorm:"index;not null"`
@@ -188,6 +212,7 @@ type EmailChangeRecord struct {
 }
 
 // ChatMessage 聊天消息模型
+// 功能说明：存储聊天室消息和系统公告信息，支持匿名用户和登录用户
 type ChatMessage struct {
 	ID          uint      `json:"id" gorm:"primaryKey"`
 	Content     string    `json:"content" gorm:"not null;type:text"`
@@ -206,64 +231,78 @@ type ChatMessage struct {
 	User *User `json:"user,omitempty" gorm:"foreignKey:UserID"`
 }
 
-// TableName 指定表名
+// TableName 指定User模型的数据库表名
 func (User) TableName() string {
 	return "users"
 }
 
+// TableName 指定Post模型的数据库表名
 func (Post) TableName() string {
 	return "posts"
 }
 
+// TableName 指定Category模型的数据库表名
 func (Category) TableName() string {
 	return "categories"
 }
 
+// TableName 指定Tag模型的数据库表名
 func (Tag) TableName() string {
 	return "tags"
 }
 
+// TableName 指定Comment模型的数据库表名
 func (Comment) TableName() string {
 	return "comments"
 }
 
+// TableName 指定Setting模型的数据库表名
 func (Setting) TableName() string {
 	return "settings"
 }
 
+// TableName 指定PostView模型的数据库表名
 func (PostView) TableName() string {
 	return "post_views"
 }
 
+// TableName 指定Moment模型的数据库表名
 func (Moment) TableName() string {
 	return "moments"
 }
 
+// TableName 指定MomentLike模型的数据库表名
 func (MomentLike) TableName() string {
 	return "moment_likes"
 }
 
+// TableName 指定IPBlacklist模型的数据库表名
 func (IPBlacklist) TableName() string {
 	return "ip_blacklist"
 }
 
+// TableName 指定IPWhitelist模型的数据库表名
 func (IPWhitelist) TableName() string {
 	return "ip_whitelist"
 }
 
+// TableName 指定PasswordResetToken模型的数据库表名
 func (PasswordResetToken) TableName() string {
 	return "password_reset_tokens"
 }
 
+// TableName 指定EmailChangeRecord模型的数据库表名
 func (EmailChangeRecord) TableName() string {
 	return "email_change_records"
 }
 
+// TableName 指定ChatMessage模型的数据库表名
 func (ChatMessage) TableName() string {
 	return "chat_messages"
 }
 
 // FriendLinkCategory 友链分类模型
+// 功能说明：存储友链分类信息，用于对友链进行分类管理
 type FriendLinkCategory struct {
 	ID          uint      `json:"id" gorm:"primaryKey"`
 	Name        string    `json:"name" gorm:"not null;size:50"`
@@ -276,11 +315,13 @@ type FriendLinkCategory struct {
 	FriendLinks []FriendLink `json:"friend_links,omitempty" gorm:"foreignKey:CategoryID"`
 }
 
+// TableName 指定FriendLinkCategory模型的数据库表名
 func (FriendLinkCategory) TableName() string {
 	return "friend_link_categories"
 }
 
 // FriendLink 友链模型
+// 功能说明：存储友情链接信息，包含网站名称、URL、图标、描述等信息
 type FriendLink struct {
 	ID          uint      `json:"id" gorm:"primaryKey"`
 	Name        string    `json:"name" gorm:"not null;size:100"`
@@ -299,11 +340,13 @@ type FriendLink struct {
 	Category FriendLinkCategory `json:"category" gorm:"foreignKey:CategoryID"`
 }
 
+// TableName 指定FriendLink模型的数据库表名
 func (FriendLink) TableName() string {
 	return "friend_links"
 }
 
 // Album 相册模型
+// 功能说明：存储相册照片信息，用于展示个人相册
 type Album struct {
 	ID          uint      `json:"id" gorm:"primaryKey"`
 	ImageURL    string    `json:"image_url" gorm:"not null;size:500"`
@@ -314,6 +357,7 @@ type Album struct {
 	UpdatedAt   time.Time `json:"updated_at"`
 }
 
+// TableName 指定Album模型的数据库表名
 func (Album) TableName() string {
 	return "albums"
 }
