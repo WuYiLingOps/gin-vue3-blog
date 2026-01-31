@@ -1,3 +1,13 @@
+/*
+ * 项目名称：blog-backend
+ * 文件名称：router.go
+ * 创建时间：2026-01-31 16:45:02
+ *
+ * 系统用户：Administrator
+ * 作　　者：無以菱
+ * 联系邮箱：huangjing510@126.com
+ * 功能描述：路由配置模块，负责配置所有API路由、中间件和静态文件服务
+ */
 package router
 
 import (
@@ -9,27 +19,35 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// SetupRouter 配置路由
+// SetupRouter 配置并返回Gin路由引擎
+// 功能说明：
+//  1. 初始化Gin引擎并配置中间件
+//  2. 配置静态文件服务
+//  3. 初始化WebSocket Hub
+//  4. 初始化所有处理器
+//  5. 配置所有API路由组
+// 返回:
+//   - *gin.Engine: 配置好的Gin路由引擎
 func SetupRouter() *gin.Engine {
 	r := gin.New()
 
-	// 使用中间件
-	r.Use(gin.Recovery())
-	r.Use(middleware.IPContextMiddleware()) // IP上下文中间件（最先执行，确保IP可用）
-	r.Use(middleware.Logger())
-	r.Use(middleware.CORS())
-	r.Use(middleware.IPBlacklistMiddleware()) // IP黑名单和频率限制
+	// 使用中间件（按顺序执行）
+	r.Use(gin.Recovery())                        // Gin内置恢复中间件，捕获panic
+	r.Use(middleware.IPContextMiddleware())      // IP上下文中间件（最先执行，确保IP可用）
+	r.Use(middleware.Logger())                   // HTTP请求日志中间件
+	r.Use(middleware.CORS())                     // 跨域资源共享中间件
+	r.Use(middleware.IPBlacklistMiddleware())    // IP黑名单和频率限制中间件
 
 	// 静态文件服务（用于访问上传的文件）
 	// 使用绝对路径，确保无论从哪个目录运行都能找到 uploads 目录
 	uploadsPath, _ := filepath.Abs("./uploads")
 	r.Static("/uploads", uploadsPath)
 
-	// 初始化WebSocket Hub
+	// 初始化WebSocket Hub（用于实时聊天功能）
 	chatHub := service.NewHub()
-	go chatHub.Run() // 启动Hub
+	go chatHub.Run() // 启动Hub，在后台goroutine中运行
 
-	// 初始化处理器
+	// 初始化所有业务处理器
 	authHandler := handler.NewAuthHandler()
 	postHandler := handler.NewPostHandler()
 	categoryHandler := handler.NewCategoryHandler()
@@ -51,33 +69,38 @@ func SetupRouter() *gin.Engine {
 	calendarHandler := handler.NewCalendarHandler()
 	albumHandler := handler.NewAlbumHandler()
 
-	// 健康检查接口
+	// 健康检查接口（用于服务监控和负载均衡器健康检查）
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "ok"})
 	})
 
-	// API 路由组
+	// API 路由组（所有API接口都以 /api 为前缀）
 	api := r.Group("/api")
 	{
-		setupAuthRoutes(api, authHandler)
-		setupCaptchaRoutes(api, captchaHandler)
-		setupBlogRoutes(api, blogHandler, announcementHandler, friendLinkHandler, friendLinkCategoryHandler, albumHandler)
-		setupCalendarRoutes(api, calendarHandler)
-		setupPostRoutes(api, postHandler)
-		setupCategoryRoutes(api, categoryHandler)
-		setupTagRoutes(api, tagHandler)
-		setupCommentRoutes(api, commentHandler)
-		setupUploadRoutes(api, uploadHandler)
-		setupSettingRoutes(api, settingHandler)
-		setupMomentRoutes(api, momentHandler)
-		setupChatRoutes(api, chatHandler)
-		setupAdminRoutes(api, userHandler, postHandler, commentHandler, dashboardHandler, momentHandler, ipBlacklistHandler, ipWhitelistHandler, chatHandler, friendLinkHandler, friendLinkCategoryHandler, settingHandler, albumHandler)
+		// 配置各个功能模块的路由
+		setupAuthRoutes(api, authHandler)                                                                                                                      // 认证相关路由
+		setupCaptchaRoutes(api, captchaHandler)                                                                                                                // 验证码路由
+		setupBlogRoutes(api, blogHandler, announcementHandler, friendLinkHandler, friendLinkCategoryHandler, albumHandler)                                    // 博客公开接口路由
+		setupCalendarRoutes(api, calendarHandler)                                                                                                              // 日历路由
+		setupPostRoutes(api, postHandler)                                                                                                                      // 文章路由
+		setupCategoryRoutes(api, categoryHandler)                                                                                                             // 分类路由
+		setupTagRoutes(api, tagHandler)                                                                                                                       // 标签路由
+		setupCommentRoutes(api, commentHandler)                                                                                                               // 评论路由
+		setupUploadRoutes(api, uploadHandler)                                                                                                                 // 文件上传路由
+		setupSettingRoutes(api, settingHandler)                                                                                                               // 系统设置路由
+		setupMomentRoutes(api, momentHandler)                                                                                                                  // 说说路由
+		setupChatRoutes(api, chatHandler)                                                                                                                      // 聊天室路由
+		setupAdminRoutes(api, userHandler, postHandler, commentHandler, dashboardHandler, momentHandler, ipBlacklistHandler, ipWhitelistHandler, chatHandler, friendLinkHandler, friendLinkCategoryHandler, settingHandler, albumHandler) // 管理后台路由
 	}
 
 	return r
 }
 
-// setupAuthRoutes 认证路由
+// setupAuthRoutes 配置认证相关路由
+// 功能说明：配置用户注册、登录、登出、密码重置、个人信息管理等路由
+// 参数:
+//   - api: API路由组
+//   - h: 认证处理器实例
 func setupAuthRoutes(api *gin.RouterGroup, h *handler.AuthHandler) {
 	auth := api.Group("/auth")
 	{
@@ -102,7 +125,11 @@ func setupAuthRoutes(api *gin.RouterGroup, h *handler.AuthHandler) {
 	}
 }
 
-// setupCaptchaRoutes 验证码路由
+// setupCaptchaRoutes 配置验证码路由
+// 功能说明：配置图形验证码获取接口
+// 参数:
+//   - api: API路由组
+//   - h: 验证码处理器实例
 func setupCaptchaRoutes(api *gin.RouterGroup, h *handler.CaptchaHandler) {
 	captcha := api.Group("/captcha")
 	{
@@ -110,7 +137,15 @@ func setupCaptchaRoutes(api *gin.RouterGroup, h *handler.CaptchaHandler) {
 	}
 }
 
-// setupBlogRoutes 博客路由（公开接口）
+// setupBlogRoutes 配置博客公开接口路由
+// 功能说明：配置博主信息、网站统计、公告、友链、相册等公开接口
+// 参数:
+//   - api: API路由组
+//   - h: 博客处理器实例
+//   - a: 公告处理器实例
+//   - fl: 友链处理器实例
+//   - flc: 友链分类处理器实例
+//   - al: 相册处理器实例
 func setupBlogRoutes(api *gin.RouterGroup, h *handler.BlogHandler, a *handler.AnnouncementHandler, fl *handler.FriendLinkHandler, flc *handler.FriendLinkCategoryHandler, al *handler.AlbumHandler) {
 	blog := api.Group("/blog")
 	{
@@ -133,7 +168,11 @@ func setupBlogRoutes(api *gin.RouterGroup, h *handler.BlogHandler, a *handler.An
 	}
 }
 
-// setupCalendarRoutes 贡献热力图路由（公开接口）
+// setupCalendarRoutes 配置贡献热力图路由（公开接口）
+// 功能说明：配置Gitee贡献热力图数据查询接口
+// 参数:
+//   - api: API路由组
+//   - h: 日历处理器实例
 func setupCalendarRoutes(api *gin.RouterGroup, h *handler.CalendarHandler) {
 	calendar := api.Group("/calendar")
 	{
@@ -141,7 +180,11 @@ func setupCalendarRoutes(api *gin.RouterGroup, h *handler.CalendarHandler) {
 	}
 }
 
-// setupPostRoutes 文章路由
+// setupPostRoutes 配置文章路由
+// 功能说明：配置文章的增删改查、点赞、归档等路由，支持公开接口和需要认证的接口
+// 参数:
+//   - api: API路由组
+//   - h: 文章处理器实例
 func setupPostRoutes(api *gin.RouterGroup, h *handler.PostHandler) {
 	posts := api.Group("/posts")
 	// 前台获取文章相关接口允许携带可选认证信息，用于区分管理员和普通用户
@@ -166,7 +209,11 @@ func setupPostRoutes(api *gin.RouterGroup, h *handler.PostHandler) {
 	}
 }
 
-// setupCategoryRoutes 分类路由
+// setupCategoryRoutes 配置分类路由
+// 功能说明：配置文章分类的增删改查路由，查询接口公开，管理接口需要管理员权限
+// 参数:
+//   - api: API路由组
+//   - h: 分类处理器实例
 func setupCategoryRoutes(api *gin.RouterGroup, h *handler.CategoryHandler) {
 	categories := api.Group("/categories")
 	{
@@ -185,7 +232,11 @@ func setupCategoryRoutes(api *gin.RouterGroup, h *handler.CategoryHandler) {
 	}
 }
 
-// setupTagRoutes 标签路由
+// setupTagRoutes 配置标签路由
+// 功能说明：配置文章标签的增删改查路由，查询接口公开，管理接口需要认证
+// 参数:
+//   - api: API路由组
+//   - h: 标签处理器实例
 func setupTagRoutes(api *gin.RouterGroup, h *handler.TagHandler) {
 	tags := api.Group("/tags")
 	{
@@ -205,7 +256,11 @@ func setupTagRoutes(api *gin.RouterGroup, h *handler.TagHandler) {
 	}
 }
 
-// setupCommentRoutes 评论路由
+// setupCommentRoutes 配置评论路由
+// 功能说明：配置评论的增删改查路由，查询接口公开，创建和管理接口需要认证
+// 参数:
+//   - api: API路由组
+//   - h: 评论处理器实例
 func setupCommentRoutes(api *gin.RouterGroup, h *handler.CommentHandler) {
 	comments := api.Group("/comments")
 	{
@@ -224,7 +279,11 @@ func setupCommentRoutes(api *gin.RouterGroup, h *handler.CommentHandler) {
 	}
 }
 
-// setupUploadRoutes 上传路由
+// setupUploadRoutes 配置文件上传路由
+// 功能说明：配置头像和图片上传接口，需要认证
+// 参数:
+//   - api: API路由组
+//   - h: 文件上传处理器实例
 func setupUploadRoutes(api *gin.RouterGroup, h *handler.UploadHandler) {
 	upload := api.Group("/upload")
 	upload.Use(middleware.AuthMiddleware())
@@ -234,7 +293,11 @@ func setupUploadRoutes(api *gin.RouterGroup, h *handler.UploadHandler) {
 	}
 }
 
-// setupSettingRoutes 配置路由
+// setupSettingRoutes 配置系统设置路由
+// 功能说明：配置系统设置的查询和更新路由，部分接口公开，管理接口需要管理员权限
+// 参数:
+//   - api: API路由组
+//   - h: 系统设置处理器实例
 func setupSettingRoutes(api *gin.RouterGroup, h *handler.SettingHandler) {
 	settings := api.Group("/settings")
 	{
@@ -259,7 +322,11 @@ func setupSettingRoutes(api *gin.RouterGroup, h *handler.SettingHandler) {
 	}
 }
 
-// setupMomentRoutes 说说路由
+// setupMomentRoutes 配置说说路由
+// 功能说明：配置说说的增删改查、点赞等路由，查询接口支持可选认证，管理接口需要认证
+// 参数:
+//   - api: API路由组
+//   - h: 说说处理器实例
 func setupMomentRoutes(api *gin.RouterGroup, h *handler.MomentHandler) {
 	moments := api.Group("/moments")
 	{
@@ -280,7 +347,11 @@ func setupMomentRoutes(api *gin.RouterGroup, h *handler.MomentHandler) {
 	}
 }
 
-// setupChatRoutes 聊天室路由
+// setupChatRoutes 配置聊天室路由
+// 功能说明：配置WebSocket连接、消息查询、在线信息等路由，支持认证和匿名访问
+// 参数:
+//   - api: API路由组
+//   - h: 聊天室处理器实例
 func setupChatRoutes(api *gin.RouterGroup, h *handler.ChatHandler) {
 	chat := api.Group("/chat")
 	{
@@ -294,7 +365,23 @@ func setupChatRoutes(api *gin.RouterGroup, h *handler.ChatHandler) {
 	}
 }
 
-// setupAdminRoutes 管理后台路由
+// setupAdminRoutes 配置管理后台路由
+// 功能说明：配置所有管理后台功能的路由，包括仪表盘、用户管理、文章管理、评论管理、IP管理、聊天室管理等
+// 所有接口都需要管理员权限（AuthMiddleware + AdminMiddleware）
+// 参数:
+//   - api: API路由组
+//   - userHandler: 用户处理器实例
+//   - postHandler: 文章处理器实例
+//   - commentHandler: 评论处理器实例
+//   - dashboardHandler: 仪表盘处理器实例
+//   - momentHandler: 说说处理器实例
+//   - ipBlacklistHandler: IP黑名单处理器实例
+//   - ipWhitelistHandler: IP白名单处理器实例
+//   - chatHandler: 聊天室处理器实例
+//   - friendLinkHandler: 友链处理器实例
+//   - friendLinkCategoryHandler: 友链分类处理器实例
+//   - settingHandler: 系统设置处理器实例
+//   - albumHandler: 相册处理器实例
 func setupAdminRoutes(api *gin.RouterGroup, userHandler *handler.UserHandler, postHandler *handler.PostHandler, commentHandler *handler.CommentHandler, dashboardHandler *handler.DashboardHandler, momentHandler *handler.MomentHandler, ipBlacklistHandler *handler.IPBlacklistHandler, ipWhitelistHandler *handler.IPWhitelistHandler, chatHandler *handler.ChatHandler, friendLinkHandler *handler.FriendLinkHandler, friendLinkCategoryHandler *handler.FriendLinkCategoryHandler, settingHandler *handler.SettingHandler, albumHandler *handler.AlbumHandler) {
 	admin := api.Group("/admin")
 	admin.Use(middleware.AuthMiddleware(), middleware.AdminMiddleware())
