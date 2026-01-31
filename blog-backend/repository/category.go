@@ -1,13 +1,26 @@
+/*
+ * 项目名称：blog-backend
+ * 文件名称：category.go
+ * 创建时间：2026-01-31 16:29:06
+ *
+ * 系统用户：Administrator
+ * 作　　者：無以菱
+ * 联系邮箱：huangjing510@126.com
+ * 功能描述：分类数据访问层，提供文章分类的数据库操作功能
+ */
 package repository
 
 import (
 	"blog-backend/db"
 	"blog-backend/model"
+
 	"gorm.io/gorm"
 )
 
+// CategoryRepository 分类数据访问层结构体
 type CategoryRepository struct{}
 
+// NewCategoryRepository 创建分类数据访问层实例
 func NewCategoryRepository() *CategoryRepository {
 	return &CategoryRepository{}
 }
@@ -67,4 +80,3 @@ func (r *CategoryRepository) IncrementPostCountTx(tx *gorm.DB, id uint) error {
 func (r *CategoryRepository) DecrementPostCountTx(tx *gorm.DB, id uint) error {
 	return tx.Model(&model.Category{}).Where("id = ?", id).UpdateColumn("post_count", gorm.Expr("CASE WHEN post_count > 0 THEN post_count - 1 ELSE 0 END")).Error
 }
-
