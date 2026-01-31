@@ -1,3 +1,13 @@
+/*
+ * 项目名称：blog-backend
+ * 文件名称：category.go
+ * 创建时间：2026-01-31 16:34:35
+ *
+ * 系统用户：Administrator
+ * 作　　者：無以菱
+ * 联系邮箱：huangjing510@126.com
+ * 功能描述：分类业务逻辑层，提供文章分类的增删改查业务处理，支持Redis缓存
+ */
 package service
 
 import (
@@ -13,10 +23,12 @@ import (
 	"gorm.io/gorm"
 )
 
+// CategoryService 分类业务逻辑层结构体
 type CategoryService struct {
 	repo *repository.CategoryRepository
 }
 
+// NewCategoryService 创建分类业务逻辑层实例
 func NewCategoryService() *CategoryService {
 	return &CategoryService{
 		repo: repository.NewCategoryRepository(),
