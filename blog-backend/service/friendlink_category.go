@@ -1,3 +1,13 @@
+/*
+ * 项目名称：blog-backend
+ * 文件名称：friendlink_category.go
+ * 创建时间：2026-01-31 16:34:35
+ *
+ * 系统用户：Administrator
+ * 作　　者：無以菱
+ * 联系邮箱：huangjing510@126.com
+ * 功能描述：友链分类业务逻辑层，提供友链分类的增删改查业务处理，支持Redis缓存
+ */
 package service
 
 import (
@@ -10,10 +20,12 @@ import (
 	"blog-backend/repository"
 )
 
+// FriendLinkCategoryService 友链分类业务逻辑层结构体
 type FriendLinkCategoryService struct {
 	repo *repository.FriendLinkCategoryRepository
 }
 
+// NewFriendLinkCategoryService 创建友链分类业务逻辑层实例
 func NewFriendLinkCategoryService() *FriendLinkCategoryService {
 	return &FriendLinkCategoryService{
 		repo: repository.NewFriendLinkCategoryRepository(),
