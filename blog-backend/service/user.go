@@ -1,3 +1,13 @@
+/*
+ * 项目名称：blog-backend
+ * 文件名称：user.go
+ * 创建时间：2026-01-31 16:34:35
+ *
+ * 系统用户：Administrator
+ * 作　　者：無以菱
+ * 联系邮箱：huangjing510@126.com
+ * 功能描述：用户业务逻辑层，提供用户信息查询、状态更新、删除等业务处理
+ */
 package service
 
 import (
@@ -9,10 +19,12 @@ import (
 	"gorm.io/gorm"
 )
 
+// UserService 用户业务逻辑层结构体
 type UserService struct {
 	repo *repository.UserRepository
 }
 
+// NewUserService 创建用户业务逻辑层实例
 func NewUserService() *UserService {
 	return &UserService{
 		repo: repository.NewUserRepository(),
