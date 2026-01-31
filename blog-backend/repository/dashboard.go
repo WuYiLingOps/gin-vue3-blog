@@ -1,3 +1,13 @@
+/*
+ * 项目名称：blog-backend
+ * 文件名称：dashboard.go
+ * 创建时间：2026-01-31 16:29:06
+ *
+ * 系统用户：Administrator
+ * 作　　者：無以菱
+ * 联系邮箱：huangjing510@126.com
+ * 功能描述：仪表盘数据访问层，提供统计数据查询功能
+ */
 package repository
 
 import (
@@ -32,4 +42,3 @@ func (r *CommentRepository) GetTotalCount() (int64, error) {
 	err := db.DB.Model(&model.Comment{}).Where("status = 1").Count(&count).Error
 	return count, err
 }
-
