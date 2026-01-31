@@ -1,3 +1,13 @@
+/*
+ * 项目名称：blog-backend
+ * 文件名称：dashboard.go
+ * 创建时间：2026-01-31 16:05:15
+ *
+ * 系统用户：Administrator
+ * 作　　者：無以菱
+ * 联系邮箱：huangjing510@126.com
+ * 功能描述：仪表盘处理器，提供统计数据查询功能
+ */
 package handler
 
 import (
@@ -8,10 +18,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// DashboardHandler 仪表盘处理器结构体
 type DashboardHandler struct {
 	service *service.DashboardService
 }
 
+// NewDashboardHandler 创建仪表盘处理器实例
 func NewDashboardHandler() *DashboardHandler {
 	return &DashboardHandler{
 		service: service.NewDashboardService(),
