@@ -1,3 +1,13 @@
+/*
+ * 项目名称：blog-backend
+ * 文件名称：friendlink.go
+ * 创建时间：2026-01-31 16:29:06
+ *
+ * 系统用户：Administrator
+ * 作　　者：無以菱
+ * 联系邮箱：huangjing510@126.com
+ * 功能描述：友链数据访问层，提供友情链接的数据库操作功能
+ */
 package repository
 
 import (
@@ -5,8 +15,10 @@ import (
 	"blog-backend/model"
 )
 
+// FriendLinkRepository 友链数据访问层结构体
 type FriendLinkRepository struct{}
 
+// NewFriendLinkRepository 创建友链数据访问层实例
 func NewFriendLinkRepository() *FriendLinkRepository {
 	return &FriendLinkRepository{}
 }
