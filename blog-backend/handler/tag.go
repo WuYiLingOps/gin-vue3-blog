@@ -1,3 +1,13 @@
+/*
+ * 项目名称：blog-backend
+ * 文件名称：tag.go
+ * 创建时间：2026-01-31 16:05:15
+ *
+ * 系统用户：Administrator
+ * 作　　者：無以菱
+ * 联系邮箱：huangjing510@126.com
+ * 功能描述：标签管理处理器，提供文章标签的增删改查功能，支持按标签查询文章
+ */
 package handler
 
 import (
@@ -8,10 +18,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// TagHandler 标签处理器结构体
 type TagHandler struct {
 	service *service.TagService
 }
 
+// NewTagHandler 创建标签处理器实例
 func NewTagHandler() *TagHandler {
 	return &TagHandler{
 		service: service.NewTagService(),
