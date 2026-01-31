@@ -1,3 +1,13 @@
+/*
+ * 项目名称：blog-backend
+ * 文件名称：ip_whitelist.go
+ * 创建时间：2026-01-31 16:05:15
+ *
+ * 系统用户：Administrator
+ * 作　　者：無以菱
+ * 联系邮箱：huangjing510@126.com
+ * 功能描述：IP白名单管理处理器，提供IP白名单添加、查询、过期清理等功能，支持CIDR格式
+ */
 package handler
 
 import (
@@ -12,8 +22,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// IPWhitelistHandler IP白名单处理器结构体
 type IPWhitelistHandler struct{}
 
+// NewIPWhitelistHandler 创建IP白名单处理器实例
 func NewIPWhitelistHandler() *IPWhitelistHandler {
 	return &IPWhitelistHandler{}
 }
