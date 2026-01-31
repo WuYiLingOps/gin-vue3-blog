@@ -1,3 +1,13 @@
+/*
+ * 项目名称：blog-backend
+ * 文件名称：post_view.go
+ * 创建时间：2026-01-31 16:29:06
+ *
+ * 系统用户：Administrator
+ * 作　　者：無以菱
+ * 联系邮箱：huangjing510@126.com
+ * 功能描述：文章阅读记录数据访问层，提供文章访问记录和统计的数据库操作功能
+ */
 package repository
 
 import (
@@ -9,8 +19,10 @@ import (
 	"gorm.io/gorm"
 )
 
+// PostViewRepository 文章阅读记录数据访问层结构体
 type PostViewRepository struct{}
 
+// NewPostViewRepository 创建文章阅读记录数据访问层实例
 func NewPostViewRepository() *PostViewRepository {
 	return &PostViewRepository{}
 }
