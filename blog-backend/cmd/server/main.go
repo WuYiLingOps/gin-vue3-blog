@@ -1,3 +1,13 @@
+/*
+ * 项目名称：blog-backend
+ * 文件名称：main.go
+ * 创建时间：2026-01-31 16:00:22
+ *
+ * 系统用户：Administrator
+ * 作　　者：無以菱
+ * 联系邮箱：huangjing510@126.com
+ * 功能描述：博客后端服务器主程序，负责初始化配置、数据库、路由等并启动HTTP服务
+ */
 package main
 
 import (
