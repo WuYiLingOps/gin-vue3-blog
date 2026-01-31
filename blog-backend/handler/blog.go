@@ -1,3 +1,13 @@
+/*
+ * 项目名称：blog-backend
+ * 文件名称：blog.go
+ * 创建时间：2026-01-31 16:05:15
+ *
+ * 系统用户：Administrator
+ * 作　　者：無以菱
+ * 联系邮箱：huangjing510@126.com
+ * 功能描述：博客公开接口处理器，提供博主信息、网站统计、标签统计等公开数据查询功能，支持Redis缓存
+ */
 package handler
 
 import (
@@ -14,10 +24,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// BlogHandler 博客公开接口处理器结构体
 type BlogHandler struct {
 	settingService *service.SettingService
 }
 
+// NewBlogHandler 创建博客处理器实例
 func NewBlogHandler() *BlogHandler {
 	return &BlogHandler{
 		settingService: service.NewSettingService(),
