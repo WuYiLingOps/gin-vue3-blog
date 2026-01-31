@@ -1,3 +1,13 @@
+/*
+ * 项目名称：blog-backend
+ * 文件名称：upload.go
+ * 创建时间：2026-01-31 16:05:15
+ *
+ * 系统用户：Administrator
+ * 作　　者：無以菱
+ * 联系邮箱：huangjing510@126.com
+ * 功能描述：文件上传处理器，提供头像和图片上传功能，支持本地存储和云存储（OSS/COS）
+ */
 package handler
 
 import (
@@ -6,8 +16,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// UploadHandler 文件上传处理器结构体
 type UploadHandler struct{}
 
+// NewUploadHandler 创建文件上传处理器实例
 func NewUploadHandler() *UploadHandler {
 	return &UploadHandler{}
 }
