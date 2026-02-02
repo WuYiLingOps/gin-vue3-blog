@@ -157,7 +157,7 @@ CONTAINER ID   IMAGE                COMMAND                  CREATED          ST
 ## 5.3 克隆项目
 
 ```bash
-git clone https://github.com/wylblog/go-vue3-blog.git
+git clone https://github.com/wylblog/gin-vue3-blog.git
 cd myBlog
 ```
 
@@ -205,7 +205,7 @@ CREATE DATABASE blogdb
 
 第二步：
 # 将 init.sql 传入容器
-docker cp go-vue3-blog/blog-backend/sql/init.sql pg-prod:/tmp/init.sql
+docker cp gin-vue3-blog/blog-backend/sql/init.sql pg-prod:/tmp/init.sql
 
 # 导入数据
 docker exec -it pg-prod psql -U postgres -d blogdb -f /tmp/init.sql
@@ -346,7 +346,7 @@ email:
 
 ```bash
 # 1. 进入项目根目录
-cd /web/go-vue3-blog
+cd /web/gin-vue3-blog
 
 # 2. 添加执行权限（首次使用）
 chmod +x deploy.sh
@@ -518,7 +518,7 @@ docker compose logs -f backend
    本仓库已自带编译好的 `gitee-calendar-api`（根目录），可直接赋予执行权限使用（默认占用端口为8081）。若需查看/自行编译源码，可访问：`https://gitee.com/wylblog/go-code-calendar-api.git`
 
    ```bash
-   cd /web/go-vue3-blog/gitee-calendar-api
+   cd /web/gin-vue3-blog/gitee-calendar-api
    chmod +x gitee-calendar-api
    ```
 
@@ -648,17 +648,17 @@ pnpm build
 
 ## 7.4 第三步：Nginx 部署与反向代理
 
-在服务器上准备前端目录（例如 `/web/go-vue3-blog/blog-frontend/dist`），**将本地 `dist` 目录中的所有文件和子目录整体上传到该目录**，保持结构不变，例如：
+在服务器上准备前端目录（例如 `/web/gin-vue3-blog/blog-frontend/dist`），**将本地 `dist` 目录中的所有文件和子目录整体上传到该目录**，保持结构不变，例如：
 
 ```bash
-/web/go-vue3-blog/blog-frontend/dist/
+/web/gin-vue3-blog/blog-frontend/dist/
 ├── index.html
 ├── assets/
 ├── logo.svg
 └── 备案图标.png
 ```
 
-Nginx 中的 `root` 应指向 **包含 `index.html` 的目录本身**（如 `/web/go-vue3-blog/blog-frontend/dist`，可按实际路径调整），而不是上级目录。
+Nginx 中的 `root` 应指向 **包含 `index.html` 的目录本身**（如 `/web/gin-vue3-blog/blog-frontend/dist`，可按实际路径调整），而不是上级目录。
 
 > 配置 Nginx（按需替换域名/路径/证书），`HTTP 示例`：
 
@@ -668,7 +668,7 @@ server {
     server_name your-domain.com;   # 修改为你的域名/主机名，例如：huangjingblog.cn
 
     # 前端静态资源目录（dist 构建产物）
-    root /web/go-vue3-blog/blog-frontend/dist;  # 按实际部署路径修改
+    root /web/gin-vue3-blog/blog-frontend/dist;  # 按实际部署路径修改
     index index.html;
 
     # 前端路由回退到 index.html（适配前端 history 模式）
@@ -750,7 +750,7 @@ server {
     ssl_prefer_server_ciphers on;
 
     # 前端静态资源目录（dist 构建产物）
-    root /web/go-vue3-blog/blog-frontend/dist;  # 按实际部署路径修改
+    root /web/gin-vue3-blog/blog-frontend/dist;  # 按实际部署路径修改
     index index.html;
 
     # 前端路由回退
