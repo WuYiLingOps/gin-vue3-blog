@@ -1,3 +1,12 @@
+<!--
+ * @ProjectName: go-vue3-blog
+ * @FileName: DefaultLayout.vue
+ * @CreateTime: 2026-02-02 11:40:46
+ * @SystemUser: Administrator
+ * @Author: 菱风叙
+ * @Contact: huangjing510@126.com
+ * @Description: 默认布局组件，提供网站的主要布局结构，包括顶部导航栏、主体内容区域、底部信息栏、移动端菜单、搜索功能等
+ -->
 <template>
   <div class="default-layout">
     <CanvasBackground />

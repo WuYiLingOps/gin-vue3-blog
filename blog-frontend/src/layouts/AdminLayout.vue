@@ -1,3 +1,12 @@
+<!--
+ * @ProjectName: go-vue3-blog
+ * @FileName: AdminLayout.vue
+ * @CreateTime: 2026-02-02 11:40:46
+ * @SystemUser: Administrator
+ * @Author: 菱风叙
+ * @Contact: huangjing510@126.com
+ * @Description: 管理后台布局组件，提供管理后台的主要布局结构，包括侧边栏菜单、顶部导航栏、内容区域等
+ -->
 <template>
   <div class="admin-layout">
     <n-loading-bar-provider>

@@ -1,3 +1,12 @@
+<!--
+ * @ProjectName: go-vue3-blog
+ * @FileName: AuthLayout.vue
+ * @CreateTime: 2026-02-02 11:40:46
+ * @SystemUser: Administrator
+ * @Author: 菱风叙
+ * @Contact: huangjing510@126.com
+ * @Description: 认证布局组件，用于登录、注册等认证相关页面的布局容器
+ -->
 <template>
   <div class="auth-layout">
     <div class="auth-container">
