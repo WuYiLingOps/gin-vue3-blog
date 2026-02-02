@@ -262,6 +262,18 @@ watch(() => props.content, () => {
   position: relative;
 }
 
+/* 段落排版：解决全局 reset 导致的段落“挤在一起”，并增加首行缩进 */
+.markdown-preview :deep(.vuepress-markdown-body > p) {
+  margin: 0 0 1em 0;
+  line-height: 1.9;
+  text-align: justify;
+  word-break: break-word;
+}
+
+.markdown-preview :deep(.vuepress-markdown-body > p:last-child) {
+  margin-bottom: 0;
+}
+
 /* 暗黑模式下的 markdown 内容样式 */
 html.dark .markdown-preview :deep(.vuepress-markdown-body) {
   background: transparent !important;
