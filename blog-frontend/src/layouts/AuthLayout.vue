@@ -3,7 +3,7 @@
  * @FileName: AuthLayout.vue
  * @CreateTime: 2026-02-02 11:40:46
  * @SystemUser: Administrator
- * @Author: 菱风叙
+ * @Author: 無以菱
  * @Contact: huangjing510@126.com
  * @Description: 认证布局组件，用于登录、注册等认证相关页面的布局容器
  -->
