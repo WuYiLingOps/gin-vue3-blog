@@ -6,7 +6,7 @@
 #Date:             2026-01-10
 #FileName:         deploy.sh
 #URL:              https://script.huangjingblog.cn
-#Description:      重新构建并部署博客项目（go后端 + 前端）
+#Description:      重新构建并部署博客项目（go后端 + 前端）,使用之前先更新项目目录PROJECT_ROOT
 #Copyright (C):    2026 All rights reserved
 #********************************************************************
 
@@ -51,7 +51,7 @@ get_pid_by_port() {
 }
 
 # 项目根目录
-PROJECT_ROOT="/web/go-vue3-blog"
+PROJECT_ROOT="/web/gin-vue3-blog"
 cd "$PROJECT_ROOT" || {
     log_error "无法进入项目目录: $PROJECT_ROOT"
     exit 1
