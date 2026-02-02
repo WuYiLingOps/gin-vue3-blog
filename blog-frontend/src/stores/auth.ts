@@ -1,3 +1,13 @@
+/*
+ * @ProjectName: go-vue3-blog
+ * @FileName: auth.ts
+ * @CreateTime: 2026-02-02 11:54:38
+ * @SystemUser: Administrator
+ * @Author: 無以菱
+ * @Contact: huangjing510@126.com
+ * @Description: 认证状态管理，管理用户登录、注册、登出等认证相关状态
+ */
+
 // 认证状态管理
 
 import { defineStore } from 'pinia'

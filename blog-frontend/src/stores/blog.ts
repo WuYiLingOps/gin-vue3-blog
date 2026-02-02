@@ -1,3 +1,13 @@
+/*
+ * @ProjectName: go-vue3-blog
+ * @FileName: blog.ts
+ * @CreateTime: 2026-02-02 11:54:38
+ * @SystemUser: Administrator
+ * @Author: 無以菱
+ * @Contact: huangjing510@126.com
+ * @Description: 博客状态管理，管理分类、标签、文章等博客相关状态
+ */
+
 // 博客状态管理
 
 import { defineStore } from 'pinia'

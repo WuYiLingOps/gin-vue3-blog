@@ -1,3 +1,13 @@
+/*
+ * @ProjectName: go-vue3-blog
+ * @FileName: format.ts
+ * @CreateTime: 2026-02-02 11:54:38
+ * @SystemUser: Administrator
+ * @Author: 無以菱
+ * @Contact: huangjing510@126.com
+ * @Description: 格式化工具，提供日期、数字、文本等格式化功能
+ */
+
 // 格式化工具
 
 import dayjs from 'dayjs'

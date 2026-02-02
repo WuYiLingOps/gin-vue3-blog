@@ -1,3 +1,13 @@
+/*
+ * @ProjectName: go-vue3-blog
+ * @FileName: request.ts
+ * @CreateTime: 2026-02-02 11:54:38
+ * @SystemUser: Administrator
+ * @Author: 無以菱
+ * @Contact: huangjing510@126.com
+ * @Description: Axios请求封装，提供统一的HTTP请求方法和拦截器配置
+ */
+
 // Axios 请求封装
 
 import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from 'axios'

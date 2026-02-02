@@ -1,3 +1,13 @@
+/*
+ * @ProjectName: go-vue3-blog
+ * @FileName: common.ts
+ * @CreateTime: 2026-02-02 11:54:38
+ * @SystemUser: Administrator
+ * @Author: 無以菱
+ * @Contact: huangjing510@126.com
+ * @Description: 通用类型定义，包含分页、API响应、表单规则等通用类型
+ */
+
 // 通用类型定义
 
 // 分页参数

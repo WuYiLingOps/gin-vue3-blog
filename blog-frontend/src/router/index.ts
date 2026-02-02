@@ -1,3 +1,13 @@
+/*
+ * @ProjectName: go-vue3-blog
+ * @FileName: index.ts
+ * @CreateTime: 2026-02-02 11:54:38
+ * @SystemUser: Administrator
+ * @Author: 無以菱
+ * @Contact: huangjing510@126.com
+ * @Description: 路由配置文件，定义应用的所有路由规则和布局结构
+ */
+
 // 路由配置
 
 import { createRouter, createWebHistory } from 'vue-router'

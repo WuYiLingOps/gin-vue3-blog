@@ -1,3 +1,13 @@
+/*
+ * @ProjectName: go-vue3-blog
+ * @FileName: guards.ts
+ * @CreateTime: 2026-02-02 11:54:38
+ * @SystemUser: Administrator
+ * @Author: 無以菱
+ * @Contact: huangjing510@126.com
+ * @Description: 路由守卫配置，提供路由权限控制和页面标题设置功能
+ */
+
 // 路由守卫
 
 import type { Router } from 'vue-router'

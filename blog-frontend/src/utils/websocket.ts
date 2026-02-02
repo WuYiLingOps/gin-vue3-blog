@@ -1,3 +1,13 @@
+/*
+ * @ProjectName: go-vue3-blog
+ * @FileName: websocket.ts
+ * @CreateTime: 2026-02-02 11:54:38
+ * @SystemUser: Administrator
+ * @Author: 無以菱
+ * @Contact: huangjing510@126.com
+ * @Description: WebSocket管理工具，提供聊天室WebSocket连接、重连、心跳检测等功能
+ */
+
 // WebSocket管理工具
 
 import type { WebSocketMessage } from '@/api/chat'

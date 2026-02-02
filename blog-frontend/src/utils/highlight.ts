@@ -1,3 +1,13 @@
+/*
+ * @ProjectName: go-vue3-blog
+ * @FileName: highlight.ts
+ * @CreateTime: 2026-02-02 11:54:38
+ * @SystemUser: Administrator
+ * @Author: 無以菱
+ * @Contact: huangjing510@126.com
+ * @Description: 文本高亮工具，提供关键词高亮和Markdown文本处理功能
+ */
+
 /**
  * 高亮匹配的关键词
  * @param text 原始文本

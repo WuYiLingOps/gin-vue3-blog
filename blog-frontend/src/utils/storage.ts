@@ -1,3 +1,13 @@
+/*
+ * @ProjectName: go-vue3-blog
+ * @FileName: storage.ts
+ * @CreateTime: 2026-02-02 11:54:38
+ * @SystemUser: Administrator
+ * @Author: 無以菱
+ * @Contact: huangjing510@126.com
+ * @Description: 本地存储工具，提供Token和用户信息的本地存储操作
+ */
+
 // 本地存储工具
 
 const TOKEN_KEY = 'blog_token'

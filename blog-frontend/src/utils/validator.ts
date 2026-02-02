@@ -1,3 +1,13 @@
+/*
+ * @ProjectName: go-vue3-blog
+ * @FileName: validator.ts
+ * @CreateTime: 2026-02-02 11:54:38
+ * @SystemUser: Administrator
+ * @Author: 無以菱
+ * @Contact: huangjing510@126.com
+ * @Description: 表单验证工具，提供邮箱、用户名、密码、URL等验证功能
+ */
+
 // 表单验证工具
 
 // 验证邮箱

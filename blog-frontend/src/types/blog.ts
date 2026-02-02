@@ -1,3 +1,13 @@
+/*
+ * @ProjectName: go-vue3-blog
+ * @FileName: blog.ts
+ * @CreateTime: 2026-02-02 11:54:38
+ * @SystemUser: Administrator
+ * @Author: 無以菱
+ * @Contact: huangjing510@126.com
+ * @Description: 博客相关类型定义，包含文章、分类、标签、评论等类型
+ */
+
 // 博客相关类型
 
 import type { User } from './auth'

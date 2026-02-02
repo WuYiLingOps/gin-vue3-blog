@@ -1,3 +1,12 @@
+<!--
+ * @ProjectName: go-vue3-blog
+ * @FileName: App.vue
+ * @CreateTime: 2026-02-02 11:54:38
+ * @SystemUser: Administrator
+ * @Author: 無以菱
+ * @Contact: huangjing510@126.com
+ * @Description: 应用根组件，提供全局配置和主题管理
+ -->
 <template>
   <n-config-provider :theme="theme" :locale="zhCN" :date-locale="dateZhCN">
     <n-loading-bar-provider>

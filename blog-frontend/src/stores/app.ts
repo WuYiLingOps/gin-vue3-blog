@@ -1,3 +1,13 @@
+/*
+ * @ProjectName: go-vue3-blog
+ * @FileName: app.ts
+ * @CreateTime: 2026-02-02 11:54:38
+ * @SystemUser: Administrator
+ * @Author: 無以菱
+ * @Contact: huangjing510@126.com
+ * @Description: 应用全局状态管理，管理主题、侧边栏、加载状态等全局状态
+ */
+
 // 应用全局状态管理
 
 import { defineStore } from 'pinia'
