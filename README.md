@@ -991,7 +991,7 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
 - 我的友链信息配置（名称、描述、URL、头像、站点图片、RSS订阅等）
 - YAML 格式友链信息导出
 
-### 8.5 用户中心
+## 8.5 用户中心
 - ## 用户注册和登录
 - 个人资料编辑
 - 头像上传（普通用户默认使用本地存储，管理员可使用 OSS/COS）
