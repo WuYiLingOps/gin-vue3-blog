@@ -1,3 +1,12 @@
+<!--
+ * @ProjectName: go-vue3-blog
+ * @FileName: ForgotPassword.vue
+ * @CreateTime: 2026-02-02 11:43:17
+ * @SystemUser: Administrator
+ * @Author: 無以菱
+ * @Contact: huangjing510@126.com
+ * @Description: 忘记密码页面组件，提供密码重置功能
+ -->
 <template>
   <div class="forgot-password-page">
     <h2>找回密码</h2>

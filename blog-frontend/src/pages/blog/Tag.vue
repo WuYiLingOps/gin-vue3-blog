@@ -1,3 +1,12 @@
+<!--
+ * @ProjectName: go-vue3-blog
+ * @FileName: Tag.vue
+ * @CreateTime: 2026-02-02 11:43:17
+ * @SystemUser: Administrator
+ * @Author: 無以菱
+ * @Contact: huangjing510@126.com
+ * @Description: 标签页面组件，展示指定标签下的所有文章
+ -->
 <template>
   <div class="tag-page">
     <n-spin :show="loading">

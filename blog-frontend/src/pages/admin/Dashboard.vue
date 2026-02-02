@@ -1,3 +1,12 @@
+<!--
+ * @ProjectName: go-vue3-blog
+ * @FileName: Dashboard.vue
+ * @CreateTime: 2026-02-02 11:43:17
+ * @SystemUser: Administrator
+ * @Author: 無以菱
+ * @Contact: huangjing510@126.com
+ * @Description: 管理后台仪表盘页面组件，展示网站统计数据
+ -->
 <template>
   <div class="dashboard-page">
     <h1 style="margin-bottom: 24px">仪表盘</h1>

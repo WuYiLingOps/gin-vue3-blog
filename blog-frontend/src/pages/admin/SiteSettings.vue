@@ -1,3 +1,12 @@
+<!--
+ * @ProjectName: go-vue3-blog
+ * @FileName: SiteSettings.vue
+ * @CreateTime: 2026-02-02 11:43:17
+ * @SystemUser: Administrator
+ * @Author: 無以菱
+ * @Contact: huangjing510@126.com
+ * @Description: 网站设置页面组件，提供网站基本信息的配置功能
+ -->
 <template>
   <div class="site-settings-page">
     <n-card title="网站设置">

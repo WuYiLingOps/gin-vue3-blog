@@ -1,3 +1,12 @@
+<!--
+ * @ProjectName: go-vue3-blog
+ * @FileName: Home.vue
+ * @CreateTime: 2026-02-02 11:43:17
+ * @SystemUser: Administrator
+ * @Author: 無以菱
+ * @Contact: huangjing510@126.com
+ * @Description: 首页组件，展示文章列表、贡献热力图、个人名片等内容
+ -->
 <template>
   <div class="home-page">
     <!-- 顶部：贡献热力图（左） + 个人名片（右） -->

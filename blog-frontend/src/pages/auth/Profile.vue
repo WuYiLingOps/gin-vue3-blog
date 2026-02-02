@@ -1,3 +1,12 @@
+<!--
+ * @ProjectName: go-vue3-blog
+ * @FileName: Profile.vue
+ * @CreateTime: 2026-02-02 11:43:17
+ * @SystemUser: Administrator
+ * @Author: 無以菱
+ * @Contact: huangjing510@126.com
+ * @Description: 个人资料页面组件，提供用户信息查看和编辑功能
+ -->
 <template>
   <div class="profile-page">
     <n-grid :cols="1" :x-gap="24" :y-gap="24">

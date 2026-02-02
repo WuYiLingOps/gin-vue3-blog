@@ -1,3 +1,12 @@
+<!--
+ * @ProjectName: go-vue3-blog
+ * @FileName: CommentManage.vue
+ * @CreateTime: 2026-02-02 11:43:17
+ * @SystemUser: Administrator
+ * @Author: 無以菱
+ * @Contact: huangjing510@126.com
+ * @Description: 评论管理页面组件，提供评论的审核、删除等管理功能
+ -->
 <template>
   <div class="comment-manage-page">
     <h1 class="page-title">评论管理</h1>

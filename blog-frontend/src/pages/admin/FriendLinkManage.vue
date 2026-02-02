@@ -1,3 +1,12 @@
+<!--
+ * @ProjectName: go-vue3-blog
+ * @FileName: FriendLinkManage.vue
+ * @CreateTime: 2026-02-02 11:43:17
+ * @SystemUser: Administrator
+ * @Author: 無以菱
+ * @Contact: huangjing510@126.com
+ * @Description: 友情链接管理页面组件，提供友情链接的增删改查功能
+ -->
 <template>
   <div class="friendlink-manage-page">
     <div class="header">

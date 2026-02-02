@@ -1,3 +1,12 @@
+<!--
+ * @ProjectName: go-vue3-blog
+ * @FileName: Archive.vue
+ * @CreateTime: 2026-02-02 11:43:17
+ * @SystemUser: Administrator
+ * @Author: 無以菱
+ * @Contact: huangjing510@126.com
+ * @Description: 文章归档页面组件，按时间线展示所有已发布的文章
+ -->
 <template>
   <div class="archive-page">
     <n-spin :show="loading">

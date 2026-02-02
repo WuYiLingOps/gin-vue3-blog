@@ -1,3 +1,12 @@
+<!--
+ * @ProjectName: go-vue3-blog
+ * @FileName: AboutManage.vue
+ * @CreateTime: 2026-02-02 11:43:17
+ * @SystemUser: Administrator
+ * @Author: 無以菱
+ * @Contact: huangjing510@126.com
+ * @Description: 关于我管理页面组件，提供关于我内容的编辑功能
+ -->
 <template>
   <div class="about-manage-page">
     <n-card title="关于我信息管理">

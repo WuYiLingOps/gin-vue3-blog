@@ -1,3 +1,12 @@
+<!--
+ * @ProjectName: go-vue3-blog
+ * @FileName: CategoryManage.vue
+ * @CreateTime: 2026-02-02 11:43:17
+ * @SystemUser: Administrator
+ * @Author: 無以菱
+ * @Contact: huangjing510@126.com
+ * @Description: 分类管理页面组件，提供文章分类的增删改查功能
+ -->
 <template>
   <div class="category-manage-page">
     <div class="header">

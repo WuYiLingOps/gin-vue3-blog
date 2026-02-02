@@ -1,3 +1,12 @@
+<!--
+ * @ProjectName: go-vue3-blog
+ * @FileName: Chat.vue
+ * @CreateTime: 2026-02-02 11:43:17
+ * @SystemUser: Administrator
+ * @Author: 無以菱
+ * @Contact: huangjing510@126.com
+ * @Description: 聊天室页面组件，提供实时聊天功能
+ -->
 <template>
   <div class="chat-page">
     <n-card title="聊天室" class="chat-container">

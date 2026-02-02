@@ -1,3 +1,12 @@
+<!--
+ * @ProjectName: go-vue3-blog
+ * @FileName: IPAccessControl.vue
+ * @CreateTime: 2026-02-02 11:43:17
+ * @SystemUser: Administrator
+ * @Author: 無以菱
+ * @Contact: huangjing510@126.com
+ * @Description: IP访问控制页面组件，提供IP黑名单和白名单的管理功能
+ -->
 <template>
   <div class="ip-access-control-page">
     <h1 class="page-title">IP 访问控制</h1>

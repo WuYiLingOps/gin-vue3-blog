@@ -1,3 +1,12 @@
+<!--
+ * @ProjectName: go-vue3-blog
+ * @FileName: PostEdit.vue
+ * @CreateTime: 2026-02-02 11:43:17
+ * @SystemUser: Administrator
+ * @Author: 無以菱
+ * @Contact: huangjing510@126.com
+ * @Description: 文章编辑页面组件，提供文章的创建和编辑功能
+ -->
 <template>
   <div class="post-edit-page">
     <n-page-header @back="handleBack">

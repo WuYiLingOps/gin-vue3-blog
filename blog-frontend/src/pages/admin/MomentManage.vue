@@ -1,3 +1,12 @@
+<!--
+ * @ProjectName: go-vue3-blog
+ * @FileName: MomentManage.vue
+ * @CreateTime: 2026-02-02 11:43:17
+ * @SystemUser: Administrator
+ * @Author: 無以菱
+ * @Contact: huangjing510@126.com
+ * @Description: 说说管理页面组件，提供说说的增删改查功能
+ -->
 <template>
   <div class="moment-manage-page">
     <n-card title="说说管理" :bordered="false">

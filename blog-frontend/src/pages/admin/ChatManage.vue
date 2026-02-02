@@ -1,3 +1,12 @@
+<!--
+ * @ProjectName: go-vue3-blog
+ * @FileName: ChatManage.vue
+ * @CreateTime: 2026-02-02 11:43:17
+ * @SystemUser: Administrator
+ * @Author: 無以菱
+ * @Contact: huangjing510@126.com
+ * @Description: 聊天室管理页面组件，提供聊天消息的管理功能
+ -->
 <template>
   <div class="chat-manage">
     <n-card title="聊天室管理">
