@@ -740,6 +740,7 @@ function handleScroll() {
   margin: 0 auto;
 }
 
+
 .post-main {
   width: 100%;
   max-width: 100%;
@@ -777,6 +778,15 @@ function handleScroll() {
 
 .post-toc::-webkit-scrollbar-thumb:hover {
   background: rgba(8, 145, 178, 0.5);
+}
+
+/* 桌面端：为右侧目录预留空间，避免与正文内容重叠 */
+@media (min-width: 1201px) {
+  .post-detail-page {
+    /* 右侧预留约 300px（260px 目录宽度 + 边距），防止内容被覆盖 */
+    margin-left: auto;
+    margin-right: 290px;
+  }
 }
 
 html.dark .post-toc {
