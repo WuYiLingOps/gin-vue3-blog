@@ -1,3 +1,13 @@
+<!--
+  项目名称：blog-frontend
+  文件名称：CaptchaInput.vue
+  创建时间：2026-02-01 20:03:19
+
+  系统用户：Administrator
+  作　　者：無以菱
+  联系邮箱：huangjing510@126.com
+  功能描述：验证码输入组件，包含验证码图片显示和输入框，支持点击刷新验证码，组件挂载时自动获取验证码。
+-->
 <template>
   <div class="captcha-container">
     <n-input

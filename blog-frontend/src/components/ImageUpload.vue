@@ -1,3 +1,13 @@
+<!--
+  项目名称：blog-frontend
+  文件名称：ImageUpload.vue
+  创建时间：2026-02-01 20:03:19
+
+  系统用户：Administrator
+  作　　者：無以菱
+  联系邮箱：huangjing510@126.com
+  功能描述：单图片上传组件，支持点击上传、拖拽上传、Ctrl+V 粘贴上传（支持截图/复制图片），包含图片预览和删除功能。
+-->
 <template>
   <div
     class="image-upload"

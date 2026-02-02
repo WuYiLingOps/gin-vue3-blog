@@ -1,3 +1,13 @@
+<!--
+  项目名称：blog-frontend
+  文件名称：GiteeCalendar.vue
+  创建时间：2026-02-01 20:03:19
+
+  系统用户：Administrator
+  作　　者：無以菱
+  联系邮箱：huangjing510@126.com
+  功能描述：Gitee贡献度热力图组件，展示用户在Gitee上的代码提交活动热力图，包括过去一年、最近一月、最近一周的提交统计数据。
+-->
 <template>
   <div class="hexo-calendar-card">
     <n-card size="small" class="calendar-card" :bordered="false">

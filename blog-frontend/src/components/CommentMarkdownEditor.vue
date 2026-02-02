@@ -1,3 +1,13 @@
+<!--
+  项目名称：blog-frontend
+  文件名称：CommentMarkdownEditor.vue
+  创建时间：2026-02-01 20:03:19
+
+  系统用户：Administrator
+  作　　者：無以菱
+  联系邮箱：huangjing510@126.com
+  功能描述：评论Markdown编辑器组件，提供Markdown编辑和实时预览功能，包含自定义工具栏（粗体、斜体、链接、图片），支持图片上传插入、代码高亮等功能。
+-->
 <template>
   <div class="comment-markdown-editor" ref="editorRef">
     <!-- 自定义工具栏 -->

@@ -1,3 +1,13 @@
+<!--
+  项目名称：blog-frontend
+  文件名称：AvatarUpload.vue
+  创建时间：2026-02-01 20:03:19
+
+  系统用户：Administrator
+  作　　者：無以菱
+  联系邮箱：huangjing510@126.com
+  功能描述：头像上传组件，提供圆形头像预览和上传功能，支持点击上传、悬停显示上传提示，包含文件类型和大小验证。
+-->
 <template>
   <div class="avatar-upload">
     <div class="avatar-container" @click="triggerFileInput">

@@ -1,3 +1,13 @@
+<!--
+  项目名称：blog-frontend
+  文件名称：HotPostsCard.vue
+  创建时间：2026-02-01 20:03:19
+
+  系统用户：Administrator
+  作　　者：無以菱
+  联系邮箱：huangjing510@126.com
+  功能描述：最新发布文章卡片组件，展示最新发布的文章列表，包含文章封面、标题、发布时间、浏览量、点赞数等信息，点击可跳转到文章详情页。
+-->
 <template>
   <n-card class="hot-posts-card" :bordered="false">
     <template #header>

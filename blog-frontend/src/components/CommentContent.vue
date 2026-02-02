@@ -1,3 +1,13 @@
+<!--
+  项目名称：blog-frontend
+  文件名称：CommentContent.vue
+  创建时间：2026-02-01 20:03:19
+
+  系统用户：Administrator
+  作　　者：無以菱
+  联系邮箱：huangjing510@126.com
+  功能描述：评论内容渲染组件，用于将Markdown格式的评论内容渲染为HTML，支持代码高亮、代码块复制功能，自动处理代码块滚动位置。
+-->
 <template>
   <div class="comment-content" ref="previewRef">
     <!-- 使用Markdown预览组件，支持代码高亮和图片 -->

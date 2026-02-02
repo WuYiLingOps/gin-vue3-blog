@@ -1,3 +1,13 @@
+<!--
+  项目名称：blog-frontend
+  文件名称：MultiImageUpload.vue
+  创建时间：2026-02-01 20:03:19
+
+  系统用户：Administrator
+  作　　者：無以菱
+  联系邮箱：huangjing510@126.com
+  功能描述：多图片上传组件，支持批量上传多张图片，显示已上传图片列表，支持删除单张图片，最多上传指定数量的图片。
+-->
 <template>
   <div class="multi-image-upload">
     <n-space :size="12">

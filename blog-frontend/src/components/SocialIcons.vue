@@ -1,3 +1,13 @@
+<!--
+  项目名称：blog-frontend
+  文件名称：SocialIcons.vue
+  创建时间：2026-02-01 20:03:19
+
+  系统用户：Administrator
+  作　　者：無以菱
+  联系邮箱：huangjing510@126.com
+  功能描述：社交图标组件，提供GitHub、Gitee、Email、RSS、QQ、微信、CSDN等社交平台的SVG图标展示。
+-->
 <template>
   <!-- GitHub Icon -->
   <svg v-if="type === 'github'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">

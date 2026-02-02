@@ -1,3 +1,13 @@
+<!--
+  项目名称：blog-frontend
+  文件名称：AnnouncementBoard.vue
+  创建时间：2026-02-01 20:03:19
+
+  系统用户：Administrator
+  作　　者：無以菱
+  联系邮箱：huangjing510@126.com
+  功能描述：公告栏组件，用于展示系统公告列表，支持置顶公告、公告详情查看等功能。
+-->
 <template>
   <n-card
     class="announcement-card"

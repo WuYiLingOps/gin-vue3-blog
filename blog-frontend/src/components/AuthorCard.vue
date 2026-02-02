@@ -1,3 +1,13 @@
+<!--
+  项目名称：blog-frontend
+  文件名称：AuthorCard.vue
+  创建时间：2026-02-01 20:03:19
+
+  系统用户：Administrator
+  作　　者：無以菱
+  联系邮箱：huangjing510@126.com
+  功能描述：博主信息卡片组件，展示博主头像、昵称、座右铭、统计数据（文章数、标签数、分类数）和社交链接，支持微信和QQ二维码弹窗展示。
+-->
 <template>
   <n-card class="author-card" :bordered="false">
     <n-spin :show="loading">
