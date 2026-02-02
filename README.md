@@ -1,13 +1,17 @@
-# 🎨 个人博客系统
+# 个人博客系统
 
-一个基于 Vue 3 + Go 的现代化全栈博客系统，采用前后端分离架构，具有优雅的 UI 设计和完善的功能。
+> 基于[情随事迁](https://gitee.com/qssq9398)大佬的开源项目进行的二次开发
+>
+> 原项目地址：https://gitee.com/qssq9398/go-vue3-blog
+
+一个基于 Vue 3 + Go + Gin 的现代化全栈博客系统，采用前后端分离架构，具有优雅的 UI 设计和完善的功能。
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Vue](https://img.shields.io/badge/Vue-3.3+-green.svg)
 ![Go](https://img.shields.io/badge/Go-1.21+-blue.svg)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-blue.svg)
 
-## 🌐 在线演示
+# 1. 在线演示
 
 **网站地址**: [https://huangjingblog.cn/](https://huangjingblog.cn/)
 
@@ -15,35 +19,35 @@
 - 💬 可以访问聊天室与其他用户实时交流
 - 👤 支持匿名访问或注册登录
 
-## 📸 项目截图
+# 2. 项目截图
 
-### 首页
+## 2.1 首页
 ![首页](./screenshots/home.png)
 
-### 文章详情
+## 2.2 文章详情
 ![文章详情](./screenshots/post-detail.png)
 
-### 聊天室
+## 2.3 聊天室
 ![聊天室](./screenshots/chatroom.png)
 
-### 管理后台
+## 2.4 管理后台
 ![管理后台](./screenshots/admin-dashboard.png)
 
-### 友情链接
+## 2.5 友情链接
 
 ![友情链接](./screenshots/FriendshipLinks.png)
 
-### 关于我
+## 2.6 关于我
 
 ![关于我](./screenshots/aboutMe.png)
 
-### 说说
+## 2.7 说说
 
 ![说说](./screenshots/shuoshuo.png)
 
-## ✨ 特性
+# 3. 特性
 
-### 🎯 核心功能
+## 3.1 核心功能
 - 📝 **文章管理** - Markdown 编辑器，支持代码高亮、图片上传、Markdown 文件上传解析、HTML 图片标签自动转换、最后更新时间显示、更新提示
 - 🔗 **SEO友好URL** - 文章URL自动使用拼音slug（如 `/post/windows-huan-jing-xia-an-zhuang-hadoop3-1-2-quan-guo-cheng`），支持中英文混合标题，提升SEO和可读性
 - 🏷️ **分类标签** - 灵活的分类和标签系统
@@ -60,7 +64,7 @@
 - 📋 **网站资讯面板** - 展示本站总字数、访客数、总访问量、最后更新时间（仅桌面端右侧展示，移动端自动隐藏）
 - 🎨 **主题切换** - 支持亮色/暗色主题
 
-### 🛠️ 技术特性
+## 3.2 技术特性
 - 🚀 **现代化技术栈** - Vue 3 + TypeScript + Go + PostgreSQL
 - 🎨 **优雅 UI** - Naive UI 组件库 + 玻璃态设计
 - 📱 **响应式设计** - 完美适配各种设备（PC/平板/手机）
@@ -70,7 +74,7 @@
 - 🧹 **自动清理** - 定时清理过期数据，保持数据库整洁
 - 📦 **易于部署** - Docker 支持 + 详细部署文档
 
-## 🏗️ 项目结构
+# 4. 项目结构
 
 ```bash
 myBlog/
@@ -105,9 +109,9 @@ myBlog/
 └── README.md              # 项目说明
 ```
 
-## 🚀 快速开始
+# 5. 快速开始
 
-### 环境要求
+## 5.1 环境要求
 
 - **Node.js** >= 18.0.0
 - **Go** >= 1.21
@@ -115,7 +119,7 @@ myBlog/
 - **Redis** >= 3.0 (建议 >= 6.2 以避免客户端警告)
 - **pnpm** (推荐) 或 npm
 
-###  0️⃣docker快速启动环境（可选）
+## 5.2 Docker 快速启动环境（可选）
 
 创建`pgsql`指令：
 
@@ -150,14 +154,14 @@ CONTAINER ID   IMAGE                COMMAND                  CREATED          ST
 
 完成
 
-### 1️⃣ 克隆项目
+## 5.3 克隆项目
 
 ```bash
-git clone https://gitee.com/qssq9398/go-vue3-blog.git
+git clone https://github.com/wylblog/go-vue3-blog.git
 cd myBlog
 ```
 
-### 2️⃣ 数据库配置
+## 5.4 数据库配置
 
 1. 创建 PostgreSQL 数据库（指定编码/排序，便于跨版本迁移一致）：
 ```sql
@@ -207,7 +211,7 @@ docker cp go-vue3-blog/blog-backend/sql/init.sql pg-prod:/tmp/init.sql
 docker exec -it pg-prod psql -U postgres -d blogdb -f /tmp/init.sql
 ```
 
-### 3️⃣ 后端配置与启动
+## 5.5 后端配置与启动
 
 > 如果没有配置go的镜像代理，可以参考[Go 国内加速：Go 国内加速镜像 | Go 技术论坛](https://learnku.com/go/wikis/38122)
 
@@ -246,7 +250,7 @@ vim config/config-dev.yml
 #   port: 587
 #   username: your-email@qq.com
 #   password: your-auth-code  # QQ邮箱授权码
-#   from_name: 情迁阁
+#   from_name: 菱风叙
 
 # 3. 配置 Gitee 贡献热力图 API（可选）
 # 如果需要首页贡献热力图，需要在 config/config-dev.yml 中配置 gitee-calendar-api 地址：
@@ -265,7 +269,7 @@ go run cmd/server/main.go
 
 后端服务默认运行在 `http://localhost:8080`
 
-### 4️⃣ 前端配置与启动
+## 5.6 前端配置与启动
 
 ```bash
 cd blog-frontend
@@ -285,7 +289,7 @@ pnpm dev
 
 前端服务默认运行在 `http://localhost:3000`
 
-### 5️⃣ 访问系统
+## 5.7 访问系统
 
 - **前台首页**: http://localhost:3000
 - **管理后台**: http://localhost:3000/admin
@@ -293,9 +297,9 @@ pnpm dev
   - 用户名: `admin`
   - 密码: `password`
 
-## ⚙️ 邮箱配置说明
+# 6. 邮箱配置说明
 
-### QQ邮箱授权码获取
+## 6.1 QQ邮箱授权码获取
 
 1. 登录QQ邮箱网页版
 2. 进入 **设置** → **账户**
@@ -304,7 +308,7 @@ pnpm dev
 5. 点击 **生成授权码**，按提示发送短信
 6. 获得16位授权码，填入配置文件的 `password` 字段
 
-### 其他邮箱配置
+## 6.2 其他邮箱配置
 
 **163邮箱**:
 ```yaml
@@ -313,7 +317,7 @@ email:
   port: 465
   username: your-email@163.com
   password: your-auth-code
-  from_name: 情迁阁
+  from_name: 菱风叙
 ```
 
 **Gmail**:
@@ -323,12 +327,14 @@ email:
   port: 587
   username: your-email@gmail.com
   password: your-app-password
-  from_name: 情迁阁
+  from_name: 菱风叙
 ```
 
-## 📦 生产部署
+# 7. 生产部署
 
-### 🚀 快速部署脚本（推荐）
+## 7.1 快速部署脚本（推荐）
+
+> 适用于已经提前正常运行该项目，需要重新拉取最新仓库代码时重新构建使用
 
 项目提供了自动化部署脚本 `deploy.sh`，可以一键完成以下操作：
 - ✅ 检查并启动 gitee-calendar-api 服务（端口 8081）
@@ -356,13 +362,13 @@ chmod +x deploy.sh
 > - pnpm 已安装
 > - 项目配置文件已正确设置（`.env.config.prod` 等）
 
-### 第一步：后端部署（手动方式）
+## 7.2 后端部署
 
-#### 方式一：Docker Compose（推荐）
+### 7.2.1 方式一：Docker Compose
 
 使用 Docker Compose 一键部署后端服务（包含 PostgreSQL、Redis、后端应用）：
 
-#### 1. 编译后端程序
+#### 7.2.1.1 编译后端程序
 
 ```bash
 cd blog-backend
@@ -374,7 +380,7 @@ $env:GOOS="linux"; $env:GOARCH="amd64"; go build -o blog-backend ./cmd/server
 GOOS=linux GOARCH=amd64 go build -o blog-backend ./cmd/server
 ```
 
-#### 2. 配置环境变量（推荐）
+#### 7.2.1.2 配置环境变量（推荐）
 
 > 生产环境同样推荐使用「YAML + .env.config.prod」方案，将敏感信息放到环境变量文件中，而不是写死在 `config-prod.yml` 里。
 
@@ -393,7 +399,7 @@ GOOS=linux GOARCH=amd64 go build -o blog-backend ./cmd/server
   
   示例配置：
 
-  ```env
+  ```bash
   # 数据库
   DB_HOST=postgres
   DB_PORT=5432
@@ -437,18 +443,18 @@ GOOS=linux GOARCH=amd64 go build -o blog-backend ./cmd/server
 - **数据库 / Redis 容器自身变量**  
   你仍然可以在 `docker-compose.yml` 同级的 `.env` 文件中，为 PostgreSQL / Redis 设置自身的密码等变量，例如：
 
-```env
-  # PostgreSQL 容器内部初始化密码
+```bash
+# PostgreSQL 容器内部初始化密码
 POSTGRES_PASSWORD=your_postgres_password
 POSTGRES_DB=blogdb
 
-  # Redis 容器内部初始化密码
+# Redis 容器内部初始化密码
 REDIS_PASSWORD=your_redis_password
 ```
 
   或者直接在 `docker-compose.yml` 文件中内联这些环境变量。
 
-#### 3. 启动所有服务
+#### 7.2.1.3 启动所有服务
 
 ```bash
 # 构建并启动所有服务
@@ -461,7 +467,7 @@ docker compose ps
 docker compose logs -f backend
 ```
 
-#### 4. 初始化数据库
+#### 7.2.1.4 初始化数据库
 
 ```bash
 # 进入数据库容器
@@ -482,7 +488,7 @@ docker cp blog_backup.dump pg-prod:/tmp
 docker exec -it pg-prod pg_restore -U postgres -d blogdb --clean --if-exists /tmp/blog_backup.dump
 ```
 
-#### 5. 服务管理
+#### 7.2.1.5 服务管理
 
 ```bash
 # 停止所有服务
@@ -498,14 +504,15 @@ docker compose restart backend
 docker compose logs -f backend
 ```
 
-#### 服务访问地址：
+**服务访问地址：**
+
 - **后端 API**: `http://localhost:8080`
 - **PostgreSQL**: `localhost:5632`
 - **Redis**: `localhost:6379`
 
-#### 方式二：本地编译部署✅
+### 7.2.2 方式二：本地编译部署✅
 
-##### 1. 启动 Gitee Calendar API 服务（必选，贡献热力图依赖）
+#### 7.2.2.1 启动 Gitee Calendar API 服务（必选，贡献热力图依赖）
 
 1. **部署 gitee-calendar-api 服务**  
    本仓库已自带编译好的 `gitee-calendar-api`（根目录），可直接赋予执行权限使用（默认占用端口为8081）。若需查看/自行编译源码，可访问：`https://gitee.com/wylblog/go-code-calendar-api.git`
@@ -532,20 +539,20 @@ docker compose logs -f backend
    > - 前端通过后端 API `/api/calendar/gitee` 获取热力图数据，后端会调用 `gitee-calendar-api` 并缓存结果（20分钟过期）
    > - `gitee-calendar-api` 通常部署在与后端相同的服务器上，通过 `127.0.0.1:8081` 访问，无需通过 Nginx 暴露给外部
 
-##### 2. 配置后端 Gitee Calendar API 地址（必选，生产环境统一用环境变量）
+#### 7.2.2.2 配置后端 Gitee Calendar API 地址（必选，生产环境统一用环境变量）
 
-1. **修改环境配置**  
-   修改 `config/config.yml` 中的 `env: dev` 为 `env: prod`，系统会自动加载 `config-prod.yml`：
+**修改环境配置**  
+修改 `config/config.yml` 中的 `env: dev` 为 `env: prod`，系统会自动加载 `config-prod.yml`：
 
-   ```yaml
-   # config/config.yml
-   env: prod
-   ```
+```yaml
+# config/config.yml
+env: prod
+```
 
-2. **创建环境变量文件**  
-   在后端根目录创建（或编辑）`.env.config.prod`，通过环境变量配置 `gitee-calendar-api` 服务地址（不再修改 `config/config-prod.yml`）。**模板已提供：`blog-backend/config/env.config.example`**，可直接复制为 `.env.config.prod` 后按需修改：
+> **创建环境变量文件**  
+> 在后端根目录创建（或编辑）`.env.config.prod`，通过环境变量配置 `gitee-calendar-api` 服务地址（不再修改 `config/config-prod.yml`）。**模板已提供：`blog-backend/config/env.config.example`**，可直接复制为 `.env.config.prod` 后按需修改：
 
-```env
+```bash
 # .env.config.prod
 GITEE_CALENDAR_API_URL=http://127.0.0.1:8081/api
 ```
@@ -554,7 +561,7 @@ GITEE_CALENDAR_API_URL=http://127.0.0.1:8081/api
 
 如果 `gitee-calendar-api` 通过 Nginx 代理访问，可配置为：
 
-```env
+```bash
 # HTTP 方式
 GITEE_CALENDAR_API_URL=http://your-domain.com/gitee-calendar-api
 
@@ -563,7 +570,7 @@ GITEE_CALENDAR_API_URL=https://your-domain.com/gitee-calendar-api
 # 示例：GITEE_CALENDAR_API_URL=https://huangjingblog.cn/gitee-calendar-api
 ```
 
-##### 3. 构建并启动后端服务
+构建并启动后端服务
 
 ```bash
 cd blog-backend
@@ -587,45 +594,47 @@ nohup ./blog-backend > app.log 2>&1 &
 > - **环境变量文件**：`.env.config.dev` 和 `.env.config.prod` 使用相同的配置项（参考 `env.config.example`），但实际值不同
 > - **敏感信息**：建议全部通过环境变量文件管理，而不是写死在 YAML 配置文件中
 
-### 第二步：前端构建与配置
+## 7.3 前端构建与配置
 
-#### 2.1 前端 `.env.production` 环境变量配置
+### 7.3.1 前端 `.env.production` 环境变量配置
 
-1. 在 `blog-frontend` 目录下创建或编辑 `.env.production`：
+在 `blog-frontend` 目录下创建或编辑 `.env.production`：
 
-   ```bash
-   cd blog-frontend
-   vim .env.production
-   ```
+```bash
+cd blog-frontend
+vim .env.production
+```
 
-2. 写入（或补充）如下内容（根据你的实际域名调整）：
+写入（或补充）如下内容（根据你的实际域名调整）：
 
-   **HTTP 方式：**
-   ```env
-   # 后端主 API（博客业务接口）
-   # 方式一：只配置域名（推荐，更简洁）✅
-   VITE_API_BASE_URL=http://your-domain.com
-   
-   # 方式二：配置包含 /api 的完整路径（也可以，函数会自动处理）
-   # VITE_API_BASE_URL=http://your-domain.com/api
-   ```
+> **HTTP 方式：**
 
-   **HTTPS 方式（SSL 证书）：**
-   ```env
-   # 后端主 API（博客业务接口）
-   # 方式一：只配置域名（推荐，更简洁）✅
-   VITE_API_BASE_URL=https://your-domain.com
-   # 示例：VITE_API_BASE_URL=https://huangjingblog.cn
-   
-   # 方式二：配置包含 /api 的完整路径（也可以，函数会自动处理）
-   # VITE_API_BASE_URL=https://your-domain.com/api
-   # 示例：VITE_API_BASE_URL=https://huangjingblog.cn/api
-   ```
+```bash
+# 后端主 API（博客业务接口）
+# 方式一：只配置域名（推荐，更简洁）✅
+VITE_API_BASE_URL=http://your-domain.com
 
-   - `VITE_API_BASE_URL`：博客后端（Gin 服务）的基础地址，前端所有业务接口都会基于该地址请求，包括贡献热力图数据（通过 `/api/calendar/gitee` 接口获取）。
-   - **推荐配置方式**：只配置域名（如 `https://your-domain.com`），贡献热力图组件会自动添加 `/api` 前缀。如果已配置包含 `/api` 的路径，也能正常工作。
+# 方式二：配置包含 /api 的完整路径（也可以，函数会自动处理）
+# VITE_API_BASE_URL=http://your-domain.com/api
+```
 
-#### 2.2 构建前端项目
+> **HTTPS 方式（SSL 证书）：**
+
+```bash
+# 后端主 API（博客业务接口）
+# 方式一：只配置域名（推荐，更简洁）✅
+VITE_API_BASE_URL=https://your-domain.com
+# 示例：VITE_API_BASE_URL=https://huangjingblog.cn
+
+# 方式二：配置包含 /api 的完整路径（也可以，函数会自动处理）
+# VITE_API_BASE_URL=https://your-domain.com/api
+# 示例：VITE_API_BASE_URL=https://huangjingblog.cn/api
+```
+
+- `VITE_API_BASE_URL`：博客后端（Gin 服务）的基础地址，前端所有业务接口都会基于该地址请求，包括贡献热力图数据（通过 `/api/calendar/gitee` 接口获取）。
+- **推荐配置方式**：只配置域名（如 `https://your-domain.com`），贡献热力图组件会自动添加 `/api` 前缀。如果已配置包含 `/api` 的路径，也能正常工作。
+
+### 7.3.2 构建前端项目
 
 ```bash
 cd blog-frontend
@@ -637,20 +646,21 @@ pnpm build
 
 > 说明：前端首页热力图组件位置为 `blog-frontend/src/components/GiteeCalendar.vue`，其数据源现在通过后端 API `/api/calendar/gitee` 获取，后端会自动调用 `gitee-calendar-api` 并缓存结果。
 
-### 第三步：Nginx 部署与反向代理
+## 7.4 第三步：Nginx 部署与反向代理
 
-1. 在服务器上准备前端目录（例如 `/web/go-vue3-blog/blog-frontend/dist`），**将本地 `dist` 目录中的所有文件和子目录整体上传到该目录**，保持结构不变，例如：
+在服务器上准备前端目录（例如 `/web/go-vue3-blog/blog-frontend/dist`），**将本地 `dist` 目录中的所有文件和子目录整体上传到该目录**，保持结构不变，例如：
 
-   ```text
-   /web/go-vue3-blog/blog-frontend/dist/
-   ├── index.html
-   ├── assets/
-   ├── logo.svg
-   └── 备案图标.png
-   ```
+```bash
+/web/go-vue3-blog/blog-frontend/dist/
+├── index.html
+├── assets/
+├── logo.svg
+└── 备案图标.png
+```
 
-   Nginx 中的 `root` 应指向 **包含 `index.html` 的目录本身**（如 `/web/go-vue3-blog/blog-frontend/dist`，可按实际路径调整），而不是上级目录。
-2. 配置 Nginx（按需替换域名/路径/证书），HTTP 示例：
+Nginx 中的 `root` 应指向 **包含 `index.html` 的目录本身**（如 `/web/go-vue3-blog/blog-frontend/dist`，可按实际路径调整），而不是上级目录。
+
+> 配置 Nginx（按需替换域名/路径/证书），`HTTP 示例`：
 
 ```nginx
 server {
@@ -716,7 +726,7 @@ server {
 }
 ```
 
-3. HTTPS 示例（含 80→443 跳转，请替换证书路径）：
+> HTTPS 示例（含 80→443 跳转，请替换证书路径）：
 
 ```nginx
 # 80 强制跳转到 443
@@ -798,9 +808,21 @@ server {
 }
 ```
 
-4. 重载 Nginx：`nginx -s reload` 或 `systemctl reload nginx`。
+重载 Nginx：
 
-### 第四步：数据迁移（可选，新旧数据库切换时使用）
+```bash
+# 检查语法
+nginx -t
+# 重载配置
+## 方法1
+nginx -s reload
+## 方法2
+systemctl reload nginx
+```
+
+
+
+## 7.5 第四步：数据迁移（可选）
 
 1. 备份旧库（PostgreSQL 示例）：
 ```bash
@@ -856,7 +878,7 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
    - **注意**：如果使用 OSS/COS 存储，文件在云端，无需迁移本地文件；但普通用户头像强制使用本地存储，仍需迁移 `uploads/avatars/` 目录
 6. 如不需要历史会话，可清理 Redis（如果有登录态存储），再重启后端。
 
-### 第五步：每周自动备份 PostgreSQL（pg-prod / 物理机）
+## 7.6 第五步：每周自动备份 PostgreSQL（pg-prod / 物理机）
 
 > 默认每周日 00:00 备份 `blogdb`，备份存放 `/opt/backups/blogdb`，按需调整路径/时间/用户名/容器名。
 
@@ -929,9 +951,9 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
      - 恢复过程中如遇到错误，检查备份文件是否完整以及数据库连接是否正常
 
 
-## 🎨 主要功能模块
+# 8. 主要功能模块
 
-### 📝 文章管理
+## 8.1 文章管理
 - Markdown 编辑器，支持实时预览
 - 代码高亮（支持多种编程语言）
 - 图片上传和管理
@@ -943,7 +965,7 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
 - 文章置顶和草稿
 - 点赞和浏览统计
 
-### 💬 评论系统
+## 8.2 评论系统
 - 支持嵌套回复
 - 评论审核
 - 评论状态管理
@@ -954,14 +976,14 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
 - **评论通知功能** - 管理员可配置是否接收评论通知邮件（支持文章评论和说说评论通知）
 - **邮件通知优化** - 智能处理SMTP服务器响应，确保邮件发送稳定性
 
-### 💭 说说动态
+## 8.3 说说动态
 - 发布图文动态
 - 多图上传（最多9张）
 - 点赞功能
 - **评论功能** - 支持评论和嵌套回复，采用朋友圈风格设计
 - 公开/私密状态
 
-### 🔗 友情链接
+## 8.4 友情链接
 - 友链管理（后台添加、编辑、删除）
 - 友链展示（前台展示友链列表）
 - 友链申请（支持在友链页面申请）
@@ -969,22 +991,22 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
 - 我的友链信息配置（名称、描述、URL、头像、站点图片、RSS订阅等）
 - YAML 格式友链信息导出
 
-### 👤 用户中心
-- 用户注册和登录
+### 8.5 用户中心
+- ## 用户注册和登录
 - 个人资料编辑
 - 头像上传（普通用户默认使用本地存储，管理员可使用 OSS/COS）
 - 密码修改
 - 忘记密码（邮箱验证码）
 - 邮箱修改（限制一年2次）
 
-### 🛡️ 验证码系统
+## 8.6 验证码系统
 - **图形验证码** - 基于 Redis 存储，支持数字验证码
 - **验证码存储** - 验证码答案存储在 Redis 中，2分钟自动过期
 - **IP 限流** - 每个 IP 每分钟最多获取 10 次验证码，防止频繁请求
 - **防暴力破解** - 5 分钟内最多错误 5 次，超过限制需等待
 - **安全机制** - 验证成功后自动删除验证码，确保一次性使用
 
-### 💬 聊天室功能
+## 8.7 聊天室功能
 - 实时 WebSocket 通信
 - 支持登录用户和匿名访问
 - 在线人数统计（按用户去重）
@@ -1002,7 +1024,7 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
   - 配置聊天室全员禁言状态
 - 移动端响应式适配
 
-### 🔧 管理后台
+## 8.8 管理后台
 - 📊 仪表盘数据统计（最近 7 天访问量折线图、文章分类占比）
 - 📝 文章管理
 - 🏷️ 分类标签管理
@@ -1014,9 +1036,9 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
 - ⚙️ 网站设置（包含通知配置、注册控制）
 - 🚫 IP 访问控制（黑名单/白名单统一管理）
 
-## 🛠️ 技术栈
+# 9. 技术栈
 
-### 前端技术
+## 9.1 前端技术
 - **框架**: Vue 3.3 + TypeScript
 - **构建工具**: Vite 5
 - **UI 组件**: Naive UI
@@ -1029,7 +1051,7 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
 - **工具库**: VueUse、Day.js
  - **图标与 Logo**: 基于 SVG 的网站图标 `logo.svg`（通过 `index.html` 作为浏览器标签页 favicon）
 
-### 后端技术
+## 9.2 后端技术
 - **语言**: Go 1.21+
 - **Web 框架**: Gin
 - **ORM**: GORM
@@ -1056,9 +1078,9 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
 - **密码加密**: bcrypt
 - **定时任务**: Go 原生 Goroutine + Timer
 
-## 📖 API 文档
+# 10. API 文档
 
-### 认证相关
+## 10.1 认证相关
 - `POST /api/auth/register` - 用户注册
 - `POST /api/auth/login` - 用户登录
 - `POST /api/auth/logout` - 用户登出
@@ -1071,7 +1093,7 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
 - `PUT /api/auth/email` - 修改邮箱
 - `GET /api/auth/email-change-info` - 获取邮箱修改信息
 
-### 文章相关
+## 10.2 文章相关
 - `GET /api/posts` - 获取文章列表
 - `GET /api/posts/:id` - 获取文章详情（支持ID或slug，向后兼容）
 - `GET /api/posts/archives` - 获取归档
@@ -1082,14 +1104,14 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
 - `DELETE /api/posts/:id` - 删除文章（需认证）
 - `POST /api/posts/:id/like` - 点赞文章
 
-### 分类相关
+## 10.3 分类相关
 - `GET /api/categories` - 获取分类列表
 - `GET /api/categories/:id` - 获取分类详情
 - `POST /api/categories` - 创建分类（管理员）
 - `PUT /api/categories/:id` - 更新分类（管理员）
 - `DELETE /api/categories/:id` - 删除分类（管理员）
 
-### 标签相关
+## 10.4 标签相关
 - `GET /api/tags` - 获取标签列表
 - `GET /api/tags/:id` - 获取标签详情
 - `GET /api/tags/:id/posts` - 获取标签下的文章
@@ -1097,7 +1119,7 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
 - `PUT /api/tags/:id` - 更新标签（需认证）
 - `DELETE /api/tags/:id` - 删除标签（需认证）
 
-### 评论相关
+## 10.5 评论相关
 - `GET /api/comments/post/:id` - 获取文章评论
 - `GET /api/comments/type?type={type}&target_id={target_id}` - 根据评论类型和目标ID获取评论（用于友链、说说等特殊页面）
   - `type`: 评论类型（`post`-文章评论，`friendlink`-友链评论，`moment`-说说评论）
@@ -1109,7 +1131,7 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
 - `PUT /api/comments/:id` - 更新评论（需认证）
 - `DELETE /api/comments/:id` - 删除评论（需认证）
 
-### 说说相关
+## 10.6 说说相关
 - `GET /api/moments` - 获取说说列表
 - `GET /api/moments/:id` - 获取说说详情
 - `GET /api/moments/recent` - 获取最新说说
@@ -1118,13 +1140,13 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
 - `DELETE /api/moments/:id` - 删除说说（需认证）
 - `POST /api/moments/:id/like` - 点赞说说
 
-### 上传相关
+## 10.7 上传相关
 - `POST /api/upload/avatar` - 上传头像（需认证）
   - 普通用户：强制使用本地存储，不上传到 OSS/COS
   - 管理员：根据后台配置选择存储方式（本地/OSS/COS）
 - `POST /api/upload/image` - 上传图片（需认证，根据配置选择存储方式）
 
-### 友链相关
+## 10.8 友链相关
 - `GET /api/friend-links` - 获取友链列表（公开）
 - `GET /api/admin/friend-links` - 获取友链列表（管理员）
 - `GET /api/admin/friend-links/:id` - 获取友链详情（管理员）
@@ -1134,7 +1156,7 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
 - `GET /api/settings/friendlink-info` - 获取我的友链信息（公开）
 - `PUT /api/admin/settings/friendlink-info` - 更新我的友链信息（管理员）
 
-### 设置相关
+## 10.9 设置相关
 - `GET /api/settings/public` - 获取公开设置
 - `GET /api/settings/site` - 获取网站设置（管理员）
 - `PUT /api/settings/site` - 更新网站设置（管理员）
@@ -1145,23 +1167,23 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
 - `PUT /api/admin/settings/register` - 更新注册配置（管理员）
   - 支持配置是否限制用户注册（`disable_register`: `"0"` 允许注册，`"1"` 禁止注册）
 
-### 验证码相关
+## 10.10 验证码相关
 - `GET /api/captcha` - 获取图形验证码
   - 基于 Redis 存储验证码答案（2分钟过期）
   - IP 限流：每个 IP 每分钟最多获取 10 次
   - 防暴力破解：5 分钟内最多错误 5 次
 
-### 日历相关
+## 10.11 日历相关
 - `GET /api/calendar/gitee?user={username}` - 获取 Gitee 贡献热力图数据
   - 后端会调用 `gitee-calendar-api` 并缓存结果（20分钟过期）
   - 参数：`user` - Gitee 用户名
 
-### 聊天室相关
+## 10.12 聊天室相关
 - `WS /api/chat/ws` - WebSocket 连接（支持登录用户和匿名访问）
 - `GET /api/chat/messages` - 获取消息列表
 - `GET /api/chat/online` - 获取在线信息
 
-### 管理后台相关
+## 10.13 管理后台相关
 - `GET /api/admin/dashboard/stats` - 仪表盘统计
 - `GET /api/admin/dashboard/category-stats` - 分类统计
 - `GET /api/admin/dashboard/visit-stats` - 访问统计
@@ -1185,200 +1207,186 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
 
 更多详细说明请参考 [后端文档](./blog-backend/README.md)
 
-## 🎯 开发指南
+# 11. 开发指南
 
-### 代码规范
+## 11.1 代码规范
 - 使用 ESLint + Prettier 格式化代码
 - 遵循 Vue 3 Composition API 风格
 - TypeScript 严格模式
 - Git Commit 规范
 
-### 目录说明
+## 11.2 目录说明
 详见各子项目的 README：
 - [前端文档](./blog-frontend/README.md)
 - [后端文档](./blog-backend/README.md)
 
-## 🤝 贡献指南
+# 12. 更新日志
 
-欢迎提交 Issue 和 Pull Request！
-
-1. Fork 本仓库
-2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 提交 Pull Request
-
-## 📝 更新日志
-
-### v1.12.0 (2026-01-30)
-- ✨ 新增前台「网站资讯」模块
+## 12.1 v1.12.0 (2026-01-30)
+- 新增前台「网站资讯」模块
   - 在首页与关于页侧边栏展示：本站总字数、本站访客数、本站总访问量、最后更新时间
   - 后端统一提供 `/api/blog/website-info` 接口，聚合统计数据并使用 Redis 缓存（10 分钟过期）
   - 前端支持错误提示与暗色模式，数值自动格式化（k / w / m）
-- 📱 响应式优化
+- 响应式优化
   - 网站资讯模块仅在桌面端展示，宽度 ≤ 1024px（平板与移动端）自动隐藏，避免占用竖屏空间
   - 首页与关于页侧边栏在小屏幕下不再渲染网站资讯卡片
-- 🎨 视觉与图标更新
+- 视觉与图标更新
   - 将站点 favicon 更新为 SVG 格式的 `logo.svg`，在高分屏下显示更清晰
   - 简化网站资讯模块 UI，采用极简列表样式，与整体玻璃态风格保持一致
-- 🧹 代码清理
+- 代码清理
   - 移除与「已运行时间」相关的后端统计字段与前端展示逻辑，保留底部站点运行时间文案
   - 移除公告栏中冗余的欢迎 GIF 图片，专注展示公告内容本身
 
-### v1.11.0 (2026-01-27)
-- ⚡ 首页与侧边栏性能优化（Redis 缓存）
+## 12.2 v1.11.0 (2026-01-27)
+- 首页与侧边栏性能优化（Redis 缓存）
   - 为博主名片、最新文章、公告列表、分类列表、标签列表、标签统计等读多写少的数据增加 Redis 缓存
   - 采用「写时删缓存」策略：发文、改文、删文、发公告、删公告、分类/标签增删改时自动清理相关缓存 Key
   - 统一缓存过期时间策略：最新文章/公告 5 分钟、博主名片和标签统计 10 分钟、分类和标签列表 30 分钟
   - 显著减少高频首页/侧边栏请求对数据库的压力，为后期文章数量增多预留扩展空间
 
-### v1.10.0 (2026-01-12)
-- ✨ 新增聊天室全员禁言功能
-  - 🛡️ 管理后台"聊天室管理"支持一键开启/关闭全员禁言
-  - 🚫 开启后普通用户和游客均无法发言，仅管理员可继续发送消息
-  - 🔄 前端聊天室页面实时感知禁言状态，输入框与发送按钮自动禁用
-  - 🌙 同步优化聊天室夜间模式样式，提升暗色模式下可读性
-- ✨ 新增限制用户注册功能
-  - 🚫 管理员可在用户管理页面一键开启/关闭用户注册功能
-  - 🔒 开启后，新用户将无法注册账号
-  - ⚙️ 配置存储在系统设置中，默认允许注册
-  - 🎨 优雅的开关界面，实时生效
-  - 🛡️ 后端注册接口自动检查配置，确保安全
-- 🐛 修复文章详情页标签闭合问题
+## 12.3 v1.10.0 (2026-01-12)
+- 新增聊天室全员禁言功能
+  - 管理后台"聊天室管理"支持一键开启/关闭全员禁言
+  - 开启后普通用户和游客均无法发言，仅管理员可继续发送消息
+  - 前端聊天室页面实时感知禁言状态，输入框与发送按钮自动禁用
+  - 同步优化聊天室夜间模式样式，提升暗色模式下可读性
+- 新增限制用户注册功能
+  - 管理员可在用户管理页面一键开启/关闭用户注册功能
+  - 开启后，新用户将无法注册账号
+  - 配置存储在系统设置中，默认允许注册
+  - 优雅的开关界面，实时生效
+  - 后端注册接口自动检查配置，确保安全
+- 修复文章详情页标签闭合问题
   - 修复文章卡片缺失闭合标签导致的页面渲染错误
   - 解决文章详情页无法正常访问的问题
-- 🎨 优化文章详情页目录位置
+- 优化文章详情页目录位置
   - 调整目录固定定位，使其与文章内容区域顶部对齐
   - 优化目录显示效果，提升阅读体验
-- ✨ 重构"关于我"页面
-  - 🎨 移除"关于我"标题下的分割线，优化视觉设计
-  - 📊 集成首页组件：公告板、最新发布文章卡片、分类列表、标签列表
-  - 📸 新增相册功能：支持在"关于我"页面展示照片，后台可管理相册
-  - 💬 新增评论功能：支持在"关于我"页面发表评论和嵌套回复
-  - 📈 优化统计图表：移除文章分类统计图，新增文章发布统计图（折线图）和TOP10标签统计图（柱状图）
-  - 🎯 优化页面布局：调整组件位置，提升用户体验
-  - 🔄 统一评论模块：与文章详情页和友链页面保持一致的评论体验
+- 构"关于我"页面
+  - 移除"关于我"标题下的分割线，优化视觉设计
+  - 集成首页组件：公告板、最新发布文章卡片、分类列表、标签列表
+  - 新增相册功能：支持在"关于我"页面展示照片，后台可管理相册
+  - 新增评论功能：支持在"关于我"页面发表评论和嵌套回复
+  - 优化统计图表：移除文章分类统计图，新增文章发布统计图（折线图）和TOP10标签统计图（柱状图）
+  - 优化页面布局：调整组件位置，提升用户体验
+  - 统一评论模块：与文章详情页和友链页面保持一致的评论体验
 
-### v1.8.0 (2026-01-11)
-- ✨ 新增文章URL优化功能
-  - 🔗 文章URL从数字ID改为拼音slug（如 `/post/wen-zhang` 替代 `/post/51`）
-  - 🎯 自动根据文章标题生成拼音slug，支持中英文混合标题
-  - 📝 中文转换为拼音，英文和数字直接保留
-  - 🔄 标题更新时自动重新生成slug
-  - ✅ 确保slug唯一性（重复时自动添加数字后缀）
-  - 🔙 向后兼容：API同时支持通过ID和slug访问文章
-  - 🛠️ 提供迁移脚本，可为现有文章生成slug
+## 12.4 v1.8.0 (2026-01-11)
+- 新增文章URL优化功能
+  - 文章URL从数字ID改为拼音slug（如 `/post/wen-zhang` 替代 `/post/51`）
+  - 自动根据文章标题生成拼音slug，支持中英文混合标题
+  - 中文转换为拼音，英文和数字直接保留
+  - 标题更新时自动重新生成slug
+  - 确保slug唯一性（重复时自动添加数字后缀）
+  - 向后兼容：API同时支持通过ID和slug访问文章
+  - 供迁移脚本，可为现有文章生成slug
 
-### v1.7.0 (2026-01-10)
-- ✨ 新增 Markdown 文件上传功能
-  - 📄 支持上传本地 Markdown 文件（.md、.markdown 格式）
-  - 🔍 自动解析 YAML front matter（标题、摘要、封面图）
-  - 📝 智能提取标题：优先使用 front matter，若无则从第一个 `#` 标题提取
-  - 📋 自动生成摘要：去除代码块、HTML 标签、Markdown 语法后提取前 200 字符
-  - 🖼️ HTML 图片标签转换：自动将 `<img src="url" />` 转换为 Markdown 格式 `![alt](url)`
-  - 🎯 智能 alt 文本提取：优先使用 img 标签的 alt 属性，若无则从 URL 提取文件名
-- 🎨 优化文章管理界面
+## 12.5 v1.7.0 (2026-01-10)
+- 新增 Markdown 文件上传功能
+  - 支持上传本地 Markdown 文件（.md、.markdown 格式）
+  - 自动解析 YAML front matter（标题、摘要、封面图）
+  - 智能提取标题：优先使用 front matter，若无则从第一个 `#` 标题提取
+  - 自动生成摘要：去除代码块、HTML 标签、Markdown 语法后提取前 200 字符
+  - HTML 图片标签转换：自动将 `<img src="url" />` 转换为 Markdown 格式 `![alt](url)`
+  - 智能 alt 文本提取：优先使用 img 标签的 alt 属性，若无则从 URL 提取文件名
+- 优化文章管理界面
   - 新增"上传 Markdown"按钮，支持拖拽上传
   - 文件大小限制：单个文件不超过 10MB
   - 解析后自动填充文章表单，管理员确认后保存
-- ✨ 新增文章最后更新时间功能
-  - 📅 文章详情页显示创建时间和最后更新时间
-  - 🔄 编辑文章时自动更新最后更新时间（默认值为创建时间）
-  - 📊 元信息区域清晰展示时间信息
-- 🎨 新增更新温馨提示功能
-  - ⚠️ 文章内容上方显示更新天数提示横幅
-  - 📝 提示文字：「温馨提示」本文更新已经 X 天，若内容或图片失效，请留言反馈
-  - 🎨 优雅的视觉设计：浅粉色渐变背景、红色左侧边框、警告图标
-  - 🌙 完美支持深色模式
-  - 📱 响应式设计，适配移动端
+- 新增文章最后更新时间功能
+  - 文章详情页显示创建时间和最后更新时间
+  - 编辑文章时自动更新最后更新时间（默认值为创建时间）
+  - 元信息区域清晰展示时间信息
+- 新增更新温馨提示功能
+  - 文章内容上方显示更新天数提示横幅
+  - 提示文字：「温馨提示」本文更新已经 X 天，若内容或图片失效，请留言反馈
+  - 优雅的视觉设计：浅粉色渐变背景、红色左侧边框、警告图标
+  - 完美支持深色模式
+  - 响应式设计，适配移动端
 
-### v1.5.0 (2025-12-21)
-- ✨ 新增说说评论功能
-  - 💬 说说页面支持评论和嵌套回复
-  - 🎨 朋友圈风格设计：紧凑的评论布局，类似微信朋友圈效果
-  - 📧 说说评论邮件通知：支持管理员接收说说评论通知邮件
-  - 🎯 评论显示格式优化：用户名：评论内容
-  - 🔄 实时评论数量统计
-  - 🛡️ 权限控制：评论作者和管理员可删除评论
-- 🔧 扩展评论系统
+## 12.6 v1.5.0 (2025-12-21)
+- 新增说说评论功能
+  - 说说页面支持评论和嵌套回复
+  - 朋友圈风格设计：紧凑的评论布局，类似微信朋友圈效果
+  - 说说评论邮件通知：支持管理员接收说说评论通知邮件
+  - 评论显示格式优化：用户名：评论内容
+  - 实时评论数量统计
+  - 权限控制：评论作者和管理员可删除评论
+- 扩展评论系统
   - 支持 `moment` 类型评论（说说评论）
   - 后端评论服务支持多种评论类型（post、friendlink、moment）
   - 评论通知功能扩展至说说评论
 
-### v1.4.0 (2025-12-20)
-- ✨ 新增评论通知功能
-  - 📧 管理员评论通知（可配置开关）
-  - 🔔 当有用户评论文章时，可选择性通知所有管理员
-  - ⚙️ 通知配置可在管理后台"网站设置"中开启/关闭
-  - 🌐 智能URL获取：优先从"我的友链信息"中获取网站地址
-  - 📝 邮件模板支持Markdown内容预览
-  - 🎨 优化邮件模板样式，采用专业HTML邮件模板设计
-  - 🐛 修复SMTP "short response" 错误处理，优化邮件发送稳定性
-- 🔧 优化评论通知逻辑
+## 12.7 v1.4.0 (2025-12-20)
+- 新增评论通知功能
+  - 管理员评论通知（可配置开关）
+  - 当有用户评论文章时，可选择性通知所有管理员
+  - 通知配置可在管理后台"网站设置"中开启/关闭
+  - 智能URL获取：优先从"我的友链信息"中获取网站地址
+  - 邮件模板支持Markdown内容预览
+  - 优化邮件模板样式，采用专业HTML邮件模板设计
+  - 修复SMTP "short response" 错误处理，优化邮件发送稳定性
+- 优化评论通知逻辑
   - 由于普通用户无权限写文章，文章作者只能是管理员，统一通过管理员通知处理
   - 避免重复通知：评论者本人不会收到通知邮件
   - 智能错误处理：忽略SMTP服务器的非标准响应，确保邮件发送成功时不误报错误
-- 🎨 优化管理后台通知配置界面
+- 优化管理后台通知配置界面
   - 清晰展示管理员通知开关
   - 完善通知说明文档
 
-### v1.3.0 (2025-12-19)
-- ✨ 新增友情链接功能
-  - 🔗 友链管理（后台添加、编辑、删除友链）
-  - 📋 友链展示页面（前台展示友链列表）
-  - 💬 友链独立评论系统（支持嵌套回复，不依赖文章）
-  - ⚙️ 我的友链信息配置（名称、描述、URL、头像、站点图片、RSS订阅等）
-  - 📄 YAML 格式友链信息导出
-- 🔧 评论系统重构
-  - 🎯 支持多种评论类型（文章评论、友链评论等）
-  - 📊 评论表扩展：添加 `comment_type` 和 `target_id` 字段
-  - 🔄 向后兼容：保持文章评论功能不变
-  - 🗑️ 移除特殊文章依赖（不再需要创建ID=999999的特殊文章）
+## 12.8 v1.3.0 (2025-12-19)
+- 新增友情链接功能
+  - 友链管理（后台添加、编辑、删除友链）
+  - 友链展示页面（前台展示友链列表）
+  - 友链独立评论系统（支持嵌套回复，不依赖文章）
+  - 我的友链信息配置（名称、描述、URL、头像、站点图片、RSS订阅等）
+  - YAML 格式友链信息导出
+- 评论系统重构
+  - 支持多种评论类型（文章评论、友链评论等）
+  - 评论表扩展：添加 `comment_type` 和 `target_id` 字段
+  - 向后兼容：保持文章评论功能不变
+  - 移除特殊文章依赖（不再需要创建ID=999999的特殊文章）
 
-### v1.2.0 (2025-11-04)
-- ✨ 新增实时聊天室功能
-  - 💬 WebSocket 实时通信
-  - 👥 支持登录用户和匿名访问
-  - 📊 在线人数统计（按用户去重）
-  - 🔄 自动重连机制
-  - ❤️ 心跳检测保持连接
-  - 📜 消息历史记录
-  - 😀 表情符号选择器
-- 🛡️ 管理员权限功能
+## 12.9 v1.2.0 (2025-11-04)
+- 新增实时聊天室功能
+  - WebSocket 实时通信
+  - 支持登录用户和匿名访问
+  - 在线人数统计（按用户去重）
+  - 自动重连机制
+  - 心跳检测保持连接
+  - 消息历史记录
+  - 表情符号选择器
+- 管理员权限功能
   - 右键消息删除
   - 右键头像踢出用户
   - 批量删除消息
   - 发送系统广播
   - IP 封禁管理
-- 📱 移动端完美适配
-- 🐛 修复在线人数统计bug
+- 移动端完美适配
+- 修复在线人数统计bug
 
-### v1.1.0 (2025-10-28)
-- ✨ 新增忘记密码功能（邮箱验证码）
-- ✨ 新增邮箱修改功能（限制一年2次）
-- 🔐 邮件验证码安全认证
-- ⚡ 异步邮件发送，提升响应速度
-- 🧹 自动清理过期验证码（每小时）
-- 🎨 优化认证页面UI
+## 12.10 v1.1.0 (2025-10-28)
+- 新增忘记密码功能（邮箱验证码）
+- 新增邮箱修改功能（限制一年2次）
+- 邮件验证码安全认证
+- 异步邮件发送，提升响应速度
+- 自动清理过期验证码（每小时）
+- 优化认证页面UI
 
-### v1.0.0 (2025-10-25)
-- ✨ 初始版本发布
-- 📝 完整的文章管理系统
-- 💬 评论系统
-- 💭 说说功能
-- 🎨 主题切换
-- 📊 数据统计
-- 🔐 权限管理
+## 12.11 v1.0.0 (2025-10-25)
+- 初始版本发布
+- 完整的文章管理系统
+- 评论系统
+- 说说功能
+- 主题切换
+- 数据统计
+- 权限管理
 
-## 📄 许可证
+# 许可证
 
 本项目采用 MIT 许可证 - 详见 [LICENSE](LICENSE) 文件
 
-## 👨‍💻 作者
-
-**情随事迁**
-
-## 🙏 致谢
+# 致谢
 
 - [Vue.js](https://vuejs.org/)
 - [Naive UI](https://www.naiveui.com/)
@@ -1386,14 +1394,13 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
 - [GORM](https://gorm.io/)
 - 所有贡献者
 
-## 📮 联系方式
+# 联系方式
 
 如有问题或建议，欢迎通过以下方式联系：
 
-- 📧 Email: 2665339398@qq.com
+- 📧 Email: wuyiling218@163.com
 
 
 ---
 
-⭐ 如果这个项目对你有帮助，请给个 Star 支持一下！
-
+如果这个项目对你有帮助，请给个 Star 支持一下！
