@@ -269,18 +269,34 @@ const MIN_MONTH_GAP = (CELL_SIZE + CELL_GAP) * 2
 // 月份标签（中文）
 const monthLabelsArray = ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月']
 
-// 构造「需要展示的月份」时间轴：以当前月份为结束，回溯 12 个月
+// 构造「需要展示的月份」时间轴：始终显示12个月份
+// - 如果当前月份未到15号，显示12个历史月份（不包括当前月份）
+// - 如果当前月份已到15号，显示11个历史月份 + 1个当前月份 = 12个月份
 const monthTimeline = computed(() => {
   const months: Array<{ year: number; month: number }> = []
-  const end = new Date()
-  end.setDate(1)
-  const start = new Date(end)
-  start.setMonth(start.getMonth() - 11)
-  for (let i = 0; i < 12; i++) {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const currentMonth = new Date(today.getFullYear(), today.getMonth(), 1)
+  const monthHalf = new Date(today.getFullYear(), today.getMonth(), 15)
+  monthHalf.setHours(0, 0, 0, 0)
+  
+  // 判断当前月份是否应该显示
+  const shouldShowCurrentMonth = today >= monthHalf
+  
+  // 如果当前月份未到15号，需要显示12个历史月份（不包括当前月份）
+  // 如果当前月份已到15号，显示11个历史月份 + 1个当前月份 = 12个月份
+  const monthsToShow = 12
+  const startOffset = shouldShowCurrentMonth ? 11 : 12 // 如果当前月份显示，从11个月前开始；否则从12个月前开始
+  
+  const start = new Date(currentMonth)
+  start.setMonth(start.getMonth() - startOffset)
+  
+  for (let i = 0; i < monthsToShow; i++) {
     const cur = new Date(start)
     cur.setMonth(start.getMonth() + i)
     months.push({ year: cur.getFullYear(), month: cur.getMonth() })
   }
+  
   return months
 })
 
@@ -321,6 +337,7 @@ const monthLabels = computed(() => monthTimeline.value.map((m) => monthLabelsArr
 
 // 每个月份对应的像素位置（相对于网格左侧），支持缺失月份插值与最小间距防重叠
 // 位置以「月份首列单元格的中心点」为基准，确保缩放/压缩后仍与网格精确对齐
+// 优化：新月份需要过半（15天）后才显示，避免过早显示导致拥挤
 const monthPositions = computed(() => {
   if (!weeks.value.length) return [] as (number | null)[]
 
@@ -328,11 +345,28 @@ const monthPositions = computed(() => {
   const timeline = monthTimeline.value
   if (!timeline.length) return []
 
+  // 获取当前日期，用于判断是否应该显示新月份标签
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  // 记录哪些月份应该显示
+  // 由于 monthTimeline 已经根据当前月份是否应该显示来调整了：
+  // - 如果当前月份未到15号，monthTimeline 包含12个历史月份（不包括当前月份）
+  // - 如果当前月份已到15号，monthTimeline 包含11个历史月份 + 1个当前月份 = 12个月份
+  // 所以所有在 monthTimeline 中的月份都应该显示
+  const shouldShowMonth = timeline.map(() => true)
+
   // 基于现有数据的基准位置（使用该月第一列所在列的中心点）
-  const basePositions = timeline.map(({ year, month }) => {
+  const basePositions = timeline.map(({ year, month }, idx) => {
     const key = `${year}-${month}`
     const meta = info.get(key)
     if (!meta) return null
+    
+    // 如果该月份不应该显示，返回 null
+    if (!shouldShowMonth[idx]) {
+      return null
+    }
+
     return meta.firstCol * (CELL_SIZE + CELL_GAP) + CELL_SIZE / 2
   })
   const anchors = basePositions.map((p) => p !== null)
@@ -344,68 +378,169 @@ const monthPositions = computed(() => {
       : maxPos + CELL_SIZE / 2
 
   // 缺失月份插值：向左右寻找最近已知位置，线性推断
+  // 注意：对于不应该显示的月份（shouldShowMonth[idx] === false），不进行插值，保持为 null
+  // 但对于应该显示的月份（历史月份），即使没有 meta，也要通过插值得到位置
   const interpolated = [...basePositions]
+  
+  // 先为所有应该显示但没有位置的月份设置初始位置（基于均匀分布）
+  // 这样可以确保历史月份即使没有 meta 也能有一个初始位置
   for (let i = 0; i < interpolated.length; i++) {
-    if (interpolated[i] !== null) continue
+    if (!shouldShowMonth[i]) {
+      continue
+    }
+    if (interpolated[i] === null) {
+      // 为应该显示但没有位置的月份设置初始位置
+      const minCenter = CELL_SIZE / 2
+      interpolated[i] = Math.max(minCenter, uniformSpacing * i)
+    }
+  }
+  
+  // 然后进行插值优化，使用实际数据位置
+  for (let i = 0; i < interpolated.length; i++) {
+    // 如果该月份不应该显示，跳过插值，保持为 null
+    if (!shouldShowMonth[i]) {
+      continue
+    }
+    
+    // 如果已经有位置了（从 meta 获取的），跳过插值
+    if (basePositions[i] !== null) continue
 
     // 找到左侧最近的已知位置
+    // 注意：优先查找有位置的月份（不管是否应该显示），用于插值计算
     let leftIdx = i - 1
-    while (leftIdx >= 0 && interpolated[leftIdx] === null) leftIdx--
+    while (leftIdx >= 0) {
+      // 如果左侧月份有位置（不管是否应该显示），可以用来插值
+      if (interpolated[leftIdx] !== null) {
+        break
+      }
+      leftIdx--
+    }
+    
     // 找到右侧最近的已知位置
+    // 注意：优先查找有位置的月份（不管是否应该显示），用于插值计算
+    // 这样可以确保历史月份即使没有 meta 也能通过插值得到位置
     let rightIdx = i + 1
-    while (rightIdx < interpolated.length && interpolated[rightIdx] === null) rightIdx++
+    while (rightIdx < interpolated.length) {
+      // 如果右侧月份有位置（不管是否应该显示），可以用来插值
+      if (interpolated[rightIdx] !== null) {
+        break
+      }
+      rightIdx++
+    }
 
+    // 如果找到了左右两侧的位置，进行线性插值
     if (leftIdx >= 0 && rightIdx < interpolated.length && interpolated[leftIdx] !== null && interpolated[rightIdx] !== null) {
       const leftPos = interpolated[leftIdx] as number
       const rightPos = interpolated[rightIdx] as number
       const gap = rightIdx - leftIdx
-      const ratio = (i - leftIdx) / gap
-      interpolated[i] = leftPos + (rightPos - leftPos) * ratio
+      if (gap > 0) {
+        const ratio = (i - leftIdx) / gap
+        interpolated[i] = leftPos + (rightPos - leftPos) * ratio
+      } else {
+        // gap 为 0，使用左侧位置
+        interpolated[i] = leftPos
+      }
     } else if (leftIdx >= 0 && interpolated[leftIdx] !== null) {
       // 只有左侧：沿用均匀步进
       interpolated[i] = (interpolated[leftIdx] as number) + uniformSpacing * (i - leftIdx)
     } else if (rightIdx < interpolated.length && interpolated[rightIdx] !== null) {
       // 只有右侧：反向均匀步进
-      interpolated[i] = (interpolated[rightIdx] as number) - uniformSpacing * (rightIdx - i)
+      // 计算从右侧位置向左的步进距离
+      const rightPos = interpolated[rightIdx] as number
+      const steps = rightIdx - i
+      const calculatedPos = rightPos - uniformSpacing * steps
+      
+      // 确保计算出的位置不为负数（最左侧月份可能计算出负数）
+      // 如果计算出负数或很小的值，使用更合理的位置
+      const minCenter = CELL_SIZE / 2
+      if (calculatedPos < minCenter) {
+        // 如果计算出负数或很小的值，使用基于索引的均匀分布
+        // 但确保至少是 minCenter
+        interpolated[i] = Math.max(minCenter, uniformSpacing * i)
+      } else {
+        interpolated[i] = calculatedPos
+      }
     } else {
-      // 全部为空：完全均匀分布
-      interpolated[i] = uniformSpacing * i
+      // 全部为空：完全均匀分布（确保历史月份即使没有 meta 也能显示）
+      // 这种情况应该很少见，但作为最后的兜底
+      interpolated[i] = Math.max(0, uniformSpacing * i)
+    }
+    
+    // 确保插值结果不为 null 且为有效数字（历史月份必须显示）
+    const interpolatedValue = interpolated[i]
+    if (interpolatedValue === null || interpolatedValue === undefined || (typeof interpolatedValue === 'number' && (isNaN(interpolatedValue) || interpolatedValue < 0))) {
+      // 如果插值失败或计算出负数，使用均匀分布作为兜底
+      interpolated[i] = Math.max(0, uniformSpacing * i)
     }
   }
 
   // 防重叠：只移动非锚点，保持已有月份严格对齐网格列
+  // 注意：跳过不应该显示的月份
   const adjusted = [...interpolated] as number[]
   for (let i = 1; i < adjusted.length; i++) {
-    if (adjusted[i] === null) continue
+    if (adjusted[i] === null || !shouldShowMonth[i]) continue
     if (anchors[i]) continue
-    if (adjusted[i] < adjusted[i - 1] + MIN_MONTH_GAP) {
-      adjusted[i] = adjusted[i - 1] + MIN_MONTH_GAP
+    // 查找前一个应该显示的月份位置
+    let prevIdx = i - 1
+    while (prevIdx >= 0 && (!shouldShowMonth[prevIdx] || adjusted[prevIdx] === null)) prevIdx--
+    if (prevIdx >= 0 && adjusted[prevIdx] !== null) {
+      if (adjusted[i] < adjusted[prevIdx] + MIN_MONTH_GAP) {
+        adjusted[i] = adjusted[prevIdx] + MIN_MONTH_GAP
+      }
     }
   }
 
   // 末端限制：只回拉非锚点，避免整体平移导致锚点偏离网格
   for (let i = adjusted.length - 2; i >= 0; i--) {
-    if (adjusted[i] === null) continue
+    if (adjusted[i] === null || !shouldShowMonth[i]) continue
     if (anchors[i]) continue
-    if (adjusted[i] > adjusted[i + 1] - MIN_MONTH_GAP) {
-      adjusted[i] = adjusted[i + 1] - MIN_MONTH_GAP
+    // 查找后一个应该显示的月份位置
+    let nextIdx = i + 1
+    while (nextIdx < adjusted.length && (!shouldShowMonth[nextIdx] || adjusted[nextIdx] === null)) nextIdx++
+    if (nextIdx < adjusted.length && adjusted[nextIdx] !== null) {
+      if (adjusted[i] > adjusted[nextIdx] - MIN_MONTH_GAP) {
+        adjusted[i] = adjusted[nextIdx] - MIN_MONTH_GAP
+      }
     }
   }
 
   // 边界收缩：非锚点超过右界则回拉到 (maxPos + CELL_SIZE/2)，保证中心点仍在网格内
   for (let i = 0; i < adjusted.length; i++) {
-    if (adjusted[i] === null) continue
+    if (adjusted[i] === null || !shouldShowMonth[i]) continue
     if (anchors[i]) continue
     const maxCenter = maxPos + CELL_SIZE / 2
     if (adjusted[i] > maxCenter) adjusted[i] = maxCenter
   }
 
-  return adjusted.map((pos) => {
-    if (pos === null) return null
+  return adjusted.map((pos, idx) => {
+    // 如果该月份不应该显示，返回 null
+    if (!shouldShowMonth[idx]) return null
+    
+    // 如果位置为 null 或无效，但该月份应该显示（历史月份），使用均匀分布作为兜底
+    // 确保历史月份必须显示，即使没有 meta 或插值失败
+    let finalPos = pos
+    if (finalPos === null || finalPos === undefined || (typeof finalPos === 'number' && (isNaN(finalPos) || finalPos < 0))) {
+      // 历史月份必须显示，使用均匀分布
+      // 计算合理的位置：基于索引和总长度
+      // 对于最左侧的月份（idx === 0），使用 minCenter 作为最小值
+      const minCenter = CELL_SIZE / 2
+      finalPos = Math.max(minCenter, uniformSpacing * idx)
+    }
+    
     // 中心点不能小于第一列中心，也不能大于最后一列中心
     const minCenter = CELL_SIZE / 2
     const maxCenter = maxPos + CELL_SIZE / 2
-    let center = Math.min(Math.max(pos, minCenter), maxCenter)
+    
+    // 确保位置在有效范围内
+    let center = Math.max(finalPos, minCenter)
+    center = Math.min(center, maxCenter)
+    
+    // 确保最终返回的位置不为 null 且为有效数字（历史月份必须显示）
+    if (center === null || center === undefined || isNaN(center) || center < minCenter) {
+      // 最后的兜底：使用均匀分布，确保至少是 minCenter
+      center = Math.max(minCenter, uniformSpacing * idx)
+      center = Math.min(center, maxCenter)
+    }
 
     // 仅在「桌面端」时做视觉微调；移动端横向滚动模式不受影响
     if (isDesktop.value) {
@@ -647,7 +782,6 @@ async function fetchData() {
       weeks.value = normalizeWeeks(mappedWeeks)
     }
   } catch (e: any) {
-    console.error(e)
     error.value = e.message || '加载失败，请稍后重试'
     total.value = 0
     // 接口异常时也回退为空网格样式
