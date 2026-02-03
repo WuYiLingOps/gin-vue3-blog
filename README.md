@@ -157,7 +157,7 @@ CONTAINER ID   IMAGE                COMMAND                  CREATED          ST
 ## 5.3 克隆项目
 
 ```bash
-git clone https://github.com/wylblog/gin-vue3-blog.git
+git clone https://github.com/WuYiLingOps/gin-vue3-blog.git
 cd myBlog
 ```
 
@@ -515,7 +515,7 @@ docker compose logs -f backend
 #### 7.2.2.1 启动 Gitee Calendar API 服务（必选，贡献热力图依赖）
 
 1. **部署 gitee-calendar-api 服务**  
-   本仓库已自带编译好的 `gitee-calendar-api`（根目录），可直接赋予执行权限使用（默认占用端口为8081）。若需查看/自行编译源码，可访问：`https://gitee.com/wylblog/go-code-calendar-api.git`
+   本仓库已自带编译好的 `gitee-calendar-api`（根目录），可直接赋予执行权限使用（默认占用端口为8081）。若需查看/自行编译源码，可访问：`https://gitee.com/WuYiLingOps/go-code-calendar-api.git`
 
    ```bash
    cd /web/gin-vue3-blog/gitee-calendar-api
