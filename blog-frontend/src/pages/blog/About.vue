@@ -576,10 +576,19 @@ function initPostPublishChart() {
 
   const isDark = appStore.theme === 'dark'
   
-  // 根据屏幕尺寸动态调整grid配置
+  // 根据数据点数量判断是否需要旋转标签
+  const dataPointCount = months.length
+  const needRotate = dataPointCount > 6 // 超过6个数据点时旋转标签
+  
+  // 根据屏幕尺寸和数据点数量动态调整grid配置
   const gridLeft = isSmallMobile ? 45 : isMobile ? 50 : 60
   const gridRight = isSmallMobile ? 20 : isMobile ? 30 : 90
-  const gridBottom = isSmallMobile ? 50 : isMobile ? 55 : 60
+  // 如果数据点多或需要旋转，增加底部边距
+  const gridBottom = isSmallMobile 
+    ? 50 
+    : isMobile 
+      ? (needRotate ? 70 : 55)
+      : (needRotate ? 80 : 60)
 
   const option = {
     tooltip: {
@@ -609,12 +618,14 @@ function initPostPublishChart() {
       },
       axisLabel: {
         color: isDark ? '#e5e7eb' : '#64748b',
-        rotate: isSmallMobile ? 45 : 0,
-        fontSize: isSmallMobile ? 10 : 12,
-        interval: isSmallMobile ? 'auto' : 0,
+        // 移动端或数据点多时旋转标签
+        rotate: isSmallMobile ? 45 : (needRotate ? 45 : 0),
+        fontSize: isSmallMobile ? 10 : (needRotate ? 11 : 12),
+        // 数据点多时自动调整间隔，避免重叠
+        interval: isSmallMobile ? 'auto' : (needRotate ? 0 : 0),
         overflow: 'break',
-        width: isSmallMobile ? 50 : 60,
-        margin: isSmallMobile ? 8 : 0
+        width: isSmallMobile ? 50 : (needRotate ? 60 : 60),
+        margin: isSmallMobile ? 8 : (needRotate ? 12 : 0)
       }
     },
     yAxis: {
