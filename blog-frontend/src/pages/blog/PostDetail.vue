@@ -825,14 +825,14 @@ html.dark .post-toc::-webkit-scrollbar-thumb:hover {
 @media (max-width: 419px) {
   .post-detail-container {
     padding: 0 2px !important;
-    overflow-x: hidden !important;
+    overflow-x: visible;
     width: 100% !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
   }
   
   .post-main {
-    overflow-x: hidden !important;
+    overflow-x: visible;
     width: 100% !important;
     max-width: 100% !important;
     padding: 0 !important;
@@ -841,8 +841,8 @@ html.dark .post-toc::-webkit-scrollbar-thumb:hover {
   
   .post-content {
     font-size: 14px;
-    /* 超小屏幕确保内容不溢出 */
-    overflow-x: hidden !important;
+    /* 超小屏幕允许代码块滚动 */
+    overflow-x: visible;
     max-width: 100% !important;
     width: 100% !important;
     word-wrap: break-word;
@@ -872,28 +872,27 @@ html.dark .post-toc::-webkit-scrollbar-thumb:hover {
     margin: 0 !important;
     width: 100% !important;
     max-width: 100% !important;
-    overflow-x: hidden !important;
+    overflow-x: visible;
     box-sizing: border-box !important;
   }
   
-  /* 确保代码块在超小屏幕有足够空间 */
+  /* 确保代码块在超小屏幕有足够空间并居中 */
   .post-content :deep(.markdown-preview .vuepress-markdown-body) {
     padding-left: 0 !important;
     padding-right: 0 !important;
     width: 100% !important;
     max-width: 100% !important;
-    overflow-x: hidden !important;
+    overflow-x: visible;
     box-sizing: border-box !important;
   }
   
-  /* 确保代码块本身在超小屏幕正确显示 */
+  /* 确保代码块本身在超小屏幕居中显示 */
   .post-content :deep(.markdown-preview pre) {
-    width: 100% !important;
+    width: 96% !important;
     max-width: 100% !important;
+    margin: 16px auto !important;
     box-sizing: border-box !important;
     overflow-x: auto !important;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
   }
 }
 
@@ -901,13 +900,13 @@ html.dark .post-toc::-webkit-scrollbar-thumb:hover {
 @media (max-width: 768px) {
   .post-detail-container {
     padding: 0 8px;
-    overflow-x: hidden !important;
+    overflow-x: visible;
     width: 100% !important;
     max-width: 100% !important;
   }
   
   .post-main {
-    overflow-x: hidden !important;
+    overflow-x: visible;
     width: 100% !important;
     max-width: 100% !important;
   }
@@ -927,8 +926,8 @@ html.dark .post-toc::-webkit-scrollbar-thumb:hover {
   
   .post-content {
     font-size: 15px;
-    /* 移动端确保内容不溢出 */
-    overflow-x: hidden !important;
+    /* 移动端允许内容水平滚动（针对代码块） */
+    overflow-x: visible;
     max-width: 100% !important;
     width: 100% !important;
     word-wrap: break-word;
@@ -1067,18 +1066,27 @@ html.dark .tip-days {
   color: #fca5a5;
 }
 
+/* 文章内容容器 */
 .post-content {
   min-height: 200px;
   line-height: 1.8;
   color: #374151;
-  /* 确保内容不会溢出 */
-  overflow-x: hidden !important;
+  /* 允许内部内容在容器内排版，防止整体溢出 */
+  overflow-x: hidden;
   max-width: 100% !important;
   width: 100% !important;
   word-wrap: break-word;
   box-sizing: border-box !important;
   /* 确保代码块容器有足够空间 */
   position: relative;
+}
+
+/* 针对超小屏幕的特殊处理 */
+@media (max-width: 420px) {
+  .post-content {
+    padding-left: 2px !important;
+    padding-right: 2px !important;
+  }
 }
 
 html.dark .post-content {
