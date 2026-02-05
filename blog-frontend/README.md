@@ -108,13 +108,42 @@ npm run format
 
 ## 环境变量
 
-创建 `.env.local` 文件配置本地环境变量：
+前端使用 Vite 的环境变量机制，推荐分别在开发 / 生产环境下创建对应文件：
+
+- 开发环境：`blog-frontend/.env.development`
+- 生产环境：`blog-frontend/.env.production`
+
+示例（开发环境）：
 
 ```bash
 VITE_APP_TITLE=我的博客
 VITE_API_BASE_URL=http://localhost:8080
 VITE_UPLOAD_URL=http://localhost:8080/api/upload
 ```
+
+> 说明：
+> - `VITE_API_BASE_URL` 用于配置后端 API 基础地址，开发时也会被 `vite.config.ts` 读取，用于 Vite 代理 `/api` 与 `/uploads` 请求。
+> - 如未配置，开发代理会默认指向 `http://localhost:8080`。
+
+### 更换后端端口（如从 `8080` 改为 `8090`）
+
+如果后端端口修改为 `8090`，开发环境下需同步调整前端配置：
+
+1. 修改后端 `config/config-dev.yml` 中的：
+   ```yaml
+   app:
+     port: 8090
+   ```
+2. 在前端目录创建或修改 `.env.development`：
+   ```bash
+   VITE_API_BASE_URL=http://localhost:8090
+   ```
+3. 重启前端开发服务器：
+   ```bash
+   pnpm dev
+   ```
+
+生产环境同理，在 `.env.production` 中将 `VITE_API_BASE_URL` 指向后端实际的对外地址（域名或 IP + 端口），并确保 Nginx 的 `/api`、`/uploads` 反向代理目标与之保持一致。
 
 ## 功能特性
 
