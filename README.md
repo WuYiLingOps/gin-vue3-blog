@@ -278,10 +278,14 @@ cd blog-frontend
 # 如果没有安装pnpm，可全局安装：npm install -g pnpm
 pnpm install
 
-# 2. 配置 API 地址（可选）
-# 创建 .env.development 文件
-echo "VITE_API_BASE_URL=http://localhost:8080" > .env.development
-# 注意：贡献热力图现在通过后端 API 获取，无需单独配置 VITE_GITEE_CALENDAR_API
+# 2. 配置 API 地址（可选，但在修改后端端口/域名时推荐）
+# 不配置时，前端开发环境会默认将 /api 与 /uploads 代理到 http://localhost:8080
+# 如需自定义后端地址（例如后端端口改为 8090），可创建 .env.development 文件，例如：
+echo "VITE_API_BASE_URL=http://localhost:8090" > .env.development
+# 注意：
+# - VITE_API_BASE_URL 仅影响前端如何访问「自己的后端」，
+#   Gitee 贡献热力图仍由后端通过 GITEE_CALENDAR_API_URL 等配置去调用，不受前端 .env.development 影响
+# - 修改 .env.development 后需要重新执行 pnpm dev 才能生效
 
 # 3. 启动开发服务器
 pnpm dev
@@ -630,7 +634,7 @@ cd blog-frontend
 vim .env.production
 ```
 
-写入（或补充）如下内容（根据你的实际域名调整）：
+写入（或补充）如下内容（根据你的实际域名与后端端口调整）：
 
 > **HTTP 方式：**
 
@@ -657,7 +661,8 @@ VITE_API_BASE_URL=https://your-domain.com
 ```
 
 - `VITE_API_BASE_URL`：博客后端（Gin 服务）的基础地址，前端所有业务接口都会基于该地址请求，包括贡献热力图数据（通过 `/api/calendar/gitee` 接口获取）。
-- **推荐配置方式**：只配置域名（如 `https://your-domain.com`），贡献热力图组件会自动添加 `/api` 前缀。如果已配置包含 `/api` 的路径，也能正常工作。
+- **推荐配置方式**：只配置域名（如 `https://your-domain.com`），前端会自动拼接 `/api` 路径；如果已配置包含 `/api` 的完整路径，也能正常工作。
+- **注意**：`VITE_API_BASE_URL` 只影响前端访问“你自己的后端”时的基础地址；后端再去调用 `gitee-calendar-api` 时使用的是 `GITEE_CALENDAR_API_URL` 等后端环境变量，两者相互独立。
 
 ### 7.3.2 构建前端项目
 
