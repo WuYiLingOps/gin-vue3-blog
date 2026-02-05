@@ -45,7 +45,25 @@ cd blog-backend
 go run cmd/server/main.go
 ```
 
-服务默认运行在 `http://localhost:8080`
+服务默认运行在 `http://localhost:8080`（可通过配置文件修改）
+
+### 更换后端端口（如从 `8080` 改为 `8090`）
+
+- **开发环境**
+  - 编辑 `config/config-dev.yml`：
+    - 将
+      - `app.port: 8080`
+      改为
+      - `app.port: 8090`
+  - 重启后端服务：`go run cmd/server/main.go`
+  - 前端开发环境需同步修改 `blog-frontend` 下的环境变量（例如 `.env.development` 中设置 `VITE_API_BASE_URL=http://localhost:8090`），并重启前端 `pnpm dev`，以确保 Vite 代理指向新的端口。
+
+- **生产环境**
+  - 在 `config/config-prod.yml` 中修改 `app.port` 为新端口。
+  - 同步更新 Nginx 配置中所有 `proxy_pass http://127.0.0.1:8080` 为新端口（如 `8090`）。
+  - 如使用 Docker 部署，需要同时调整：
+    - `docker-compose.yml` 中的端口映射（例如 `8090:8090`）
+    - `Dockerfile` 中的 `EXPOSE` 端口。
 
 ## 📁 项目结构
 
