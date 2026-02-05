@@ -578,17 +578,21 @@ function initPostPublishChart() {
   
   // 根据数据点数量判断是否需要旋转标签
   const dataPointCount = months.length
-  const needRotate = dataPointCount > 6 // 超过6个数据点时旋转标签
+  // 策略：桌面端超过3个数据点就旋转（因为"2025-10"这样的标签较长，容易重叠）
+  // 移动端总是旋转
+  const needRotate = isSmallMobile ? true : dataPointCount > 3
+  // 旋转角度：移动端45度，桌面端60度（更倾斜避免重叠）
+  const rotateAngle = isSmallMobile ? 45 : (needRotate ? 60 : 0)
   
   // 根据屏幕尺寸和数据点数量动态调整grid配置
   const gridLeft = isSmallMobile ? 45 : isMobile ? 50 : 60
   const gridRight = isSmallMobile ? 20 : isMobile ? 30 : 90
-  // 如果数据点多或需要旋转，增加底部边距
+  // 如果需要旋转，增加底部边距（60度旋转需要更多空间）
   const gridBottom = isSmallMobile 
     ? 50 
     : isMobile 
-      ? (needRotate ? 70 : 55)
-      : (needRotate ? 80 : 60)
+      ? (needRotate ? 80 : 55)
+      : (needRotate ? 90 : 60)
 
   const option = {
     tooltip: {
@@ -618,14 +622,17 @@ function initPostPublishChart() {
       },
       axisLabel: {
         color: isDark ? '#e5e7eb' : '#64748b',
-        // 移动端或数据点多时旋转标签
-        rotate: isSmallMobile ? 45 : (needRotate ? 45 : 0),
+        // 根据needRotate判断旋转角度
+        rotate: rotateAngle,
         fontSize: isSmallMobile ? 10 : (needRotate ? 11 : 12),
-        // 数据点多时自动调整间隔，避免重叠
-        interval: isSmallMobile ? 'auto' : (needRotate ? 0 : 0),
+        // 旋转时显示所有标签，不旋转时也显示所有（避免间隔显示）
+        interval: 0,
         overflow: 'break',
-        width: isSmallMobile ? 50 : (needRotate ? 60 : 60),
-        margin: isSmallMobile ? 8 : (needRotate ? 12 : 0)
+        width: isSmallMobile ? 50 : (needRotate ? 70 : 60),
+        // 旋转时需要更大的margin避免与图表重叠
+        margin: isSmallMobile ? 8 : (needRotate ? 15 : 0),
+        // 旋转时使用更紧凑的字体
+        fontWeight: needRotate ? 'normal' : 'normal'
       }
     },
     yAxis: {
@@ -731,10 +738,14 @@ function initTagChart() {
 
   const isDark = appStore.theme === 'dark'
   
-  // 根据屏幕尺寸动态调整grid配置
+  // 标签名称通常较长（如"Git代码托"、"脚本合集"等），统一使用60度旋转避免重叠
+  const rotateAngle = 60
+  
+  // 根据屏幕尺寸和旋转角度动态调整grid配置
   const gridLeft = isSmallMobile ? 50 : isMobile ? 60 : 70
   const gridRight = isSmallMobile ? 15 : isMobile ? 25 : 90
-  const gridBottom = isSmallMobile ? 70 : isMobile ? 90 : 80
+  // 60度旋转需要更多底部空间
+  const gridBottom = isSmallMobile ? 70 : isMobile ? 95 : 90
 
   const option = {
     tooltip: {
@@ -764,12 +775,14 @@ function initTagChart() {
       },
       axisLabel: {
         color: isDark ? '#e5e7eb' : '#64748b',
-        rotate: isSmallMobile ? 60 : 45,
+        // 统一使用60度旋转，避免标签重叠
+        rotate: rotateAngle,
         fontSize: isSmallMobile ? 9 : 11,
         interval: 0,
         overflow: 'break',
-        width: isSmallMobile ? 40 : 50,
-        margin: isSmallMobile ? 10 : 12
+        width: isSmallMobile ? 40 : 55,
+        // 60度旋转需要更大的margin
+        margin: isSmallMobile ? 10 : 15
       }
     },
     yAxis: {

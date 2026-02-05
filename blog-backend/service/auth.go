@@ -11,11 +11,13 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"time"
 
 	"blog-backend/config"
+	"blog-backend/db"
 	"blog-backend/model"
 	"blog-backend/repository"
 	"blog-backend/util"
@@ -209,6 +211,12 @@ func (s *AuthService) UpdateProfile(userID uint, req *UpdateProfileRequest) (*mo
 
 	if err := s.userRepo.Update(user); err != nil {
 		return nil, errors.New("更新用户信息失败")
+	}
+
+	// 如果更新的是管理员用户，清理博主信息缓存，确保前台个人名片和关于我页面立即生效
+	if user.Role == "admin" {
+		ctx := context.Background()
+		_ = db.RDB.Del(ctx, "blog:author_profile").Err()
 	}
 
 	return user, nil

@@ -196,8 +196,8 @@ html.dark .gradient-text {
   background-color: transparent !important;
 }
 
-/* 防止移动端水平滚动 */
-* {
+/* 防止移动端水平滚动，但排除代码块和表格等需要滚动的元素 */
+*:not(pre):not(pre *):not(table):not(table *) {
   max-width: 100%;
 }
 
@@ -209,10 +209,10 @@ svg {
   height: auto;
 }
 
-/* 确保所有容器不会溢出 */
+/* 确保所有容器不会溢出，但允许内容区域正常滚动 */
 .n-layout,
 .n-layout-content,
 .n-config-provider {
-  overflow-x: hidden !important;
+  overflow-x: hidden;
 }
 

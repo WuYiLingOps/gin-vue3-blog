@@ -12,7 +12,6 @@
     <n-card title="关于我信息管理">
       <n-spin :show="loading">
         <n-form
-          ref="formRef"
           :model="formData"
           label-placement="top"
         >
@@ -55,12 +54,10 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { useMessage } from 'naive-ui'
-import type { FormInst } from 'naive-ui'
 import { getAboutInfo, updateAboutInfo } from '@/api/setting'
 import MarkdownEditor from '@/components/MarkdownEditor.vue'
 
 const message = useMessage()
-const formRef = ref<FormInst | null>(null)
 const loading = ref(false)
 const submitting = ref(false)
 const isMobile = ref(false)

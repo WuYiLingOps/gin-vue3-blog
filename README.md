@@ -11,7 +11,7 @@
 ![Go](https://img.shields.io/badge/Go-1.21+-blue.svg)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-blue.svg)
 
-# 1. 在线演示
+# 一、在线演示
 
 **网站地址**: [https://huangjingblog.cn/](https://huangjingblog.cn/)
 
@@ -19,7 +19,7 @@
 - 可以访问聊天室与其他用户实时交流
 - 支持匿名访问或注册登录
 
-# 2. 项目截图
+# 二、项目截图
 
 ## 2.1 首页
 ![首页](./screenshots/home.png)
@@ -45,73 +45,11 @@
 
 ![说说](./screenshots/shuoshuo.png)
 
-# 3. 特性
 
-## 3.1 核心功能
-- **文章管理** - Markdown 编辑器，支持代码高亮、图片上传、Markdown 文件上传解析、HTML 图片标签自动转换、最后更新时间显示、更新提示
-- **SEO友好URL** - 文章URL自动使用拼音slug（如 `/post/windows-huan-jing-xia-an-zhuang-hadoop3-1-2-quan-guo-cheng`），支持中英文混合标题，提升SEO和可读性
-- **分类标签** - 灵活的分类和标签系统
-- **评论系统** - 支持嵌套回复的评论功能，支持多种评论类型（文章评论、友链评论、说说评论等）
-- **友情链接** - 友链管理功能，支持独立评论系统
-- **说说动态** - 类似朋友圈的动态发布，支持评论和点赞
-- **实时聊天室** - WebSocket 实时通信，支持登录用户和匿名访问
-- **用户系统** - 完整的用户注册、登录、权限管理
-- **注册控制** - 管理员可限制用户注册功能，支持一键开启/关闭
-- **安全认证** - 密码重置、邮箱修改、邮件验证码
-- **验证码系统** - 图形验证码，基于 Redis 存储，支持 IP 限流和防暴力破解
-- **权限控制** - 基于角色的访问控制（RBAC）
-- **数据统计** - 最近 7 天访问量趋势、文章统计、用户统计
-- **网站资讯面板** - 展示本站总字数、访客数、总访问量、最后更新时间（仅桌面端右侧展示，移动端自动隐藏）
-- **主题切换** - 支持亮色/暗色主题
 
-## 3.2 技术特性
-- **现代化技术栈** - Vue 3 + TypeScript + Go + PostgreSQL
-- **优雅 UI** - Naive UI 组件库 + 玻璃态设计
-- **响应式设计** - 完美适配各种设备（PC/平板/手机）
-- **高性能** - Vite 构建 + Pinia 状态管理 + 异步邮件发送
-- **实时通信** - WebSocket 长连接 + 自动重连 + 心跳检测
-- **安全可靠** - JWT 认证 + 密码加密 + 邮箱验证 + IP 黑名单
-- **自动清理** - 定时清理过期数据，保持数据库整洁
-- **易于部署** - Docker 支持 + 详细部署文档
+# 三、本地开发快速启动
 
-# 4. 项目结构
-
-```bash
-myBlog/
-├── blog-frontend/          # 前端项目
-│   ├── src/
-│   │   ├── api/           # API 接口
-│   │   ├── assets/        # 静态资源
-│   │   ├── components/    # 公共组件
-│   │   ├── layouts/       # 布局组件
-│   │   ├── pages/         # 页面组件
-│   │   ├── router/        # 路由配置
-│   │   ├── stores/        # 状态管理
-│   │   ├── types/         # TypeScript 类型
-│   │   └── utils/         # 工具函数
-│   ├── public/            # 公共资源
-│   └── package.json
-│
-├── blog-backend/          # 后端项目
-│   ├── cmd/
-│   │   └── server/        # 服务入口
-│   ├── config/            # 配置文件
-│   ├── db/                # 数据库连接
-│   ├── handler/           # 请求处理器
-│   ├── middleware/        # 中间件
-│   ├── model/             # 数据模型
-│   ├── repository/        # 数据访问层
-│   ├── service/           # 业务逻辑层
-│   ├── util/              # 工具函数
-│   ├── uploads/           # 上传文件
-│   └── go.mod
-│
-└── README.md              # 项目说明
-```
-
-# 5. 快速开始
-
-## 5.1 环境要求
+## 3.1 环境要求
 
 - **Node.js** >= 18.0.0
 - **Go** >= 1.21
@@ -119,7 +57,7 @@ myBlog/
 - **Redis** >= 3.0 (建议 >= 6.2 以避免客户端警告)
 - **pnpm** (推荐) 或 npm
 
-## 5.2 Docker 快速启动环境（可选）
+> 如果本地没有安装部署PostgreSQL\Redis,可参考以下docker快速部署相关数据库（可选）
 
 创建`pgsql`指令：
 
@@ -152,19 +90,22 @@ CONTAINER ID   IMAGE                COMMAND                  CREATED          ST
 22205f8e78c6   postgres:17-alpine   "docker-entrypoint.s…"   34 minutes ago   Up 34 minutes   0.0.0.0:5432->5432/tcp, [::]:5432->5432/tcp   pg-prod
 ```
 
-完成
-
-## 5.3 克隆项目
+## 3.2 克隆项目
 
 ```bash
 git clone https://github.com/WuYiLingOps/gin-vue3-blog.git
 cd myBlog
 ```
 
-## 5.4 数据库配置
 
-1. 创建 PostgreSQL 数据库（指定编码/排序，便于跨版本迁移一致）：
-```sql
+
+## 3.3 数据库配置
+
+### 3.3.1 本地数据库导入
+
+创建 PostgreSQL 数据库(指定编码/排序，便于跨版本迁移一致)
+
+```bash
 CREATE DATABASE blogdb
   WITH OWNER = postgres
        ENCODING = 'UTF8'
@@ -173,37 +114,35 @@ CREATE DATABASE blogdb
        TEMPLATE   = template0;
 ```
 
-2. 导入数据库结构：
+导入初始化数据:
+
 ```bash
 cd blog-backend/sql
 psql -U postgres -d blogdb -f init.sql
 ```
 
-3. **为现有文章生成slug**（如果是从旧版本升级）：
-```bash
-cd blog-backend
-go run cmd/migrate-slug/main.go
-```
-> 注意：新安装的数据库已包含slug字段，无需运行此脚本。只有从旧版本升级时才需要运行。
+### 3.3.2 容器数据库导入
 
-> 如果是docker启动的pgsql则看下面
+进入容器内的 psql 交互界面
 
 ```bash
-第一步：
-# 进入容器内的 psql 交互界面
 docker exec -it pg-prod psql -U postgres
+```
 
-# 在 psql 中创建 blogdb 库（执行后输入 \q 退出）
+在 psql 中创建 blogdb 库（执行后输入 \q 退出）
+
+```bash
 CREATE DATABASE blogdb
   WITH OWNER = postgres
        ENCODING = 'UTF8'
        LC_COLLATE = 'en_US.utf8'
        LC_CTYPE   = 'en_US.utf8'
        TEMPLATE   = template0;
-# 退出
-\q
+```
 
-第二步：
+开始导入数据
+
+```bash
 # 将 init.sql 传入容器
 docker cp gin-vue3-blog/blog-backend/sql/init.sql pg-prod:/tmp/init.sql
 
@@ -211,26 +150,48 @@ docker cp gin-vue3-blog/blog-backend/sql/init.sql pg-prod:/tmp/init.sql
 docker exec -it pg-prod psql -U postgres -d blogdb -f /tmp/init.sql
 ```
 
-## 5.5 后端配置与启动
+导入完成
 
-> 如果没有配置go的镜像代理，可以参考[Go 国内加速：Go 国内加速镜像 | Go 技术论坛](https://learnku.com/go/wikis/38122)
+___
+
+
+
+> 注意：新安装的数据库已包含slug字段，无需运行此脚本。只有从旧版本升级时才需要运行。(可选)
+
+**为现有文章生成slug**（如果是从旧版本升级）
 
 ```bash
 cd blog-backend
+go run cmd/migrate-slug/main.gos
+```
 
-# 1. 安装依赖
+## 3.4 后端配置与启动
+
+> 如果没有配置go的镜像代理，可以参考[Go 国内加速：Go 国内加速镜像 | Go 技术论坛](https://learnku.com/go/wikis/38122)
+
+1. 进入后端目录下载相关依赖
+
+```bash
+cd blog-backend
 go mod download
+```
 
-# 2. 配置数据库连接和邮箱服务（推荐：YAML + .env.config.dev 组合）
-# （1）先编辑 config/config-dev.yml，填入非敏感的默认配置（如主机、端口等）
-#     可参考 blog-backend/config/env.config.example 中的示例字段说明
+2. 配置数据库连接和邮箱服务
+
+```bash
+# 推荐方案：YAML + .env.config.dev 组合
+
+# （1）编辑 config/config-dev.yml，填入非敏感的默认配置（主机、端口等）
+#     参考示例：blog-backend/config/env.config.example
 vim config/config-dev.yml
 
-# （2）在后端项目根目录（blog-backend）创建 .env.config.dev，仅填写真正的账号/密码等敏感信息
-#     模板文件：blog-backend/config/env.config.example
-#     复制模板并填写实际值：
-#     cp config/env.config.example .env.config.dev
-#     然后编辑 .env.config.dev，取消注释并填写实际值，例如：
+# （2）在后端项目根目录（blog-backend）创建并配置敏感信息文件
+#     步骤1：复制模板文件
+cp config/env.config.example .env.config.dev
+
+#     步骤2：编辑 .env.config.dev，取消注释并填写实际敏感信息
+vim .env.config.dev
+#     示例配置内容（填写时替换为实际值）：
 # DB_HOST=127.0.0.1
 # DB_PORT=5432
 # DB_USER=postgres
@@ -242,36 +203,59 @@ vim config/config-dev.yml
 # JWT_SECRET=更复杂的JWT密钥
 # EMAIL_PASSWORD=邮箱授权码
 
-
-
-# 配置邮箱服务（用于密码重置）
+# （3）邮箱服务配置（用于密码重置，填写到对应配置文件）
 # email:
 #   host: smtp.qq.com
 #   port: 587
 #   username: your-email@qq.com
 #   password: your-auth-code  # QQ邮箱授权码
 #   from_name: 菱风叙
+```
 
-# 3. 配置 Gitee 贡献热力图 API（可选）
-# 如果需要首页贡献热力图，需要在 config/config-dev.yml 中配置 gitee-calendar-api 地址：
+3. 配置 Gitee 贡献热力图 API
+
+> 方式1: 配置 API 地址（填写到 config/config-dev.yml 中）
+
+```bash
 # gitee_calendar:
 #   api_url: "http://localhost:8081/api"  # gitee-calendar-api 服务地址
-# 
-# 然后启动 gitee-calendar-api 服务（默认端口 8081，路径 /api）：
-# ./gitee-calendar-api   # 前台运行
-# nohup ./gitee-calendar-api > gitee-calendar-api.log 2>&1 &   # 后台运行
-# 
-# 注意：gitee-calendar-api 现在由后端调用，前端不再直接访问该服务
+```
 
-# 4. 运行后端服务
+> 方式2: 配置在.env.config.dev当中
+
+```bash
+# 在.env.config.dev根据自己的情况选择相应配置
+GITEE_CALENDAR_API_URL=http://127.0.0.1:8081/api
+```
+
+4. 启动 gitee-calendar-api 服务（默认端口 8081，接口路径 /api）
+
+> 如需修改默认端口等相关操作,需要重新编译
+>
+> gitee api项目地址:https://gitee.com/WuYiLingOps/go-code-calendar-api
+
+```bash
+# 方式1：前台运行（终端关闭则服务停止）
+./gitee-calendar-api
+
+# 方式2：后台运行（日志输出到 gitee-calendar-api.log）
+nohup ./gitee-calendar-api > gitee-calendar-api.log 2>&1 &
+```
+
+5. 运行后端服务
+
+```bash
 go run cmd/server/main.go
 ```
 
 后端服务默认运行在 `http://localhost:8080`
 
-## 5.6 前端配置与启动
+## 3.5 前端配置与启动
+
+进入前端目录下载相关依赖
 
 ```bash
+# 进入前端目录
 cd blog-frontend
 
 # 1. 安装依赖
@@ -326,9 +310,9 @@ pnpm dev
   - 用户名: `admin`
   - 密码: `password`
 
-# 6. 邮箱配置说明
+## 3.6 邮箱配置说明
 
-## 6.1 QQ邮箱授权码获取
+### 3.6.1 QQ邮箱授权码获取
 
 1. 登录QQ邮箱网页版
 2. 进入 **设置** → **账户**
@@ -337,9 +321,10 @@ pnpm dev
 5. 点击 **生成授权码**，按提示发送短信
 6. 获得16位授权码，填入配置文件的 `password` 字段
 
-## 6.2 其他邮箱配置
+### 3.6.2 其他邮箱配置
 
 **163邮箱**:
+
 ```yaml
 email:
   host: smtp.163.com
@@ -350,6 +335,7 @@ email:
 ```
 
 **Gmail**:
+
 ```yaml
 email:
   host: smtp.gmail.com
@@ -359,13 +345,16 @@ email:
   from_name: 菱风叙
 ```
 
-# 7. 生产部署
 
-## 7.1 快速部署脚本（推荐）
+
+# 四、生产环境部署
+
+## 4.1 快速部署脚本
 
 > 适用于已经提前正常运行该项目，需要重新拉取最新仓库代码时重新构建使用
 
 项目提供了自动化部署脚本 `deploy.sh`，可以一键完成以下操作：
+
 - ✅ 检查并启动 gitee-calendar-api 服务（端口 8081）
 - ✅ 停止并重新编译 go 后端服务（端口 8080）
 - ✅ 重新构建前端静态资源
@@ -387,17 +376,294 @@ chmod +x deploy.sh
 脚本会自动完成所有部署步骤，并在最后检查服务端口状态。适合在项目更新后快速重新构建和部署。
 
 > **注意**：使用脚本前请确保：
+>
 > - Go 环境已配置
 > - pnpm 已安装
 > - 项目配置文件已正确设置（`.env.config.prod` 等）
 
-## 7.2 后端部署
+## 4.2 后端配置及部署
 
-### 7.2.1 方式一：Docker Compose
+> 和`本地开发快速启动`流程基本一致，这里将详细补充说明
 
-使用 Docker Compose 一键部署后端服务（包含 PostgreSQL、Redis、后端应用）：
+### 4.2.1 方式一: 本地编译部署
 
-#### 7.2.1.1 编译后端程序
+我自己用的是这个方式
+
+#### 4.2.1.1 启动 Gitee Calendar API 服务
+
+1. **部署 gitee-calendar-api 服务**  
+   本仓库已自带编译好的 `gitee-calendar-api`（根目录），可直接赋予执行权限使用（默认占用端口为8081）。若需查看/自行编译源码，可访问：`https://gitee.com/WuYiLingOps/go-code-calendar-api.git`
+
+   ```bash
+   cd /web/gin-vue3-blog/gitee-calendar-api
+   chmod +x gitee-calendar-api
+   ```
+
+2. **启动 gitee-calendar-api 服务**（示例为简单后台运行方式，生产环境可用 systemd 管理）：
+
+   ```bash
+   # 前台调试运行
+   ./gitee-calendar-api
+   
+   # 或后台运行（输出到 gitee-calendar-api.log）
+   nohup ./gitee-calendar-api > gitee-calendar-api.log 2>&1 &
+   ```
+
+   默认监听端口为 `8081`，路径为 `/api`，即本机访问地址为：`http://127.0.0.1:8081/api?user=你的Gitee用户名`。
+
+   > **说明**：
+   >
+   > - `gitee-calendar-api` 现在由**后端调用**，前端不再直接访问该服务
+   > - 前端通过后端 API `/api/calendar/gitee` 获取热力图数据，后端会调用 `gitee-calendar-api` 并缓存结果（20分钟过期）
+   > - `gitee-calendar-api` 通常部署在与后端相同的服务器上，通过 `127.0.0.1:8081` 访问，无需通过 Nginx 暴露给外部
+
+3. 配置 **gitee-calendar-api 访问白名单**（可选）
+
+> 防止api被盗用和滥用
+
+```bash
+[root@vm-6-11-ubuntu /web/gin-vue3-blog]# cat .env-gitee-calendar-api 
+# Gitee Calendar API IP 白名单配置文件
+# 文件名: .env-gitee-calendar-api
+# 位置: 项目根目录（与 api-go 目录同级）
+#
+# 配置说明：
+# - 每行一个 IP 地址或 CIDR 网段
+# - 支持 IPv4 和 IPv6
+# - 支持 CIDR 格式（如 192.168.1.0/24）
+# - 以 # 开头的行为注释，会被忽略
+# - 空行会被忽略
+#
+# 如果此文件不存在，默认允许所有 IP 访问
+# 如果此文件存在，只有白名单中的 IP 可以访问 API
+```
+
+#### 4.2.1.2 配置后端 Gitee Calendar API 地址
+
+> 必选，生产环境统一用环境变量
+
+**修改环境配置**  
+修改 `config/config.yml` 中的 `env: dev` 为 `env: prod`，系统会自动加载 `config-prod.yml`：
+
+```yaml
+# config/config.yml
+env: prod
+```
+
+> **创建环境变量文件**  
+> 在后端根目录创建（或编辑）`.env.config.prod`，通过环境变量配置 `gitee-calendar-api` 服务地址（不再修改 `config/config-prod.yml`）。**模板已提供：`blog-backend/config/env.config.example`**，可直接复制为 `.env.config.prod` 后按需修改：
+
+**通过 Nginx 代理（HTTP 或 HTTPS）**
+
+如果 `gitee-calendar-api` 通过 Nginx 代理访问，可配置为：
+
+```bash
+# .env.config.prod
+# HTTP 方式
+GITEE_CALENDAR_API_URL=http://your-domain.com/gitee-calendar-api
+
+# HTTPS 方式（SSL 证书）
+GITEE_CALENDAR_API_URL=https://your-domain.com/gitee-calendar-api
+# 示例：GITEE_CALENDAR_API_URL=https://huangjingblog.cn/gitee-calendar-api
+```
+
+构建并启动后端服务
+
+```bash
+cd blog-backend
+
+# 构建后端可执行文件
+go build -o blog-backend cmd/server/main.go
+
+# 前台运行（调试用）
+./blog-backend
+
+# 后台运行（简单方式，生产环境建议配合 systemd 等守护进程管理）
+nohup ./blog-backend > app.log 2>&1 &
+```
+
+手动在主机安装并启动 PostgreSQL、Redis，按需配置 `config/config-prod.yml`（模板已提供），再以服务方式管理可执行文件。
+
+> **环境配置说明**：
+>
+> - **开发环境**：使用 `config/config-dev.yml` + `.env.config.dev`，日志级别为 `debug`
+> - **生产环境**：使用 `config/config-prod.yml` + `.env.config.prod`，日志级别为 `info`
+> - **环境切换**：修改 `config/config.yml` 中的 `env` 字段（`dev` 或 `prod`）
+> - **环境变量文件**：`.env.config.dev` 和 `.env.config.prod` 使用相同的配置项（参考 `env.config.example`），但实际值不同
+> - **敏感信息**：建议全部通过环境变量文件管理，而不是写死在 YAML 配置文件中
+
+#### 4.2.1.3 加入systemd管理
+
+可参考如下：
+
+> api
+
+```bash
+cat > /etc/systemd/system/gitee-api.service <<EOF
+[Unit]
+Description=Gitee Calendar API Service
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/web/gin-vue3-blog/gitee-calendar-api
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF
+```
+
+> 后端
+
+```bash
+cat > /etc/systemd/system/blog.service <<EOF
+[Unit]
+Description=Blog Backend Golang Service
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/web/gin-vue3-blog/blog-backend
+ExecStart=/web/gin-vue3-blog/blog-backend/blog-backend
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF
+```
+
+#### 4.2.1.4 服务启动脚本参考(可选)
+
+> 后端服务启动脚本
+
+```bash
+#!/bin/bash
+
+BASE_DIR="/data/myBlog/blog-backend"
+SERVER_NAME="blog-backend"
+PID_FILE="$BASE_DIR/app.pid"
+PID=$(cat "$PID_FILE" 2>/dev/null)
+
+case $1 in
+"start")
+    if [ -z "$PID" ]; then
+        echo "正在启动 blog-backend..."
+
+        cd $BASE_DIR
+        nohup ./blog-backend > app.log 2>&1 &
+        if [ $? -eq 0 ]; then
+            echo $! > $PID_FILE
+            echo -e '\033[32mblog-backend 服务启动成功！\033[0m'
+        else
+            echo -e '\033[31mblog-backend 服务启动失败！\033[0m'
+        fi
+    else
+        echo -e "\033[33mblog-backend 服务已运行 (PID: $PID) ！\033[0m"
+    fi
+;;
+"stop")
+    if [ -n "$PID" ]; then
+        echo "正在停止 blog-backend..."
+        kill -9 $PID &>/dev/null
+        if [ $? -eq 0 ];then
+            echo -n > $PID_FILE
+            echo -e '\033[32mblog-backend 服务停止成功！\033[0m'
+        else
+            echo -e '\033[31mblog-backend 服务停止失败！\033[0m'
+        fi
+    else
+        echo -e "\033[33mblog-backend 服务未运行！\033[0m"
+    fi
+;;
+"restart")
+    echo "正在重启 blog-backend..."
+    if [ -n "$PID" ]; then
+        kill -9 $PID &>/dev/null
+        sleep 3
+    fi
+
+    cd $BASE_DIR
+    nohup ./blog-backend > app.log 2>&1 &
+    if [ $? -eq 0 ]; then
+        echo $! > $PID_FILE
+        echo -e '\033[32mblog-backend 服务重启成功！\033[0m'
+    else
+        echo -e '\033[31mblog-backend 服务重启失败！\033[0m'
+    fi
+;;
+*)
+    echo "请输入参数：start | stop | restart"
+;;
+esac
+```
+
+> gitee api 启动脚本
+
+```bash
+#!/bin/bash
+
+BASE_DIR="/data/myBlog"
+SERVER_NAME="gitee-calendar-api"
+PID=$(pgrep -f $SERVER_NAME)
+
+case $1 in
+"start")
+    if [ -z "$PID" ]; then
+        echo "正在启动 gitee-calendar-api..."
+
+        nohup $BASE_DIR/gitee-calendar-api > $BASE_DIR/gitee-calendar-api.log > /dev/null 2>&1 &
+        if [ $? -eq 0 ]; then
+            echo -e '\033[32mgitee-calendar-api 服务启动成功！\033[0m'
+        else
+            echo -e '\033[31mgitee-calendar-api 服务启动失败！\033[0m'
+        fi
+    else
+        echo -e "\033[33mgitee-calendar-api 服务已运行 (PID: $PID) ！\033[0m"
+    fi
+;;
+"stop")
+    if [ -n "$PID" ]; then
+        echo "正在停止 gitee-calendar-api..."
+        kill -9 $PID &>/dev/null
+        if [ $? -eq 0 ];then
+            echo -e '\033[32mgitee-calendar-api 服务停止成功！\033[0m'
+        else
+            echo -e '\033[31mgitee-calendar-api 服务停止失败！\033[0m'
+        fi
+    else
+        echo -e "\033[33mgitee-calendar-api 服务未运行！\033[0m"
+    fi
+;;
+"restart")
+    echo "正在重启 gitee-calendar-api..."
+    if [ -n "$PID" ]; then
+        kill -9 $PID &>/dev/null
+        sleep 3
+    fi
+
+    nohup $BASE_DIR/gitee-calendar-api > $BASE_DIR/gitee-calendar-api.log > /dev/null 2>&1 &
+    if [ $? -eq 0 ]; then
+        echo -e '\033[32mgitee-calendar-api 服务重启成功！\033[0m'
+    else
+        echo -e '\033[31mgitee-calendar-api 服务重启失败！\033[0m'
+    fi
+;;
+*)
+    echo "请输入参数：start | stop | restart"
+;;
+esac
+```
+
+
+
+### 4.2.2 方式二：Docker Compose
+
+使用 Docker Compose 一键部署后端服务（包含 PostgreSQL、Redis、后端应用）
+
+#### 4.2.2.1 编译后端程序
 
 ```bash
 cd blog-backend
@@ -409,11 +675,12 @@ $env:GOOS="linux"; $env:GOARCH="amd64"; go build -o blog-backend ./cmd/server
 GOOS=linux GOARCH=amd64 go build -o blog-backend ./cmd/server
 ```
 
-#### 7.2.1.2 配置环境变量（推荐）
+#### 4.2.2.2 配置环境变量（推荐）
 
 > 生产环境同样推荐使用「YAML + .env.config.prod」方案，将敏感信息放到环境变量文件中，而不是写死在 `config-prod.yml` 里。
 
 - **创建生产环境配置文件**  
+
   1. 创建 `config/config-prod.yml`（模板已提供，与 `config-dev.yml` 结构相同，主要区别是日志级别为 `info`）
   2. 修改 `config/config.yml` 中的 `env: dev` 为 `env: prod`，系统会自动加载 `config-prod.yml`
 
@@ -421,11 +688,12 @@ GOOS=linux GOARCH=amd64 go build -o blog-backend ./cmd/server
   在后端可执行文件的工作目录下创建 `.env.config.prod`，用于覆盖 `config/config-prod.yml` 中的敏感字段。  
   **模板文件**：`blog-backend/config/env.config.example`（与 `.env.config.dev` 使用相同的配置项，但值不同）  
   复制模板并填写生产环境实际值：
+
   ```bash
   cp config/env.config.example .env.config.prod
   vim .env.config.prod
   ```
-  
+
   示例配置：
 
   ```bash
@@ -441,7 +709,7 @@ GOOS=linux GOARCH=amd64 go build -o blog-backend ./cmd/server
   REDIS_PORT=6379
   REDIS_PASSWORD=your_redis_password
   
-  # Gitee Calendar API（如使用）
+  # Gitee Calendar API
   GITEE_CALENDAR_API_URL=http://127.0.0.1:8081/api
   
   # JWT
@@ -483,7 +751,7 @@ REDIS_PASSWORD=your_redis_password
 
   或者直接在 `docker-compose.yml` 文件中内联这些环境变量。
 
-#### 7.2.1.3 启动所有服务
+#### 4.2.2.3 启动所有服务
 
 ```bash
 # 构建并启动所有服务
@@ -496,7 +764,7 @@ docker compose ps
 docker compose logs -f backend
 ```
 
-#### 7.2.1.4 初始化数据库
+#### 4.2.2.4 初始化数据库
 
 ```bash
 # 进入数据库容器
@@ -517,7 +785,7 @@ docker cp blog_backup.dump pg-prod:/tmp
 docker exec -it pg-prod pg_restore -U postgres -d blogdb --clean --if-exists /tmp/blog_backup.dump
 ```
 
-#### 7.2.1.5 服务管理
+#### 4.2.2.5 服务管理
 
 ```bash
 # 停止所有服务
@@ -539,7 +807,7 @@ docker compose logs -f backend
 - **PostgreSQL**: `localhost:5632`
 - **Redis**: `localhost:6379`
 
-### 7.2.2 方式二：本地编译部署✅
+## 4.3 前端构建与配置
 
 #### 7.2.2.1 启动 Gitee Calendar API 服务（必选，贡献热力图依赖）
 
@@ -673,7 +941,7 @@ VITE_API_BASE_URL=https://your-domain.com
   - 若希望 Gitee 贡献热力图在生产环境命中 Redis 缓存，前端必须通过 `/api/calendar/gitee` 调用后端接口，而**不要直接将前端请求指向 `/gitee-calendar-api`**。
   - 实践上，**无论当前是否更换后端接口/端口，都建议同时配置好 `.env.development` 与 `.env.production` 中的 `VITE_API_BASE_URL`**，以便后续迁移端口或切换域名时只需改环境变量即可，无需修改代码。
 
-### 7.3.2 构建前端项目
+### 4.3.2 构建前端项目
 
 ```bash
 cd blog-frontend
@@ -685,7 +953,7 @@ pnpm build
 
 > 说明：前端首页热力图组件位置为 `blog-frontend/src/components/GiteeCalendar.vue`，其数据源现在通过后端 API `/api/calendar/gitee` 获取，后端会自动调用 `gitee-calendar-api` 并缓存结果。
 
-## 7.4 第三步：Nginx 部署与反向代理
+## 4.4 Nginx反向代理
 
 在服务器上准备前端目录（例如 `/web/gin-vue3-blog/blog-frontend/dist`），**将本地 `dist` 目录中的所有文件和子目录整体上传到该目录**，保持结构不变，例如：
 
@@ -698,6 +966,8 @@ pnpm build
 ```
 
 Nginx 中的 `root` 应指向 **包含 `index.html` 的目录本身**（如 `/web/gin-vue3-blog/blog-frontend/dist`，可按实际路径调整），而不是上级目录。
+
+### 4.4.1 HTTP 示例
 
 > 配置 Nginx（按需替换域名/路径/证书），`HTTP 示例`：
 
@@ -764,6 +1034,8 @@ server {
     }
 }
 ```
+
+### 4.4.2 HTTPS 示例
 
 > HTTPS 示例（含 80→443 跳转，请替换证书路径）：
 
@@ -861,47 +1133,65 @@ systemctl reload nginx
 
 
 
-## 7.5 第四步：数据迁移（可选）
+# 五、数据迁移与备份
+
+## 5.1 数据迁移
 
 1. 备份旧库（PostgreSQL 示例）：
+
 ```bash
 pg_dump -h old-host -U old_user -d old_db -Fc -f backup.dump
 ```
+
 参数说明：
+
 - `-h old-host`：旧数据库主机
 - `-U old_user`：旧库用户名
 - `-d old_db`：旧库库名
 - `-Fc`：自定义格式（便于 pg_restore 增强选项）
 - `-f backup.dump`：输出文件路径
-示例：
+  示例：
+
 ```bash
 pg_dump -h 10.0.0.5 -U postgres -d blogdb -Fc -f /tmp/blog_backup_2025-12-15.dump
 ```
 
 2. 恢复到新库：
+
 ```bash
 pg_restore -h new-host -U new_user -d new_db --clean --if-exists backup.dump
 ```
+
 参数说明：
+
 - `-h new-host`：新数据库主机
 - `-U new_user`：新库用户名
 - `-d new_db`：新库库名
 - `--clean`：导入前先 DROP 现有对象
 - `--if-exists`：仅在对象存在时执行 DROP，减少报错
 - `backup.dump`：备份文件路径
-示例：
+  示例：
+
 ```bash
 pg_restore -h 127.0.0.1 -U postgres -d blogdb --clean --if-exists /tmp/blog_backup_2025-12-15.dump
 ```
+
 3. 如使用 Docker Compose，可在容器内执行：
+
 ```bash
 docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < backup.dump
 ```
+
 4. 确认新库的连接信息已写入 `config/config-prod.yml` 或环境变量，并与 Nginx/后端代理地址匹配。
+
 5. **迁移上传文件目录**（重要）：
+
    - 如果使用**本地存储**，需要将旧服务器的 `blog-backend/uploads/` 目录完整复制到新服务器
+
    - 包括 `uploads/avatars/`（用户头像）和 `uploads/` 下的其他图片文件
+
    - 迁移方法：
+
      ```bash
      # 在旧服务器上打包
      cd blog-backend
@@ -914,18 +1204,23 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
      cd blog-backend
      tar -xzf uploads-backup.tar.gz
      ```
+
    - **注意**：如果使用 OSS/COS 存储，文件在云端，无需迁移本地文件；但普通用户头像强制使用本地存储，仍需迁移 `uploads/avatars/` 目录
+
 6. 如不需要历史会话，可清理 Redis（如果有登录态存储），再重启后端。
 
-## 7.6 第五步：每周自动备份 PostgreSQL（pg-prod / 物理机）
+## 5.2 数据定时备份
 
 > 默认每周日 00:00 备份 `blogdb`，备份存放 `/opt/backups/blogdb`，按需调整路径/时间/用户名/容器名。
 
 1. 创建备份目录（两种环境通用）：
+
    ```bash
    sudo mkdir -p /opt/backups/blogdb && sudo chown $(whoami) /opt/backups/blogdb
    ```
+
 2. 在服务器上创建备份脚本（示例路径 `/usr/local/bin/backup_blogdb.sh`）：
+
    ```bash
    sudo tee /usr/local/bin/backup_blogdb.sh >/dev/null <<'EOF'
    #!/usr/bin/env bash
@@ -955,16 +1250,23 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
    # 添加可执行权限
    sudo chmod +x /usr/local/bin/backup_blogdb.sh
    ```
+
 3. 使用 cron 每周日 00:00 自动执行备份脚本：
+
    ```bash
    ( crontab -l 2>/dev/null; echo "0 0 * * 0 /usr/local/bin/backup_blogdb.sh >> /var/log/backup_blogdb.log 2>&1" ) | crontab -
    ```
+
 4. 如需免密码交互，配置运行该脚本用户的 `~/.pgpass`（权限 `chmod 600 ~/.pgpass`），格式：
+
    ```
    host:port:database:username:password
    ```
+
 5. **使用备份文件恢复数据**：
+
    - **Docker 环境恢复**（推荐方式：复制文件到容器）：
+
      ```bash
      # 方式一：复制文件到容器内再恢复（推荐，适用于二进制 .dump 文件）
      docker cp /opt/backups/blogdb/blogdb_20250101.dump pg-prod:/tmp/blogdb_backup.dump
@@ -973,26 +1275,102 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
      # 恢复完成后可删除容器内的临时文件
      docker exec -it pg-prod rm /tmp/blogdb_backup.dump
      ```
+
    - **物理机环境恢复**：
+
      ```bash
      # 直接使用 pg_restore 恢复
      pg_restore -h localhost -U postgres -d blogdb --clean --if-exists /opt/backups/blogdb/blogdb_20250101.dump
      ```
+
    - **参数说明**：
+
      - `--clean`：恢复前先删除现有对象（表、索引等）
      - `--if-exists`：仅在对象存在时执行删除，避免报错
      - `-d blogdb`：指定目标数据库名称
      - `-U postgres`：指定数据库用户名
+
    - **注意事项**：
+
      - 恢复前建议先备份当前数据库
      - 恢复操作会覆盖现有数据，请谨慎操作
      - 确保目标数据库已创建（如未创建，先执行 `CREATE DATABASE blogdb;`）
      - 恢复过程中如遇到错误，检查备份文件是否完整以及数据库连接是否正常
 
 
-# 8. 主要功能模块
 
-## 8.1 文章管理
+# 六、主要功能模块及特性
+
+## 6.1 特性
+
+### 6.1.1 核心功能
+
+- **文章管理** - Markdown 编辑器，支持代码高亮、图片上传、Markdown 文件上传解析、HTML 图片标签自动转换、最后更新时间显示、更新提示
+- **SEO友好URL** - 文章URL自动使用拼音slug（如 `/post/windows-huan-jing-xia-an-zhuang-hadoop3-1-2-quan-guo-cheng`），支持中英文混合标题，提升SEO和可读性
+- **分类标签** - 灵活的分类和标签系统
+- **评论系统** - 支持嵌套回复的评论功能，支持多种评论类型（文章评论、友链评论、说说评论等）
+- **友情链接** - 友链管理功能，支持独立评论系统
+- **说说动态** - 类似朋友圈的动态发布，支持评论和点赞
+- **实时聊天室** - WebSocket 实时通信，支持登录用户和匿名访问
+- **用户系统** - 完整的用户注册、登录、权限管理
+- **注册控制** - 管理员可限制用户注册功能，支持一键开启/关闭
+- **安全认证** - 密码重置、邮箱修改、邮件验证码
+- **验证码系统** - 图形验证码，基于 Redis 存储，支持 IP 限流和防暴力破解
+- **权限控制** - 基于角色的访问控制（RBAC）
+- **数据统计** - 最近 7 天访问量趋势、文章统计、用户统计
+- **网站资讯面板** - 展示本站总字数、访客数、总访问量、最后更新时间（仅桌面端右侧展示，移动端自动隐藏）
+- **主题切换** - 支持亮色/暗色主题
+
+### 6.1.2 技术特性
+
+- **现代化技术栈** - Vue 3 + TypeScript + Go + PostgreSQL
+- **优雅 UI** - Naive UI 组件库 + 玻璃态设计
+- **响应式设计** - 完美适配各种设备（PC/平板/手机）
+- **高性能** - Vite 构建 + Pinia 状态管理 + 异步邮件发送
+- **实时通信** - WebSocket 长连接 + 自动重连 + 心跳检测
+- **安全可靠** - JWT 认证 + 密码加密 + 邮箱验证 + IP 黑名单
+- **自动清理** - 定时清理过期数据，保持数据库整洁
+- **易于部署** - Docker 支持 + 详细部署文档
+
+### 6.1.3 项目结构
+
+```bash
+myBlog/
+├── blog-frontend/          # 前端项目
+│   ├── src/
+│   │   ├── api/           # API 接口
+│   │   ├── assets/        # 静态资源
+│   │   ├── components/    # 公共组件
+│   │   ├── layouts/       # 布局组件
+│   │   ├── pages/         # 页面组件
+│   │   ├── router/        # 路由配置
+│   │   ├── stores/        # 状态管理
+│   │   ├── types/         # TypeScript 类型
+│   │   └── utils/         # 工具函数
+│   ├── public/            # 公共资源
+│   └── package.json
+│
+├── blog-backend/          # 后端项目
+│   ├── cmd/
+│   │   └── server/        # 服务入口
+│   ├── config/            # 配置文件
+│   ├── db/                # 数据库连接
+│   ├── handler/           # 请求处理器
+│   ├── middleware/        # 中间件
+│   ├── model/             # 数据模型
+│   ├── repository/        # 数据访问层
+│   ├── service/           # 业务逻辑层
+│   ├── util/              # 工具函数
+│   ├── uploads/           # 上传文件
+│   └── go.mod
+│
+└── README.md              # 项目说明
+```
+
+## 6.2 主要功能模块
+
+### 6.2.1 文章管理
+
 - Markdown 编辑器，支持实时预览
 - 代码高亮（支持多种编程语言）
 - 图片上传和管理
@@ -1004,7 +1382,8 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
 - 文章置顶和草稿
 - 点赞和浏览统计
 
-## 8.2 评论系统
+### 6.2.2 评论系统
+
 - 支持嵌套回复
 - 评论审核
 - 评论状态管理
@@ -1015,14 +1394,16 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
 - **评论通知功能** - 管理员可配置是否接收评论通知邮件（支持文章评论和说说评论通知）
 - **邮件通知优化** - 智能处理SMTP服务器响应，确保邮件发送稳定性
 
-## 8.3 说说动态
+### 6.2.3 说说动态
+
 - 发布图文动态
 - 多图上传（最多9张）
 - 点赞功能
 - **评论功能** - 支持评论和嵌套回复，采用朋友圈风格设计
 - 公开/私密状态
 
-## 8.4 友情链接
+### 6.2.4 友情链接
+
 - 友链管理（后台添加、编辑、删除）
 - 友链展示（前台展示友链列表）
 - 友链申请（支持在友链页面申请）
@@ -1030,22 +1411,25 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
 - 我的友链信息配置（名称、描述、URL、头像、站点图片、RSS订阅等）
 - YAML 格式友链信息导出
 
-## 8.5 用户中心
-- ## 用户注册和登录
+### 6.2.5 用户中心
+
+- 用户注册和登录
 - 个人资料编辑
 - 头像上传（普通用户默认使用本地存储，管理员可使用 OSS/COS）
 - 密码修改
 - 忘记密码（邮箱验证码）
 - 邮箱修改（限制一年2次）
 
-## 8.6 验证码系统
+### 6.2.6 验证码系统
+
 - **图形验证码** - 基于 Redis 存储，支持数字验证码
 - **验证码存储** - 验证码答案存储在 Redis 中，2分钟自动过期
 - **IP 限流** - 每个 IP 每分钟最多获取 10 次验证码，防止频繁请求
 - **防暴力破解** - 5 分钟内最多错误 5 次，超过限制需等待
 - **安全机制** - 验证成功后自动删除验证码，确保一次性使用
 
-## 8.7 聊天室功能
+### 6.2.7 聊天室功能
+
 - 实时 WebSocket 通信
 - 支持登录用户和匿名访问
 - 在线人数统计（按用户去重）
@@ -1063,7 +1447,8 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
   - 配置聊天室全员禁言状态
 - 移动端响应式适配
 
-## 8.8 管理后台
+### 6.2.8 管理后台
+
 - 仪表盘数据统计（最近 7 天访问量折线图、文章分类占比）
 - 文章管理
 - 分类标签管理
@@ -1075,9 +1460,12 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
 - 网站设置（包含通知配置、注册控制）
 - IP 访问控制（黑名单/白名单统一管理）
 
-# 9. 技术栈
 
-## 9.1 前端技术
+
+# 七、技术栈
+
+## 7.1 前端技术
+
 - **框架**: Vue 3.3 + TypeScript
 - **构建工具**: Vite 5
 - **UI 组件**: Naive UI
@@ -1090,7 +1478,8 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
 - **工具库**: VueUse、Day.js
  - **图标与 Logo**: 基于 SVG 的网站图标 `logo.svg`（通过 `index.html` 作为浏览器标签页 favicon）
 
-## 9.2 后端技术
+## 7.2 后端技术
+
 - **语言**: Go 1.21+
 - **Web 框架**: Gin
 - **ORM**: GORM
@@ -1117,9 +1506,10 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
 - **密码加密**: bcrypt
 - **定时任务**: Go 原生 Goroutine + Timer
 
-# 10. API 文档
+# 八、API 文档
 
-## 10.1 认证相关
+## 8.1 认证相关
+
 - `POST /api/auth/register` - 用户注册
 - `POST /api/auth/login` - 用户登录
 - `POST /api/auth/logout` - 用户登出
@@ -1132,7 +1522,8 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
 - `PUT /api/auth/email` - 修改邮箱
 - `GET /api/auth/email-change-info` - 获取邮箱修改信息
 
-## 10.2 文章相关
+## 8.2 文章相关
+
 - `GET /api/posts` - 获取文章列表
 - `GET /api/posts/:id` - 获取文章详情（支持ID或slug，向后兼容）
 - `GET /api/posts/archives` - 获取归档
@@ -1143,14 +1534,16 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
 - `DELETE /api/posts/:id` - 删除文章（需认证）
 - `POST /api/posts/:id/like` - 点赞文章
 
-## 10.3 分类相关
+## 8.3 分类相关
+
 - `GET /api/categories` - 获取分类列表
 - `GET /api/categories/:id` - 获取分类详情
 - `POST /api/categories` - 创建分类（管理员）
 - `PUT /api/categories/:id` - 更新分类（管理员）
 - `DELETE /api/categories/:id` - 删除分类（管理员）
 
-## 10.4 标签相关
+## 8.4 标签相关
+
 - `GET /api/tags` - 获取标签列表
 - `GET /api/tags/:id` - 获取标签详情
 - `GET /api/tags/:id/posts` - 获取标签下的文章
@@ -1158,7 +1551,8 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
 - `PUT /api/tags/:id` - 更新标签（需认证）
 - `DELETE /api/tags/:id` - 删除标签（需认证）
 
-## 10.5 评论相关
+## 8.5 评论相关
+
 - `GET /api/comments/post/:id` - 获取文章评论
 - `GET /api/comments/type?type={type}&target_id={target_id}` - 根据评论类型和目标ID获取评论（用于友链、说说等特殊页面）
   - `type`: 评论类型（`post`-文章评论，`friendlink`-友链评论，`moment`-说说评论）
@@ -1170,7 +1564,8 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
 - `PUT /api/comments/:id` - 更新评论（需认证）
 - `DELETE /api/comments/:id` - 删除评论（需认证）
 
-## 10.6 说说相关
+## 8.6 说说相关
+
 - `GET /api/moments` - 获取说说列表
 - `GET /api/moments/:id` - 获取说说详情
 - `GET /api/moments/recent` - 获取最新说说
@@ -1179,13 +1574,15 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
 - `DELETE /api/moments/:id` - 删除说说（需认证）
 - `POST /api/moments/:id/like` - 点赞说说
 
-## 10.7 上传相关
+## 8.7 上传相关
+
 - `POST /api/upload/avatar` - 上传头像（需认证）
   - 普通用户：强制使用本地存储，不上传到 OSS/COS
   - 管理员：根据后台配置选择存储方式（本地/OSS/COS）
 - `POST /api/upload/image` - 上传图片（需认证，根据配置选择存储方式）
 
-## 10.8 友链相关
+## 8.8 友链相关
+
 - `GET /api/friend-links` - 获取友链列表（公开）
 - `GET /api/admin/friend-links` - 获取友链列表（管理员）
 - `GET /api/admin/friend-links/:id` - 获取友链详情（管理员）
@@ -1195,7 +1592,8 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
 - `GET /api/settings/friendlink-info` - 获取我的友链信息（公开）
 - `PUT /api/admin/settings/friendlink-info` - 更新我的友链信息（管理员）
 
-## 10.9 设置相关
+## 8.9 设置相关
+
 - `GET /api/settings/public` - 获取公开设置
 - `GET /api/settings/site` - 获取网站设置（管理员）
 - `PUT /api/settings/site` - 更新网站设置（管理员）
@@ -1206,23 +1604,27 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
 - `PUT /api/admin/settings/register` - 更新注册配置（管理员）
   - 支持配置是否限制用户注册（`disable_register`: `"0"` 允许注册，`"1"` 禁止注册）
 
-## 10.10 验证码相关
+## 8.10 验证码相关
+
 - `GET /api/captcha` - 获取图形验证码
   - 基于 Redis 存储验证码答案（2分钟过期）
   - IP 限流：每个 IP 每分钟最多获取 10 次
   - 防暴力破解：5 分钟内最多错误 5 次
 
-## 10.11 日历相关
+## 8.11 日历相关
+
 - `GET /api/calendar/gitee?user={username}` - 获取 Gitee 贡献热力图数据
   - 后端会调用 `gitee-calendar-api` 并缓存结果（20分钟过期）
   - 参数：`user` - Gitee 用户名
 
-## 10.12 聊天室相关
+## 8.12 聊天室相关
+
 - `WS /api/chat/ws` - WebSocket 连接（支持登录用户和匿名访问）
 - `GET /api/chat/messages` - 获取消息列表
 - `GET /api/chat/online` - 获取在线信息
 
-## 10.13 管理后台相关
+## 8.13 管理后台相关
+
 - `GET /api/admin/dashboard/stats` - 仪表盘统计
 - `GET /api/admin/dashboard/category-stats` - 分类统计
 - `GET /api/admin/dashboard/visit-stats` - 访问统计
@@ -1246,22 +1648,30 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
 
 更多详细说明请参考 [后端文档](./blog-backend/README.md)
 
-# 11. 开发指南
 
-## 11.1 代码规范
+
+# 九、开发指南
+
+## 9.1 代码规范
+
 - 使用 ESLint + Prettier 格式化代码
 - 遵循 Vue 3 Composition API 风格
 - TypeScript 严格模式
 - Git Commit 规范
 
-## 11.2 目录说明
+## 9.2 目录说明
+
 详见各子项目的 README：
+
 - [前端文档](./blog-frontend/README.md)
 - [后端文档](./blog-backend/README.md)
 
-# 12. 更新日志
+
+
+# 十、更新日志
 
 ## 12.1 v1.12.0 (2026-01-30)
+
 - 新增前台「网站资讯」模块
   - 在首页与关于页侧边栏展示：本站总字数、本站访客数、本站总访问量、最后更新时间
   - 后端统一提供 `/api/blog/website-info` 接口，聚合统计数据并使用 Redis 缓存（10 分钟过期）
@@ -1277,6 +1687,7 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
   - 移除公告栏中冗余的欢迎 GIF 图片，专注展示公告内容本身
 
 ## 12.2 v1.11.0 (2026-01-27)
+
 - 首页与侧边栏性能优化（Redis 缓存）
   - 为博主名片、最新文章、公告列表、分类列表、标签列表、标签统计等读多写少的数据增加 Redis 缓存
   - 采用「写时删缓存」策略：发文、改文、删文、发公告、删公告、分类/标签增删改时自动清理相关缓存 Key
@@ -1284,6 +1695,7 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
   - 显著减少高频首页/侧边栏请求对数据库的压力，为后期文章数量增多预留扩展空间
 
 ## 12.3 v1.10.0 (2026-01-12)
+
 - 新增聊天室全员禁言功能
   - 管理后台"聊天室管理"支持一键开启/关闭全员禁言
   - 开启后普通用户和游客均无法发言，仅管理员可继续发送消息
@@ -1311,6 +1723,7 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
   - 统一评论模块：与文章详情页和友链页面保持一致的评论体验
 
 ## 12.4 v1.8.0 (2026-01-11)
+
 - 新增文章URL优化功能
   - 文章URL从数字ID改为拼音slug（如 `/post/wen-zhang` 替代 `/post/51`）
   - 自动根据文章标题生成拼音slug，支持中英文混合标题
@@ -1321,6 +1734,7 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
   - 供迁移脚本，可为现有文章生成slug
 
 ## 12.5 v1.7.0 (2026-01-10)
+
 - 新增 Markdown 文件上传功能
   - 支持上传本地 Markdown 文件（.md、.markdown 格式）
   - 自动解析 YAML front matter（标题、摘要、封面图）
@@ -1344,6 +1758,7 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
   - 响应式设计，适配移动端
 
 ## 12.6 v1.5.0 (2025-12-21)
+
 - 新增说说评论功能
   - 说说页面支持评论和嵌套回复
   - 朋友圈风格设计：紧凑的评论布局，类似微信朋友圈效果
@@ -1357,6 +1772,7 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
   - 评论通知功能扩展至说说评论
 
 ## 12.7 v1.4.0 (2025-12-20)
+
 - 新增评论通知功能
   - 管理员评论通知（可配置开关）
   - 当有用户评论文章时，可选择性通知所有管理员
@@ -1374,6 +1790,7 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
   - 完善通知说明文档
 
 ## 12.8 v1.3.0 (2025-12-19)
+
 - 新增友情链接功能
   - 友链管理（后台添加、编辑、删除友链）
   - 友链展示页面（前台展示友链列表）
@@ -1387,6 +1804,7 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
   - 移除特殊文章依赖（不再需要创建ID=999999的特殊文章）
 
 ## 12.9 v1.2.0 (2025-11-04)
+
 - 新增实时聊天室功能
   - WebSocket 实时通信
   - 支持登录用户和匿名访问
@@ -1405,6 +1823,7 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
 - 修复在线人数统计bug
 
 ## 12.10 v1.1.0 (2025-10-28)
+
 - 新增忘记密码功能（邮箱验证码）
 - 新增邮箱修改功能（限制一年2次）
 - 邮件验证码安全认证
@@ -1413,6 +1832,7 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
 - 优化认证页面UI
 
 ## 12.11 v1.0.0 (2025-10-25)
+
 - 初始版本发布
 - 完整的文章管理系统
 - 评论系统
@@ -1420,6 +1840,8 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
 - 主题切换
 - 数据统计
 - 权限管理
+
+
 
 # 许可证
 
