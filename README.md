@@ -599,6 +599,12 @@ GITEE_CALENDAR_API_URL=https://your-domain.com/gitee-calendar-api
 # 示例：GITEE_CALENDAR_API_URL=https://huangjingblog.cn/gitee-calendar-api
 ```
 
+> **缓存与调用路径小结：**
+> - 前端页面应统一通过博客后端提供的接口访问贡献热力图：`/api/calendar/gitee?user=<Gitee用户名>`。  
+> - 后端在该接口内部调用 `GITEE_CALENDAR_API_URL` 指向的 `gitee-calendar-api` 服务，并将结果缓存在 Redis 中，键名为：`gitee_calendar:<Gitee用户名>`。  
+> - 若前端直接访问 `https://your-domain.com/gitee-calendar-api?user=...`（仅走 Nginx→gitee-calendar-api），将**不会经过博客后端逻辑，也不会写入上述 Redis 缓存键**，不利于缓存复用与监控。  
+> - 推荐做法：前端只使用 `/api/calendar/gitee`，`/gitee-calendar-api` 仅作为后端内部调用或调试入口。
+
 构建并启动后端服务
 
 ```bash
@@ -662,7 +668,10 @@ VITE_API_BASE_URL=https://your-domain.com
 
 - `VITE_API_BASE_URL`：博客后端（Gin 服务）的基础地址，前端所有业务接口都会基于该地址请求，包括贡献热力图数据（通过 `/api/calendar/gitee` 接口获取）。
 - **推荐配置方式**：只配置域名（如 `https://your-domain.com`），前端会自动拼接 `/api` 路径；如果已配置包含 `/api` 的完整路径，也能正常工作。
-- **注意**：`VITE_API_BASE_URL` 只影响前端访问“你自己的后端”时的基础地址；后端再去调用 `gitee-calendar-api` 时使用的是 `GITEE_CALENDAR_API_URL` 等后端环境变量，两者相互独立。
+- **注意**：
+  - `VITE_API_BASE_URL` 只影响前端访问“你自己的后端”时的基础地址；后端再去调用 `gitee-calendar-api` 时使用的是 `GITEE_CALENDAR_API_URL` 等后端环境变量，两者相互独立。  
+  - 若希望 Gitee 贡献热力图在生产环境命中 Redis 缓存，前端必须通过 `/api/calendar/gitee` 调用后端接口，而**不要直接将前端请求指向 `/gitee-calendar-api`**。
+  - 实践上，**无论当前是否更换后端接口/端口，都建议同时配置好 `.env.development` 与 `.env.production` 中的 `VITE_API_BASE_URL`**，以便后续迁移端口或切换域名时只需改环境变量即可，无需修改代码。
 
 ### 7.3.2 构建前端项目
 
