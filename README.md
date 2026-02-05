@@ -289,7 +289,32 @@ pnpm dev
 
 前端服务默认运行在 `http://localhost:3000`
 
-## 5.7 访问系统
+### 5.7 更换后端端口（如从 `8080` 改为 `8090`）
+
+开发环境下，如需修改后端监听端口，只需按以下步骤同步调整配置：
+
+- **后端（Go 服务）**
+  - 编辑 `blog-backend/config/config-dev.yml`：
+    - 将
+      - `app.port: 8080`
+      改为
+      - `app.port: 8090`
+  - 重启后端服务：
+    - `cd blog-backend && go run cmd/server/main.go`
+  - 确认浏览器或 `curl` 能访问新的端口：`http://localhost:8090/api/blog/author`
+
+- **前端开发服务器（Vite 代理）**
+  - 在 `blog-frontend` 目录下创建或修改 `.env.development`：
+    - `VITE_API_BASE_URL=http://localhost:8090`
+  - `vite.config.ts` 中已通过 `VITE_API_BASE_URL` 自动配置代理目标，因此修改环境变量后**需重新执行**：
+    - `cd blog-frontend && pnpm dev`
+
+- **生产环境（可选）**
+  - 后端：在 `config/config-prod.yml` 中同步修改 `app.port`。
+  - Nginx：将所有 `127.0.0.1:8080` 的 `proxy_pass` 目标修改为新端口（如 `127.0.0.1:8090`）。
+  - 如前端打包使用 `.env.production` 配置 API 地址，需同步更新其中的 `VITE_API_BASE_URL`。
+
+## 5.8 访问系统
 
 - **前台首页**: http://localhost:3000
 - **管理后台**: http://localhost:3000/admin
@@ -506,7 +531,7 @@ docker compose logs -f backend
 
 **服务访问地址：**
 
-- **后端 API**: `http://localhost:8080`
+- **后端 API（默认）**: `http://localhost:8080`
 - **PostgreSQL**: `localhost:5632`
 - **Redis**: `localhost:6379`
 
