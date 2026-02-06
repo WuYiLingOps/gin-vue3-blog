@@ -41,6 +41,8 @@ export default defineConfig(({ mode }) => {
       }
     },
     server: {
+      // 监听 0.0.0.0 以便在局域网 / 容器环境中通过 IP 访问开发服务器
+      host: '0.0.0.0',
       port: 3000,
       proxy: {
         '/api': {
