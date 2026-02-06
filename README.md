@@ -228,6 +228,9 @@ vim .env.config.dev
 GITEE_CALENDAR_API_URL=http://127.0.0.1:8081/api
 ```
 
+> **使用贡献热力图前请在后端填写你的 Gitee 链接**  
+> 例如：`https://gitee.com/WuYiLingOps`，否则前端无法自动获取用户名来请求热力图。
+
 4. 启动 gitee-calendar-api 服务（默认端口 8081，接口路径 /api）
 
 > 如需修改默认端口等相关操作,需要重新编译
