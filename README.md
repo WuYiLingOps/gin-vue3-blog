@@ -282,7 +282,19 @@ pnpm dev
 
 前端服务默认运行在 `http://localhost:3000`
 
-### 5.7 更换后端端口（如从 `8080` 改为 `8090`）
+### 3.5.1 网站运行时间起始日期修改（可选）
+
+> 场景：更换服务器或迁移部署路径后，希望重置首页底部「本站已平稳运行 X 天」的统计起始时间。
+
+假设线上部署路径为 `/data/myBlog`，可以在服务器上执行以下命令，一键更新前端布局文件中的 `siteStartDate` 为当前时间：
+
+```bash
+sed -i "/^const siteStartDate/c const siteStartDate = new Date('$(date '+%F %T')')" /web/gin-vue3-blog/blog-frontend/src/layouts/DefaultLayout.vue
+```
+
+执行完成后，重新构建并部署前端（或重启前端服务），页面底部显示的「网站已运行天数」会从新的起始时间重新计算。
+
+### 3.5.2 更换后端端口（如从 `8080` 改为 `8090`）（可选）
 
 开发环境下，如需修改后端监听端口，只需按以下步骤同步调整配置：
 
@@ -307,7 +319,7 @@ pnpm dev
   - Nginx：将所有 `127.0.0.1:8080` 的 `proxy_pass` 目标修改为新端口（如 `127.0.0.1:8090`）。
   - 如前端打包使用 `.env.production` 配置 API 地址，需同步更新其中的 `VITE_API_BASE_URL`。
 
-## 5.8 访问系统
+### 3.5.3 访问系统
 
 - **前台首页**: http://localhost:3000
 - **管理后台**: http://localhost:3000/admin
