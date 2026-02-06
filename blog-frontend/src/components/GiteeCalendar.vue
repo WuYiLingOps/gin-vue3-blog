@@ -570,18 +570,9 @@ function extractUsername(url?: string) {
 }
 
 // 使用后端缓存接口（带Redis缓存，20分钟过期）
+// 统一使用相对路径，与其他接口保持一致，避免受环境变量影响
 function getCalendarApiBase() {
-  let baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
-  
-  // 移除末尾的斜杠
-  baseURL = baseURL.replace(/\/+$/, '')
-  
-  // 如果 baseURL 不包含 /api，则添加
-  if (!baseURL.endsWith('/api')) {
-    baseURL = `${baseURL}/api`
-  }
-  
-  return `${baseURL}/calendar/gitee`
+  return '/api/calendar/gitee'
 }
 
 // 规范化周数据，确保每一周都从周日开始，不足7天的用空白天数补齐
