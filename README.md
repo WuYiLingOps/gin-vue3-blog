@@ -262,9 +262,11 @@ cd blog-frontend
 # 如果没有安装pnpm，可全局安装：npm install -g pnpm
 pnpm install
 
-# 2. 配置 API 地址（可选，但在修改后端端口/域名时推荐）
-# 不配置时，前端开发环境会默认将 /api 与 /uploads 代理到 http://localhost:8080
-# 如需自定义后端地址（例如后端端口改为 8090），可创建 .env.development 文件，例如：
+# 2. 配置 API 地址（可选）
+# 配置说明：
+# - 后端端口 = 8080：可以不配置 .env.development（使用默认值 http://localhost:8080）
+# - 后端端口 ≠ 8080：需要配置 .env.development（指定正确端口，例如后端端口改为 8090）
+#   创建 .env.development 文件，例如：
 echo "VITE_API_BASE_URL=http://localhost:8090" > .env.development
 # 注意：
 # - VITE_API_BASE_URL 仅影响前端如何访问「自己的后端」，
@@ -809,7 +811,7 @@ docker compose logs -f backend
 
 ## 4.3 前端构建与配置
 
-#### 7.2.2.1 启动 Gitee Calendar API 服务（必选，贡献热力图依赖）
+### 4.3.1 启动 Gitee Calendar API 服务（必选，贡献热力图依赖）
 
 1. **部署 gitee-calendar-api 服务**  
    本仓库已自带编译好的 `gitee-calendar-api`（根目录），可直接赋予执行权限使用（默认占用端口为8081）。若需查看/自行编译源码，可访问：`https://gitee.com/WuYiLingOps/go-code-calendar-api.git`
@@ -836,7 +838,7 @@ docker compose logs -f backend
    > - 前端通过后端 API `/api/calendar/gitee` 获取热力图数据，后端会调用 `gitee-calendar-api` 并缓存结果（20分钟过期）
    > - `gitee-calendar-api` 通常部署在与后端相同的服务器上，通过 `127.0.0.1:8081` 访问，无需通过 Nginx 暴露给外部
 
-#### 7.2.2.2 配置后端 Gitee Calendar API 地址（必选，生产环境统一用环境变量）
+### 4.3.2 配置后端 Gitee Calendar API 地址（必选，生产环境统一用环境变量）
 
 **修改环境配置**  
 修改 `config/config.yml` 中的 `env: dev` 为 `env: prod`，系统会自动加载 `config-prod.yml`：
@@ -897,9 +899,7 @@ nohup ./blog-backend > app.log 2>&1 &
 > - **环境变量文件**：`.env.config.dev` 和 `.env.config.prod` 使用相同的配置项（参考 `env.config.example`），但实际值不同
 > - **敏感信息**：建议全部通过环境变量文件管理，而不是写死在 YAML 配置文件中
 
-## 7.3 前端构建与配置
-
-### 7.3.1 前端 `.env.production` 环境变量配置
+### 4.3.3 前端 `.env.production` 环境变量配置
 
 在 `blog-frontend` 目录下创建或编辑 `.env.production`：
 
@@ -908,13 +908,19 @@ cd blog-frontend
 vim .env.production
 ```
 
+**配置说明：**
+- **生产环境通常都需要配置** `.env.production`，因为打包后的代码需要知道实际的后端域名/地址
+- **后端端口 = 8080 且使用标准域名**：可以只配置域名（如 `https://your-domain.com`），前端会自动拼接 `/api` 路径
+- **后端端口 ≠ 8080 但使用 Nginx 反向代理**：如果后端在 8090 端口运行，但 Nginx 已将 `https://your-domain.com/api` 反向代理到 `http://127.0.0.1:8090`，前端依然可以直接使用域名（如 `https://your-domain.com`），无需配置端口号
+- **后端端口 ≠ 8080 且未使用 Nginx 反向代理**：需要配置完整地址（如 `https://your-domain.com:8090`）
+
 写入（或补充）如下内容（根据你的实际域名与后端端口调整）：
 
 > **HTTP 方式：**
 
 ```bash
 # 后端主 API（博客业务接口）
-# 方式一：只配置域名（推荐，更简洁）✅
+# 方式一：只配置域名（推荐，更简洁）
 VITE_API_BASE_URL=http://your-domain.com
 
 # 方式二：配置包含 /api 的完整路径（也可以，函数会自动处理）
@@ -925,7 +931,7 @@ VITE_API_BASE_URL=http://your-domain.com
 
 ```bash
 # 后端主 API（博客业务接口）
-# 方式一：只配置域名（推荐，更简洁）✅
+# 方式一：只配置域名（推荐，更简洁）
 VITE_API_BASE_URL=https://your-domain.com
 # 示例：VITE_API_BASE_URL=https://huangjingblog.cn
 
@@ -937,11 +943,11 @@ VITE_API_BASE_URL=https://your-domain.com
 - `VITE_API_BASE_URL`：博客后端（Gin 服务）的基础地址，前端所有业务接口都会基于该地址请求，包括贡献热力图数据（通过 `/api/calendar/gitee` 接口获取）。
 - **推荐配置方式**：只配置域名（如 `https://your-domain.com`），前端会自动拼接 `/api` 路径；如果已配置包含 `/api` 的完整路径，也能正常工作。
 - **注意**：
-  - `VITE_API_BASE_URL` 只影响前端访问“你自己的后端”时的基础地址；后端再去调用 `gitee-calendar-api` 时使用的是 `GITEE_CALENDAR_API_URL` 等后端环境变量，两者相互独立。  
+  - `VITE_API_BASE_URL` 只影响前端访问"你自己的后端"时的基础地址；后端再去调用 `gitee-calendar-api` 时使用的是 `GITEE_CALENDAR_API_URL` 等后端环境变量，两者相互独立。  
   - 若希望 Gitee 贡献热力图在生产环境命中 Redis 缓存，前端必须通过 `/api/calendar/gitee` 调用后端接口，而**不要直接将前端请求指向 `/gitee-calendar-api`**。
   - 实践上，**无论当前是否更换后端接口/端口，都建议同时配置好 `.env.development` 与 `.env.production` 中的 `VITE_API_BASE_URL`**，以便后续迁移端口或切换域名时只需改环境变量即可，无需修改代码。
 
-### 4.3.2 构建前端项目
+### 4.3.4 构建前端项目
 
 ```bash
 cd blog-frontend
