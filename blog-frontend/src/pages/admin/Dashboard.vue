@@ -12,7 +12,7 @@
     <h1 style="margin-bottom: 24px">仪表盘</h1>
 
     <!-- 统计卡片 -->
-    <n-grid :cols="statsColumns" :x-gap="16" :y-gap="16" responsive="screen">
+    <n-grid cols="1 s:2 m:4" :x-gap="16" :y-gap="16" responsive="screen">
       <n-gi>
         <n-card>
           <n-statistic label="文章总数" :value="stats.posts">
@@ -52,7 +52,7 @@
     </n-grid>
 
     <!-- 图表区域 -->
-    <n-grid :cols="isMobile ? 1 : 2" :x-gap="16" :y-gap="16" style="margin-top: 24px">
+    <n-grid cols="1 m:2" :x-gap="16" :y-gap="16" style="margin-top: 24px" responsive="screen">
       <n-gi>
         <n-card title="文章分类统计">
           <div ref="categoryChartRef" :style="chartStyle"></div>
@@ -142,16 +142,9 @@ let visitChart: ECharts | null = null
 const loading = ref(false)
 const isMobile = ref(false)
 
-// 响应式列数
-const statsColumns = computed(() => {
-  if (window.innerWidth <= 480) return 1
-  if (window.innerWidth <= 768) return 2
-  return 4
-})
-
 const chartStyle = computed(() => ({
   width: '100%',
-  height: isMobile.value ? '250px' : '300px'
+  height: isMobile.value ? '320px' : '350px'
 }))
 
 // 检测移动设备
@@ -233,6 +226,9 @@ onUnmounted(() => {
 
 function handleResize() {
   checkMobile()
+  // 重新初始化图表以应用响应式配置
+  initCategoryChart()
+  initVisitChart()
   categoryChart?.resize()
   visitChart?.resize()
 }
@@ -257,16 +253,29 @@ function initCategoryChart() {
     }
   }))
 
+  // 获取容器实际宽度
+  const containerWidth = categoryChartRef.value.clientWidth
+  // 决定布局模式：如果容器宽度小于 520px，则使用垂直布局（图例在底部）
+  const isVerticalLayout = containerWidth < 520
+
   const option = {
     tooltip: {
       trigger: 'item',
       formatter: '{a} <br/>{b}: {c} ({d}%)'
     },
     legend: {
-      orient: 'vertical',
-      right: 10,
-      top: 'center',
+      type: 'scroll',
+      orient: isVerticalLayout ? 'horizontal' : 'vertical',
+      right: isVerticalLayout ? 'center' : '5%',
+      bottom: isVerticalLayout ? 10 : 'auto',
+      top: isVerticalLayout ? 'auto' : 'center',
+      padding: [5, 10],
       textStyle: {
+        color: appStore.theme === 'dark' ? '#fff' : '#333',
+        fontSize: 12
+      },
+      pageIconColor: appStore.theme === 'dark' ? '#fff' : '#333',
+      pageTextStyle: {
         color: appStore.theme === 'dark' ? '#fff' : '#333'
       }
     },
@@ -274,33 +283,40 @@ function initCategoryChart() {
       {
         name: '文章分类',
         type: 'pie',
-        radius: ['40%', '70%'],
-        avoidLabelOverlap: false,
+        // 动态调整半径和中心点
+        radius: isVerticalLayout ? ['30%', '50%'] : ['35%', '60%'],
+        center: isVerticalLayout ? ['50%', '40%'] : ['40%', '50%'],
+        avoidLabelOverlap: true,
         itemStyle: {
-          borderRadius: 10,
+          borderRadius: 8,
           borderColor: '#fff',
           borderWidth: 2
         },
         label: {
-          show: false,
-          position: 'center'
+          // 在极窄环境下隐藏外部标签，避免重叠
+          show: containerWidth > 350,
+          position: 'outside',
+          formatter: '{b}',
+          fontSize: 11
         },
         emphasis: {
           label: {
             show: true,
-            fontSize: 20,
+            fontSize: isVerticalLayout ? 14 : 16,
             fontWeight: 'bold'
           }
         },
         labelLine: {
-          show: false
+          show: containerWidth > 350,
+          length: 10,
+          length2: 10
         },
         data: chartData
       }
     ]
   }
 
-  categoryChart.setOption(option)
+  categoryChart.setOption(option, true) // 使用 true 强制重绘，避免旧配置残留
 }
 
 // 初始化最近访问量折线图
