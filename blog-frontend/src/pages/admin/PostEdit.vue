@@ -76,7 +76,11 @@
           </n-form-item>
 
           <n-form-item label="文章内容" path="content">
-            <markdown-editor v-model="formData.content" :height="isMobile ? '400px' : '600px'" />
+            <markdown-editor 
+              v-model="formData.content" 
+              :height="isMobile ? '400px' : '600px'" 
+              :subfield="!isMobile"
+            />
           </n-form-item>
 
           <n-form-item label="状态" path="status">
@@ -134,7 +138,7 @@ const isEdit = computed(() => !!route.params.id)
 
 // 检测移动设备
 function checkMobile() {
-  isMobile.value = window.innerWidth <= 768
+  isMobile.value = window.innerWidth <= 1100
 }
 
 const formData = reactive<PostForm>({
@@ -357,7 +361,7 @@ onUnmounted(() => {
 }
 
 /* 移动端样式 */
-@media (max-width: 768px) {
+@media (max-width: 1100px) {
   .post-edit-page :deep(.n-page-header) {
     padding: 12px;
   }
