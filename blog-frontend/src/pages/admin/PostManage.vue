@@ -59,24 +59,76 @@
 
     <!-- 内容区域 -->
     <div class="content-area">
-      <!-- 文章列表 -->
+      <!-- 移动端列表 -->
+      <div v-if="isMobile" class="card-list">
+        <n-card v-for="post in posts" :key="post.id" class="list-card" size="small">
+          <template #header>
+            <div class="card-title">{{ post.title }}</div>
+          </template>
+          <div class="card-content">
+            <div class="info-item">
+              <span class="label">分类：</span>
+              <n-tag type="info" size="tiny">{{ post.category?.name || '无' }}</n-tag>
+            </div>
+            <div class="info-item">
+              <span class="label">状态：</span>
+              <n-space size="small">
+                <n-tag :type="post.status === 1 ? 'success' : 'default'" size="tiny">
+                  {{ post.status === 1 ? '已发布' : '草稿' }}
+                </n-tag>
+                <n-tag :type="post.visibility === 1 ? 'success' : 'warning'" size="tiny">
+                  {{ post.visibility === 1 ? '公开' : '私密' }}
+                </n-tag>
+              </n-space>
+            </div>
+            <div class="info-item">
+              <span class="label">浏览：</span>
+              <span class="value">{{ post.view_count }} 次</span>
+            </div>
+            <div class="info-item">
+              <span class="label">日期：</span>
+              <span class="value">{{ formatDate(post.created_at, 'YYYY-MM-DD HH:mm') }}</span>
+            </div>
+          </div>
+          <template #footer>
+            <n-space justify="end" size="small">
+              <n-button size="tiny" @click="handleEdit(post.id)">编辑</n-button>
+              <n-button 
+                size="tiny" 
+                type="error" 
+                :disabled="!canDeletePost(post)"
+                @click="handleDelete(post.id)"
+              >
+                删除
+              </n-button>
+              <n-button size="tiny" type="primary" ghost @click="handleExport(post.id, post.title)">
+                导出
+              </n-button>
+            </n-space>
+          </template>
+        </n-card>
+      </div>
+
+      <!-- 桌面端表格 -->
       <n-data-table
+        v-else
         :columns="columns"
         :data="posts"
         :loading="loading"
-        :scroll-x="isMobile ? undefined : 800"
+        :scroll-x="800"
         :single-line="false"
       />
     </div>
 
     <!-- 分页 - 固定在右下角 -->
-    <div class="pagination-wrapper">
+    <div class="pagination-wrapper" :class="{ 'is-mobile': isMobile }">
       <n-pagination
         v-if="total > 0"
         v-model:page="currentPage"
         :page-count="totalPages"
         :page-size="pageSize"
-        :page-slot="7"
+        :page-slot="isMobile ? 3 : 7"
+        :simple="isMobile"
         @update:page="handlePageChange"
       />
     </div>
@@ -169,7 +221,11 @@
         </n-form-item>
 
         <n-form-item label="内容" path="content">
-          <markdown-editor v-model="formData.content" height="400px" />
+          <markdown-editor 
+            v-model="formData.content" 
+            height="400px" 
+            :subfield="!isMobile"
+          />
         </n-form-item>
 
         <n-form-item label="分类" path="category_id">
@@ -262,9 +318,18 @@ const markdownFileName = ref('')
 const totalPages = computed(() => Math.ceil(total.value / pageSize))
 
 // 检测是否为「非桌面端」（移动端 + 平板）
-// 小于等于 1024 视为移动/平板，只展示精简列
+// 小于等于 1100 视为移动/平板，只展示卡片布局
 function checkMobile() {
-  isMobile.value = window.innerWidth <= 1024
+  isMobile.value = window.innerWidth <= 1100
+}
+
+// 检查是否有删除权限
+function canDeletePost(post: Post): boolean {
+  const currentUserRole = authStore.user?.role || 'user'
+  const postAuthorRole = post.user?.role || 'user'
+  return currentUserRole === 'super_admin' || 
+         (currentUserRole === 'admin' && postAuthorRole !== 'super_admin') ||
+         (currentUserRole === 'user' && post.user_id === authStore.user?.id)
 }
 
 const formData = reactive<PostForm>({
@@ -389,45 +454,8 @@ const desktopColumns: DataTableColumns<Post> = [
   }
 ]
 
-// 移动端精简列：突出标题，保留分类和状态
-const mobileColumns: DataTableColumns<Post> = [
-  {
-    title: '标题',
-    key: 'title',
-    ellipsis: { tooltip: true }
-  },
-  {
-    title: '分类',
-    key: 'category',
-    width: 120,
-    ellipsis: { tooltip: true },
-    render: row =>
-      h(
-        NTag,
-        {
-          type: 'info',
-          size: 'small'
-        },
-        { default: () => row.category?.name || '' }
-      )
-  },
-  {
-    title: '状态',
-    key: 'status',
-    width: 80,
-    render: row =>
-      h(
-        NTag,
-        { type: row.status === 1 ? 'success' : 'default', size: 'small' },
-        { default: () => (row.status === 1 ? '已发布' : '草稿') }
-      )
-  }
-]
-
 // 根据当前是否为移动端切换列配置
-const columns = computed<DataTableColumns<Post>>(() =>
-  isMobile.value ? mobileColumns : desktopColumns
-)
+const columns = computed<DataTableColumns<Post>>(() => desktopColumns)
 
 const rules = {
   title: [{ required: true, message: '请输入标题', trigger: 'blur' }],
@@ -936,8 +964,8 @@ function handleModalClose() {
   box-sizing: border-box;
 }
 
-/* 移动端样式 */
-@media (max-width: 768px) {
+/* 移动端样式 (断点调整为 1100px) */
+@media (max-width: 1100px) {
   .header h1 {
     font-size: 20px;
   }
@@ -950,6 +978,48 @@ function handleModalClose() {
     justify-content: center; /* 手机上居中显示分页器，避免贴边 */
     margin-top: 12px;
   }
+}
+
+/* 卡片列表样式 */
+.card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.list-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.card-title {
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+.card-content {
+  padding: 8px 0;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.info-item .label {
+  color: #666;
+  width: 50px;
+  flex-shrink: 0;
+}
+
+.info-item .value {
+  color: #333;
+  word-break: break-all;
 }
 
 </style>
