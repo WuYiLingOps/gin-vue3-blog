@@ -11,6 +11,7 @@
 package repository
 
 import (
+	"blog-backend/constant"
 	"blog-backend/db"
 	"blog-backend/model"
 
@@ -229,14 +230,14 @@ func (r *PostRepository) GetHotPosts(limit int) ([]model.Post, error) {
 
 // GetRecentPosts 获取最新文章
 // - 普通用户/游客：仅公开
-// - 管理员：公开 + 自己的私密
+// - 管理员（包含 super_admin）：公开 + 自己的私密
 func (r *PostRepository) GetRecentPosts(limit int, userID *uint, role string) ([]model.Post, error) {
 	var posts []model.Post
 
 	query := db.DB.Preload("User").Preload("Category").Where("status = 1")
 
-	if role == "admin" && userID != nil {
-		// 管理员可见自己的私密文章，其余仍需公开
+	if constant.IsAdminRole(role) && userID != nil {
+		// 管理员（包含 super_admin）可见自己的私密文章，其余仍需公开
 		query = query.Where("visibility = 1 OR user_id = ?", *userID)
 	} else {
 		// 普通用户/游客仅公开文章
