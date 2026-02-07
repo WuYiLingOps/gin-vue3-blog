@@ -13,6 +13,7 @@ import { createPinia } from 'pinia'
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 import App from './App.vue'
 import router from './router'
+import { VMdEditor, VMdPreview } from './plugins/v-md-editor'
 
 // 样式
 import './assets/styles/global.css'
@@ -25,6 +26,8 @@ pinia.use(piniaPluginPersistedstate)
 
 app.use(pinia)
 app.use(router)
+app.use(VMdEditor)
+app.use(VMdPreview)
 
 app.mount('#app')
 
