@@ -15,6 +15,7 @@ declare module 'vue-router' {
     title?: string
     requiresAuth?: boolean
     requiresAdmin?: boolean
+    roles?: Array<'super_admin' | 'admin' | 'user'>
   }
 }
 
