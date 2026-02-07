@@ -11,11 +11,15 @@
 package middleware
 
 import (
+	"errors"
 	"strings"
 
+	"blog-backend/constant"
+	"blog-backend/repository"
 	"blog-backend/util"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 // AuthMiddleware JWT认证中间件
@@ -97,28 +101,94 @@ func OptionalAuthMiddleware() gin.HandlerFunc {
 	}
 }
 
-// AdminMiddleware 管理员权限中间件
-// 功能说明：验证当前用户是否具有管理员权限
-// 要求：必须在AuthMiddleware或OptionalAuthMiddleware之后使用
+// RoleRequiredMiddleware 角色权限中间件
+// 功能说明：验证当前用户是否属于指定角色之一
+// 要求：必须在 AuthMiddleware 或 OptionalAuthMiddleware 之后使用
+// 参数:
+//   - roles: 允许访问的角色列表
+//
 // 返回:
 //   - gin.HandlerFunc: Gin中间件处理函数
-func AdminMiddleware() gin.HandlerFunc {
+// 注意：此中间件会从数据库验证用户的实际角色，确保角色变更后旧token立即失效
+func RoleRequiredMiddleware(roles ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// 从上下文获取用户角色
-		role, exists := c.Get("role")
+		// 获取用户ID（从AuthMiddleware或OptionalAuthMiddleware设置）
+		userIDVal, exists := c.Get("user_id")
 		if !exists {
 			util.Forbidden(c, "权限不足")
 			c.Abort()
 			return
 		}
 
-		// 验证是否为管理员
-		if role != "admin" {
-			util.Forbidden(c, "需要管理员权限")
+		userID, ok := userIDVal.(uint)
+		if !ok {
+			util.Forbidden(c, "用户信息异常")
 			c.Abort()
 			return
 		}
 
-		c.Next()
+		// 从数据库查询用户的实际角色和状态（确保使用最新数据）
+		userRepo := repository.NewUserRepository()
+		user, err := userRepo.GetByID(userID)
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				util.Unauthorized(c, "用户不存在，请重新登录")
+				c.Abort()
+				return
+			}
+			util.Error(c, 500, "获取用户信息失败")
+			c.Abort()
+			return
+		}
+
+		// 检查用户状态（如果被禁用，拒绝访问）
+		if user.Status != 1 {
+			util.Unauthorized(c, "账号已被禁用，请重新登录")
+			c.Abort()
+			return
+		}
+
+		// 获取token中的角色（用于对比）
+		tokenRoleVal, exists := c.Get("role")
+		if !exists {
+			util.Forbidden(c, "权限不足")
+			c.Abort()
+			return
+		}
+
+		tokenRole, ok := tokenRoleVal.(string)
+		if !ok {
+			util.Forbidden(c, "权限信息异常")
+			c.Abort()
+			return
+		}
+
+		// 验证token中的角色与数据库中的角色是否一致
+		// 如果不一致，说明用户角色已被修改，要求重新登录
+		if tokenRole != user.Role {
+			util.Unauthorized(c, "用户权限已变更，请重新登录")
+			c.Abort()
+			return
+		}
+
+		// 使用数据库中的实际角色进行权限检查
+		currentRole := user.Role
+		for _, allowed := range roles {
+			if currentRole == allowed {
+				// 更新上下文中的角色为数据库中的最新角色（确保后续使用最新数据）
+				c.Set("role", currentRole)
+				c.Next()
+				return
+			}
+		}
+
+		util.Forbidden(c, "需要更高权限")
+		c.Abort()
 	}
+}
+
+// AdminMiddleware 兼容保留：管理员权限中间件
+// 目前视为具备后台管理权限的角色（包含 super_admin 和 admin）
+func AdminMiddleware() gin.HandlerFunc {
+	return RoleRequiredMiddleware(constant.RoleSuperAdmin, constant.RoleAdmin)
 }
