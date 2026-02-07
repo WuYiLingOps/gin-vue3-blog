@@ -31,22 +31,73 @@
 
     <!-- 内容区域 -->
     <div class="content-area">
+      <div v-if="isMobile" class="user-cards">
+        <n-card v-for="user in users" :key="user.id" class="user-card" size="small">
+          <template #header>
+            <n-space align="center">
+              <n-avatar :src="user.avatar" round size="medium" />
+              <div>
+                <div class="user-nickname">{{ user.nickname || user.username }}</div>
+                <div class="user-role-tag">
+                  <n-tag :type="getRoleTagType(user.role)" size="tiny">
+                    {{ getRoleText(user.role) }}
+                  </n-tag>
+                  <n-tag :type="user.status === 1 ? 'success' : 'default'" size="tiny" style="margin-left: 4px">
+                    {{ user.status === 1 ? '正常' : '禁用' }}
+                  </n-tag>
+                </div>
+              </div>
+            </n-space>
+          </template>
+          
+          <div class="card-content">
+            <div class="info-item">
+              <span class="label">用户名：</span>
+              <span class="value">{{ user.username }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">邮箱：</span>
+              <span class="value">{{ user.email }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">注册时间：</span>
+              <span class="value">{{ formatDate(user.created_at, 'YYYY-MM-DD HH:mm') }}</span>
+            </div>
+          </div>
+
+          <template #footer>
+            <n-space justify="end" size="small">
+              <n-button size="tiny" :disabled="user.role === 'super_admin'" @click="handleToggleStatus(user)">
+                {{ user.status === 1 ? '禁用' : '启用' }}
+              </n-button>
+              <n-button size="tiny" :type="user.role === 'admin' ? 'warning' : 'info'" :disabled="user.role === 'super_admin'" @click="handleToggleRole(user)">
+                {{ user.role === 'admin' ? '取消管理员' : '设为管理员' }}
+              </n-button>
+              <n-button size="tiny" type="error" :disabled="user.role === 'super_admin'" @click="handleDelete(user)">
+                删除
+              </n-button>
+            </n-space>
+          </template>
+        </n-card>
+      </div>
+
       <n-data-table
+        v-else
         :columns="columns"
         :data="users"
         :loading="loading"
-        :scroll-x="isMobile ? 900 : undefined"
         :single-line="false"
       />
       
-      <!-- 分页 - 位于表格右下角 -->
-      <div class="pagination-wrapper">
+      <!-- 分页 - 位于底部 -->
+      <div class="pagination-wrapper" :class="{ 'is-mobile': isMobile }">
         <n-pagination
           v-if="total > 0"
           v-model:page="currentPage"
           :page-count="totalPages"
           :page-size="pageSize"
-          :page-slot="7"
+          :page-slot="isMobile ? 3 : 7"
+          :simple="isMobile"
           @update:page="handlePageChange"
         />
       </div>
@@ -76,11 +127,25 @@ const settingLoading = ref(false)
 
 // 检测移动设备
 function checkMobile() {
-  isMobile.value = window.innerWidth <= 768
+  isMobile.value = window.innerWidth <= 1100
 }
 
 // 计算总页数
 const totalPages = computed(() => Math.ceil(total.value / pageSize))
+
+// 获取角色标签类型
+function getRoleTagType(role: string): 'error' | 'warning' | 'info' {
+  if (role === 'super_admin') return 'error'
+  if (role === 'admin') return 'warning'
+  return 'info'
+}
+
+// 获取角色文本
+function getRoleText(role: string): string {
+  if (role === 'super_admin') return '超级管理员'
+  if (role === 'admin') return '管理员'
+  return '用户'
+}
 
 const columns: DataTableColumns<User> = [
   { 
@@ -105,19 +170,10 @@ const columns: DataTableColumns<User> = [
     key: 'role',
     width: 120,
     render: row => {
-      let tagType: 'error' | 'warning' | 'info' = 'info'
-      let roleText = '用户'
-      if (row.role === 'super_admin') {
-        tagType = 'error'
-        roleText = '超级管理员'
-      } else if (row.role === 'admin') {
-        tagType = 'warning'
-        roleText = '管理员'
-      }
       return h(
         NTag,
-        { type: tagType, size: 'small' },
-        { default: () => roleText }
+        { type: getRoleTagType(row.role), size: 'small' },
+        { default: () => getRoleText(row.role) }
       )
     }
   },
@@ -350,7 +406,49 @@ async function handleToggleRegister(value: boolean) {
 /* 内容区域 */
 .content-area {
   position: relative;
-  padding-bottom: 50px; /* 为分页器预留空间 */
+  padding-bottom: 60px; /* 为分页器预留空间 */
+}
+
+/* 移动端卡片样式 */
+.user-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.user-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.user-nickname {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.user-role-tag {
+  margin-top: 4px;
+}
+
+.card-content {
+  padding: 8px 0;
+}
+
+.info-item {
+  display: flex;
+  margin-bottom: 4px;
+  font-size: 13px;
+}
+
+.info-item .label {
+  color: #666;
+  width: 70px;
+  flex-shrink: 0;
+}
+
+.info-item .value {
+  color: #333;
+  word-break: break-all;
 }
 
 /* 分页样式 - 位于表格右下角 */
@@ -365,8 +463,15 @@ async function handleToggleRegister(value: boolean) {
   box-sizing: border-box;
 }
 
-/* 移动端样式 */
-@media (max-width: 768px) {
+.pagination-wrapper.is-mobile {
+  position: static;
+  margin-top: 20px;
+  justify-content: center;
+  padding-bottom: 20px;
+}
+
+/* 移动端样式 (断点调整为 1100px) */
+@media (max-width: 1100px) {
   .page-title {
     font-size: 20px;
   }
@@ -375,9 +480,8 @@ async function handleToggleRegister(value: boolean) {
     font-size: 13px;
   }
   
-  .pagination-wrapper {
-    bottom: 8px;
-    right: 16px;
+  .register-settings-card :deep(.n-card__content) {
+    padding: 12px;
   }
 }
 </style>
