@@ -13,11 +13,45 @@
 
     <!-- 内容区域 -->
     <div class="content-area">
+      <div v-if="isMobile" class="card-list">
+        <n-card v-for="comment in comments" :key="comment.id" class="list-card" size="small">
+          <template #header>
+            <div class="card-header-content">
+              <span class="user-name">{{ comment.user.nickname }}</span>
+              <n-tag :type="comment.status === 1 ? 'success' : 'default'" size="tiny">
+                {{ comment.status === 1 ? '正常' : '隐藏' }}
+              </n-tag>
+            </div>
+          </template>
+          <div class="card-content">
+            <div class="comment-text">{{ comment.content }}</div>
+            <div class="info-item">
+              <span class="label">文章：</span>
+              <span class="value">{{ comment.post?.title || '-' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">时间：</span>
+              <span class="value">{{ formatDate(comment.created_at, 'YYYY-MM-DD HH:mm') }}</span>
+            </div>
+          </div>
+          <template #footer>
+            <n-space justify="end" size="small">
+              <n-button size="tiny" @click="handleToggleStatus(comment)">
+                {{ comment.status === 1 ? '隐藏' : '显示' }}
+              </n-button>
+              <n-button size="tiny" type="error" @click="handleDelete(comment.id)">
+                删除
+              </n-button>
+            </n-space>
+          </template>
+        </n-card>
+      </div>
+
       <n-data-table
+        v-else
         :columns="columns"
         :data="comments"
         :loading="loading"
-        :scroll-x="isMobile ? 1000 : undefined"
         :single-line="false"
       />
       
@@ -28,7 +62,8 @@
           v-model:page="currentPage"
           :page-count="totalPages"
           :page-size="pageSize"
-          :page-slot="7"
+          :page-slot="isMobile ? 3 : 7"
+          :simple="isMobile"
           @update:page="handlePageChange"
         />
       </div>
@@ -56,7 +91,7 @@ const isMobile = ref(false)
 
 // 检测移动设备
 function checkMobile() {
-  isMobile.value = window.innerWidth <= 768
+  isMobile.value = window.innerWidth <= 1100
 }
 
 // 计算总页数
@@ -239,8 +274,8 @@ function handleDelete(id: number) {
   box-sizing: border-box;
 }
 
-/* 移动端样式 */
-@media (max-width: 768px) {
+/* 移动端样式 (断点调整为 1100px) */
+@media (max-width: 1100px) {
   .page-title {
     font-size: 20px;
   }
@@ -250,9 +285,70 @@ function handleDelete(id: number) {
   }
   
   .pagination-wrapper {
-    bottom: 16px;
-    right: 16px;
+    position: relative;
+    margin-top: 20px;
+    bottom: auto;
+    right: auto;
+    justify-content: center;
   }
+}
+
+/* 卡片列表样式 */
+.card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.list-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.card-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.user-name {
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.card-content {
+  padding: 4px 0;
+}
+
+.comment-text {
+  background-color: #f9f9f9;
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #333;
+  word-break: break-all;
+}
+
+.info-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 6px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.info-item .label {
+  color: #888;
+  width: 45px;
+  flex-shrink: 0;
+}
+
+.info-item .value {
+  color: #555;
+  flex: 1;
 }
 </style>
 
