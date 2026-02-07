@@ -26,7 +26,7 @@
             clearable
           >
             <template #suffix>
-              <n-button text tertiary size="tiny" @click="clearField('site_name')" type="error">
+              <n-button text size="tiny" @click="clearField('site_name')" type="error">
                 清空
               </n-button>
             </template>
@@ -41,7 +41,7 @@
             clearable
           >
             <template #suffix>
-              <n-button text tertiary size="tiny" @click="clearField('site_icp')" type="error">
+              <n-button text size="tiny" @click="clearField('site_icp')" type="error">
                 清空
               </n-button>
             </template>
@@ -56,7 +56,7 @@
             clearable
           >
             <template #suffix>
-              <n-button text tertiary size="tiny" @click="clearField('site_police')" type="error">
+              <n-button text size="tiny" @click="clearField('site_police')" type="error">
                 清空
               </n-button>
             </template>
@@ -73,7 +73,7 @@
             clearable
           >
             <template #suffix>
-              <n-button text tertiary size="tiny" @click="clearField('social_github')" type="error">
+              <n-button text size="tiny" @click="clearField('social_github')" type="error">
                 清空
               </n-button>
             </template>
@@ -88,7 +88,7 @@
             clearable
           >
             <template #suffix>
-              <n-button text tertiary size="tiny" @click="clearField('social_gitee')" type="error">
+              <n-button text size="tiny" @click="clearField('social_gitee')" type="error">
                 清空
               </n-button>
             </template>
@@ -103,7 +103,7 @@
             clearable
           >
             <template #suffix>
-              <n-button text tertiary size="tiny" @click="clearField('social_email')" type="error">
+              <n-button text size="tiny" @click="clearField('social_email')" type="error">
                 清空
               </n-button>
             </template>
@@ -118,7 +118,7 @@
             clearable
           >
             <template #suffix>
-              <n-button text tertiary size="tiny" @click="clearField('social_rss')" type="error">
+              <n-button text size="tiny" @click="clearField('social_rss')" type="error">
                 清空
               </n-button>
             </template>
@@ -133,7 +133,7 @@
             clearable
           >
             <template #suffix>
-              <n-button text tertiary size="tiny" @click="clearField('social_csdn')" type="error">
+              <n-button text size="tiny" @click="clearField('social_csdn')" type="error">
                 清空
               </n-button>
             </template>
@@ -148,7 +148,7 @@
             clearable
           >
             <template #suffix>
-              <n-button text tertiary size="tiny" @click="clearField('social_qq')" type="error">
+              <n-button text size="tiny" @click="clearField('social_qq')" type="error">
                 清空
               </n-button>
             </template>
@@ -166,7 +166,7 @@
             clearable
           >
             <template #suffix>
-              <n-button text tertiary size="tiny" @click="clearField('social_wechat')" type="error">
+              <n-button text size="tiny" @click="clearField('social_wechat')" type="error">
                 清空
               </n-button>
             </template>
