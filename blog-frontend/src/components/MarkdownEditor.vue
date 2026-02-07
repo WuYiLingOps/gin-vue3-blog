@@ -14,6 +14,8 @@
       v-model="content"
       :height="height"
       :disabled-menus="[]"
+      :subfield="subfield"
+      :mode="mode"
       @upload-image="handleUploadImage"
       @change="handleChange"
     />
@@ -22,41 +24,14 @@
 
 <script setup lang="ts">
 import { ref, watch, onMounted, nextTick } from 'vue'
-import VMdEditor from '@kangc/v-md-editor'
-import '@kangc/v-md-editor/lib/style/base-editor.css'
-import vuepressTheme from '@kangc/v-md-editor/lib/theme/vuepress.js'
-import '@kangc/v-md-editor/lib/theme/style/vuepress.css'
-import Prism from 'prismjs'
 import { uploadImage } from '@/api/upload'
 import { useMessage } from 'naive-ui'
-
-// 引入代码高亮语言包
-import 'prismjs/components/prism-json'
-import 'prismjs/components/prism-bash'
-import 'prismjs/components/prism-typescript'
-import 'prismjs/components/prism-javascript'
-import 'prismjs/components/prism-go'
-import 'prismjs/components/prism-python'
-import 'prismjs/components/prism-java'
-import 'prismjs/components/prism-c'
-import 'prismjs/components/prism-cpp'
-import 'prismjs/components/prism-sql'
-import 'prismjs/components/prism-yaml'
-import 'prismjs/components/prism-markdown'
-import 'prismjs/components/prism-css'
-import 'prismjs/components/prism-scss'
-
-// 配置编辑器主题
-VMdEditor.use(vuepressTheme, {
-  Prism,
-  codeHighlightExtensionMap: {
-    vue: 'html',
-  }
-})
 
 interface Props {
   modelValue?: string
   height?: string
+  subfield?: boolean
+  mode?: 'edit' | 'preview' | 'editable'
 }
 
 interface Emits {
@@ -66,7 +41,9 @@ interface Emits {
 
 const props = withDefaults(defineProps<Props>(), {
   modelValue: '',
-  height: '500px'
+  height: '500px',
+  subfield: true,
+  mode: 'editable'
 })
 
 const emit = defineEmits<Emits>()
