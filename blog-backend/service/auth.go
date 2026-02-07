@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"blog-backend/config"
+	"blog-backend/constant"
 	"blog-backend/db"
 	"blog-backend/model"
 	"blog-backend/repository"
@@ -119,7 +120,7 @@ func (s *AuthService) Register(req *RegisterRequest, ip string) (*model.User, er
 		Email:    req.Email,
 		Password: hashedPassword,
 		Nickname: req.Username,
-		Role:     "user",
+		Role:     constant.RoleUser,
 		Status:   1,
 	}
 
@@ -213,8 +214,8 @@ func (s *AuthService) UpdateProfile(userID uint, req *UpdateProfileRequest) (*mo
 		return nil, errors.New("更新用户信息失败")
 	}
 
-	// 如果更新的是管理员用户，清理博主信息缓存，确保前台个人名片和关于我页面立即生效
-	if user.Role == "admin" {
+	// 如果更新的是系统拥有者（super_admin），清理博主信息缓存，确保前台个人名片和关于我页面立即生效
+	if user.Role == constant.RoleSuperAdmin {
 		ctx := context.Background()
 		_ = db.RDB.Del(ctx, "blog:author_profile").Err()
 	}
