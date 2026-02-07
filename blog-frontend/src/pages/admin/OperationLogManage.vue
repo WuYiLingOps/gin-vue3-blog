@@ -15,9 +15,10 @@
         <n-form
           :model="filterForm"
           inline
-          label-placement="left"
-          :label-width="80"
-          style="margin-bottom: 20px"
+          :label-placement="isMobile ? 'top' : 'left'"
+          :label-width="isMobile ? undefined : 80"
+          :show-feedback="false"
+          class="filter-form"
         >
           <n-form-item label="操作模块">
             <n-select
@@ -67,11 +68,60 @@
         </n-card>
 
         <!-- 数据表格 -->
+        <div v-if="isMobile" class="card-list">
+          <n-card v-for="log in logs" :key="log.id" class="list-card" size="small">
+            <template #header>
+              <div class="card-header-content">
+                <div class="header-left">
+                  <n-checkbox 
+                    :checked="selectedRowKeys.includes(log.id)"
+                    @update:checked="(checked) => handleCardSelect(log.id, checked)"
+                  />
+                  <span class="user-name">{{ log.username }}</span>
+                </div>
+                <n-space size="small">
+                  <n-tag :type="getModuleType(log.module)" size="tiny">
+                    {{ getModuleLabel(log.module) }}
+                  </n-tag>
+                  <n-tag :type="getActionType(log.action)" size="tiny">
+                    {{ getActionLabel(log.action) }}
+                  </n-tag>
+                </n-space>
+              </div>
+            </template>
+            <div class="card-content">
+              <div class="info-item">
+                <span class="label">目标：</span>
+                <span class="value">{{ log.target_name || '-' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">描述：</span>
+                <span class="value">{{ log.description || '-' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">IP：</span>
+                <span class="value">{{ log.ip }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">时间：</span>
+                <span class="value">{{ formatDate(log.created_at, 'YYYY-MM-DD HH:mm:ss') }}</span>
+              </div>
+            </div>
+            <template #footer>
+              <n-space justify="end">
+                <n-button size="tiny" type="error" @click="handleDelete(log)">
+                  删除
+                </n-button>
+              </n-space>
+            </template>
+          </n-card>
+        </div>
+
         <n-data-table
+          v-else
           :columns="columns"
           :data="logs"
           :loading="loading"
-          :scroll-x="isMobile ? 1200 : undefined"
           :single-line="false"
           :row-key="(row: OperationLog) => row.id"
           v-model:checked-row-keys="selectedRowKeys"
@@ -85,7 +135,8 @@
             v-model:page="currentPage"
             :page-count="totalPages"
             :page-size="pageSize"
-            :page-slot="7"
+            :page-slot="isMobile ? 3 : 7"
+            :simple="isMobile"
             @update:page="handlePageChange"
           />
         </div>
@@ -96,7 +147,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, h } from 'vue'
-import { useMessage, useDialog, NButton, NTag, NSpace, NCard, NForm, NFormItem, NSelect, NInput, NPagination, NSpin, NText } from 'naive-ui'
+import { useMessage, useDialog, NButton, NTag, NSpace, NCard, NForm, NFormItem, NSelect, NInput, NPagination, NSpin, NText, NCheckbox } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
 import { getOperationLogs, deleteOperationLog, batchDeleteOperationLogs } from '@/api/operationLog'
 import type { OperationLog, OperationLogParams } from '@/api/operationLog'
@@ -140,6 +191,56 @@ const actionOptions = [
 // 计算总页数
 const totalPages = computed(() => Math.ceil(total.value / pageSize))
 
+// 辅助函数：获取模块显示文本
+function getModuleLabel(module: string) {
+  const moduleMap: Record<string, string> = {
+    post: '文章',
+    category: '分类',
+    tag: '标签',
+    user: '用户',
+    comment: '评论',
+    moment: '说说',
+    chat: '聊天室'
+  }
+  return moduleMap[module] || module
+}
+
+// 辅助函数：获取模块标签类型
+function getModuleType(_module: string): 'info' | 'success' | 'warning' | 'error' | 'default' {
+  return 'info'
+}
+
+// 辅助函数：获取操作类型显示文本
+function getActionLabel(action: string) {
+  const actionMap: Record<string, string> = {
+    create: '创建',
+    update: '更新',
+    delete: '删除'
+  }
+  return actionMap[action] || action
+}
+
+// 辅助函数：获取操作类型标签类型
+function getActionType(action: string): 'success' | 'warning' | 'error' | 'info' {
+  const actionMap: Record<string, 'success' | 'warning' | 'error'> = {
+    create: 'success',
+    update: 'warning',
+    delete: 'error'
+  }
+  return actionMap[action] || 'info'
+}
+
+// 移动端卡片选择处理
+function handleCardSelect(id: number, checked: boolean) {
+  if (checked) {
+    if (!selectedRowKeys.value.includes(id)) {
+      selectedRowKeys.value.push(id)
+    }
+  } else {
+    selectedRowKeys.value = selectedRowKeys.value.filter(k => k !== id)
+  }
+}
+
 // 表格列定义
 const columns: DataTableColumns<OperationLog> = [
   {
@@ -163,19 +264,10 @@ const columns: DataTableColumns<OperationLog> = [
     key: 'module',
     width: 100,
     render: row => {
-      const moduleMap: Record<string, string> = {
-        post: '文章',
-        category: '分类',
-        tag: '标签',
-        user: '用户',
-        comment: '评论',
-        moment: '说说',
-        chat: '聊天室'
-      }
       return h(
         NTag,
-        { type: 'info', size: 'small' },
-        { default: () => moduleMap[row.module] || row.module }
+        { type: getModuleType(row.module), size: 'small' },
+        { default: () => getModuleLabel(row.module) }
       )
     }
   },
@@ -184,16 +276,10 @@ const columns: DataTableColumns<OperationLog> = [
     key: 'action',
     width: 100,
     render: row => {
-      const actionMap: Record<string, { text: string; type: 'success' | 'warning' | 'error' }> = {
-        create: { text: '创建', type: 'success' },
-        update: { text: '更新', type: 'warning' },
-        delete: { text: '删除', type: 'error' }
-      }
-      const actionInfo = actionMap[row.action] || { text: row.action, type: 'info' }
       return h(
         NTag,
-        { type: actionInfo.type, size: 'small' },
-        { default: () => actionInfo.text }
+        { type: getActionType(row.action), size: 'small' },
+        { default: () => getActionLabel(row.action) }
       )
     }
   },
@@ -241,7 +327,7 @@ const columns: DataTableColumns<OperationLog> = [
 
 // 检测移动设备
 function checkMobile() {
-  isMobile.value = window.innerWidth <= 768
+  isMobile.value = window.innerWidth <= 1100
 }
 
 // 获取操作日志列表
@@ -377,9 +463,97 @@ onUnmounted(() => {
   justify-content: flex-end;
 }
 
-@media (max-width: 768px) {
+/* 移动端样式 (断点调整为 1100px) */
+@media (max-width: 1100px) {
   .operation-log-manage-page {
     padding: 12px;
   }
+  
+  .pagination-wrapper {
+    justify-content: center;
+  }
+
+  .filter-form {
+    margin-bottom: 16px;
+  }
+
+  /* 让筛选表单在移动端更好的排列 */
+  :deep(.n-form.n-form--inline) {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  
+  :deep(.n-form-item) {
+    margin-right: 0 !important;
+    width: 100%;
+  }
+  
+  :deep(.n-form-item-blank) {
+    width: 100% !important;
+  }
+  
+  :deep(.n-select), :deep(.n-input) {
+    width: 100% !important;
+  }
+
+  :deep(.n-form-item .n-form-item-label) {
+    padding-bottom: 4px;
+    font-weight: 500;
+  }
+}
+
+/* 卡片列表样式 */
+.card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.list-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.card-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-name {
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.card-content {
+  padding: 4px 0;
+}
+
+.info-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 6px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.info-item .label {
+  color: #888;
+  width: 45px;
+  flex-shrink: 0;
+}
+
+.info-item .value {
+  color: #555;
+  flex: 1;
+  word-break: break-all;
 }
 </style>
