@@ -17,6 +17,8 @@ import (
 	"strconv"
 	"strings"
 
+	"blog-backend/constant"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -159,15 +161,16 @@ func (h *MomentHandler) GetByID(c *gin.Context) {
 		return
 	}
 
-	// 权限校验：私密说说仅作者或管理员可见
-	role, _ := c.Get("role")
+	// 权限校验：私密说说仅作者或具备管理员权限的用户可见
+	roleVal, _ := c.Get("role")
+	role, _ := roleVal.(string)
 	var userID *uint
 	if uid, exists := c.Get("user_id"); exists {
 		uidVal := uid.(uint)
 		userID = &uidVal
 	}
 	if moment.Status == 0 { // 私密
-		if role != "admin" && (userID == nil || *userID != moment.UserID) {
+		if !constant.IsAdminRole(role) && (userID == nil || *userID != moment.UserID) {
 			util.Forbidden(c, "无权查看该说说")
 			return
 		}
@@ -189,9 +192,10 @@ func (h *MomentHandler) List(c *gin.Context) {
 		status = &statusVal
 	}
 
-	// 权限：管理员可查看全部（含私密），普通用户/游客仅公开
-	role, _ := c.Get("role")
-	if role != "admin" {
+	// 权限：具备管理员权限的用户可查看全部（含私密），普通用户/游客仅公开
+	roleVal, _ := c.Get("role")
+	role, _ := roleVal.(string)
+	if !constant.IsAdminRole(role) {
 		publicStatus := 1
 		status = &publicStatus
 	}
