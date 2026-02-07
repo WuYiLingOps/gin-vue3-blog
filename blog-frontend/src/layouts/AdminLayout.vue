@@ -189,8 +189,8 @@ const renderIcon = (icon: any) => {
   return () => h(NIcon, null, { default: () => h(icon) })
 }
 
-// 菜单选项
-const menuOptions = [
+// 菜单选项（基础定义）
+const baseMenuOptions = [
   {
     label: '仪表盘',
     key: 'Dashboard',
@@ -257,6 +257,14 @@ const menuOptions = [
     icon: renderIcon(SettingsOutline)
   }
 ]
+
+// 根据角色过滤菜单（super_admin 才能看到系统级配置入口）
+const menuOptions = computed(() => {
+  // 仅系统拥有者可见
+  const superOnlyKeys = new Set(['UserManage', 'SiteSettings', 'AboutManage', 'FriendLinkManage', 'AlbumManage'])
+  if (authStore.isSuperAdmin) return baseMenuOptions
+  return baseMenuOptions.filter((item: any) => !superOnlyKeys.has(item.key))
+})
 
 // 用户菜单选项
 const userMenuOptions = [
