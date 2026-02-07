@@ -177,10 +177,35 @@ func (h *ChatHandler) DeleteMessage(c *gin.Context) {
 		return
 	}
 
+	// 先获取消息信息用于日志记录
+	message, _ := h.hub.Repo.GetByID(uint(id))
+	var contentPreview string
+	var messageType string
+	if message != nil {
+		contentPreview = message.Content
+		if len(contentPreview) > 50 {
+			contentPreview = contentPreview[:50] + "..."
+		}
+		if message.IsBroadcast {
+			messageType = "系统广播"
+		} else {
+			messageType = "聊天消息"
+		}
+	}
+
 	if err := h.service.DeleteMessage(uint(id)); err != nil {
 		util.ServerError(c, "删除消息失败")
 		return
 	}
+
+	// 记录操作日志
+	messageID := uint(id)
+	description := "删除" + messageType
+	if message != nil && message.Username != "" {
+		description += "（发送者：" + message.Username + "）"
+	}
+	description += "：" + contentPreview
+	util.LogOperation(c, "delete", "chat", &messageID, contentPreview, description)
 
 	// 删除公告消息后，清理公告列表缓存（如果该消息是公告）
 	go func() {
@@ -236,6 +261,14 @@ func (h *ChatHandler) UpdateChatSettings(c *gin.Context) {
 		util.Error(c, 500, "更新失败")
 		return
 	}
+
+	// 记录操作日志（仅当设置全员禁言时记录）
+	if req.ChatMuteAll == "1" {
+		util.LogOperation(c, "update", "chat", nil, "聊天室", "开启全员禁言")
+	} else if req.ChatMuteAll == "0" {
+		util.LogOperation(c, "update", "chat", nil, "聊天室", "关闭全员禁言")
+	}
+
 	util.SuccessWithMessage(c, "更新成功", nil)
 }
 
@@ -342,6 +375,20 @@ func (h *ChatHandler) BroadcastSystemMessage(c *gin.Context) {
 		util.ServerError(c, "发送消息失败")
 		return
 	}
+
+	// 记录操作日志
+	messageID := message.ID
+	contentPreview := req.Content
+	if len(contentPreview) > 50 {
+		contentPreview = contentPreview[:50] + "..."
+	}
+	targetText := "公告栏"
+	if target == "chat" {
+		targetText = "聊天室"
+	} else if target == "both" {
+		targetText = "公告栏和聊天室"
+	}
+	util.LogOperation(c, "create", "chat", &messageID, contentPreview, "发送系统广播到"+targetText+"："+contentPreview)
 
 	// 如果是公告或同时发送到公告，清理公告列表缓存
 	go func() {
