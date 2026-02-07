@@ -36,7 +36,7 @@ COMMENT ON COLUMN users.password IS '密码（bcrypt加密）';
 COMMENT ON COLUMN users.nickname IS '昵称';
 COMMENT ON COLUMN users.avatar IS '头像URL';
 COMMENT ON COLUMN users.bio IS '个人简介';
-COMMENT ON COLUMN users.role IS '角色：admin-管理员，user-普通用户';
+COMMENT ON COLUMN users.role IS '角色：super_admin-超级管理员，admin-管理员，user-普通用户';
 COMMENT ON COLUMN users.status IS '状态：1-正常，0-禁用';
 
 -- =============================================================================
@@ -488,7 +488,7 @@ COMMENT ON COLUMN chat_messages.updated_at IS '更新时间';
 -- 密码 hash: $2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi
 INSERT INTO users (username, email, password, nickname, avatar, bio, role, status, created_at, updated_at)
 VALUES 
-('admin', 'admin@example.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '管理员', '', '博客管理员', 'admin', 1, NOW(), NOW())
+('admin', 'admin@example.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '管理员', '', '博客超级管理员', 'super_admin', 1, NOW(), NOW())
 ON CONFLICT (username) DO NOTHING;
 
 -- 插入默认分类
