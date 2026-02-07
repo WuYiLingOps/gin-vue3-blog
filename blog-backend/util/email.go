@@ -276,18 +276,9 @@ func getResetPasswordTemplate() string {
                 <tr style="font-weight: 300;">
                     <td style="width: 3%; max-width: 30px;"></td>
                     <td style="max-width: 600px;">
-                        <!-- LOGO -->
+                        <!-- 网站名称 -->
                         <div style="width: 100%; text-align: left; margin-bottom: 20px;">
-                            <table style="border-collapse: collapse;">
-                                <tr>
-                                    <td style="vertical-align: middle; padding-right: 12px;">
-                                        <img src="https://pic1.imgdb.cn/item/694560da2ce92a4f9312aec7.jpg" alt="Logo" style="width: 40px; height: 40px; border-radius: 50%; display: block;" />
-                                    </td>
-                                    <td style="vertical-align: middle;">
-                                        <h1 style="margin: 0; color: #0891b2; font-size: 24px; font-weight: 600;">{{.SiteName}}</h1>
-                                    </td>
-                                </tr>
-                            </table>
+                            <h1 style="margin: 0; color: #0891b2; font-size: 24px; font-weight: 600;">{{.SiteName}}</h1>
                         </div>
                         <!-- 蓝色分割线 -->
                         <p style="height: 2px; background-color: #0891b2; border: 0; font-size: 0; padding: 0; width: 100%; margin-top: 20px; margin-bottom: 0;"></p>
@@ -387,18 +378,9 @@ func getRegisterVerificationTemplate() string {
                 <tr style="font-weight: 300;">
                     <td style="width: 3%; max-width: 30px;"></td>
                     <td style="max-width: 600px;">
-                        <!-- LOGO -->
+                        <!-- 网站名称 -->
                         <div style="width: 100%; text-align: left; margin-bottom: 20px;">
-                            <table style="border-collapse: collapse;">
-                                <tr>
-                                    <td style="vertical-align: middle; padding-right: 12px;">
-                                        <img src="https://pic1.imgdb.cn/item/694560da2ce92a4f9312aec7.jpg" alt="Logo" style="width: 40px; height: 40px; border-radius: 50%; display: block;" />
-                                    </td>
-                                    <td style="vertical-align: middle;">
-                                        <h1 style="margin: 0; color: #0891b2; font-size: 24px; font-weight: 600;">{{.SiteName}}</h1>
-                                    </td>
-                                </tr>
-                            </table>
+                            <h1 style="margin: 0; color: #0891b2; font-size: 24px; font-weight: 600;">{{.SiteName}}</h1>
                         </div>
                         <!-- 蓝色分割线 -->
                         <p style="height: 2px; background-color: #0891b2; border: 0; font-size: 0; padding: 0; width: 100%; margin-top: 20px; margin-bottom: 0;"></p>
@@ -498,18 +480,9 @@ func getAdminCommentNotificationTemplate() string {
                 <tr style="font-weight: 300;">
                     <td style="width: 3%; max-width: 30px;"></td>
                     <td style="max-width: 600px;">
-                        <!-- LOGO -->
+                        <!-- 网站名称 -->
                         <div style="width: 100%; text-align: left; margin-bottom: 20px;">
-                            <table style="border-collapse: collapse;">
-                                <tr>
-                                    <td style="vertical-align: middle; padding-right: 12px;">
-                                        <img src="https://pic1.imgdb.cn/item/694560da2ce92a4f9312aec7.jpg" alt="Logo" style="width: 40px; height: 40px; border-radius: 50%; display: block;" />
-                                    </td>
-                                    <td style="vertical-align: middle;">
-                                        <h1 style="margin: 0; color: #0891b2; font-size: 24px; font-weight: 600;">{{.SiteName}}</h1>
-                                    </td>
-                                </tr>
-                            </table>
+                            <h1 style="margin: 0; color: #0891b2; font-size: 24px; font-weight: 600;">{{.SiteName}}</h1>
                         </div>
                         <!-- 蓝色分割线 -->
                         <p style="height: 2px; background-color: #0891b2; border: 0; font-size: 0; padding: 0; width: 100%; margin-top: 20px; margin-bottom: 0;"></p>
