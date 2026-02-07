@@ -69,6 +69,14 @@ export function setupRouterGuards(router: Router) {
       return
     }
 
+    // 角色白名单（更细粒度控制）
+    if (to.meta.roles && to.meta.roles.length > 0) {
+      if (!authStore.hasRole(to.meta.roles)) {
+        next({ name: 'Home' })
+        return
+      }
+    }
+
     // 如果已登录访问登录页，重定向到首页
     if (to.name === 'Login' && authStore.isLoggedIn) {
       next({ name: 'Home' })
