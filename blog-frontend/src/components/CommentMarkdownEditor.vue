@@ -64,21 +64,8 @@
 <script setup lang="ts">
 import { ref, watch, computed, onMounted, nextTick } from 'vue'
 import { NButton, NSpace, NDivider } from 'naive-ui'
-import VMdEditor from '@kangc/v-md-editor'
-import '@kangc/v-md-editor/lib/style/base-editor.css'
-import vuepressTheme from '@kangc/v-md-editor/lib/theme/vuepress.js'
-import '@kangc/v-md-editor/lib/theme/style/vuepress.css'
-import Prism from 'prismjs'
 import { uploadImage } from '@/api/upload'
 import { useMessage } from 'naive-ui'
-
-// 配置编辑器主题（评论编辑器不需要代码高亮，但主题需要 Prism）
-VMdEditor.use(vuepressTheme, {
-  Prism,
-  codeHighlightExtensionMap: {
-    vue: 'html',
-  }
-})
 
 interface Props {
   modelValue?: string
