@@ -11,6 +11,7 @@
 package handler
 
 import (
+	"blog-backend/constant"
 	"blog-backend/util"
 
 	"github.com/gin-gonic/gin"
@@ -35,9 +36,10 @@ func (h *UploadHandler) UploadAvatar(c *gin.Context) {
 
 	var fileURL string
 	// 获取用户角色，普通用户强制使用本地存储
-	role, exists := c.Get("role")
-	if exists && role == "admin" {
-		// 管理员使用配置的存储方式（本地/OSS/COS）
+	roleVal, exists := c.Get("role")
+	role, _ := roleVal.(string)
+	if exists && constant.IsAdminRole(role) {
+		// 具备管理员权限的用户使用配置的存储方式（本地/OSS/COS）
 		fileURL, err = util.UploadFile(file, util.AvatarDir)
 		if err != nil {
 			util.Error(c, 400, err.Error())
@@ -70,9 +72,10 @@ func (h *UploadHandler) UploadImage(c *gin.Context) {
 
 	var fileURL string
 	// 获取用户角色，普通用户强制使用本地存储
-	role, exists := c.Get("role")
-	if exists && role == "admin" {
-		// 管理员使用配置的存储方式（本地/OSS/COS）
+	roleVal, exists := c.Get("role")
+	role, _ := roleVal.(string)
+	if exists && constant.IsAdminRole(role) {
+		// 具备管理员权限的用户使用配置的存储方式（本地/OSS/COS）
 		fileURL, err = util.UploadFile(file, util.UploadDir)
 		if err != nil {
 			util.Error(c, 400, err.Error())
