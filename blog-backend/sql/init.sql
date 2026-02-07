@@ -635,7 +635,50 @@ COMMENT ON COLUMN albums.sort_order IS '排序顺序（数字越大越靠前）'
 -- 评论表已扩展支持 comment_type 和 target_id 字段，友链评论使用 comment_type='friendlink'
 
 -- =============================================================================
--- 13. 更新现有数据的全文搜索向量
+-- 13. 操作日志系统
+-- =============================================================================
+
+-- 创建操作日志表
+CREATE TABLE IF NOT EXISTS operation_logs (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL,
+    username VARCHAR(50) NOT NULL,
+    action VARCHAR(50) NOT NULL,
+    module VARCHAR(50) NOT NULL,
+    target_type VARCHAR(50),
+    target_id INT,
+    target_name VARCHAR(255),
+    description TEXT,
+    ip VARCHAR(45),
+    user_agent TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- 操作日志表索引
+CREATE INDEX IF NOT EXISTS idx_operation_logs_user_id ON operation_logs(user_id);
+CREATE INDEX IF NOT EXISTS idx_operation_logs_action ON operation_logs(action);
+CREATE INDEX IF NOT EXISTS idx_operation_logs_module ON operation_logs(module);
+CREATE INDEX IF NOT EXISTS idx_operation_logs_target_type ON operation_logs(target_type);
+CREATE INDEX IF NOT EXISTS idx_operation_logs_target_id ON operation_logs(target_id);
+CREATE INDEX IF NOT EXISTS idx_operation_logs_created_at ON operation_logs(created_at DESC);
+
+-- 操作日志表注释
+COMMENT ON TABLE operation_logs IS '操作日志表';
+COMMENT ON COLUMN operation_logs.user_id IS '操作用户ID';
+COMMENT ON COLUMN operation_logs.username IS '操作用户名';
+COMMENT ON COLUMN operation_logs.action IS '操作类型：create-创建，update-更新，delete-删除';
+COMMENT ON COLUMN operation_logs.module IS '操作模块：post-文章，category-分类，tag-标签，user-用户，comment-评论等';
+COMMENT ON COLUMN operation_logs.target_type IS '目标类型（与module相同，用于查询）';
+COMMENT ON COLUMN operation_logs.target_id IS '目标ID（如文章ID、分类ID等）';
+COMMENT ON COLUMN operation_logs.target_name IS '目标名称（如文章标题、分类名称等）';
+COMMENT ON COLUMN operation_logs.description IS '操作描述（详细说明）';
+COMMENT ON COLUMN operation_logs.ip IS '操作IP地址';
+COMMENT ON COLUMN operation_logs.user_agent IS '用户代理（浏览器信息）';
+COMMENT ON COLUMN operation_logs.created_at IS '操作时间';
+
+-- =============================================================================
+-- 14. 更新现有数据的全文搜索向量
 -- =============================================================================
 
 -- 更新文章的全文搜索向量（组合标题和内容，标题权重更高）
@@ -661,7 +704,4 @@ WHERE content_tsv IS NULL;
 -- 5. 验证码有效期为15分钟，过期数据会每小时自动清理
 -- 6. 邮箱修改限制：每个用户一年内只能修改2次
 -- 7. password_reset_tokens 表同时用于注册验证码和密码重置验证码
--- 8. 序列维护：如果发现文章ID过大（如从1000000开始），可能是序列值异常
---    可以使用以下SQL检查并修复：（如果只有5篇文章，可以重置为5）
---    SELECT setval('posts_id_seq', (SELECT COUNT(*) FROM posts), false);
 -- =============================================================================
