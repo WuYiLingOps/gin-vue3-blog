@@ -24,7 +24,14 @@ export const useAuthStore = defineStore(
 
     // 计算属性
     const isLoggedIn = computed(() => !!token.value)
-    const isAdmin = computed(() => user.value?.role === 'admin')
+    const isSuperAdmin = computed(() => user.value?.role === 'super_admin')
+    const isAdmin = computed(() => user.value?.role === 'admin' || user.value?.role === 'super_admin')
+
+    function hasRole(roles: User['role'][]): boolean {
+      const r = user.value?.role
+      if (!r) return false
+      return roles.includes(r)
+    }
 
     // 登录
     async function login(form: LoginForm) {
@@ -66,7 +73,9 @@ export const useAuthStore = defineStore(
       token,
       user,
       isLoggedIn,
+      isSuperAdmin,
       isAdmin,
+      hasRole,
       login,
       register,
       logout,
