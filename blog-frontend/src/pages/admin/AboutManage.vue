@@ -19,6 +19,8 @@
             <markdown-editor 
               v-model="formData.content" 
               :height="isMobile ? '500px' : '700px'" 
+              :subfield="!isMobile"
+              :mode="isSmallScreen ? 'edit' : 'editable'"
             />
             <template #feedback>
               <n-text depth="3" style="font-size: 12px; margin-top: 8px; display: block">
@@ -61,6 +63,7 @@ const message = useMessage()
 const loading = ref(false)
 const submitting = ref(false)
 const isMobile = ref(false)
+const isSmallScreen = ref(false)
 
 const formData = reactive({
   content: ''
@@ -70,7 +73,9 @@ const originalContent = ref('')
 
 // 检测移动设备
 function checkMobile() {
-  isMobile.value = window.innerWidth <= 768
+  const width = window.innerWidth
+  isMobile.value = width <= 1100
+  isSmallScreen.value = width <= 600
 }
 
 // 获取关于我信息
@@ -127,7 +132,7 @@ onUnmounted(() => {
   padding: 20px;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1100px) {
   .about-manage-page {
     padding: 12px;
   }
