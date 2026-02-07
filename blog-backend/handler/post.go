@@ -18,6 +18,7 @@ import (
 	"strings"
 	"time"
 
+	"blog-backend/constant"
 	"blog-backend/model"
 	"blog-backend/service"
 	"blog-backend/util"
@@ -169,7 +170,7 @@ func (h *PostHandler) List(c *gin.Context) {
 
 	// 默认只返回公开文章；管理员则可以查看所有可见性
 	var visibility *int
-	if role, exists := c.Get("role"); !exists || role != "admin" {
+	if r, exists := c.Get("role"); !exists || !constant.IsAdminRole(r.(string)) {
 		v := 1
 		visibility = &v
 	}
