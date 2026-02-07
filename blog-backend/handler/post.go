@@ -74,6 +74,10 @@ func (h *PostHandler) Create(c *gin.Context) {
 		return
 	}
 
+	// 记录操作日志
+	postID := post.ID
+	util.LogOperation(c, "create", "post", &postID, post.Title, "创建文章："+post.Title)
+
 	util.SuccessWithMessage(c, "文章创建成功", post)
 }
 
@@ -138,6 +142,10 @@ func (h *PostHandler) Update(c *gin.Context) {
 		return
 	}
 
+	// 记录操作日志
+	postID := post.ID
+	util.LogOperation(c, "update", "post", &postID, post.Title, "更新文章："+post.Title)
+
 	util.SuccessWithMessage(c, "文章更新成功", post)
 }
 
@@ -152,10 +160,23 @@ func (h *PostHandler) Delete(c *gin.Context) {
 	userID, _ := c.Get("user_id")
 	role, _ := c.Get("role")
 
+	// 先获取文章信息用于日志记录
+	postService := service.NewPostService()
+	uid := userID.(uint)
+	post, _ := postService.GetByID(uint(id), &uid, role.(string), util.GetClientIP(c))
+	var postTitle string
+	if post != nil {
+		postTitle = post.Title
+	}
+
 	if err := h.service.Delete(uint(id), userID.(uint), role.(string)); err != nil {
 		util.Error(c, 400, err.Error())
 		return
 	}
+
+	// 记录操作日志
+	postID := uint(id)
+	util.LogOperation(c, "delete", "post", &postID, postTitle, "删除文章："+postTitle)
 
 	util.SuccessWithMessage(c, "文章删除成功", nil)
 }
