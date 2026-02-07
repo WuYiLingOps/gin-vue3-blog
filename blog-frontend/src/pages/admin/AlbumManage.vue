@@ -20,11 +20,62 @@
       </n-button>
     </div>
 
+    <div v-if="isMobile" class="card-list">
+      <n-card v-for="album in albums" :key="album.id" class="list-card" size="small">
+        <template #header>
+          <n-space align="center">
+            <n-image 
+              :src="album.image_url" 
+              width="48" 
+              height="48" 
+              object-fit="cover" 
+              style="border-radius: 4px; cursor: pointer;"
+              @click="openImage(album.image_url)"
+            />
+            <div class="card-title">{{ album.title || '未命名照片' }}</div>
+          </n-space>
+        </template>
+        <div class="card-content">
+          <div class="info-item">
+            <span class="label">ID：</span>
+            <span class="value">{{ album.id }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">描述：</span>
+            <span class="value">{{ album.description || '-' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">排序：</span>
+            <span class="value">{{ album.sort_order }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">创建时间：</span>
+            <span class="value">{{ new Date(album.created_at).toLocaleString('zh-CN') }}</span>
+          </div>
+        </div>
+        <template #footer>
+          <n-space justify="end">
+            <n-button size="small" @click="handleEdit(album)">编辑</n-button>
+            <n-button size="small" type="error" @click="handleDelete(album.id)">删除</n-button>
+          </n-space>
+        </template>
+      </n-card>
+      <div class="pagination-container">
+        <n-pagination
+          v-model:page="pagination.page"
+          :item-count="pagination.itemCount"
+          :page-size="pagination.pageSize"
+          simple
+          @update:page="handlePageChange"
+        />
+      </div>
+    </div>
+
     <n-data-table 
+      v-else
       :columns="columns" 
       :data="albums" 
       :loading="loading"
-      :scroll-x="isMobile ? 1200 : undefined"
       :single-line="false"
       :pagination="pagination"
       @update:page="handlePageChange"
@@ -94,7 +145,7 @@ const message = useMessage()
 const formRef = ref<FormInst | null>(null)
 const loading = ref(false)
 const submitting = ref(false)
-const isMobile = ref(false)
+const isMobile = ref(window.innerWidth <= 1100)
 const showModal = ref(false)
 const editingId = ref<number | null>(null)
 
@@ -132,9 +183,13 @@ const rules = {
   }
 }
 
+function openImage(url: string) {
+  window.open(url, '_blank')
+}
+
 // 检测移动设备
 function checkMobile() {
-  isMobile.value = window.innerWidth <= 768
+  isMobile.value = window.innerWidth <= 1100
 }
 
 // 获取相册列表
@@ -351,7 +406,7 @@ onUnmounted(() => {
   font-weight: 600;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1100px) {
   .album-manage-page {
     padding: 12px;
   }
@@ -365,5 +420,52 @@ onUnmounted(() => {
   .header h1 {
     font-size: 20px;
   }
+}
+
+/* 卡片列表样式 */
+.card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.list-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.card-title {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.card-content {
+  padding: 8px 0;
+}
+
+.info-item {
+  display: flex;
+  margin-bottom: 6px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.info-item .label {
+  color: #666;
+  width: 70px;
+  flex-shrink: 0;
+}
+
+.info-item .value {
+  color: #333;
+  word-break: break-all;
+}
+
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  padding: 16px 0;
+  margin-top: 8px;
 }
 </style>
