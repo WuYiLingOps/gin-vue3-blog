@@ -217,13 +217,13 @@ const routes: RouteRecordRaw[] = [
         path: 'users',
         name: 'UserManage',
         component: UserManage,
-        meta: { title: '用户管理', requiresAuth: true, requiresAdmin: true }
+        meta: { title: '用户管理', requiresAuth: true, requiresAdmin: true, roles: ['super_admin'] }
       },
       {
         path: 'site',
         name: 'SiteSettings',
         component: SiteSettings,
-        meta: { title: '网站设置', requiresAuth: true, requiresAdmin: true }
+        meta: { title: '网站设置', requiresAuth: true, requiresAdmin: true, roles: ['super_admin'] }
       },
       {
         path: 'moments',
@@ -247,19 +247,19 @@ const routes: RouteRecordRaw[] = [
         path: 'friend-links',
         name: 'FriendLinkManage',
         component: FriendLinkManage,
-        meta: { title: '友链管理', requiresAuth: true, requiresAdmin: true }
+        meta: { title: '友链管理', requiresAuth: true, requiresAdmin: true, roles: ['super_admin'] }
       },
       {
         path: 'about',
         name: 'AboutManage',
         component: AboutManage,
-        meta: { title: '关于我管理', requiresAuth: true, requiresAdmin: true }
+        meta: { title: '关于我管理', requiresAuth: true, requiresAdmin: true, roles: ['super_admin'] }
       },
       {
         path: 'album',
         name: 'AlbumManage',
         component: () => import('@/pages/admin/AlbumManage.vue'),
-        meta: { title: '我的相册', requiresAuth: true, requiresAdmin: true }
+        meta: { title: '我的相册', requiresAuth: true, requiresAdmin: true, roles: ['super_admin'] }
       }
     ]
   },
