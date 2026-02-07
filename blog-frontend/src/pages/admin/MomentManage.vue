@@ -177,7 +177,7 @@ const isMobile = ref(false)
 
 // 检测移动设备
 function checkMobile() {
-  isMobile.value = window.innerWidth <= 768
+  isMobile.value = window.innerWidth <= 1100
 }
 
 const statusOptions = [
@@ -419,7 +419,7 @@ html.dark .moment-footer {
 }
 
 /* 移动端样式 */
-@media (max-width: 768px) {
+@media (max-width: 1100px) {
   .moment-item {
     padding: 12px;
   }
