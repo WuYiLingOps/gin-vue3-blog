@@ -38,23 +38,95 @@
 
     <n-tabs v-model:value="activeTab" type="line" animated>
       <n-tab-pane name="links" tab="友链管理">
-    <n-data-table 
-      :columns="columns" 
-      :data="friendLinks" 
-      :loading="loading"
-      :scroll-x="isMobile ? 1200 : undefined"
-      :single-line="false"
-      :pagination="pagination"
-      @update:page="handlePageChange"
-      @update:page-size="handlePageSizeChange"
-    />
+        <div v-if="isMobile" class="card-list">
+          <n-card v-for="link in friendLinks" :key="link.id" class="list-card" size="small">
+            <template #header>
+              <n-space align="center">
+                <n-image v-if="link.icon" :src="link.icon" width="32" height="32" object-fit="cover" style="border-radius: 4px;" />
+                <div class="card-title">{{ link.name }}</div>
+              </n-space>
+            </template>
+            <div class="card-content">
+              <div class="info-item">
+                <span class="label">网址：</span>
+                <a :href="link.url" target="_blank" class="value link">{{ link.url }}</a>
+              </div>
+              <div class="info-item">
+                <span class="label">分类：</span>
+                <span class="value">{{ link.category ? link.category.name : '-' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">描述：</span>
+                <span class="value">{{ link.description || '-' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">排序：</span>
+                <span class="value">{{ link.sort_order }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">状态：</span>
+                <n-tag :type="link.status === 1 ? 'success' : 'default'" size="small">
+                  {{ link.status === 1 ? '启用' : '禁用' }}
+                </n-tag>
+              </div>
+            </div>
+            <template #footer>
+              <n-space justify="end">
+                <n-button size="small" @click="handleEdit(link)">编辑</n-button>
+                <n-button size="small" type="error" @click="handleDelete(link.id)">删除</n-button>
+              </n-space>
+            </template>
+          </n-card>
+          <div class="pagination-container">
+            <n-pagination
+              v-model:page="currentPage"
+              :item-count="total"
+              :page-size="pageSize"
+              simple
+              @update:page="handlePageChange"
+            />
+          </div>
+        </div>
+        <n-data-table 
+          v-else
+          :columns="columns" 
+          :data="friendLinks" 
+          :loading="loading"
+          :single-line="false"
+          :pagination="pagination"
+          @update:page="handlePageChange"
+          @update:page-size="handlePageSizeChange"
+        />
       </n-tab-pane>
       <n-tab-pane name="categories" tab="友链分类">
+        <div v-if="isMobile" class="card-list">
+          <n-card v-for="category in categories" :key="category.id" class="list-card" size="small">
+            <template #header>
+              <div class="card-title">{{ category.name }}</div>
+            </template>
+            <div class="card-content">
+              <div class="info-item">
+                <span class="label">描述：</span>
+                <span class="value">{{ category.description || '-' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">排序：</span>
+                <span class="value">{{ category.sort_order }}</span>
+              </div>
+            </div>
+            <template #footer>
+              <n-space justify="end">
+                <n-button size="small" @click="handleEditCategory(category)">编辑</n-button>
+                <n-button size="small" type="error" @click="handleDeleteCategory(category.id)">删除</n-button>
+              </n-space>
+            </template>
+          </n-card>
+        </div>
         <n-data-table 
+          v-else
           :columns="categoryColumns" 
           :data="categories" 
           :loading="categoryLoading"
-          :scroll-x="isMobile ? 800 : undefined"
           :single-line="false"
         />
       </n-tab-pane>
@@ -316,7 +388,7 @@ const pagination = reactive({
 
 // 检测移动设备
 function checkMobile() {
-  isMobile.value = window.innerWidth <= 768
+  isMobile.value = window.innerWidth <= 1100
 }
 
 const formData = reactive<FriendLinkForm>({
@@ -731,8 +803,8 @@ const categoryFormRef = ref()
   font-size: 24px;
 }
 
-/* 移动端样式 */
-@media (max-width: 768px) {
+/* 移动端样式 (断点调整为 1100px) */
+@media (max-width: 1100px) {
   .header h1 {
     font-size: 20px;
   }
@@ -740,6 +812,58 @@ const categoryFormRef = ref()
   .friendlink-manage-page :deep(.n-data-table) {
     font-size: 13px;
   }
+}
+
+/* 卡片列表样式 */
+.card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.list-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.card-title {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.card-content {
+  padding: 8px 0;
+}
+
+.info-item {
+  display: flex;
+  margin-bottom: 6px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.info-item .label {
+  color: #666;
+  width: 60px;
+  flex-shrink: 0;
+}
+
+.info-item .value {
+  color: #333;
+  word-break: break-all;
+}
+
+.info-item .value.link {
+  color: #18a058;
+  text-decoration: none;
+}
+
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  padding: 16px 0;
+  margin-top: 8px;
 }
 </style>
 
