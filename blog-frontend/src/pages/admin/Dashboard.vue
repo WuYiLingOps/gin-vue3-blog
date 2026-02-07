@@ -92,7 +92,7 @@
     <!-- 系统信息 -->
     <n-card title="系统信息" style="margin-top: 24px">
       <n-descriptions :column="isMobile ? 1 : 2">
-        <n-descriptions-item label="系统版本">v6.0.2</n-descriptions-item>
+        <n-descriptions-item label="系统版本">v8.0.0</n-descriptions-item>
         <n-descriptions-item label="Vue版本">3.3.4</n-descriptions-item>
         <n-descriptions-item label="数据库">PostgreSQL</n-descriptions-item>
         <n-descriptions-item label="后端框架">Go + Gin</n-descriptions-item>
