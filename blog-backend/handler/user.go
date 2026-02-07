@@ -97,6 +97,30 @@ func (h *UserHandler) UpdateStatus(c *gin.Context) {
 	util.SuccessWithMessage(c, "状态更新成功", nil)
 }
 
+// UpdateRole 更新用户角色
+func (h *UserHandler) UpdateRole(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		util.BadRequest(c, "无效的用户ID")
+		return
+	}
+
+	var req struct {
+		Role string `json:"role" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		util.BadRequest(c, "请求参数错误")
+		return
+	}
+
+	if err := h.service.UpdateRole(uint(id), req.Role); err != nil {
+		util.Error(c, 400, err.Error())
+		return
+	}
+
+	util.SuccessWithMessage(c, "角色更新成功", nil)
+}
+
 // Delete 删除用户
 func (h *UserHandler) Delete(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
