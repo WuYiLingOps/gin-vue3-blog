@@ -70,6 +70,7 @@ func SetupRouter() *gin.Engine {
 	friendLinkCategoryHandler := handler.NewFriendLinkCategoryHandler()
 	calendarHandler := handler.NewCalendarHandler()
 	albumHandler := handler.NewAlbumHandler()
+	operationLogHandler := handler.NewOperationLogHandler()
 
 	// 健康检查接口（用于服务监控和负载均衡器健康检查）
 	r.GET("/health", func(c *gin.Context) {
@@ -92,7 +93,7 @@ func SetupRouter() *gin.Engine {
 		setupSettingRoutes(api, settingHandler)                                                                                                                                                                                           // 系统设置路由
 		setupMomentRoutes(api, momentHandler)                                                                                                                                                                                             // 说说路由
 		setupChatRoutes(api, chatHandler)                                                                                                                                                                                                 // 聊天室路由
-		setupAdminRoutes(api, userHandler, postHandler, commentHandler, dashboardHandler, momentHandler, ipBlacklistHandler, ipWhitelistHandler, chatHandler, friendLinkHandler, friendLinkCategoryHandler, settingHandler, albumHandler) // 管理后台路由
+		setupAdminRoutes(api, userHandler, postHandler, commentHandler, dashboardHandler, momentHandler, ipBlacklistHandler, ipWhitelistHandler, chatHandler, friendLinkHandler, friendLinkCategoryHandler, settingHandler, albumHandler, operationLogHandler) // 管理后台路由
 	}
 
 	return r
@@ -384,7 +385,8 @@ func setupChatRoutes(api *gin.RouterGroup, h *handler.ChatHandler) {
 //   - friendLinkCategoryHandler: 友链分类处理器实例
 //   - settingHandler: 系统设置处理器实例
 //   - albumHandler: 相册处理器实例
-func setupAdminRoutes(api *gin.RouterGroup, userHandler *handler.UserHandler, postHandler *handler.PostHandler, commentHandler *handler.CommentHandler, dashboardHandler *handler.DashboardHandler, momentHandler *handler.MomentHandler, ipBlacklistHandler *handler.IPBlacklistHandler, ipWhitelistHandler *handler.IPWhitelistHandler, chatHandler *handler.ChatHandler, friendLinkHandler *handler.FriendLinkHandler, friendLinkCategoryHandler *handler.FriendLinkCategoryHandler, settingHandler *handler.SettingHandler, albumHandler *handler.AlbumHandler) {
+//   - operationLogHandler: 操作日志处理器实例
+func setupAdminRoutes(api *gin.RouterGroup, userHandler *handler.UserHandler, postHandler *handler.PostHandler, commentHandler *handler.CommentHandler, dashboardHandler *handler.DashboardHandler, momentHandler *handler.MomentHandler, ipBlacklistHandler *handler.IPBlacklistHandler, ipWhitelistHandler *handler.IPWhitelistHandler, chatHandler *handler.ChatHandler, friendLinkHandler *handler.FriendLinkHandler, friendLinkCategoryHandler *handler.FriendLinkCategoryHandler, settingHandler *handler.SettingHandler, albumHandler *handler.AlbumHandler, operationLogHandler *handler.OperationLogHandler) {
 	admin := api.Group("/admin")
 	// admin 路由基础权限：admin 或 super_admin
 	admin.Use(middleware.AuthMiddleware(), middleware.AdminMiddleware())
@@ -468,5 +470,15 @@ func setupAdminRoutes(api *gin.RouterGroup, userHandler *handler.UserHandler, po
 		admin.POST("/chat/ban", chatHandler.BanIP)     // 封禁IP
 		admin.GET("/chat/settings", chatHandler.GetChatSettings)
 		admin.PUT("/chat/settings", chatHandler.UpdateChatSettings)
+
+		// 操作日志管理（仅超级管理员）
+		operationLogs := admin.Group("/operation-logs")
+		operationLogs.Use(middleware.RoleRequiredMiddleware(constant.RoleSuperAdmin))
+		{
+			operationLogs.GET("", operationLogHandler.List)
+			operationLogs.GET("/:id", operationLogHandler.GetByID)
+			operationLogs.DELETE("/:id", operationLogHandler.Delete)
+			operationLogs.POST("/batch-delete", operationLogHandler.DeleteBatch)
+		}
 	}
 }
