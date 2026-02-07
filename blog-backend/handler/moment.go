@@ -101,6 +101,14 @@ func (h *MomentHandler) Create(c *gin.Context) {
 		return
 	}
 
+	// 记录操作日志
+	momentID := moment.ID
+	contentPreview := contentVal
+	if len(contentPreview) > 50 {
+		contentPreview = contentPreview[:50] + "..."
+	}
+	util.LogOperation(c, "create", "moment", &momentID, contentPreview, "发布说说："+contentPreview)
+
 	util.SuccessWithMessage(c, "说说发布成功", moment)
 }
 
@@ -123,10 +131,24 @@ func (h *MomentHandler) Update(c *gin.Context) {
 		return
 	}
 
+	// 先获取说说信息用于日志记录
+	moment, _ := h.service.GetByID(uint(id))
+	var contentPreview string
+	if moment != nil {
+		contentPreview = moment.Content
+		if len(contentPreview) > 50 {
+			contentPreview = contentPreview[:50] + "..."
+		}
+	}
+
 	if err := h.service.Update(uint(id), req.Content, req.Images, req.Status); err != nil {
 		util.Error(c, 500, err.Error())
 		return
 	}
+
+	// 记录操作日志
+	momentID := uint(id)
+	util.LogOperation(c, "update", "moment", &momentID, contentPreview, "更新说说："+contentPreview)
 
 	util.SuccessWithMessage(c, "更新成功", nil)
 }
@@ -139,10 +161,24 @@ func (h *MomentHandler) Delete(c *gin.Context) {
 		return
 	}
 
+	// 先获取说说信息用于日志记录
+	moment, _ := h.service.GetByID(uint(id))
+	var contentPreview string
+	if moment != nil {
+		contentPreview = moment.Content
+		if len(contentPreview) > 50 {
+			contentPreview = contentPreview[:50] + "..."
+		}
+	}
+
 	if err := h.service.Delete(uint(id)); err != nil {
 		util.Error(c, 500, err.Error())
 		return
 	}
+
+	// 记录操作日志
+	momentID := uint(id)
+	util.LogOperation(c, "delete", "moment", &momentID, contentPreview, "删除说说："+contentPreview)
 
 	util.SuccessWithMessage(c, "删除成功", nil)
 }
