@@ -116,7 +116,52 @@
 
       <!-- 消息列表 -->
       <div class="content-area">
+        <div v-if="isMobile" class="card-list">
+          <n-card v-for="msg in messages" :key="msg.id" class="list-card" size="small">
+            <template #header>
+              <div class="card-header-content">
+                <div class="header-left">
+                  <n-checkbox 
+                    :checked="selectedRowKeys.includes(msg.id)"
+                    @update:checked="(checked) => handleCardSelect(msg.id, checked)"
+                  />
+                  <n-space align="center" size="small">
+                    <n-tag v-if="msg.is_broadcast" type="error" size="tiny">系统</n-tag>
+                    <span class="user-name">{{ msg.username }}</span>
+                  </n-space>
+                </div>
+                <n-tag v-if="msg.is_broadcast" :type="getBroadcastTargetType(msg.target)" size="tiny">
+                  {{ getBroadcastTargetLabel(msg.target) }}
+                </n-tag>
+                <n-tag v-else size="tiny" :bordered="false" style="color: #999">普通消息</n-tag>
+              </div>
+            </template>
+            <div class="card-content">
+              <div class="message-text">{{ msg.content }}</div>
+              <div class="info-item">
+                <span class="label">IP：</span>
+                <span class="value">{{ msg.ip }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">时间：</span>
+                <span class="value">{{ formatDate(msg.created_at, 'YYYY-MM-DD HH:mm:ss') }}</span>
+              </div>
+            </div>
+            <template #footer>
+              <n-space justify="end">
+                <n-popconfirm @positive-click="handleDelete(msg.id)">
+                  <template #trigger>
+                    <n-button size="tiny" type="error">删除</n-button>
+                  </template>
+                  确定删除这条消息吗？
+                </n-popconfirm>
+              </n-space>
+            </template>
+          </n-card>
+        </div>
+
         <n-data-table
+          v-else
           :columns="columns"
           :data="messages"
           :loading="loading"
@@ -132,7 +177,8 @@
             v-model:page="currentPage"
             :page-count="totalPages"
             :page-size="pageSize"
-            :page-slot="7"
+            :page-slot="isMobile ? 3 : 7"
+            :simple="isMobile"
             @update:page="handlePageChange"
           />
         </div>
@@ -212,6 +258,7 @@ import {
   NText,
   NEmpty,
   NTag,
+  NCheckbox,
   useMessage,
   useDialog,
   type DataTableColumns
@@ -227,6 +274,7 @@ import {
   updateChatSettings
 } from '@/api/chat'
 import type { ChatMessage, OnlineUser, OnlineInfo } from '@/api/chat'
+import { formatDate } from '@/utils/format'
 
 const message = useMessage()
 const dialog = useDialog()
@@ -234,10 +282,52 @@ const dialog = useDialog()
 // 数据
 const messages = ref<ChatMessage[]>([])
 const loading = ref(false)
+const isMobile = ref(false)
 const onlineInfo = ref<OnlineInfo>({
   online_count: 0,
   online_users: []
 })
+
+// 检测移动设备
+function checkMobile() {
+  isMobile.value = window.innerWidth <= 1100
+}
+
+// 辅助函数：获取广播目标标签
+function getBroadcastTargetLabel(target?: string) {
+  const targetMap: Record<string, string> = {
+    'announcement': '公告栏',
+    'chat': '聊天室',
+    'both': '同时'
+  }
+  return targetMap[target || 'announcement'] || '未知'
+}
+
+// 辅助函数：获取广播目标标签类型
+function getBroadcastTargetType(target?: string): 'info' | 'success' | 'warning' | 'error' | 'default' {
+  const targetMap: Record<string, 'info' | 'success' | 'warning' | 'error' | 'default'> = {
+    'announcement': 'info',
+    'chat': 'success',
+    'both': 'warning'
+  }
+  return targetMap[target || 'announcement'] || 'default'
+}
+
+// 移动端卡片选择处理
+function handleCardSelect(id: number, checked: boolean) {
+  const keys = [...selectedRowKeys.value]
+  if (checked) {
+    if (!keys.includes(id)) {
+      keys.push(id)
+    }
+  } else {
+    const index = keys.indexOf(id)
+    if (index > -1) {
+      keys.splice(index, 1)
+    }
+  }
+  selectedRowKeys.value = keys
+}
 
 // 分页 - 固定每页显示15条消息
 const currentPage = ref(1)
@@ -524,6 +614,8 @@ let onlineInfoTimer: number | null = null
 
 // 初始化
 onMounted(() => {
+  checkMobile()
+  window.addEventListener('resize', checkMobile)
   fetchMessages()
   fetchOnlineInfo()
   fetchChatSettingsData()
@@ -539,6 +631,7 @@ onMounted(() => {
 
 // 组件卸载时清理定时器
 onBeforeUnmount(() => {
+  window.removeEventListener('resize', checkMobile)
   if (onlineInfoTimer !== null) {
     clearInterval(onlineInfoTimer)
     onlineInfoTimer = null
@@ -585,12 +678,88 @@ onBeforeUnmount(() => {
   box-sizing: border-box;
 }
 
-/* 移动端样式 */
-@media (max-width: 768px) {
-  .pagination-wrapper {
-    bottom: 8px;
-    right: 16px;
+/* 移动端样式 (断点调整为 1100px) */
+@media (max-width: 1100px) {
+  .chat-manage {
+    padding: 12px;
   }
+
+  .pagination-wrapper {
+    position: relative;
+    margin-top: 20px;
+    bottom: auto;
+    right: auto;
+    justify-content: center;
+  }
+
+  .stats-section {
+    flex-direction: column;
+    gap: 16px;
+  }
+}
+
+/* 卡片列表样式 */
+.card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.list-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.card-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-name {
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.card-content {
+  padding: 4px 0;
+}
+
+.message-text {
+  background-color: #f9f9f9;
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #333;
+  word-break: break-all;
+}
+
+.info-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 6px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.info-item .label {
+  color: #888;
+  width: 45px;
+  flex-shrink: 0;
+}
+
+.info-item .value {
+  color: #555;
+  flex: 1;
 }
 </style>
 
