@@ -20,11 +20,43 @@
       </n-button>
     </div>
 
+    <div v-if="isMobile" class="card-list">
+      <n-card v-for="tag in tags" :key="tag.id" class="list-card" size="small">
+        <template #header>
+          <n-space align="center">
+            <n-tag :color="{ color: tag.color, textColor: tag.text_color || '#fff' }" size="small">
+              {{ tag.name }}
+            </n-tag>
+          </n-space>
+        </template>
+        <div class="card-content">
+          <div class="info-item">
+            <span class="label">文章数：</span>
+            <span class="value">{{ tag.post_count }} 篇</span>
+          </div>
+          <div class="info-item">
+            <span class="label">背景色：</span>
+            <span class="value">{{ tag.color }}</span>
+          </div>
+          <div v-if="tag.font_size" class="info-item">
+            <span class="label">字号：</span>
+            <span class="value">{{ tag.font_size }}px</span>
+          </div>
+        </div>
+        <template #footer>
+          <n-space justify="end" size="small">
+            <n-button size="small" @click="handleEdit(tag)">编辑</n-button>
+            <n-button size="small" type="error" @click="handleDelete(tag.id)">删除</n-button>
+          </n-space>
+        </template>
+      </n-card>
+    </div>
+
     <n-data-table 
+      v-else
       :columns="columns" 
       :data="tags" 
       :loading="loading"
-      :scroll-x="isMobile ? 600 : undefined"
       :single-line="false"
     />
 
@@ -94,7 +126,7 @@ const isMobile = ref(false)
 
 // 检测移动设备
 function checkMobile() {
-  isMobile.value = window.innerWidth <= 768
+  isMobile.value = window.innerWidth <= 1100
 }
 
 const formData = reactive<TagForm>({
@@ -248,8 +280,8 @@ function resetForm() {
   font-size: 24px;
 }
 
-/* 移动端样式 */
-@media (max-width: 768px) {
+/* 移动端样式 (断点调整为 1100px) */
+@media (max-width: 1100px) {
   .header h1 {
     font-size: 20px;
   }
@@ -257,6 +289,42 @@ function resetForm() {
   .tag-manage-page :deep(.n-data-table) {
     font-size: 13px;
   }
+}
+
+/* 卡片列表样式 */
+.card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.list-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.card-content {
+  padding: 8px 0;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.info-item .label {
+  color: #666;
+  width: 60px;
+  flex-shrink: 0;
+}
+
+.info-item .value {
+  color: #333;
+  word-break: break-all;
 }
 </style>
 
