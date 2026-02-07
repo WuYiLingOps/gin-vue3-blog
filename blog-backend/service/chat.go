@@ -11,6 +11,7 @@
 package service
 
 import (
+	"blog-backend/constant"
 	"blog-backend/model"
 	"blog-backend/repository"
 	"encoding/json"
@@ -384,8 +385,8 @@ func (c *Client) ReadPump() {
 				continue
 			}
 
-			// 全员禁言校验：仅管理员可发言
-			if c.Role != "admin" && c.Hub.IsChatMuted() {
+			// 全员禁言校验：仅具备管理员权限的用户可发言
+			if !constant.IsAdminRole(c.Role) && c.Hub.IsChatMuted() {
 				wsMsg := WebSocketMessage{
 					Type: "system",
 					Data: map[string]interface{}{
