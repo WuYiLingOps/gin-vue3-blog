@@ -16,6 +16,7 @@ import (
 	"regexp"
 	"time"
 
+	"blog-backend/constant"
 	"blog-backend/db"
 	"blog-backend/model"
 	"blog-backend/service"
@@ -72,9 +73,9 @@ func (h *BlogHandler) GetAuthorProfile(c *gin.Context) {
 		// 如果解析失败则继续从数据库获取
 	}
 
-	// 获取管理员用户（博主）
+	// 获取系统拥有者（super_admin）作为博主
 	var author model.User
-	err := db.DB.Where("role = ? AND status = ?", "admin", 1).First(&author).Error
+	err := db.DB.Where("role = ? AND status = ?", constant.RoleSuperAdmin, 1).First(&author).Error
 	if err != nil {
 		// 如果没有管理员，获取第一个启用的用户
 		err = db.DB.Where("status = ?", 1).Order("id ASC").First(&author).Error

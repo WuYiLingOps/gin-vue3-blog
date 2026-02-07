@@ -89,12 +89,63 @@ func (h *UserHandler) UpdateStatus(c *gin.Context) {
 		return
 	}
 
+	// 先获取用户信息用于日志记录
+	user, _ := h.service.GetByID(uint(id))
+	var username string
+	if user != nil {
+		username = user.Username
+	}
+
+	statusText := "启用"
+	if *req.Status == 0 {
+		statusText = "禁用"
+	}
+
 	if err := h.service.UpdateStatus(uint(id), *req.Status); err != nil {
 		util.Error(c, 400, err.Error())
 		return
 	}
 
+	// 记录操作日志
+	userID := uint(id)
+	util.LogOperation(c, "update", "user", &userID, username, "更新用户状态："+username+"（"+statusText+"）")
+
 	util.SuccessWithMessage(c, "状态更新成功", nil)
+}
+
+// UpdateRole 更新用户角色
+func (h *UserHandler) UpdateRole(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		util.BadRequest(c, "无效的用户ID")
+		return
+	}
+
+	var req struct {
+		Role string `json:"role" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		util.BadRequest(c, "请求参数错误")
+		return
+	}
+
+	// 先获取用户信息用于日志记录
+	user, _ := h.service.GetByID(uint(id))
+	var username string
+	if user != nil {
+		username = user.Username
+	}
+
+	if err := h.service.UpdateRole(uint(id), req.Role); err != nil {
+		util.Error(c, 400, err.Error())
+		return
+	}
+
+	// 记录操作日志
+	userID := uint(id)
+	util.LogOperation(c, "update", "user", &userID, username, "更新用户角色："+username+"（角色："+req.Role+"）")
+
+	util.SuccessWithMessage(c, "角色更新成功", nil)
 }
 
 // Delete 删除用户
@@ -105,10 +156,21 @@ func (h *UserHandler) Delete(c *gin.Context) {
 		return
 	}
 
+	// 先获取用户信息用于日志记录
+	user, _ := h.service.GetByID(uint(id))
+	var username string
+	if user != nil {
+		username = user.Username
+	}
+
 	if err := h.service.Delete(uint(id)); err != nil {
 		util.Error(c, 400, err.Error())
 		return
 	}
+
+	// 记录操作日志
+	userID := uint(id)
+	util.LogOperation(c, "delete", "user", &userID, username, "删除用户："+username)
 
 	util.SuccessWithMessage(c, "用户删除成功", nil)
 }

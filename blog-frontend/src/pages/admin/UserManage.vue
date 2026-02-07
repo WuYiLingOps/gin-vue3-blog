@@ -58,7 +58,7 @@
 import { ref, computed, onMounted, onUnmounted, h } from 'vue'
 import { useMessage, useDialog, NButton, NTag, NSpace, NAvatar, NCard, NText, NSwitch } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
-import { getUsers, updateUserStatus, deleteUser, getRegisterSettings, updateRegisterSettings } from '@/api/user'
+import { getUsers, updateUserStatus, updateUserRole, deleteUser, getRegisterSettings, updateRegisterSettings } from '@/api/user'
 import { formatDate } from '@/utils/format'
 import type { User } from '@/types/auth'
 
@@ -103,13 +103,23 @@ const columns: DataTableColumns<User> = [
   {
     title: '角色',
     key: 'role',
-    width: 100,
-    render: row =>
-      h(
+    width: 120,
+    render: row => {
+      let tagType: 'error' | 'warning' | 'info' = 'info'
+      let roleText = '用户'
+      if (row.role === 'super_admin') {
+        tagType = 'error'
+        roleText = '超级管理员'
+      } else if (row.role === 'admin') {
+        tagType = 'warning'
+        roleText = '管理员'
+      }
+      return h(
         NTag,
-        { type: row.role === 'admin' ? 'error' : 'info', size: 'small' },
-        { default: () => (row.role === 'admin' ? '管理员' : '用户') }
+        { type: tagType, size: 'small' },
+        { default: () => roleText }
       )
+    }
   },
   {
     title: '状态',
@@ -131,29 +141,48 @@ const columns: DataTableColumns<User> = [
   {
     title: '操作',
     key: 'actions',
-    width: 180,
-    render: row =>
-      h(NSpace, null, {
+    width: 280,
+    render: row => {
+      const isSuperAdmin = row.role === 'super_admin'
+      const isAdmin = row.role === 'admin'
+      
+      return h(NSpace, null, {
         default: () => [
+          // 状态切换按钮（super_admin 禁用）
           h(
             NButton,
             {
               size: 'small',
+              disabled: isSuperAdmin,
               onClick: () => handleToggleStatus(row)
             },
             { default: () => (row.status === 1 ? '禁用' : '启用') }
           ),
+          // 角色管理按钮（super_admin 禁用）
+          h(
+            NButton,
+            {
+              size: 'small',
+              type: isAdmin ? 'warning' : 'info',
+              disabled: isSuperAdmin,
+              onClick: () => handleToggleRole(row)
+            },
+            { default: () => (isAdmin ? '取消管理员' : '设为管理员') }
+          ),
+          // 删除按钮（super_admin 禁用）
           h(
             NButton,
             {
               size: 'small',
               type: 'error',
+              disabled: isSuperAdmin,
               onClick: () => handleDelete(row)
             },
             { default: () => '删除' }
           )
         ]
       })
+    }
   }
 ]
 
@@ -224,7 +253,35 @@ function handleToggleStatus(user: User) {
   })
 }
 
+function handleToggleRole(user: User) {
+  const isAdmin = user.role === 'admin'
+  const newRole = isAdmin ? 'user' : 'admin'
+  const action = isAdmin ? '取消管理员身份' : '设为管理员'
+  
+  dialog.warning({
+    title: `确认${action}`,
+    content: `确定要将用户"${user.nickname || user.username}"${action}吗？`,
+    positiveText: '确定',
+    negativeText: '取消',
+    onPositiveClick: async () => {
+      try {
+        await updateUserRole(user.id, newRole)
+        message.success(`${action}成功`)
+        fetchUsers()
+      } catch (error: any) {
+        message.error(error.message || '操作失败')
+      }
+    }
+  })
+}
+
 function handleDelete(user: User) {
+  // 前端双重保护：禁止删除 super_admin
+  if (user.role === 'super_admin') {
+    message.error('禁止删除超级管理员账号')
+    return
+  }
+  
   dialog.error({
     title: '确认删除',
     content: `确定要删除用户"${user.nickname || user.username}"吗？此操作不可恢复！`,

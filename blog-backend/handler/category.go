@@ -44,6 +44,10 @@ func (h *CategoryHandler) Create(c *gin.Context) {
 		return
 	}
 
+	// 记录操作日志
+	categoryID := category.ID
+	util.LogOperation(c, "create", "category", &categoryID, category.Name, "创建分类："+category.Name)
+
 	util.SuccessWithMessage(c, "分类创建成功", category)
 }
 
@@ -84,6 +88,10 @@ func (h *CategoryHandler) Update(c *gin.Context) {
 		return
 	}
 
+	// 记录操作日志
+	categoryID := category.ID
+	util.LogOperation(c, "update", "category", &categoryID, category.Name, "更新分类："+category.Name)
+
 	util.SuccessWithMessage(c, "分类更新成功", category)
 }
 
@@ -95,10 +103,21 @@ func (h *CategoryHandler) Delete(c *gin.Context) {
 		return
 	}
 
+	// 先获取分类信息用于日志记录
+	category, _ := h.service.GetByID(uint(id))
+	var categoryName string
+	if category != nil {
+		categoryName = category.Name
+	}
+
 	if err := h.service.Delete(uint(id)); err != nil {
 		util.Error(c, 400, err.Error())
 		return
 	}
+
+	// 记录操作日志
+	categoryID := uint(id)
+	util.LogOperation(c, "delete", "category", &categoryID, categoryName, "删除分类："+categoryName)
 
 	util.SuccessWithMessage(c, "分类删除成功", nil)
 }

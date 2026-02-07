@@ -227,7 +227,7 @@ import { useMessage, useDialog, NButton, NTag, NSpace } from 'naive-ui'
 import type { DataTableColumns, FormInst, UploadFileInfo } from 'naive-ui'
 import { AddOutline, DocumentOutline } from '@vicons/ionicons5'
 import { getPosts, createPost, deletePost, exportPost } from '@/api/post'
-import { useBlogStore } from '@/stores'
+import { useBlogStore, useAuthStore } from '@/stores'
 import { formatDate } from '@/utils/format'
 import type { Post, PostForm } from '@/types/blog'
 import MarkdownEditor from '@/components/MarkdownEditor.vue'
@@ -237,6 +237,7 @@ const router = useRouter()
 const message = useMessage()
 const dialog = useDialog()
 const blogStore = useBlogStore()
+const authStore = useAuthStore()
 
 const loading = ref(false)
 const submitting = ref(false)
@@ -352,8 +353,15 @@ const desktopColumns: DataTableColumns<Post> = [
     title: '操作',
     key: 'actions',
     width: 220,
-    render: row =>
-      h(NSpace, null, {
+    render: row => {
+      // 检查删除权限：普通管理员不能删除超级管理员创建的文章
+      const currentUserRole = authStore.user?.role || 'user'
+      const postAuthorRole = row.user?.role || 'user'
+      const canDelete = currentUserRole === 'super_admin' || 
+                       (currentUserRole === 'admin' && postAuthorRole !== 'super_admin') ||
+                       (currentUserRole === 'user' && row.user_id === authStore.user?.id)
+      
+      return h(NSpace, null, {
         default: () => [
           h(
             NButton,
@@ -362,7 +370,12 @@ const desktopColumns: DataTableColumns<Post> = [
           ),
           h(
             NButton,
-            { size: 'small', type: 'error', onClick: () => handleDelete(row.id) },
+            { 
+              size: 'small', 
+              type: 'error', 
+              disabled: !canDelete,
+              onClick: () => handleDelete(row.id) 
+            },
             { default: () => '删除' }
           ),
           h(
@@ -372,6 +385,7 @@ const desktopColumns: DataTableColumns<Post> = [
           )
         ]
       })
+    }
   }
 ]
 
@@ -729,6 +743,22 @@ async function handleSubmit() {
 }
 
 function handleDelete(id: number) {
+  // 查找要删除的文章
+  const post = posts.value.find(p => p.id === id)
+  if (!post) {
+    message.error('文章不存在')
+    return
+  }
+
+  // 前端权限检查：普通管理员不能删除超级管理员创建的文章
+  const currentUserRole = authStore.user?.role || 'user'
+  const postAuthorRole = post.user?.role || 'user'
+  
+  if (currentUserRole === 'admin' && postAuthorRole === 'super_admin') {
+    message.error('普通管理员无权删除超级管理员创建的文章')
+    return
+  }
+
   dialog.warning({
     title: '确认删除',
     content: '确定要删除这篇文章吗？删除后无法恢复！',

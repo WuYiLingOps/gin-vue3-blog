@@ -12,6 +12,7 @@ package middleware
 
 import (
 	"blog-backend/config"
+	"blog-backend/constant"
 	"blog-backend/db"
 	"blog-backend/model"
 	"blog-backend/util"
@@ -343,7 +344,10 @@ func shouldSkipRateLimit(c *gin.Context, ip string) bool {
 func isAdminUser(c *gin.Context) bool {
 	// 优先从上下文获取（如果 OptionalAuthMiddleware 已执行）
 	if role, exists := c.Get("role"); exists {
-		return role == "admin"
+		if r, ok := role.(string); ok {
+			return constant.IsAdminRole(r)
+		}
+		return false
 	}
 
 	// 如果上下文中没有，尝试从 Header 解析 Token
@@ -364,8 +368,8 @@ func isAdminUser(c *gin.Context) bool {
 		return false
 	}
 
-	// 检查是否是管理员
-	return claims.Role == "admin"
+	// 检查是否是具备管理员权限的角色
+	return constant.IsAdminRole(claims.Role)
 }
 
 // isIPInWhitelist 检查 IP 是否在白名单中（配置文件 + 数据库）

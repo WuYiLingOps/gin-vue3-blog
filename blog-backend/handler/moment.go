@@ -17,6 +17,8 @@ import (
 	"strconv"
 	"strings"
 
+	"blog-backend/constant"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -99,6 +101,14 @@ func (h *MomentHandler) Create(c *gin.Context) {
 		return
 	}
 
+	// 记录操作日志
+	momentID := moment.ID
+	contentPreview := contentVal
+	if len(contentPreview) > 50 {
+		contentPreview = contentPreview[:50] + "..."
+	}
+	util.LogOperation(c, "create", "moment", &momentID, contentPreview, "发布说说："+contentPreview)
+
 	util.SuccessWithMessage(c, "说说发布成功", moment)
 }
 
@@ -121,10 +131,24 @@ func (h *MomentHandler) Update(c *gin.Context) {
 		return
 	}
 
+	// 先获取说说信息用于日志记录
+	moment, _ := h.service.GetByID(uint(id))
+	var contentPreview string
+	if moment != nil {
+		contentPreview = moment.Content
+		if len(contentPreview) > 50 {
+			contentPreview = contentPreview[:50] + "..."
+		}
+	}
+
 	if err := h.service.Update(uint(id), req.Content, req.Images, req.Status); err != nil {
 		util.Error(c, 500, err.Error())
 		return
 	}
+
+	// 记录操作日志
+	momentID := uint(id)
+	util.LogOperation(c, "update", "moment", &momentID, contentPreview, "更新说说："+contentPreview)
 
 	util.SuccessWithMessage(c, "更新成功", nil)
 }
@@ -137,10 +161,24 @@ func (h *MomentHandler) Delete(c *gin.Context) {
 		return
 	}
 
+	// 先获取说说信息用于日志记录
+	moment, _ := h.service.GetByID(uint(id))
+	var contentPreview string
+	if moment != nil {
+		contentPreview = moment.Content
+		if len(contentPreview) > 50 {
+			contentPreview = contentPreview[:50] + "..."
+		}
+	}
+
 	if err := h.service.Delete(uint(id)); err != nil {
 		util.Error(c, 500, err.Error())
 		return
 	}
+
+	// 记录操作日志
+	momentID := uint(id)
+	util.LogOperation(c, "delete", "moment", &momentID, contentPreview, "删除说说："+contentPreview)
 
 	util.SuccessWithMessage(c, "删除成功", nil)
 }
@@ -159,15 +197,16 @@ func (h *MomentHandler) GetByID(c *gin.Context) {
 		return
 	}
 
-	// 权限校验：私密说说仅作者或管理员可见
-	role, _ := c.Get("role")
+	// 权限校验：私密说说仅作者或具备管理员权限的用户可见
+	roleVal, _ := c.Get("role")
+	role, _ := roleVal.(string)
 	var userID *uint
 	if uid, exists := c.Get("user_id"); exists {
 		uidVal := uid.(uint)
 		userID = &uidVal
 	}
 	if moment.Status == 0 { // 私密
-		if role != "admin" && (userID == nil || *userID != moment.UserID) {
+		if !constant.IsAdminRole(role) && (userID == nil || *userID != moment.UserID) {
 			util.Forbidden(c, "无权查看该说说")
 			return
 		}
@@ -189,9 +228,10 @@ func (h *MomentHandler) List(c *gin.Context) {
 		status = &statusVal
 	}
 
-	// 权限：管理员可查看全部（含私密），普通用户/游客仅公开
-	role, _ := c.Get("role")
-	if role != "admin" {
+	// 权限：具备管理员权限的用户可查看全部（含私密），普通用户/游客仅公开
+	roleVal, _ := c.Get("role")
+	role, _ := roleVal.(string)
+	if !constant.IsAdminRole(role) {
 		publicStatus := 1
 		status = &publicStatus
 	}

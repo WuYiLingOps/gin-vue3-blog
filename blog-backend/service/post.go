@@ -18,6 +18,7 @@ import (
 	"strings"
 	"time"
 
+	"blog-backend/constant"
 	"blog-backend/db"
 	"blog-backend/model"
 	"blog-backend/repository"
@@ -226,7 +227,7 @@ func (s *PostService) GetBySlug(slug string, userID *uint, role string, ip strin
 func (s *PostService) checkPostPermission(post *model.Post, userID *uint, role string, ip string) (*model.Post, error) {
 
 	// 私密/草稿仅作者或管理员可见
-	if (post.Visibility == 0 || post.Status == 0) && role != "admin" {
+	if (post.Visibility == 0 || post.Status == 0) && !constant.IsAdminRole(role) {
 		if userID == nil || *userID != post.UserID {
 			return nil, errors.New("无权限查看")
 		}
@@ -260,7 +261,7 @@ func (s *PostService) Update(id, userID uint, role string, req *UpdatePostReques
 	}
 
 	// 权限检查：只有作者和管理员可以修改
-	if post.UserID != userID && role != "admin" {
+	if post.UserID != userID && !constant.IsAdminRole(role) {
 		return nil, errors.New("无权限修改此文章")
 	}
 
@@ -455,12 +456,23 @@ func (s *PostService) Delete(id, userID uint, role string) error {
 	}
 
 	// 权限检查
-	if post.UserID != userID && role != "admin" {
+	// 1. 作者可以删除自己的文章
+	if post.UserID == userID {
+		// 作者可以删除自己的文章，继续执行
+	} else if constant.IsAdminRole(role) {
+		// 2. 管理员可以删除文章，但需要检查权限
+		// 如果当前用户是普通管理员（admin），且文章作者是超级管理员（super_admin），则禁止删除
+		if role == constant.RoleAdmin && post.User.Role == constant.RoleSuperAdmin {
+			return errors.New("普通管理员无权删除超级管理员创建的文章")
+		}
+		// 超级管理员（super_admin）可以删除任何文章，包括普通管理员创建的文章
+	} else {
+		// 3. 普通用户无权限删除他人文章
 		return errors.New("无权限删除此文章")
 	}
 
 	// 使用事务确保数据一致性
-	return s.postRepo.Transaction(func(tx *gorm.DB) error {
+	err = s.postRepo.Transaction(func(tx *gorm.DB) error {
 		// 减少分类文章数
 		if post.Status == 1 {
 			if err := s.categoryRepo.DecrementPostCountTx(tx, post.CategoryID); err != nil {
@@ -473,19 +485,6 @@ func (s *PostService) Delete(id, userID uint, role string) error {
 					if err := s.tagRepo.DecrementPostCountTx(tx, tag.ID); err != nil {
 						return err
 					}
-
-					// 删除成功后，清理与文章列表相关的缓存
-					go func() {
-						ctx := context.Background()
-						for _, limit := range []int{5, 10, 20} {
-							key := fmt.Sprintf("post:recent:%d", limit)
-							db.RDB.Del(ctx, key)
-						}
-						db.RDB.Del(ctx, "blog:author_profile")
-						db.RDB.Del(ctx, "tag:stats:top10")
-					}()
-
-					return nil
 				}
 			}
 		}
@@ -493,6 +492,23 @@ func (s *PostService) Delete(id, userID uint, role string) error {
 		// 删除文章
 		return s.postRepo.DeleteTx(tx, id)
 	})
+
+	if err != nil {
+		return err
+	}
+
+	// 删除成功后，清理与文章列表相关的缓存（异步执行，不阻塞主流程）
+	go func() {
+		ctx := context.Background()
+		for _, limit := range []int{5, 10, 20} {
+			key := fmt.Sprintf("post:recent:%d", limit)
+			db.RDB.Del(ctx, key)
+		}
+		db.RDB.Del(ctx, "blog:author_profile")
+		db.RDB.Del(ctx, "tag:stats:top10")
+	}()
+
+	return nil
 }
 
 // List 获取文章列表
@@ -594,8 +610,8 @@ func (s *PostService) GetRecentPosts(limit int, userID *uint, role string) ([]mo
 	if limit < 1 || limit > 50 {
 		limit = 10
 	}
-	// 对公开接口的最新文章列表做缓存（管理员视图通常不缓存）
-	if role == "" || role == "user" {
+	// 对公开接口的最新文章列表做缓存（管理员等角色视图通常不缓存）
+	if role == "" || role == constant.RoleUser {
 		ctx := context.Background()
 		cacheKey := fmt.Sprintf("post:recent:%d", limit)
 

@@ -16,6 +16,7 @@ import (
 	"strings"
 
 	"blog-backend/config"
+	"blog-backend/constant"
 	"blog-backend/model"
 	"blog-backend/repository"
 	"blog-backend/util"
@@ -357,8 +358,8 @@ func (s *CommentService) Update(id, userID uint, role string, req *UpdateComment
 		return nil, errors.New("评论不存在")
 	}
 
-	// 权限检查：只有作者和管理员可以修改
-	if comment.UserID != userID && role != "admin" {
+	// 权限检查：只有作者和具备管理员权限的用户可以修改
+	if comment.UserID != userID && !constant.IsAdminRole(role) {
 		return nil, errors.New("无权限修改此评论")
 	}
 
@@ -380,8 +381,8 @@ func (s *CommentService) Delete(id, userID uint, role string) error {
 		return errors.New("评论不存在")
 	}
 
-	// 权限检查：只有作者和管理员可以删除
-	if comment.UserID != userID && role != "admin" {
+	// 权限检查：只有作者和具备管理员权限的用户可以删除
+	if comment.UserID != userID && !constant.IsAdminRole(role) {
 		return errors.New("无权限删除此评论")
 	}
 

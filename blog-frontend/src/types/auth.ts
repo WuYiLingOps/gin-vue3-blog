@@ -18,7 +18,7 @@ export interface User {
   nickname: string
   avatar: string
   bio: string
-  role: 'admin' | 'user'
+  role: 'super_admin' | 'admin' | 'user'
   status: number
   created_at: string
   updated_at: string

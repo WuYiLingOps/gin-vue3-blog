@@ -13,6 +13,7 @@ package service
 import (
 	"errors"
 
+	"blog-backend/constant"
 	"blog-backend/model"
 	"blog-backend/repository"
 
@@ -64,10 +65,49 @@ func (s *UserService) UpdateStatus(id uint, status int) error {
 	return s.repo.UpdateStatus(id, status)
 }
 
+// UpdateRole 更新用户角色
+func (s *UserService) UpdateRole(id uint, role string) error {
+	// 验证角色值
+	if role != constant.RoleSuperAdmin && role != constant.RoleAdmin && role != constant.RoleUser {
+		return errors.New("无效的角色值")
+	}
+
+	// 检查用户是否存在
+	user, err := s.repo.GetByID(id)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("用户不存在")
+		}
+		return errors.New("获取用户失败")
+	}
+
+	// 禁止将 super_admin 降级为其他角色
+	if user.Role == constant.RoleSuperAdmin && role != constant.RoleSuperAdmin {
+		return errors.New("禁止修改超级管理员的角色")
+	}
+
+	// 禁止将普通用户直接升级为 super_admin（只能通过数据库手动设置）
+	if role == constant.RoleSuperAdmin && user.Role != constant.RoleSuperAdmin {
+		return errors.New("禁止将用户升级为超级管理员，请通过数据库手动设置")
+	}
+
+	return s.repo.UpdateRole(id, role)
+}
+
 // Delete 删除用户
 func (s *UserService) Delete(id uint) error {
-	if _, err := s.repo.GetByID(id); err != nil {
-		return errors.New("用户不存在")
+	// 检查用户是否存在
+	user, err := s.repo.GetByID(id)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("用户不存在")
+		}
+		return errors.New("获取用户失败")
+	}
+
+	// 禁止删除 super_admin 账号
+	if user.Role == constant.RoleSuperAdmin {
+		return errors.New("禁止删除超级管理员账号")
 	}
 
 	return s.repo.Delete(id)

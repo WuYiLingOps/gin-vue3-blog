@@ -11,6 +11,7 @@
 package repository
 
 import (
+	"blog-backend/constant"
 	"blog-backend/db"
 	"blog-backend/model"
 )
@@ -79,9 +80,14 @@ func (r *UserRepository) UpdateStatus(id uint, status int) error {
 	return db.DB.Model(&model.User{}).Where("id = ?", id).Update("status", status).Error
 }
 
-// GetAdmins 获取所有管理员用户
+// UpdateRole 更新用户角色
+func (r *UserRepository) UpdateRole(id uint, role string) error {
+	return db.DB.Model(&model.User{}).Where("id = ?", id).Update("role", role).Error
+}
+
+// GetAdmins 获取所有管理员用户（包含 super_admin 和 admin）
 func (r *UserRepository) GetAdmins() ([]model.User, error) {
 	var admins []model.User
-	err := db.DB.Where("role = ? AND status = ?", "admin", 1).Find(&admins).Error
+	err := db.DB.Where("role IN ? AND status = ?", []string{constant.RoleAdmin, constant.RoleSuperAdmin}, 1).Find(&admins).Error
 	return admins, err
 }
