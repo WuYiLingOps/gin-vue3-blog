@@ -126,7 +126,8 @@ import {
   ChatbubbleEllipsesOutline,
   ShieldCheckmarkOutline,
   LinkOutline,
-  ImagesOutline
+  ImagesOutline,
+  ListOutline
 } from '@vicons/ionicons5'
 import { useAuthStore } from '@/stores'
 import { NIcon, useLoadingBar } from 'naive-ui'
@@ -252,6 +253,11 @@ const baseMenuOptions = [
     icon: renderIcon(PersonOutline)
   },
   {
+    label: '操作日志',
+    key: 'OperationLogManage',
+    icon: renderIcon(ListOutline)
+  },
+  {
     label: '网站设置',
     key: 'SiteSettings',
     icon: renderIcon(SettingsOutline)
@@ -261,7 +267,7 @@ const baseMenuOptions = [
 // 根据角色过滤菜单（super_admin 才能看到系统级配置入口）
 const menuOptions = computed(() => {
   // 仅系统拥有者可见
-  const superOnlyKeys = new Set(['UserManage', 'SiteSettings', 'AboutManage', 'FriendLinkManage', 'AlbumManage'])
+  const superOnlyKeys = new Set(['UserManage', 'SiteSettings', 'AboutManage', 'FriendLinkManage', 'AlbumManage', 'OperationLogManage'])
   if (authStore.isSuperAdmin) return baseMenuOptions
   return baseMenuOptions.filter((item: any) => !superOnlyKeys.has(item.key))
 })
