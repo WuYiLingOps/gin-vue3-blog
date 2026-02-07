@@ -50,6 +50,7 @@ const ChatManage = () => import('@/pages/admin/ChatManage.vue')
 const IPAccessControl = () => import('@/pages/admin/IPAccessControl.vue')
 const FriendLinkManage = () => import('@/pages/admin/FriendLinkManage.vue')
 const AboutManage = () => import('@/pages/admin/AboutManage.vue')
+const OperationLogManage = () => import('@/pages/admin/OperationLogManage.vue')
 
 const routes: RouteRecordRaw[] = [
   // 博客前台路由
@@ -254,6 +255,12 @@ const routes: RouteRecordRaw[] = [
         name: 'AboutManage',
         component: AboutManage,
         meta: { title: '关于我管理', requiresAuth: true, requiresAdmin: true, roles: ['super_admin'] }
+      },
+      {
+        path: 'operation-logs',
+        name: 'OperationLogManage',
+        component: OperationLogManage,
+        meta: { title: '操作日志', requiresAuth: true, requiresAdmin: true, roles: ['super_admin'] }
       },
       {
         path: 'album',
