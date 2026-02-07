@@ -44,6 +44,16 @@ export function updateUserStatus(id: number, status: number) {
 }
 
 /**
+ * 更新用户角色（仅超级管理员）
+ * @param id 用户ID
+ * @param role 用户角色（super_admin/admin/user）
+ * @returns 返回更新结果
+ */
+export function updateUserRole(id: number, role: 'super_admin' | 'admin' | 'user') {
+  return request.put(`/admin/users/${id}/role`, { role })
+}
+
+/**
  * 删除用户（管理员）
  * @param id 用户ID
  * @returns 返回删除结果
