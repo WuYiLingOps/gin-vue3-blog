@@ -44,6 +44,10 @@ func (h *TagHandler) Create(c *gin.Context) {
 		return
 	}
 
+	// 记录操作日志
+	tagID := tag.ID
+	util.LogOperation(c, "create", "tag", &tagID, tag.Name, "创建标签："+tag.Name)
+
 	util.SuccessWithMessage(c, "标签创建成功", tag)
 }
 
@@ -84,6 +88,10 @@ func (h *TagHandler) Update(c *gin.Context) {
 		return
 	}
 
+	// 记录操作日志
+	tagID := tag.ID
+	util.LogOperation(c, "update", "tag", &tagID, tag.Name, "更新标签："+tag.Name)
+
 	util.SuccessWithMessage(c, "标签更新成功", tag)
 }
 
@@ -95,10 +103,21 @@ func (h *TagHandler) Delete(c *gin.Context) {
 		return
 	}
 
+	// 先获取标签信息用于日志记录
+	tag, _ := h.service.GetByID(uint(id))
+	var tagName string
+	if tag != nil {
+		tagName = tag.Name
+	}
+
 	if err := h.service.Delete(uint(id)); err != nil {
 		util.Error(c, 400, err.Error())
 		return
 	}
+
+	// 记录操作日志
+	tagID := uint(id)
+	util.LogOperation(c, "delete", "tag", &tagID, tagName, "删除标签："+tagName)
 
 	util.SuccessWithMessage(c, "标签删除成功", nil)
 }
