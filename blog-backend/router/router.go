@@ -11,6 +11,7 @@
 package router
 
 import (
+	"blog-backend/constant"
 	"blog-backend/handler"
 	"blog-backend/middleware"
 	"blog-backend/service"
@@ -26,17 +27,18 @@ import (
 //  3. 初始化WebSocket Hub
 //  4. 初始化所有处理器
 //  5. 配置所有API路由组
+//
 // 返回:
 //   - *gin.Engine: 配置好的Gin路由引擎
 func SetupRouter() *gin.Engine {
 	r := gin.New()
 
 	// 使用中间件（按顺序执行）
-	r.Use(gin.Recovery())                        // Gin内置恢复中间件，捕获panic
-	r.Use(middleware.IPContextMiddleware())      // IP上下文中间件（最先执行，确保IP可用）
-	r.Use(middleware.Logger())                   // HTTP请求日志中间件
-	r.Use(middleware.CORS())                     // 跨域资源共享中间件
-	r.Use(middleware.IPBlacklistMiddleware())    // IP黑名单和频率限制中间件
+	r.Use(gin.Recovery())                     // Gin内置恢复中间件，捕获panic
+	r.Use(middleware.IPContextMiddleware())   // IP上下文中间件（最先执行，确保IP可用）
+	r.Use(middleware.Logger())                // HTTP请求日志中间件
+	r.Use(middleware.CORS())                  // 跨域资源共享中间件
+	r.Use(middleware.IPBlacklistMiddleware()) // IP黑名单和频率限制中间件
 
 	// 静态文件服务（用于访问上传的文件）
 	// 使用绝对路径，确保无论从哪个目录运行都能找到 uploads 目录
@@ -78,18 +80,18 @@ func SetupRouter() *gin.Engine {
 	api := r.Group("/api")
 	{
 		// 配置各个功能模块的路由
-		setupAuthRoutes(api, authHandler)                                                                                                                      // 认证相关路由
-		setupCaptchaRoutes(api, captchaHandler)                                                                                                                // 验证码路由
-		setupBlogRoutes(api, blogHandler, announcementHandler, friendLinkHandler, friendLinkCategoryHandler, albumHandler)                                    // 博客公开接口路由
-		setupCalendarRoutes(api, calendarHandler)                                                                                                              // 日历路由
-		setupPostRoutes(api, postHandler)                                                                                                                      // 文章路由
-		setupCategoryRoutes(api, categoryHandler)                                                                                                             // 分类路由
-		setupTagRoutes(api, tagHandler)                                                                                                                       // 标签路由
-		setupCommentRoutes(api, commentHandler)                                                                                                               // 评论路由
-		setupUploadRoutes(api, uploadHandler)                                                                                                                 // 文件上传路由
-		setupSettingRoutes(api, settingHandler)                                                                                                               // 系统设置路由
-		setupMomentRoutes(api, momentHandler)                                                                                                                  // 说说路由
-		setupChatRoutes(api, chatHandler)                                                                                                                      // 聊天室路由
+		setupAuthRoutes(api, authHandler)                                                                                                                                                                                                 // 认证相关路由
+		setupCaptchaRoutes(api, captchaHandler)                                                                                                                                                                                           // 验证码路由
+		setupBlogRoutes(api, blogHandler, announcementHandler, friendLinkHandler, friendLinkCategoryHandler, albumHandler)                                                                                                                // 博客公开接口路由
+		setupCalendarRoutes(api, calendarHandler)                                                                                                                                                                                         // 日历路由
+		setupPostRoutes(api, postHandler)                                                                                                                                                                                                 // 文章路由
+		setupCategoryRoutes(api, categoryHandler)                                                                                                                                                                                         // 分类路由
+		setupTagRoutes(api, tagHandler)                                                                                                                                                                                                   // 标签路由
+		setupCommentRoutes(api, commentHandler)                                                                                                                                                                                           // 评论路由
+		setupUploadRoutes(api, uploadHandler)                                                                                                                                                                                             // 文件上传路由
+		setupSettingRoutes(api, settingHandler)                                                                                                                                                                                           // 系统设置路由
+		setupMomentRoutes(api, momentHandler)                                                                                                                                                                                             // 说说路由
+		setupChatRoutes(api, chatHandler)                                                                                                                                                                                                 // 聊天室路由
 		setupAdminRoutes(api, userHandler, postHandler, commentHandler, dashboardHandler, momentHandler, ipBlacklistHandler, ipWhitelistHandler, chatHandler, friendLinkHandler, friendLinkCategoryHandler, settingHandler, albumHandler) // 管理后台路由
 	}
 
@@ -305,9 +307,9 @@ func setupSettingRoutes(api *gin.RouterGroup, h *handler.SettingHandler) {
 		settings.GET("/public", h.GetPublicSettings)
 		settings.GET("/friendlink-info", h.GetFriendLinkInfo)
 
-		// 需要管理员权限
+		// 需要超级管理员（super_admin）权限：系统级配置
 		settingsAdmin := settings.Group("")
-		settingsAdmin.Use(middleware.AuthMiddleware(), middleware.AdminMiddleware())
+		settingsAdmin.Use(middleware.AuthMiddleware(), middleware.RoleRequiredMiddleware(constant.RoleSuperAdmin))
 		{
 			settingsAdmin.GET("/site", h.GetSiteSettings)
 			settingsAdmin.PUT("/site", h.UpdateSiteSettings)
@@ -384,6 +386,7 @@ func setupChatRoutes(api *gin.RouterGroup, h *handler.ChatHandler) {
 //   - albumHandler: 相册处理器实例
 func setupAdminRoutes(api *gin.RouterGroup, userHandler *handler.UserHandler, postHandler *handler.PostHandler, commentHandler *handler.CommentHandler, dashboardHandler *handler.DashboardHandler, momentHandler *handler.MomentHandler, ipBlacklistHandler *handler.IPBlacklistHandler, ipWhitelistHandler *handler.IPWhitelistHandler, chatHandler *handler.ChatHandler, friendLinkHandler *handler.FriendLinkHandler, friendLinkCategoryHandler *handler.FriendLinkCategoryHandler, settingHandler *handler.SettingHandler, albumHandler *handler.AlbumHandler) {
 	admin := api.Group("/admin")
+	// admin 路由基础权限：admin 或 super_admin
 	admin.Use(middleware.AuthMiddleware(), middleware.AdminMiddleware())
 	{
 		// 仪表盘
@@ -391,11 +394,46 @@ func setupAdminRoutes(api *gin.RouterGroup, userHandler *handler.UserHandler, po
 		admin.GET("/dashboard/category-stats", dashboardHandler.GetCategoryStats)
 		admin.GET("/dashboard/visit-stats", dashboardHandler.GetVisitStats)
 
-		// 用户管理
-		admin.GET("/users", userHandler.List)
-		admin.GET("/users/:id", userHandler.GetByID)
-		admin.PUT("/users/:id/status", userHandler.UpdateStatus)
-		admin.DELETE("/users/:id", userHandler.Delete)
+		// super_admin 专属路由组：系统级高危操作（用户管理/关于我/友链/相册等）
+		super := admin.Group("")
+		super.Use(middleware.RoleRequiredMiddleware(constant.RoleSuperAdmin))
+		{
+			// 用户管理（仅超级管理员）
+			super.GET("/users", userHandler.List)
+			super.GET("/users/:id", userHandler.GetByID)
+			super.PUT("/users/:id/status", userHandler.UpdateStatus)
+			super.PUT("/users/:id/role", userHandler.UpdateRole) // 更新用户角色
+			super.DELETE("/users/:id", userHandler.Delete)
+
+			// 关于我信息管理（仅超级管理员）
+			super.GET("/about", settingHandler.GetAboutInfo)
+			super.PUT("/about", settingHandler.UpdateAboutInfo)
+
+			// 友链管理（仅超级管理员）
+			super.GET("/friend-links", friendLinkHandler.List)
+			super.GET("/friend-links/:id", friendLinkHandler.GetByID)
+			super.POST("/friend-links", friendLinkHandler.Create)
+			super.PUT("/friend-links/:id", friendLinkHandler.Update)
+			super.DELETE("/friend-links/:id", friendLinkHandler.Delete)
+
+			// 友链分类管理（仅超级管理员）
+			super.GET("/friend-link-categories", friendLinkCategoryHandler.List)
+			super.GET("/friend-link-categories/:id", friendLinkCategoryHandler.GetByID)
+			super.POST("/friend-link-categories", friendLinkCategoryHandler.Create)
+			super.PUT("/friend-link-categories/:id", friendLinkCategoryHandler.Update)
+			super.DELETE("/friend-link-categories/:id", friendLinkCategoryHandler.Delete)
+
+			// 相册管理（仅超级管理员）
+			super.GET("/albums", albumHandler.List)
+			super.GET("/albums/:id", albumHandler.GetByID)
+			super.POST("/albums", albumHandler.Create)
+			super.PUT("/albums/:id", albumHandler.Update)
+			super.DELETE("/albums/:id", albumHandler.Delete)
+
+			// 注册设置管理（仅超级管理员）
+			super.GET("/settings/register", settingHandler.GetRegisterSettings)
+			super.PUT("/settings/register", settingHandler.UpdateRegisterSettings)
+		}
 
 		// 文章管理
 		admin.GET("/posts", postHandler.List)
@@ -430,31 +468,5 @@ func setupAdminRoutes(api *gin.RouterGroup, userHandler *handler.UserHandler, po
 		admin.POST("/chat/ban", chatHandler.BanIP)     // 封禁IP
 		admin.GET("/chat/settings", chatHandler.GetChatSettings)
 		admin.PUT("/chat/settings", chatHandler.UpdateChatSettings)
-
-		// 友链管理
-		// 友链管理
-		admin.GET("/friend-links", friendLinkHandler.List)
-		admin.GET("/friend-links/:id", friendLinkHandler.GetByID)
-		admin.POST("/friend-links", friendLinkHandler.Create)
-		admin.PUT("/friend-links/:id", friendLinkHandler.Update)
-		admin.DELETE("/friend-links/:id", friendLinkHandler.Delete)
-
-		// 友链分类管理
-		admin.GET("/friend-link-categories", friendLinkCategoryHandler.List)
-		admin.GET("/friend-link-categories/:id", friendLinkCategoryHandler.GetByID)
-		admin.POST("/friend-link-categories", friendLinkCategoryHandler.Create)
-		admin.PUT("/friend-link-categories/:id", friendLinkCategoryHandler.Update)
-		admin.DELETE("/friend-link-categories/:id", friendLinkCategoryHandler.Delete)
-
-		// 关于我信息管理
-		admin.GET("/about", settingHandler.GetAboutInfo)
-		admin.PUT("/about", settingHandler.UpdateAboutInfo)
-
-		// 相册管理
-		admin.GET("/albums", albumHandler.List)
-		admin.GET("/albums/:id", albumHandler.GetByID)
-		admin.POST("/albums", albumHandler.Create)
-		admin.PUT("/albums/:id", albumHandler.Update)
-		admin.DELETE("/albums/:id", albumHandler.Delete)
 	}
 }
