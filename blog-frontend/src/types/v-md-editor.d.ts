@@ -9,14 +9,20 @@
  */
 
 declare module '@kangc/v-md-editor' {
-  import { DefineComponent } from 'vue'
-  const VMdEditor: DefineComponent<any, any, any>
+  import { DefineComponent, App } from 'vue'
+  const VMdEditor: DefineComponent<any, any, any> & {
+    install: (app: App) => void
+    use: (theme: any, config?: any) => void
+  }
   export default VMdEditor
 }
 
 declare module '@kangc/v-md-editor/lib/preview' {
-  import { DefineComponent } from 'vue'
-  const VMdPreview: DefineComponent<any, any, any>
+  import { DefineComponent, App } from 'vue'
+  const VMdPreview: DefineComponent<any, any, any> & {
+    install: (app: App) => void
+    use: (theme: any, config?: any) => void
+  }
   export default VMdPreview
 }
 
