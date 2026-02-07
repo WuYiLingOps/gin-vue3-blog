@@ -9,3 +9,13 @@
  */
 
 /// <reference types="vite/client" />
+
+declare module '*.vue' {
+  import type { DefineComponent } from 'vue'
+  const component: DefineComponent<{}, {}, any>
+  export default component
+}
+
+declare interface Window {
+  // 这里可以添加全局 window 对象的类型定义
+}
