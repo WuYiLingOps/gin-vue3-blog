@@ -497,6 +497,12 @@ func setupAdminRoutes(api *gin.RouterGroup, userHandler *handler.UserHandler, po
 		{
 			subscribers.GET("", subscriberHandler.List)
 			subscribers.DELETE("/:id", subscriberHandler.Delete)
+
+			// 推送历史记录
+			subscribers.GET("/push-histories", subscriberHandler.GetPushHistories)
+			subscribers.GET("/push-histories/:id", subscriberHandler.GetPushHistoryDetail)
+			subscribers.DELETE("/push-histories/:id", subscriberHandler.DeletePushHistory)
+			subscribers.GET("/push-stats", subscriberHandler.GetPushStats)
 		}
 
 		// RSS 管理（仅超级管理员）
