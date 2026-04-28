@@ -273,7 +273,7 @@ const baseMenuOptions = [
 // 根据角色过滤菜单（super_admin 才能看到系统级配置入口）
 const menuOptions = computed(() => {
   // 仅系统拥有者可见
-  const superOnlyKeys = new Set(['UserManage', 'SiteSettings', 'AboutManage', 'FriendLinkManage', 'AlbumManage', 'OperationLogManage'])
+  const superOnlyKeys = new Set(['UserManage', 'SiteSettings', 'AboutManage', 'FriendLinkManage', 'AlbumManage', 'OperationLogManage', 'SubscriberManage'])
   if (authStore.isSuperAdmin) return baseMenuOptions
   return baseMenuOptions.filter((item: any) => !superOnlyKeys.has(item.key))
 })
