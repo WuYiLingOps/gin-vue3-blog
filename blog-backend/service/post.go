@@ -202,8 +202,8 @@ func (s *PostService) Create(userID uint, req *CreatePostRequest) (*model.Post, 
 		return nil, err
 	}
 
-	// 如果文章为发布状态，向订阅者发送邮件通知
-	if req.Status == 1 && s.subscriberService != nil {
+	// 如果文章为发布状态且公开可见，向订阅者发送邮件通知
+	if req.Status == 1 && visibility == 1 && s.subscriberService != nil {
 		go func() {
 			ctx := context.Background()
 			if err := s.subscriberService.SendArticleNotification(ctx, createdPost); err != nil {
@@ -463,8 +463,8 @@ func (s *PostService) Update(id, userID uint, role string, req *UpdatePostReques
 		db.RDB.Del(ctx, "tag:stats:top10")
 	}()
 
-	// 如果文章从草稿变为发布状态，向订阅者发送邮件通知
-	if oldStatus == 0 && req.Status == 1 && s.subscriberService != nil {
+	// 如果文章从草稿变为发布状态且公开可见，向订阅者发送邮件通知
+	if oldStatus == 0 && req.Status == 1 && post.Visibility == 1 && s.subscriberService != nil {
 		go func() {
 			ctx := context.Background()
 			if err := s.subscriberService.SendArticleNotification(ctx, post); err != nil {
