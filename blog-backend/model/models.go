@@ -368,6 +368,10 @@ type Subscriber struct {
 	ID             uint       `json:"id" gorm:"primaryKey"`
 	Email          string     `json:"email" gorm:"uniqueIndex;not null;size:255"`
 	Token          string     `json:"-" gorm:"uniqueIndex;size:64"` // 退订令牌
+	Source         string     `json:"source" gorm:"size:100;default:subscribe;index"` // 订阅来源
+	SourceURL      string     `json:"source_url" gorm:"size:500"` // 来源URL
+	IP             string     `json:"ip" gorm:"size:50"` // 订阅IP
+	UserAgent      string     `json:"user_agent" gorm:"size:500"` // 用户代理
 	IsActive       bool       `json:"is_active" gorm:"default:true;index"`
 	SubscribedAt   *time.Time `json:"subscribed_at"`
 	UnsubscribedAt *time.Time `json:"unsubscribed_at"`
@@ -378,4 +382,47 @@ type Subscriber struct {
 // TableName 指定Subscriber模型的数据库表名
 func (Subscriber) TableName() string {
 	return "subscribers"
+}
+
+// PushHistory 推送历史记录模型
+// 功能说明：记录每次文章推送的整体情况
+type PushHistory struct {
+	ID            uint       `json:"id" gorm:"primaryKey"`
+	PostID        uint       `json:"post_id" gorm:"index;not null"`
+	PostTitle     string     `json:"post_title" gorm:"size:255;not null"` // 冗余字段
+	TotalCount    int        `json:"total_count" gorm:"default:0"`
+	SuccessCount  int        `json:"success_count" gorm:"default:0"`
+	FailedCount   int        `json:"failed_count" gorm:"default:0"`
+	Status        int        `json:"status" gorm:"default:0;index"` // 0:进行中 1:已完成 2:部分失败
+	StartedAt     time.Time  `json:"started_at" gorm:"not null"`
+	CompletedAt   *time.Time `json:"completed_at"`
+	CreatedAt     time.Time  `json:"created_at"`
+	UpdatedAt     time.Time  `json:"updated_at"`
+
+	// 关联关系
+	Details []PushDetail `json:"details,omitempty" gorm:"foreignKey:PushHistoryID"`
+}
+
+// TableName 指定PushHistory模型的数据库表名
+func (PushHistory) TableName() string {
+	return "push_histories"
+}
+
+// PushDetail 推送详情模型
+// 功能说明：记录每个订阅者的推送结果
+type PushDetail struct {
+	ID              uint       `json:"id" gorm:"primaryKey"`
+	PushHistoryID   uint       `json:"push_history_id" gorm:"index;not null"`
+	SubscriberID    uint       `json:"subscriber_id" gorm:"index;not null"`
+	SubscriberEmail string     `json:"subscriber_email" gorm:"size:255;not null"` // 冗余字段
+	Status          int        `json:"status" gorm:"default:0;index"` // 0:待发送 1:成功 2:失败
+	ErrorMessage    string     `json:"error_message" gorm:"type:text"`
+	SentAt          *time.Time `json:"sent_at"`
+	CreatedAt       time.Time  `json:"created_at"`
+	UpdatedAt       time.Time  `json:"updated_at"`
+}
+
+// TableName 指定PushDetail模型的数据库表名
+func (PushDetail) TableName() string {
+	return "push_details"
 }
