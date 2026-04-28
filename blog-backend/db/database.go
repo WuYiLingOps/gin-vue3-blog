@@ -56,8 +56,12 @@ func InitDB() error {
 	}
 
 	// 自动迁移数据库表结构
-	if err := DB.AutoMigrate(&model.Subscriber{}); err != nil {
-		blogLogger.Warn(fmt.Sprintf("Failed to migrate Subscriber table: %v", err))
+	if err := DB.AutoMigrate(
+		&model.Subscriber{},
+		&model.PushHistory{},
+		&model.PushDetail{},
+	); err != nil {
+		blogLogger.Warn(fmt.Sprintf("Failed to migrate tables: %v", err))
 	}
 
 	// 连接成功，记录日志
