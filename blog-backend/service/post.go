@@ -18,6 +18,7 @@ import (
 	"strings"
 	"time"
 
+	"blog-backend/config"
 	"blog-backend/constant"
 	"blog-backend/db"
 	"blog-backend/model"
@@ -731,6 +732,55 @@ func (s *PostService) createRevisionForApproval(post *model.Post, editorID uint,
 	if err := revisionRepo.Create(ctx, revision); err != nil {
 		return nil, errors.New("创建修订版本失败")
 	}
+
+	// 发送邮件通知超级管理员
+	go func() {
+		// 获取编辑者信息
+		userRepo := repository.NewUserRepository()
+		editor, err := userRepo.GetByID(editorID)
+		if err != nil {
+			return
+		}
+
+		// 获取所有超级管理员
+		superAdmins, err := userRepo.GetSuperAdmins(ctx)
+		if err != nil || len(superAdmins) == 0 {
+			return
+		}
+
+		// 从数据库获取网站名称
+		settingRepo := repository.NewSettingRepository()
+		siteName := config.Cfg.Email.SiteName // 默认使用配置文件中的值
+		if siteNameSetting, err := settingRepo.GetByKey("site_name"); err == nil && siteNameSetting.Value != "" {
+			siteName = siteNameSetting.Value
+		}
+
+		// 构建邮件配置
+		emailConfig := util.EmailConfig{
+			Host:     config.Cfg.Email.Host,
+			Port:     config.Cfg.Email.Port,
+			Username: config.Cfg.Email.Username,
+			Password: config.Cfg.Email.Password,
+			FromName: config.Cfg.Email.FromName,
+			SiteName: siteName,
+		}
+
+		// 审批页面 URL
+		reviewURL := fmt.Sprintf("%s/admin/post-revisions", config.Cfg.App.BlogURL)
+
+		// 给每个超级管理员发送通知
+		for _, admin := range superAdmins {
+			if admin.Email != "" {
+				_ = util.SendNewRevisionNotificationEmail(
+					emailConfig,
+					admin.Email,
+					editor.Username,
+					post.Title,
+					reviewURL,
+				)
+			}
+		}
+	}()
 
 	// 返回原文章（未修改），并附带提示信息
 	post.Title = "修改已提交审批,等待超级管理员审核"

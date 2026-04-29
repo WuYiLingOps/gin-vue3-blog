@@ -11,11 +11,14 @@
 package service
 
 import (
+	"blog-backend/config"
 	"blog-backend/model"
 	"blog-backend/repository"
+	"blog-backend/util"
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"time"
 
 	"gorm.io/gorm"
@@ -50,17 +53,37 @@ func (s *PostRevisionService) GetRevisionDetail(id uint) (*model.PostRevision, e
 
 // ApproveRevision 审批通过（合并修改到原文章）
 func (s *PostRevisionService) ApproveRevision(id, reviewerID uint) error {
+	var editorEmail, editorName, reviewerName, postTitle string
+	var postID uint
+
 	// 使用事务合并修改
 	err := s.postRepo.Transaction(func(tx *gorm.DB) error {
 		// 在事务内重新查询并加行锁,防止并发审批
 		var revision model.PostRevision
-		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(&revision, id).Error; err != nil {
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+			Preload("Editor").
+			Preload("Post").
+			First(&revision, id).Error; err != nil {
 			return errors.New("修订版本不存在")
 		}
 
 		// 检查状态
 		if revision.Status != "pending" {
 			return errors.New("该修订已被审批")
+		}
+
+		// 保存编辑者和文章信息用于发送邮件
+		if revision.Editor.Email != "" {
+			editorEmail = revision.Editor.Email
+			editorName = revision.Editor.Username
+		}
+		postTitle = revision.Post.Title
+		postID = revision.PostID
+
+		// 获取审批人信息
+		var reviewer model.User
+		if err := tx.First(&reviewer, reviewerID).Error; err == nil {
+			reviewerName = reviewer.Username
 		}
 
 		// 获取原文章
@@ -106,22 +129,66 @@ func (s *PostRevisionService) ApproveRevision(id, reviewerID uint) error {
 		return s.revisionRepo.UpdateStatusTx(tx, &revision)
 	})
 
+	// 事务成功后发送邮件通知
+	if err == nil && editorEmail != "" {
+		go func() {
+			// 从数据库获取网站名称
+			settingRepo := repository.NewSettingRepository()
+			siteName := config.Cfg.Email.SiteName // 默认使用配置文件中的值
+			if siteNameSetting, err := settingRepo.GetByKey("site_name"); err == nil && siteNameSetting.Value != "" {
+				siteName = siteNameSetting.Value
+			}
+
+			emailConfig := util.EmailConfig{
+				Host:     config.Cfg.Email.Host,
+				Port:     config.Cfg.Email.Port,
+				Username: config.Cfg.Email.Username,
+				Password: config.Cfg.Email.Password,
+				FromName: config.Cfg.Email.FromName,
+				SiteName: siteName,
+			}
+
+			postURL := fmt.Sprintf("%s/post/%d", config.Cfg.App.BlogURL, postID)
+			_ = util.SendRevisionApprovedEmail(emailConfig, editorEmail, editorName, postTitle, reviewerName, postURL)
+		}()
+	}
+
 	return err
 }
 
 // RejectRevision 审批拒绝
 func (s *PostRevisionService) RejectRevision(id, reviewerID uint, reason string) error {
+	var editorEmail, editorName, reviewerName, postTitle string
+	var postID uint
+
 	// 使用事务更新状态
 	err := s.postRepo.Transaction(func(tx *gorm.DB) error {
 		// 在事务内重新查询并加行锁,防止并发审批
 		var revision model.PostRevision
-		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(&revision, id).Error; err != nil {
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+			Preload("Editor").
+			Preload("Post").
+			First(&revision, id).Error; err != nil {
 			return errors.New("修订版本不存在")
 		}
 
 		// 检查状态
 		if revision.Status != "pending" {
 			return errors.New("该修订已被审批")
+		}
+
+		// 保存编辑者和文章信息用于发送邮件
+		if revision.Editor.Email != "" {
+			editorEmail = revision.Editor.Email
+			editorName = revision.Editor.Username
+		}
+		postTitle = revision.Post.Title
+		postID = revision.PostID
+
+		// 获取审批人信息
+		var reviewer model.User
+		if err := tx.First(&reviewer, reviewerID).Error; err == nil {
+			reviewerName = reviewer.Username
 		}
 
 		// 更新修订状态
@@ -133,6 +200,30 @@ func (s *PostRevisionService) RejectRevision(id, reviewerID uint, reason string)
 
 		return s.revisionRepo.UpdateStatusTx(tx, &revision)
 	})
+
+	// 事务成功后发送邮件通知
+	if err == nil && editorEmail != "" {
+		go func() {
+			// 从数据库获取网站名称
+			settingRepo := repository.NewSettingRepository()
+			siteName := config.Cfg.Email.SiteName // 默认使用配置文件中的值
+			if siteNameSetting, err := settingRepo.GetByKey("site_name"); err == nil && siteNameSetting.Value != "" {
+				siteName = siteNameSetting.Value
+			}
+
+			emailConfig := util.EmailConfig{
+				Host:     config.Cfg.Email.Host,
+				Port:     config.Cfg.Email.Port,
+				Username: config.Cfg.Email.Username,
+				Password: config.Cfg.Email.Password,
+				FromName: config.Cfg.Email.FromName,
+				SiteName: siteName,
+			}
+
+			postURL := fmt.Sprintf("%s/admin/post/edit/%d", config.Cfg.App.BlogURL, postID)
+			_ = util.SendRevisionRejectedEmail(emailConfig, editorEmail, editorName, postTitle, reviewerName, reason, postURL)
+		}()
+	}
 
 	return err
 }

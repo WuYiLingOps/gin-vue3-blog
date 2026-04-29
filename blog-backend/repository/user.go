@@ -14,6 +14,7 @@ import (
 	"blog-backend/constant"
 	"blog-backend/db"
 	"blog-backend/model"
+	"context"
 )
 
 // UserRepository 用户数据访问层结构体
@@ -97,4 +98,11 @@ func (r *UserRepository) GetSuperAdmin() (*model.User, error) {
 	var admin model.User
 	err := db.DB.Where("role = ? AND status = ?", constant.RoleSuperAdmin, 1).First(&admin).Error
 	return &admin, err
+}
+
+// GetSuperAdmins 获取所有超级管理员用户
+func (r *UserRepository) GetSuperAdmins(ctx context.Context) ([]model.User, error) {
+	var admins []model.User
+	err := db.DB.Where("role = ? AND status = ?", constant.RoleSuperAdmin, 1).Find(&admins).Error
+	return admins, err
 }

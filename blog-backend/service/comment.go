@@ -422,16 +422,10 @@ func (s *CommentService) UpdateStatus(id uint, status int) error {
 
 // getSiteName 获取网站名称
 func (s *CommentService) getSiteName() string {
-	settings, err := s.settingRepo.GetByGroup("site")
-	if err != nil {
-		return ""
+	// 优先从数据库获取，失败时使用配置文件保底值
+	siteName := config.Cfg.Email.SiteName
+	if setting, err := s.settingRepo.GetByKey("site_name"); err == nil && setting.Value != "" {
+		siteName = setting.Value
 	}
-
-	for _, setting := range settings {
-		if setting.Key == "site_name" {
-			return setting.Value
-		}
-	}
-
-	return ""
+	return siteName
 }
