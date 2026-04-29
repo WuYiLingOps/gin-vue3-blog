@@ -426,3 +426,42 @@ type PushDetail struct {
 func (PushDetail) TableName() string {
 	return "push_details"
 }
+
+// PostRevision 文章修订版本模型
+// 功能说明：用于管理员修改超级管理员文章的审批流程，记录修改内容和审批状态
+type PostRevision struct {
+	ID        uint      `json:"id" gorm:"primaryKey"`
+	PostID    uint      `json:"post_id" gorm:"index;not null;comment:原文章ID"`
+	EditorID  uint      `json:"editor_id" gorm:"index;not null;comment:修改者ID(管理员)"`
+	Status    string    `json:"status" gorm:"default:pending;size:20;index;comment:状态:pending-待审批,approved-已通过,rejected-已拒绝,withdrawn-已撤回"`
+
+	// 修改内容(NULL表示未修改该字段)
+	Title      *string `json:"title,omitempty" gorm:"size:200;comment:修改后的标题"`
+	Content    *string `json:"content,omitempty" gorm:"type:text;comment:修改后的内容"`
+	Summary    *string `json:"summary,omitempty" gorm:"size:500;comment:修改后的摘要"`
+	Cover      *string `json:"cover,omitempty" gorm:"size:255;comment:修改后的封面"`
+	CategoryID *uint   `json:"category_id,omitempty" gorm:"comment:修改后的分类ID"`
+	TagIDs     *string `json:"tag_ids,omitempty" gorm:"type:json;comment:修改后的标签ID数组"`
+	Visibility *int    `json:"visibility,omitempty" gorm:"comment:修改后的可见性"`
+	IsTop      *bool   `json:"is_top,omitempty" gorm:"comment:修改后的置顶状态"`
+
+	// 审批信息
+	ReviewerID    *uint      `json:"reviewer_id,omitempty" gorm:"comment:审批人ID(超级管理员)"`
+	ReviewedAt    *time.Time `json:"reviewed_at,omitempty" gorm:"comment:审批时间"`
+	RejectReason  string     `json:"reject_reason,omitempty" gorm:"size:500;comment:拒绝原因"`
+	EditorComment string     `json:"editor_comment" gorm:"size:500;comment:修改说明(管理员提交时填写)"`
+
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+
+	// 关联关系
+	// 注意：不使用 constraint 约束，避免 GORM 检查已存在表的约束名称导致冲突
+	Post     Post  `json:"post" gorm:"foreignKey:PostID"`
+	Editor   User  `json:"editor" gorm:"foreignKey:EditorID"`
+	Reviewer *User `json:"reviewer,omitempty" gorm:"foreignKey:ReviewerID"`
+}
+
+// TableName 指定PostRevision模型的数据库表名
+func (PostRevision) TableName() string {
+	return "post_revisions"
+}
