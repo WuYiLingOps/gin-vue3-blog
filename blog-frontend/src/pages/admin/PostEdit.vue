@@ -101,6 +101,20 @@
             <n-switch v-model:value="formData.is_top" />
           </n-form-item>
 
+          <n-form-item v-if="isEdit && isEditingSuperAdminPost" label="修改说明" path="revision_note">
+            <n-input
+              v-model:value="formData.revision_note"
+              type="textarea"
+              :rows="3"
+              placeholder="请简要说明本次修改的内容（修改超级管理员文章时必填）"
+            />
+            <template #feedback>
+              <n-text depth="3" style="font-size: 12px">
+                您正在修改超级管理员的文章，修改将提交审批，通过后才会生效
+              </n-text>
+            </template>
+          </n-form-item>
+
           <n-space :vertical="isMobile">
             <n-button type="primary" :size="isMobile ? 'medium' : 'large'" :block="isMobile" :loading="submitting" @click="handleSubmit">
               {{ isEdit ? '保存修改' : '发布文章' }}
@@ -119,7 +133,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useMessage } from 'naive-ui'
 import type { FormInst, FormRules, SelectOption } from 'naive-ui'
 import { getPostById, createPost, updatePost } from '@/api/post'
-import { useBlogStore } from '@/stores'
+import { useBlogStore, useAuthStore } from '@/stores'
 import type { PostForm } from '@/types/blog'
 import MarkdownEditor from '@/components/MarkdownEditor.vue'
 import ImageUpload from '@/components/ImageUpload.vue'
@@ -128,20 +142,33 @@ const route = useRoute()
 const router = useRouter()
 const message = useMessage()
 const blogStore = useBlogStore()
+const authStore = useAuthStore()
 
 const formRef = ref<FormInst | null>(null)
 const loading = ref(false)
 const submitting = ref(false)
 const isMobile = ref(false)
+const originalPost = ref<any>(null)
 
 const isEdit = computed(() => !!route.params.id)
+
+// 判断是否正在编辑超级管理员的文章
+const isEditingSuperAdminPost = computed(() => {
+  if (!isEdit.value || !originalPost.value) return false
+  const currentUser = authStore.user
+  if (!currentUser) return false
+  // 如果当前用户是超级管理员，不需要审批
+  if (currentUser.role === 'super_admin') return false
+  // 如果文章作者是超级管理员，且当前用户不是超级管理员，需要审批
+  return originalPost.value.user?.role === 'super_admin'
+})
 
 // 检测移动设备
 function checkMobile() {
   isMobile.value = window.innerWidth <= 1100
 }
 
-const formData = reactive<PostForm>({
+const formData = reactive<PostForm & { revision_note?: string }>({
   title: '',
   content: '',
   summary: '',
@@ -150,7 +177,8 @@ const formData = reactive<PostForm>({
   tag_ids: [],
   status: 1,
   visibility: 1,
-  is_top: false
+  is_top: false,
+  revision_note: ''
 })
 
 // 保存用户之前选择的可见性（用于从草稿切换回发布时恢复）
@@ -263,6 +291,9 @@ async function loadPost() {
       throw new Error('文章不存在')
     }
 
+    // 保存原始文章数据用于判断是否需要审批
+    originalPost.value = post
+
     formData.title = post.title
     formData.content = post.content
     formData.summary = post.summary
@@ -289,7 +320,13 @@ async function handleSubmit() {
   try {
     // 先进行前端表单验证
     await formRef.value?.validate()
-    
+
+    // 如果正在编辑超级管理员的文章，检查修改说明
+    if (isEditingSuperAdminPost.value && !formData.revision_note?.trim()) {
+      message.error('修改超级管理员的文章时，必须填写修改说明')
+      return
+    }
+
     submitting.value = true
 
     if (isEdit.value) {
@@ -301,7 +338,7 @@ async function handleSubmit() {
         message.error('请选择分类')
         return
       }
-      const updateData: Partial<PostForm> = {
+      const updateData: Partial<PostForm> & { revision_note?: string } = {
         title: formData.title,
         content: formData.content,
         summary: formData.summary,
@@ -312,8 +349,19 @@ async function handleSubmit() {
         visibility: formData.visibility,
         is_top: formData.is_top
       }
+
+      // 如果正在编辑超级管理员的文章，添加修改说明
+      if (isEditingSuperAdminPost.value) {
+        updateData.revision_note = formData.revision_note
+      }
+
       await updatePost(id, updateData)
-      message.success(formData.status === 0 ? '草稿保存成功' : '文章更新成功')
+
+      if (isEditingSuperAdminPost.value) {
+        message.success('修改已提交审批，等待超级管理员审核')
+      } else {
+        message.success(formData.status === 0 ? '草稿保存成功' : '文章更新成功')
+      }
     } else {
       // 创建文章
       await createPost(formData)
