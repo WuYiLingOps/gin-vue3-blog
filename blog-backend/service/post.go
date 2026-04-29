@@ -696,30 +696,46 @@ func (s *PostService) createRevisionForApproval(post *model.Post, editorID uint,
 	ctx := context.Background()
 	revisionRepo := repository.NewPostRevisionRepository()
 
-	// 构建修订版本（只保存修改的字段）
+	// 使用修改后的值或原值（确保必填字段有值）
+	title := post.Title
+	if req.Title != "" {
+		title = req.Title
+	}
+
+	content := post.Content
+	if req.Content != "" {
+		content = req.Content
+	}
+
+	summary := post.Summary
+	if req.Summary != "" {
+		summary = req.Summary
+	}
+
+	cover := post.Cover
+	if req.Cover != post.Cover {
+		cover = req.Cover
+	}
+
+	categoryID := post.CategoryID
+	if req.CategoryID != nil {
+		categoryID = *req.CategoryID
+	}
+
+	// 构建修订版本（保存完整的修改后数据）
 	revision := &model.PostRevision{
 		PostID:        post.ID,
 		EditorID:      editorID,
 		Status:        "pending",
 		EditorComment: req.EditorComment,
+		Title:         &title,
+		Content:       &content,
+		Summary:       &summary,
+		Cover:         &cover,
+		CategoryID:    &categoryID,
 	}
 
-	// 只保存修改的字段（与原文章不同的字段）
-	if req.Title != "" && req.Title != post.Title {
-		revision.Title = &req.Title
-	}
-	if req.Content != "" && req.Content != post.Content {
-		revision.Content = &req.Content
-	}
-	if req.Summary != "" && req.Summary != post.Summary {
-		revision.Summary = &req.Summary
-	}
-	if req.Cover != post.Cover {
-		revision.Cover = &req.Cover
-	}
-	if req.CategoryID != nil && *req.CategoryID != post.CategoryID {
-		revision.CategoryID = req.CategoryID
-	}
+	// 可选字段：只在有修改时保存
 	if req.Status != post.Status {
 		status := req.Status
 		revision.Visibility = &status
@@ -730,7 +746,7 @@ func (s *PostService) createRevisionForApproval(post *model.Post, editorID uint,
 
 	// 保存修订版本
 	if err := revisionRepo.Create(ctx, revision); err != nil {
-		return nil, errors.New("创建修订版本失败")
+		return nil, fmt.Errorf("创建修订版本失败: %w", err)
 	}
 
 	// 发送邮件通知超级管理员
