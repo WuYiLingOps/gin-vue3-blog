@@ -128,7 +128,8 @@ import {
   LinkOutline,
   ImagesOutline,
   ListOutline,
-  MailOutline
+  MailOutline,
+  CheckmarkDoneOutline
 } from '@vicons/ionicons5'
 import { useAuthStore } from '@/stores'
 import { NIcon, useLoadingBar } from 'naive-ui'
@@ -239,6 +240,16 @@ const baseMenuOptions = [
     icon: renderIcon(MailOutline)
   },
   {
+    label: '审批管理',
+    key: 'PostRevisionManage',
+    icon: renderIcon(CheckmarkDoneOutline)
+  },
+  {
+    label: '编辑记录',
+    key: 'MyRevisions',
+    icon: renderIcon(DocumentTextOutline)
+  },
+  {
     label: 'IP访问控制',
     key: 'IPAccessControl',
     icon: renderIcon(ShieldCheckmarkOutline)
@@ -273,9 +284,17 @@ const baseMenuOptions = [
 // 根据角色过滤菜单（super_admin 才能看到系统级配置入口）
 const menuOptions = computed(() => {
   // 仅系统拥有者可见
-  const superOnlyKeys = new Set(['UserManage', 'SiteSettings', 'AboutManage', 'FriendLinkManage', 'AlbumManage', 'OperationLogManage', 'SubscriberManage'])
-  if (authStore.isSuperAdmin) return baseMenuOptions
-  return baseMenuOptions.filter((item: any) => !superOnlyKeys.has(item.key))
+  const superOnlyKeys = new Set(['UserManage', 'SiteSettings', 'AboutManage', 'FriendLinkManage', 'AlbumManage', 'OperationLogManage', 'SubscriberManage', 'PostRevisionManage'])
+  // 仅普通管理员可见
+  const adminOnlyKeys = new Set(['MyRevisions'])
+
+  if (authStore.isSuperAdmin) {
+    // 超级管理员：显示超管菜单，隐藏普通管理员菜单
+    return baseMenuOptions.filter((item: any) => !adminOnlyKeys.has(item.key))
+  } else {
+    // 普通管理员：显示普通管理员菜单，隐藏超管菜单
+    return baseMenuOptions.filter((item: any) => !superOnlyKeys.has(item.key))
+  }
 })
 
 // 用户菜单选项
