@@ -47,7 +47,7 @@
             </div>
             <div class="info-item">
               <span class="label">修改说明：</span>
-              <span class="value">{{ revision.revision_note || '无' }}</span>
+              <span class="value">{{ revision.editor_comment || '无' }}</span>
             </div>
           </div>
           <template #footer>
@@ -128,7 +128,7 @@
       <template #footer>
         <n-space justify="space-between">
           <n-button
-            v-if="diffData && diffData.user_id === authStore.user?.id"
+            v-if="diffData && diffData.editor?.id === authStore.user?.id"
             type="warning"
             @click="handleWithdraw(currentRevisionId)"
           >
@@ -228,10 +228,10 @@ const columns: DataTableColumns<PostRevision> = [
   },
   {
     title: '修改说明',
-    key: 'revision_note',
+    key: 'editor_comment',
     width: 200,
     ellipsis: { tooltip: true },
-    render: row => row.revision_note || '无'
+    render: row => row.editor_comment || '无'
   },
   {
     title: '提交时间',
