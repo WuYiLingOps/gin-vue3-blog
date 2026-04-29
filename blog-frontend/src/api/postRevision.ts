@@ -61,7 +61,7 @@ export function getRevisionDetail(id: number) {
  * @returns 返回修改对比数据
  */
 export function getRevisionDiff(id: number) {
-  return request.get<RevisionDiff[]>(`/admin/revisions/${id}/diff`)
+  return request.get<RevisionDiff>(`/admin/revisions/${id}/diff`)
 }
 
 /**
