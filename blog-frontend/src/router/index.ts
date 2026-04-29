@@ -53,6 +53,7 @@ const IPAccessControl = () => import('@/pages/admin/IPAccessControl.vue')
 const FriendLinkManage = () => import('@/pages/admin/FriendLinkManage.vue')
 const AboutManage = () => import('@/pages/admin/AboutManage.vue')
 const OperationLogManage = () => import('@/pages/admin/OperationLogManage.vue')
+const PostRevisionManage = () => import('@/pages/admin/PostRevisionManage.vue')
 
 const routes: RouteRecordRaw[] = [
   // 博客前台路由
@@ -275,6 +276,18 @@ const routes: RouteRecordRaw[] = [
         name: 'OperationLogManage',
         component: OperationLogManage,
         meta: { title: '操作日志', requiresAuth: true, requiresAdmin: true, roles: ['super_admin'] }
+      },
+      {
+        path: 'post-revisions',
+        name: 'PostRevisionManage',
+        component: PostRevisionManage,
+        meta: { title: '审批管理', requiresAuth: true, requiresAdmin: true, roles: ['super_admin'] }
+      },
+      {
+        path: 'my-revisions',
+        name: 'MyRevisions',
+        component: () => import('@/pages/admin/MyRevisions.vue'),
+        meta: { title: '编辑记录', requiresAuth: true, requiresAdmin: true }
       },
       {
         path: 'album',
