@@ -145,6 +145,7 @@ export interface PostRevision {
   created_at: string
   updated_at: string
   editor?: User
+  reviewer?: User
   post?: Post
 }
 
