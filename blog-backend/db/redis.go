@@ -38,9 +38,11 @@ func InitRedis() error {
 
 	// 创建Redis客户端实例
 	RDB = redis.NewClient(&redis.Options{
-		Addr:     fmt.Sprintf("%s:%d", cfg.Host, cfg.Port), // Redis服务器地址和端口
-		Password: cfg.Password,                             // Redis密码（如果设置了）
-		DB:       cfg.DB,                                   // Redis数据库编号（默认0）
+		Addr:                  fmt.Sprintf("%s:%d", cfg.Host, cfg.Port), // Redis服务器地址和端口
+		Password:              cfg.Password,                             // Redis密码（如果设置了）
+		DB:                    cfg.DB,                                   // Redis数据库编号（默认0）
+		DisableIndentity:      true,                                     // 禁用客户端身份标识
+		IdentitySuffix:        "",                                       // 清空身份后缀
 	})
 
 	// 测试连接是否正常
