@@ -34,15 +34,6 @@ export function computeDiff(oldText: string, newText: string): DiffResult[] {
 }
 
 /**
- * 判断是否为长文本（需要使用 diff 对比）
- * @param text 文本内容
- * @returns 是否为长文本
- */
-export function isLongText(text: string): boolean {
-  return text.length > 200
-}
-
-/**
  * 获取差异的上下文（前后各 N 个字符）
  * @param diffs 差异结果
  * @param contextSize 上下文大小
