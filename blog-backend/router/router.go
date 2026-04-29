@@ -56,6 +56,7 @@ func SetupRouter() *gin.Engine {
 	// 初始化所有业务处理器
 	authHandler := handler.NewAuthHandler()
 	postHandler := handler.NewPostHandler(subscriberService)
+	postRevisionHandler := handler.NewPostRevisionHandler()
 	categoryHandler := handler.NewCategoryHandler()
 	tagHandler := handler.NewTagHandler()
 	commentHandler := handler.NewCommentHandler()
@@ -101,7 +102,7 @@ func SetupRouter() *gin.Engine {
 		setupChatRoutes(api, chatHandler)                                                                                                                                                                                                 // 聊天室路由
 		setupSubscriberRoutes(api, subscriberHandler)                                                                                                                                                                                     // 邮件订阅路由
 		setupRSSRoutes(api, rssHandler)                                                                                                                                                                                                   // RSS 订阅路由
-		setupAdminRoutes(api, userHandler, postHandler, commentHandler, dashboardHandler, momentHandler, ipBlacklistHandler, ipWhitelistHandler, chatHandler, friendLinkHandler, friendLinkCategoryHandler, settingHandler, albumHandler, operationLogHandler, subscriberHandler, rssHandler) // 管理后台路由
+		setupAdminRoutes(api, userHandler, postHandler, postRevisionHandler, commentHandler, dashboardHandler, momentHandler, ipBlacklistHandler, ipWhitelistHandler, chatHandler, friendLinkHandler, friendLinkCategoryHandler, settingHandler, albumHandler, operationLogHandler, subscriberHandler, rssHandler) // 管理后台路由
 	}
 
 	return r
@@ -396,7 +397,7 @@ func setupChatRoutes(api *gin.RouterGroup, h *handler.ChatHandler) {
 //   - operationLogHandler: 操作日志处理器实例
 //   - subscriberHandler: 订阅者处理器实例
 //   - rssHandler: RSS 处理器实例
-func setupAdminRoutes(api *gin.RouterGroup, userHandler *handler.UserHandler, postHandler *handler.PostHandler, commentHandler *handler.CommentHandler, dashboardHandler *handler.DashboardHandler, momentHandler *handler.MomentHandler, ipBlacklistHandler *handler.IPBlacklistHandler, ipWhitelistHandler *handler.IPWhitelistHandler, chatHandler *handler.ChatHandler, friendLinkHandler *handler.FriendLinkHandler, friendLinkCategoryHandler *handler.FriendLinkCategoryHandler, settingHandler *handler.SettingHandler, albumHandler *handler.AlbumHandler, operationLogHandler *handler.OperationLogHandler, subscriberHandler *handler.SubscriberHandler, rssHandler *handler.RSSHandler) {
+func setupAdminRoutes(api *gin.RouterGroup, userHandler *handler.UserHandler, postHandler *handler.PostHandler, postRevisionHandler *handler.PostRevisionHandler, commentHandler *handler.CommentHandler, dashboardHandler *handler.DashboardHandler, momentHandler *handler.MomentHandler, ipBlacklistHandler *handler.IPBlacklistHandler, ipWhitelistHandler *handler.IPWhitelistHandler, chatHandler *handler.ChatHandler, friendLinkHandler *handler.FriendLinkHandler, friendLinkCategoryHandler *handler.FriendLinkCategoryHandler, settingHandler *handler.SettingHandler, albumHandler *handler.AlbumHandler, operationLogHandler *handler.OperationLogHandler, subscriberHandler *handler.SubscriberHandler, rssHandler *handler.RSSHandler) {
 	admin := api.Group("/admin")
 	// admin 路由基础权限：admin 或 super_admin
 	admin.Use(middleware.AuthMiddleware(), middleware.AdminMiddleware())
@@ -445,7 +446,20 @@ func setupAdminRoutes(api *gin.RouterGroup, userHandler *handler.UserHandler, po
 			// 注册设置管理（仅超级管理员）
 			super.GET("/settings/register", settingHandler.GetRegisterSettings)
 			super.PUT("/settings/register", settingHandler.UpdateRegisterSettings)
+
+			// 文章修订审批（仅超级管理员）
+			super.POST("/revisions/:id/approve", postRevisionHandler.Approve)
+			super.POST("/revisions/:id/reject", postRevisionHandler.Reject)
 		}
+
+		// 文章修订管理（管理员可查看和撤回自己的修订）
+		admin.GET("/revisions/pending", postRevisionHandler.GetPendingList)
+		admin.GET("/revisions/pending/count", postRevisionHandler.GetPendingCount)
+		admin.GET("/revisions/my", postRevisionHandler.GetMyRevisions) // 获取当前用户的修订记录
+		admin.GET("/revisions/:id", postRevisionHandler.GetRevisionDetail)
+		admin.GET("/revisions/:id/diff", postRevisionHandler.GetRevisionDiff)
+		admin.GET("/posts/:id/revisions", postRevisionHandler.GetPostRevisions)
+		admin.POST("/revisions/:id/withdraw", postRevisionHandler.Withdraw)
 
 		// 文章管理
 		admin.GET("/posts", postHandler.List)
