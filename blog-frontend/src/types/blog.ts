@@ -126,3 +126,43 @@ export interface PostQuery {
   visibility?: number
 }
 
+// 文章修订版本
+export interface PostRevision {
+  id: number
+  post_id: number
+  editor_id: number
+  status: string // pending, approved, rejected
+  title: string
+  content: string
+  summary: string
+  cover: string
+  category_id: number
+  visibility: number
+  is_top: boolean
+  revision_note: string
+  reviewer_comment: string
+  reviewed_at: string
+  created_at: string
+  updated_at: string
+  editor?: User
+  post?: Post
+}
+
+// 修订对比数据
+export interface RevisionDiff {
+  post_id: number
+  post_title: string
+  editor: User
+  editor_comment: string
+  created_at: string
+  changes: RevisionChange[]
+  changes_count: number
+}
+
+// 修订变更项
+export interface RevisionChange {
+  field: string
+  old: any
+  new: any
+}
+
