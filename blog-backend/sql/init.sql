@@ -649,7 +649,68 @@ COMMENT ON COLUMN albums.sort_order IS '排序顺序（数字越大越靠前）'
 -- 评论表已扩展支持 comment_type 和 target_id 字段，友链评论使用 comment_type='friendlink'
 
 -- =============================================================================
--- 13. 操作日志系统
+-- 13. 文章修订审批系统
+-- =============================================================================
+
+-- 创建文章修订表
+CREATE TABLE IF NOT EXISTS post_revisions (
+    id SERIAL PRIMARY KEY,
+    post_id INT NOT NULL,
+    editor_id INT NOT NULL,
+    title VARCHAR(200) NOT NULL,
+    slug VARCHAR(255) NOT NULL,
+    content TEXT,
+    summary VARCHAR(500),
+    cover VARCHAR(255),
+    category_id INT NOT NULL,
+    status VARCHAR(20) DEFAULT 'pending',
+    reviewer_id INT,
+    reject_reason TEXT,
+    reviewed_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
+    FOREIGN KEY (editor_id) REFERENCES users(id),
+    FOREIGN KEY (reviewer_id) REFERENCES users(id),
+    FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE RESTRICT
+);
+
+-- 文章修订表索引
+CREATE INDEX IF NOT EXISTS idx_post_revisions_post_id ON post_revisions(post_id);
+CREATE INDEX IF NOT EXISTS idx_post_revisions_editor_id ON post_revisions(editor_id);
+CREATE INDEX IF NOT EXISTS idx_post_revisions_reviewer_id ON post_revisions(reviewer_id);
+CREATE INDEX IF NOT EXISTS idx_post_revisions_status ON post_revisions(status);
+CREATE INDEX IF NOT EXISTS idx_post_revisions_created_at ON post_revisions(created_at DESC);
+
+-- 文章修订表注释
+COMMENT ON TABLE post_revisions IS '文章修订审批表';
+COMMENT ON COLUMN post_revisions.post_id IS '文章ID';
+COMMENT ON COLUMN post_revisions.editor_id IS '编辑者ID（提交修订的管理员）';
+COMMENT ON COLUMN post_revisions.title IS '修改后的标题';
+COMMENT ON COLUMN post_revisions.slug IS '修改后的URL标识符';
+COMMENT ON COLUMN post_revisions.content IS '修改后的内容';
+COMMENT ON COLUMN post_revisions.summary IS '修改后的摘要';
+COMMENT ON COLUMN post_revisions.cover IS '修改后的封面';
+COMMENT ON COLUMN post_revisions.category_id IS '修改后的分类ID';
+COMMENT ON COLUMN post_revisions.status IS '状态：pending-待审批，approved-已通过，rejected-已拒绝，withdrawn-已撤回';
+COMMENT ON COLUMN post_revisions.reviewer_id IS '审批者ID（超级管理员）';
+COMMENT ON COLUMN post_revisions.reject_reason IS '拒绝原因';
+COMMENT ON COLUMN post_revisions.reviewed_at IS '审批时间';
+
+-- 创建文章修订标签关联表
+CREATE TABLE IF NOT EXISTS post_revision_tags (
+    revision_id INT NOT NULL,
+    tag_id INT NOT NULL,
+    PRIMARY KEY (revision_id, tag_id),
+    FOREIGN KEY (revision_id) REFERENCES post_revisions(id) ON DELETE CASCADE,
+    FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
+);
+
+-- 文章修订标签关联表注释
+COMMENT ON TABLE post_revision_tags IS '文章修订标签关联表';
+
+-- =============================================================================
+-- 14. 操作日志系统
 -- =============================================================================
 
 -- 创建操作日志表
