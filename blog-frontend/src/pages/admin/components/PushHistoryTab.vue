@@ -98,7 +98,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, h } from 'vue'
-import { useMessage, NButton, NTag, NIcon } from 'naive-ui'
+import { useMessage, useDialog, NButton, NTag, NIcon } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
 import { SendOutline, CheckmarkCircleOutline, CloseCircleOutline, TimeOutline, EyeOutline, TrashOutline } from '@vicons/ionicons5'
 import { formatDate } from '@/utils/format'
@@ -106,6 +106,7 @@ import { getPushHistories, getPushHistoryDetail, deletePushHistory, getPushStats
 import type { PushHistory, PushDetail, PushStats } from '@/api/subscribe'
 
 const message = useMessage()
+const dialog = useDialog()
 const isMobile = ref(window.innerWidth < 768)
 
 // 统计数据
@@ -236,8 +237,8 @@ const fetchHistories = async () => {
   try {
     loading.value = true
     const res = await getPushHistories(pagination.page, pagination.pageSize)
-    histories.value = res.data.list || []
-    pagination.pageCount = Math.ceil(res.data.total / pagination.pageSize)
+    histories.value = res.data?.list || []
+    pagination.pageCount = Math.ceil((res.data?.total || 0) / pagination.pageSize)
   } catch (error: any) {
     message.error(error?.message || '获取推送历史失败')
   } finally {
@@ -260,8 +261,8 @@ const fetchDetails = async () => {
   try {
     detailLoading.value = true
     const res = await getPushHistoryDetail(currentHistory.value.id, detailPagination.page, detailPagination.pageSize)
-    details.value = res.data.details || []
-    detailPagination.pageCount = Math.ceil(res.data.total / detailPagination.pageSize)
+    details.value = res.data?.details || []
+    detailPagination.pageCount = Math.ceil((res.data?.total || 0) / detailPagination.pageSize)
   } catch (error: any) {
     message.error(error?.message || '获取推送详情失败')
   } finally {
@@ -271,7 +272,7 @@ const fetchDetails = async () => {
 
 // 删除推送历史
 const handleDelete = (id: number) => {
-  window.$dialog.warning({
+  dialog.warning({
     title: '确认删除',
     content: '确定要删除这条推送历史记录吗？此操作不可恢复。',
     positiveText: '确定',
