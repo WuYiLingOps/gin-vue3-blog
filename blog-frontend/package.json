@@ -16,6 +16,7 @@
     "axios": "^1.6.0",
     "canvas-nest.js": "^2.0.4",
     "dayjs": "^1.11.10",
+    "diff-match-patch": "^1.0.5",
     "echarts": "^6.0.0",
     "naive-ui": "^2.35.0",
     "pinia": "^3.0.4",
@@ -26,6 +27,7 @@
     "vue-router": "^4.2.5"
   },
   "devDependencies": {
+    "@types/diff-match-patch": "^1.0.36",
     "@typescript-eslint/eslint-plugin": "^6.10.0",
     "@typescript-eslint/parser": "^6.10.0",
     "@vitejs/plugin-vue": "^4.4.0",

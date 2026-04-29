@@ -115,19 +115,11 @@
                 <n-divider title-placement="left">
                   <n-tag type="info">{{ getFieldLabel(change.field) }}</n-tag>
                 </n-divider>
-                <div class="diff-section">
-                  <div class="diff-item">
-                    <div class="diff-label">修改前</div>
-                    <div class="diff-content original">{{ formatValue(change.field, change.old) }}</div>
-                  </div>
-                  <div class="diff-arrow">
-                    <n-icon :component="ArrowForward" size="24" />
-                  </div>
-                  <div class="diff-item">
-                    <div class="diff-label">修改后</div>
-                    <div class="diff-content modified">{{ formatValue(change.field, change.new) }}</div>
-                  </div>
-                </div>
+                <DiffViewer
+                  :old-value="formatValue(change.field, change.old)"
+                  :new-value="formatValue(change.field, change.new)"
+                  :field="change.field"
+                />
               </div>
             </n-space>
           </n-card>
@@ -178,11 +170,12 @@
 import { ref, computed, onMounted, onUnmounted, h, watch } from 'vue'
 import { useMessage, useDialog, NButton, NIcon, NTag, NSpace, NEllipsis } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
-import { GridOutline, AppsOutline, ArrowForward } from '@vicons/ionicons5'
+import { GridOutline, AppsOutline } from '@vicons/ionicons5'
 import { getPendingRevisions, getRevisionDiff, approveRevision, rejectRevision, withdrawRevision } from '@/api/postRevision'
 import { useAuthStore } from '@/stores'
 import { formatDate } from '@/utils/format'
 import type { PostRevision, RevisionDiff } from '@/types/blog'
+import DiffViewer from '@/components/DiffViewer.vue'
 
 const message = useMessage()
 const dialog = useDialog()
@@ -456,10 +449,7 @@ function formatValue(field: string, value: any): string {
     return value.join(', ')
   }
 
-  if (field === 'content' && typeof value === 'string' && value.length > 200) {
-    return value.substring(0, 200) + '...'
-  }
-
+  // 不再截断内容，让 DiffViewer 组件处理
   return String(value)
 }
 </script>
@@ -533,47 +523,6 @@ function formatValue(field: string, value: any): string {
 .diff-container {
   .change-item {
     margin-bottom: 16px;
-  }
-
-  .diff-section {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-
-    .diff-item {
-      flex: 1;
-
-      .diff-label {
-        font-weight: 500;
-        margin-bottom: 8px;
-        color: var(--text-color-2);
-        font-size: 14px;
-      }
-
-      .diff-content {
-        padding: 12px;
-        border-radius: 4px;
-        border: 1px solid var(--border-color);
-        min-height: 60px;
-        word-break: break-word;
-
-        &.original {
-          background: #fff5f5;
-          border-color: #ffa8a8;
-        }
-
-        &.modified {
-          background: #f0fff4;
-          border-color: #8ce99a;
-        }
-      }
-    }
-
-    .diff-arrow {
-      flex-shrink: 0;
-      color: var(--primary-color);
-      margin-top: 24px;
-    }
   }
 }
 

@@ -139,8 +139,8 @@ export interface PostRevision {
   category_id: number
   visibility: number
   is_top: boolean
-  revision_note: string
-  reviewer_comment: string
+  editor_comment: string
+  reject_reason: string
   reviewed_at: string
   created_at: string
   updated_at: string

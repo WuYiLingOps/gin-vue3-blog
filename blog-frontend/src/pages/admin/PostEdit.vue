@@ -101,9 +101,9 @@
             <n-switch v-model:value="formData.is_top" />
           </n-form-item>
 
-          <n-form-item v-if="isEdit && isEditingSuperAdminPost" label="修改说明" path="revision_note">
+          <n-form-item v-if="isEdit && isEditingSuperAdminPost" label="修改说明" path="editor_comment">
             <n-input
-              v-model:value="formData.revision_note"
+              v-model:value="formData.editor_comment"
               type="textarea"
               :rows="3"
               placeholder="请简要说明本次修改的内容（修改超级管理员文章时必填）"
@@ -168,7 +168,7 @@ function checkMobile() {
   isMobile.value = window.innerWidth <= 1100
 }
 
-const formData = reactive<PostForm & { revision_note?: string }>({
+const formData = reactive<PostForm & { editor_comment?: string }>({
   title: '',
   content: '',
   summary: '',
@@ -178,7 +178,7 @@ const formData = reactive<PostForm & { revision_note?: string }>({
   status: 1,
   visibility: 1,
   is_top: false,
-  revision_note: ''
+  editor_comment: ''
 })
 
 // 保存用户之前选择的可见性（用于从草稿切换回发布时恢复）
@@ -322,7 +322,7 @@ async function handleSubmit() {
     await formRef.value?.validate()
 
     // 如果正在编辑超级管理员的文章，检查修改说明
-    if (isEditingSuperAdminPost.value && !formData.revision_note?.trim()) {
+    if (isEditingSuperAdminPost.value && !formData.editor_comment?.trim()) {
       message.error('修改超级管理员的文章时，必须填写修改说明')
       return
     }
@@ -338,7 +338,7 @@ async function handleSubmit() {
         message.error('请选择分类')
         return
       }
-      const updateData: Partial<PostForm> & { revision_note?: string } = {
+      const updateData: Partial<PostForm> & { editor_comment?: string } = {
         title: formData.title,
         content: formData.content,
         summary: formData.summary,
@@ -352,7 +352,7 @@ async function handleSubmit() {
 
       // 如果正在编辑超级管理员的文章，添加修改说明
       if (isEditingSuperAdminPost.value) {
-        updateData.revision_note = formData.revision_note
+        updateData.editor_comment = formData.editor_comment
       }
 
       await updatePost(id, updateData)

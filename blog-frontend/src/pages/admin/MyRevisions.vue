@@ -56,16 +56,11 @@
             class="change-item"
           >
             <h4>{{ getFieldLabel(change.field) }}</h4>
-            <div class="change-content">
-              <div class="old-content">
-                <span class="label">原内容：</span>
-                <div class="content">{{ formatValue(change.old, change.field) }}</div>
-              </div>
-              <div class="new-content">
-                <span class="label">新内容：</span>
-                <div class="content">{{ formatValue(change.new, change.field) }}</div>
-              </div>
-            </div>
+            <DiffViewer
+              :old-value="formatValue(change.old, change.field)"
+              :new-value="formatValue(change.new, change.field)"
+              :field="change.field"
+            />
           </div>
         </div>
         <n-empty v-else description="无修改内容" />
@@ -94,6 +89,7 @@ import { NButton, NTag, NSpace, useMessage, useDialog } from 'naive-ui'
 import type { DataTableColumns, PaginationProps } from 'naive-ui'
 import { getMyRevisions, getRevisionDiff, withdrawRevision } from '@/api/postRevision'
 import type { PostRevision, RevisionDiff } from '@/types/blog'
+import DiffViewer from '@/components/DiffViewer.vue'
 
 const message = useMessage()
 const dialog = useDialog()
@@ -354,48 +350,10 @@ onMounted(() => {
 
 .change-item {
   margin-bottom: 24px;
-  padding: 16px;
-  background-color: #f5f7fa;
-  border-radius: 4px;
-}
 
-.change-item h4 {
-  margin: 0 0 12px 0;
-  color: #303133;
-}
-
-.change-content {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-
-.old-content,
-.new-content {
-  padding: 12px;
-  border-radius: 4px;
-}
-
-.old-content {
-  background-color: #fef0f0;
-  border-left: 3px solid #f56c6c;
-}
-
-.new-content {
-  background-color: #f0f9ff;
-  border-left: 3px solid #409eff;
-}
-
-.label {
-  font-weight: bold;
-  color: #606266;
-  display: block;
-  margin-bottom: 8px;
-}
-
-.content {
-  color: #303133;
-  white-space: pre-wrap;
-  word-break: break-word;
+  h4 {
+    margin: 0 0 12px 0;
+    color: #303133;
+  }
 }
 </style>
