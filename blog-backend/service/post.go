@@ -18,6 +18,7 @@ import (
 	"strings"
 	"time"
 
+	"blog-backend/config"
 	"blog-backend/constant"
 	"blog-backend/db"
 	"blog-backend/model"
@@ -62,15 +63,16 @@ type CreatePostRequest struct {
 
 // UpdatePostRequest 更新文章请求
 type UpdatePostRequest struct {
-	Title      string `json:"title"`
-	Content    string `json:"content"`
-	Summary    string `json:"summary"`
-	Cover      string `json:"cover"`
-	CategoryID *uint  `json:"category_id"` // 使用指针类型，nil 表示不修改
-	TagIDs     []uint `json:"tag_ids"`
-	Status     int    `json:"status"`
-	Visibility *int   `json:"visibility"` // 1:公开 0:私密（nil 表示不修改）
-	IsTop      bool   `json:"is_top"`
+	Title         string `json:"title"`
+	Content       string `json:"content"`
+	Summary       string `json:"summary"`
+	Cover         string `json:"cover"`
+	CategoryID    *uint  `json:"category_id"` // 使用指针类型，nil 表示不修改
+	TagIDs        []uint `json:"tag_ids"`
+	Status        int    `json:"status"`
+	Visibility    *int   `json:"visibility"` // 1:公开 0:私密（nil 表示不修改）
+	IsTop         bool   `json:"is_top"`
+	EditorComment string `json:"editor_comment"` // 修改说明（管理员修改超管文章时填写）
 }
 
 // Create 创建文章
@@ -202,8 +204,8 @@ func (s *PostService) Create(userID uint, req *CreatePostRequest) (*model.Post, 
 		return nil, err
 	}
 
-	// 如果文章为发布状态，向订阅者发送邮件通知
-	if req.Status == 1 && s.subscriberService != nil {
+	// 如果文章为发布状态且公开可见，向订阅者发送邮件通知
+	if req.Status == 1 && visibility == 1 && s.subscriberService != nil {
 		go func() {
 			ctx := context.Background()
 			if err := s.subscriberService.SendArticleNotification(ctx, createdPost); err != nil {
@@ -282,6 +284,11 @@ func (s *PostService) Update(id, userID uint, role string, req *UpdatePostReques
 	// 权限检查：只有作者和管理员可以修改
 	if post.UserID != userID && !constant.IsAdminRole(role) {
 		return nil, errors.New("无权限修改此文章")
+	}
+
+	// 如果是管理员修改超级管理员的文章，创建修订版本等待审批
+	if post.UserID != userID && role == constant.RoleAdmin && post.User.Role == constant.RoleSuperAdmin {
+		return s.createRevisionForApproval(post, userID, req)
 	}
 
 	oldCategoryID := post.CategoryID
@@ -463,8 +470,8 @@ func (s *PostService) Update(id, userID uint, role string, req *UpdatePostReques
 		db.RDB.Del(ctx, "tag:stats:top10")
 	}()
 
-	// 如果文章从草稿变为发布状态，向订阅者发送邮件通知
-	if oldStatus == 0 && req.Status == 1 && s.subscriberService != nil {
+	// 如果文章从草稿变为发布状态且公开可见，向订阅者发送邮件通知
+	if oldStatus == 0 && req.Status == 1 && post.Visibility == 1 && s.subscriberService != nil {
 		go func() {
 			ctx := context.Background()
 			if err := s.subscriberService.SendArticleNotification(ctx, post); err != nil {
@@ -682,3 +689,117 @@ func (s *PostService) GetByIDForAdmin(id uint) (*model.Post, error) {
 	}
 	return post, nil
 }
+
+// createRevisionForApproval 创建修订版本等待审批
+// 当管理员修改超级管理员的文章时调用
+func (s *PostService) createRevisionForApproval(post *model.Post, editorID uint, req *UpdatePostRequest) (*model.Post, error) {
+	ctx := context.Background()
+	revisionRepo := repository.NewPostRevisionRepository()
+
+	// 使用修改后的值或原值（确保必填字段有值）
+	title := post.Title
+	if req.Title != "" {
+		title = req.Title
+	}
+
+	content := post.Content
+	if req.Content != "" {
+		content = req.Content
+	}
+
+	summary := post.Summary
+	if req.Summary != "" {
+		summary = req.Summary
+	}
+
+	cover := post.Cover
+	if req.Cover != post.Cover {
+		cover = req.Cover
+	}
+
+	categoryID := post.CategoryID
+	if req.CategoryID != nil {
+		categoryID = *req.CategoryID
+	}
+
+	// 构建修订版本（保存完整的修改后数据）
+	revision := &model.PostRevision{
+		PostID:        post.ID,
+		EditorID:      editorID,
+		Status:        "pending",
+		EditorComment: req.EditorComment,
+		Title:         &title,
+		Content:       &content,
+		Summary:       &summary,
+		Cover:         &cover,
+		CategoryID:    &categoryID,
+	}
+
+	// 可选字段：只在有修改时保存
+	if req.Status != post.Status {
+		status := req.Status
+		revision.Visibility = &status
+	}
+	if req.IsTop != post.IsTop {
+		revision.IsTop = &req.IsTop
+	}
+
+	// 保存修订版本
+	if err := revisionRepo.Create(ctx, revision); err != nil {
+		return nil, fmt.Errorf("创建修订版本失败: %w", err)
+	}
+
+	// 发送邮件通知超级管理员
+	go func() {
+		// 获取编辑者信息
+		userRepo := repository.NewUserRepository()
+		editor, err := userRepo.GetByID(editorID)
+		if err != nil {
+			return
+		}
+
+		// 获取所有超级管理员
+		superAdmins, err := userRepo.GetSuperAdmins(ctx)
+		if err != nil || len(superAdmins) == 0 {
+			return
+		}
+
+		// 从数据库获取网站名称
+		settingRepo := repository.NewSettingRepository()
+		siteName := config.Cfg.Email.SiteName // 默认使用配置文件中的值
+		if siteNameSetting, err := settingRepo.GetByKey("site_name"); err == nil && siteNameSetting.Value != "" {
+			siteName = siteNameSetting.Value
+		}
+
+		// 构建邮件配置
+		emailConfig := util.EmailConfig{
+			Host:     config.Cfg.Email.Host,
+			Port:     config.Cfg.Email.Port,
+			Username: config.Cfg.Email.Username,
+			Password: config.Cfg.Email.Password,
+			FromName: config.Cfg.Email.FromName,
+			SiteName: siteName,
+		}
+
+		// 审批页面 URL
+		reviewURL := fmt.Sprintf("%s/admin/post-revisions", config.Cfg.App.BlogURL)
+
+		// 给每个超级管理员发送通知
+		for _, admin := range superAdmins {
+			if admin.Email != "" {
+				_ = util.SendNewRevisionNotificationEmail(
+					emailConfig,
+					admin.Email,
+					editor.Username,
+					post.Title,
+					reviewURL,
+				)
+			}
+		}
+	}()
+
+	// 返回原文章（未修改），并附带提示信息
+	post.Title = "修改已提交审批,等待超级管理员审核"
+	return post, nil
+}
+

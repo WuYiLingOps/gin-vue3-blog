@@ -5,6 +5,8 @@
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
+.claude/
+.codepilot-uploads/
 
 # JetBrains IDEs (IntelliJ IDEA, GoLand, WebStorm, etc.)  JetBrains 系列 IDE 配置
 .idea/

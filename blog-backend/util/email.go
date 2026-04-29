@@ -150,6 +150,126 @@ func SendRegisterVerificationEmail(config EmailConfig, to string, username strin
 	return sendEmailHTML(config, to, subject, htmlBody, textBody)
 }
 
+// SendRevisionApprovedEmail 发送修订审批通过通知邮件（给编辑者）
+func SendRevisionApprovedEmail(config EmailConfig, to string, editorName string, postTitle string, reviewerName string, postURL string) error {
+	// 优先使用配置的网站名称，其次使用发件人名称，最后使用默认值
+	siteName := config.SiteName
+	if siteName == "" {
+		siteName = config.FromName
+	}
+	if siteName == "" {
+		siteName = "菱风叙"
+	}
+	subject := fmt.Sprintf("【%s】您的文章修改已通过审批", siteName)
+
+	copyrightYear := getCopyrightYear(2025)
+	data := map[string]interface{}{
+		"SiteName":     siteName,
+		"EditorName":   template.HTMLEscapeString(editorName),
+		"PostTitle":    template.HTMLEscapeString(postTitle),
+		"ReviewerName": template.HTMLEscapeString(reviewerName),
+		"PostURL":      postURL,
+		"Year":         copyrightYear,
+	}
+
+	htmlBody := getEmailTemplate("revision_approved", data)
+	textBody := fmt.Sprintf(`您好，%s！
+
+您对文章《%s》的修改已通过审批，修改内容已生效。
+
+审批人：%s
+
+查看文章：%s
+
+---
+此邮件由系统自动发送，请勿直接回复
+© %s %s. All rights reserved.`, editorName, postTitle, reviewerName, postURL, copyrightYear, siteName)
+
+	return sendEmailHTML(config, to, subject, htmlBody, textBody)
+}
+
+// SendRevisionRejectedEmail 发送修订审批拒绝通知邮件（给编辑者）
+func SendRevisionRejectedEmail(config EmailConfig, to string, editorName string, postTitle string, reviewerName string, rejectReason string, postURL string) error {
+	// 优先使用配置的网站名称，其次使用发件人名称，最后使用默认值
+	siteName := config.SiteName
+	if siteName == "" {
+		siteName = config.FromName
+	}
+	if siteName == "" {
+		siteName = "菱风叙"
+	}
+	subject := fmt.Sprintf("【%s】您的文章修改被拒绝", siteName)
+
+	// 处理拒绝原因
+	reasonHTML := "未提供拒绝原因"
+	if rejectReason != "" {
+		reasonHTML = template.HTMLEscapeString(rejectReason)
+		reasonHTML = strings.ReplaceAll(reasonHTML, "\n", "<br>")
+	}
+
+	copyrightYear := getCopyrightYear(2025)
+	data := map[string]interface{}{
+		"SiteName":     siteName,
+		"EditorName":   template.HTMLEscapeString(editorName),
+		"PostTitle":    template.HTMLEscapeString(postTitle),
+		"ReviewerName": template.HTMLEscapeString(reviewerName),
+		"RejectReason": template.HTML(reasonHTML),
+		"PostURL":      postURL,
+		"Year":         copyrightYear,
+	}
+
+	htmlBody := getEmailTemplate("revision_rejected", data)
+	textBody := fmt.Sprintf(`您好，%s！
+
+您对文章《%s》的修改被拒绝。
+
+拒绝原因：%s
+审批人：%s
+
+查看文章：%s
+
+---
+此邮件由系统自动发送，请勿直接回复
+© %s %s. All rights reserved.`, editorName, postTitle, rejectReason, reviewerName, postURL, copyrightYear, siteName)
+
+	return sendEmailHTML(config, to, subject, htmlBody, textBody)
+}
+
+// SendNewRevisionNotificationEmail 发送新修订待审批通知邮件（给超级管理员）
+func SendNewRevisionNotificationEmail(config EmailConfig, to string, editorName string, postTitle string, reviewURL string) error {
+	// 优先使用配置的网站名称，其次使用发件人名称，最后使用默认值
+	siteName := config.SiteName
+	if siteName == "" {
+		siteName = config.FromName
+	}
+	if siteName == "" {
+		siteName = "菱风叙"
+	}
+	subject := fmt.Sprintf("【%s】有新的文章修改待审批", siteName)
+
+	copyrightYear := getCopyrightYear(2025)
+	data := map[string]interface{}{
+		"SiteName":   siteName,
+		"EditorName": template.HTMLEscapeString(editorName),
+		"PostTitle":  template.HTMLEscapeString(postTitle),
+		"ReviewURL":  reviewURL,
+		"Year":       copyrightYear,
+	}
+
+	htmlBody := getEmailTemplate("new_revision_notification", data)
+	textBody := fmt.Sprintf(`您好，超级管理员！
+
+%s 提交了对文章《%s》的修改，请及时审批。
+
+立即审批：%s
+
+---
+此邮件由系统自动发送，请勿直接回复
+© %s %s. All rights reserved.`, editorName, postTitle, reviewURL, copyrightYear, siteName)
+
+	return sendEmailHTML(config, to, subject, htmlBody, textBody)
+}
+
 // SendAdminCommentNotificationEmail 发送评论通知邮件（给管理员）
 func SendAdminCommentNotificationEmail(config EmailConfig, to string, commenterName string, postTitle string, commentContent string, postURL string) error {
 	// 优先使用配置的网站名称，其次使用发件人名称，最后使用默认值
@@ -265,6 +385,12 @@ func getEmailTemplate(templateName string, data map[string]interface{}) string {
 		templateStr = getRegisterVerificationTemplate()
 	case "admin_comment_notification":
 		templateStr = getAdminCommentNotificationTemplate()
+	case "revision_approved":
+		templateStr = getRevisionApprovedTemplate()
+	case "revision_rejected":
+		templateStr = getRevisionRejectedTemplate()
+	case "new_revision_notification":
+		templateStr = getNewRevisionNotificationTemplate()
 	default:
 		return ""
 	}
@@ -561,6 +687,253 @@ func getAdminCommentNotificationTemplate() string {
                         </div>
                         
                         <!-- 底部 -->
+                        <div style="text-align: center; font-size: 12px; line-height: 18px; color: #999; margin-top: 20px;">
+                            <table style="width: 100%; font-weight: 300; margin-bottom: 10px; border-collapse: collapse;">
+                                <tbody>
+                                    <tr style="font-weight: 300;">
+                                        <td style="width: 3.2%; max-width: 30px;"></td>
+                                        <td style="max-width: 540px;">
+                                            <p style="text-align: center; margin: 20px auto 14px auto; font-size: 12px; color: #999;">
+                                                此为系统邮件，请勿回复。
+                                            </p>
+                                            <p style="max-width: 100%; margin: auto; font-size: 12px; color: #999; text-align: center; line-height: 22px;">
+                                                © {{.Year}} {{.SiteName}}. All rights reserved.
+                                            </p>
+                                        </td>
+                                        <td style="width: 3.2%; max-width: 30px;"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </td>
+                    <td style="width: 3%; max-width: 30px;"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>`
+}
+
+// getRevisionApprovedTemplate 获取修订审批通过通知邮件模板
+func getRevisionApprovedTemplate() string {
+	return `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文章修改已通过审批</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: 'helvetica neue', PingFangSC-Light, arial, 'hiragino sans gb', 'microsoft yahei ui', 'microsoft yahei', simsun, sans-serif; background-color: #f7f8fa;">
+    <div style="word-break: break-all; box-sizing: border-box; text-align: center; min-width: 320px; max-width: 660px; border: 1px solid #f6f6f6; background-color: #f7f8fa; margin: auto; padding: 20px 0 30px;">
+        <table style="width: 100%; font-weight: 300; margin-bottom: 10px; border-collapse: collapse;">
+            <tbody>
+                <tr style="font-weight: 300;">
+                    <td style="width: 3%; max-width: 30px;"></td>
+                    <td style="max-width: 600px;">
+                        <div style="width: 100%; text-align: left; margin-bottom: 20px;">
+                            <h1 style="margin: 0; color: #10b981; font-size: 24px; font-weight: 600;">{{.SiteName}}</h1>
+                        </div>
+                        <p style="height: 2px; background-color: #10b981; border: 0; font-size: 0; padding: 0; width: 100%; margin-top: 20px; margin-bottom: 0;"></p>
+                        <div style="background-color: #fff; padding: 23px 0 20px; box-shadow: 0px 1px 1px 0px rgba(122, 55, 55, 0.2); text-align: left;">
+                            <table style="width: 100%; font-weight: 300; margin-bottom: 10px; border-collapse: collapse; text-align: left;">
+                                <tbody>
+                                    <tr style="font-weight: 300;">
+                                        <td style="width: 3.2%; max-width: 30px;"></td>
+                                        <td style="max-width: 480px; text-align: left;">
+                                            <h1 style="font-size: 20px; line-height: 36px; margin: 0px 0px 22px; color: #333;">✅ 审批通过</h1>
+                                            <p style="font-size: 14px; color: #333; line-height: 24px; margin: 0;">您好，{{.EditorName}}！</p>
+                                            <p style="line-height: 24px; margin: 6px 0px 0px; overflow-wrap: break-word; word-break: break-all;">
+                                                <span style="color: rgb(51, 51, 51); font-size: 14px;">您对文章《{{.PostTitle}}》的修改已通过审批，修改内容已生效。</span>
+                                            </p>
+                                            <div style="background-color: #f0fdf4; border-left: 4px solid #10b981; padding: 20px; margin: 30px 0; border-radius: 4px;">
+                                                <p style="margin: 0 0 10px 0; color: #333; font-size: 14px; line-height: 24px;">
+                                                    <strong style="color: #10b981;">审批人：</strong>{{.ReviewerName}}
+                                                </p>
+                                                <p style="margin: 0; color: #10b981; font-size: 14px; line-height: 24px;">
+                                                    <strong>状态：</strong>已通过 ✓
+                                                </p>
+                                            </div>
+                                            <p style="font-size: 14px; color: rgb(51, 51, 51); line-height: 24px; margin: 6px 0px 0px; word-wrap: break-word; word-break: break-all;">
+                                                <a href="{{.PostURL}}" title="查看文章" style="font-size: 16px; line-height: 45px; display: block; background-color: #10b981; color: rgb(255, 255, 255); text-align: center; text-decoration: none; margin-top: 20px; border-radius: 3px;">
+                                                    查看文章
+                                                </a>
+                                            </p>
+                                            <p style="font-size: 14px; line-height: 26px; word-wrap: break-word; word-break: break-all; margin-top: 32px; color: #333;">
+                                                此致<br>
+                                                <strong>{{.SiteName}}团队</strong>
+                                            </p>
+                                        </td>
+                                        <td style="width: 3.2%; max-width: 30px;"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div style="text-align: center; font-size: 12px; line-height: 18px; color: #999; margin-top: 20px;">
+                            <table style="width: 100%; font-weight: 300; margin-bottom: 10px; border-collapse: collapse;">
+                                <tbody>
+                                    <tr style="font-weight: 300;">
+                                        <td style="width: 3.2%; max-width: 30px;"></td>
+                                        <td style="max-width: 540px;">
+                                            <p style="text-align: center; margin: 20px auto 14px auto; font-size: 12px; color: #999;">
+                                                此为系统邮件，请勿回复。
+                                            </p>
+                                            <p style="max-width: 100%; margin: auto; font-size: 12px; color: #999; text-align: center; line-height: 22px;">
+                                                © {{.Year}} {{.SiteName}}. All rights reserved.
+                                            </p>
+                                        </td>
+                                        <td style="width: 3.2%; max-width: 30px;"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </td>
+                    <td style="width: 3%; max-width: 30px;"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>`
+}
+
+// getRevisionRejectedTemplate 获取修订审批拒绝通知邮件模板
+func getRevisionRejectedTemplate() string {
+	return `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文章修改被拒绝</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: 'helvetica neue', PingFangSC-Light, arial, 'hiragino sans gb', 'microsoft yahei ui', 'microsoft yahei', simsun, sans-serif; background-color: #f7f8fa;">
+    <div style="word-break: break-all; box-sizing: border-box; text-align: center; min-width: 320px; max-width: 660px; border: 1px solid #f6f6f6; background-color: #f7f8fa; margin: auto; padding: 20px 0 30px;">
+        <table style="width: 100%; font-weight: 300; margin-bottom: 10px; border-collapse: collapse;">
+            <tbody>
+                <tr style="font-weight: 300;">
+                    <td style="width: 3%; max-width: 30px;"></td>
+                    <td style="max-width: 600px;">
+                        <div style="width: 100%; text-align: left; margin-bottom: 20px;">
+                            <h1 style="margin: 0; color: #ef4444; font-size: 24px; font-weight: 600;">{{.SiteName}}</h1>
+                        </div>
+                        <p style="height: 2px; background-color: #ef4444; border: 0; font-size: 0; padding: 0; width: 100%; margin-top: 20px; margin-bottom: 0;"></p>
+                        <div style="background-color: #fff; padding: 23px 0 20px; box-shadow: 0px 1px 1px 0px rgba(122, 55, 55, 0.2); text-align: left;">
+                            <table style="width: 100%; font-weight: 300; margin-bottom: 10px; border-collapse: collapse; text-align: left;">
+                                <tbody>
+                                    <tr style="font-weight: 300;">
+                                        <td style="width: 3.2%; max-width: 30px;"></td>
+                                        <td style="max-width: 480px; text-align: left;">
+                                            <h1 style="font-size: 20px; line-height: 36px; margin: 0px 0px 22px; color: #333;">❌ 审批拒绝</h1>
+                                            <p style="font-size: 14px; color: #333; line-height: 24px; margin: 0;">您好，{{.EditorName}}！</p>
+                                            <p style="line-height: 24px; margin: 6px 0px 0px; overflow-wrap: break-word; word-break: break-all;">
+                                                <span style="color: rgb(51, 51, 51); font-size: 14px;">您对文章《{{.PostTitle}}》的修改被拒绝。</span>
+                                            </p>
+                                            <div style="background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 20px; margin: 30px 0; border-radius: 4px;">
+                                                <p style="margin: 0 0 15px 0; color: #333; font-size: 14px; line-height: 24px;">
+                                                    <strong style="color: #ef4444;">审批人：</strong>{{.ReviewerName}}
+                                                </p>
+                                                <div style="background-color: #ffffff; padding: 15px; border-radius: 4px; margin-top: 10px;">
+                                                    <p style="margin: 0 0 10px 0; color: #999; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">拒绝原因</p>
+                                                    <div style="color: #333; font-size: 14px; line-height: 1.8;">{{.RejectReason}}</div>
+                                                </div>
+                                            </div>
+                                            <p style="font-size: 14px; color: rgb(51, 51, 51); line-height: 24px; margin: 6px 0px 0px; word-wrap: break-word; word-break: break-all;">
+                                                <a href="{{.PostURL}}" title="重新编辑" style="font-size: 16px; line-height: 45px; display: block; background-color: #ef4444; color: rgb(255, 255, 255); text-align: center; text-decoration: none; margin-top: 20px; border-radius: 3px;">
+                                                    重新编辑
+                                                </a>
+                                            </p>
+                                            <p style="font-size: 14px; line-height: 26px; word-wrap: break-word; word-break: break-all; margin-top: 32px; color: #333;">
+                                                此致<br>
+                                                <strong>{{.SiteName}}团队</strong>
+                                            </p>
+                                        </td>
+                                        <td style="width: 3.2%; max-width: 30px;"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div style="text-align: center; font-size: 12px; line-height: 18px; color: #999; margin-top: 20px;">
+                            <table style="width: 100%; font-weight: 300; margin-bottom: 10px; border-collapse: collapse;">
+                                <tbody>
+                                    <tr style="font-weight: 300;">
+                                        <td style="width: 3.2%; max-width: 30px;"></td>
+                                        <td style="max-width: 540px;">
+                                            <p style="text-align: center; margin: 20px auto 14px auto; font-size: 12px; color: #999;">
+                                                此为系统邮件，请勿回复。
+                                            </p>
+                                            <p style="max-width: 100%; margin: auto; font-size: 12px; color: #999; text-align: center; line-height: 22px;">
+                                                © {{.Year}} {{.SiteName}}. All rights reserved.
+                                            </p>
+                                        </td>
+                                        <td style="width: 3.2%; max-width: 30px;"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </td>
+                    <td style="width: 3%; max-width: 30px;"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>`
+}
+
+// getNewRevisionNotificationTemplate 获取新修订待审批通知邮件模板
+func getNewRevisionNotificationTemplate() string {
+	return `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>有新的文章修改待审批</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: 'helvetica neue', PingFangSC-Light, arial, 'hiragino sans gb', 'microsoft yahei ui', 'microsoft yahei', simsun, sans-serif; background-color: #f7f8fa;">
+    <div style="word-break: break-all; box-sizing: border-box; text-align: center; min-width: 320px; max-width: 660px; border: 1px solid #f6f6f6; background-color: #f7f8fa; margin: auto; padding: 20px 0 30px;">
+        <table style="width: 100%; font-weight: 300; margin-bottom: 10px; border-collapse: collapse;">
+            <tbody>
+                <tr style="font-weight: 300;">
+                    <td style="width: 3%; max-width: 30px;"></td>
+                    <td style="max-width: 600px;">
+                        <div style="width: 100%; text-align: left; margin-bottom: 20px;">
+                            <h1 style="margin: 0; color: #f59e0b; font-size: 24px; font-weight: 600;">{{.SiteName}}</h1>
+                        </div>
+                        <p style="height: 2px; background-color: #f59e0b; border: 0; font-size: 0; padding: 0; width: 100%; margin-top: 20px; margin-bottom: 0;"></p>
+                        <div style="background-color: #fff; padding: 23px 0 20px; box-shadow: 0px 1px 1px 0px rgba(122, 55, 55, 0.2); text-align: left;">
+                            <table style="width: 100%; font-weight: 300; margin-bottom: 10px; border-collapse: collapse; text-align: left;">
+                                <tbody>
+                                    <tr style="font-weight: 300;">
+                                        <td style="width: 3.2%; max-width: 30px;"></td>
+                                        <td style="max-width: 480px; text-align: left;">
+                                            <h1 style="font-size: 20px; line-height: 36px; margin: 0px 0px 22px; color: #333;">⏰ 待审批提醒</h1>
+                                            <p style="font-size: 14px; color: #333; line-height: 24px; margin: 0;">您好，超级管理员！</p>
+                                            <p style="line-height: 24px; margin: 6px 0px 0px; overflow-wrap: break-word; word-break: break-all;">
+                                                <span style="color: rgb(51, 51, 51); font-size: 14px;">{{.EditorName}} 提交了对文章《{{.PostTitle}}》的修改，请及时审批。</span>
+                                            </p>
+                                            <div style="background-color: #fffbeb; border-left: 4px solid #f59e0b; padding: 20px; margin: 30px 0; border-radius: 4px;">
+                                                <p style="margin: 0 0 10px 0; color: #333; font-size: 14px; line-height: 24px;">
+                                                    <strong style="color: #f59e0b;">文章：</strong>{{.PostTitle}}
+                                                </p>
+                                                <p style="margin: 0; color: #333; font-size: 14px; line-height: 24px;">
+                                                    <strong style="color: #f59e0b;">编辑者：</strong>{{.EditorName}}
+                                                </p>
+                                            </div>
+                                            <p style="font-size: 14px; color: rgb(51, 51, 51); line-height: 24px; margin: 6px 0px 0px; word-wrap: break-word; word-break: break-all;">
+                                                <a href="{{.ReviewURL}}" title="立即审批" style="font-size: 16px; line-height: 45px; display: block; background-color: #f59e0b; color: rgb(255, 255, 255); text-align: center; text-decoration: none; margin-top: 20px; border-radius: 3px;">
+                                                    立即审批
+                                                </a>
+                                            </p>
+                                            <p style="font-size: 14px; line-height: 26px; word-wrap: break-word; word-break: break-all; margin-top: 32px; color: #333;">
+                                                此致<br>
+                                                <strong>{{.SiteName}}团队</strong>
+                                            </p>
+                                        </td>
+                                        <td style="width: 3.2%; max-width: 30px;"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                         <div style="text-align: center; font-size: 12px; line-height: 18px; color: #999; margin-top: 20px;">
                             <table style="width: 100%; font-weight: 300; margin-bottom: 10px; border-collapse: collapse;">
                                 <tbody>

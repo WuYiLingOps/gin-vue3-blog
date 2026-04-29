@@ -90,6 +90,11 @@
         </div>
       </n-tab-pane>
 
+      <!-- 推送历史 Tab -->
+      <n-tab-pane name="push-history" tab="推送历史">
+        <PushHistoryTab />
+      </n-tab-pane>
+
       <!-- RSS 配置 Tab -->
       <n-tab-pane name="rss" tab="RSS 配置">
         <div class="rss-config-content">
@@ -273,6 +278,7 @@ import request from '@/utils/request'
 import { formatDate } from '@/utils/format'
 import { getRSSConfig, updateRSSConfig, clearRSSCache } from '@/api/rss'
 import type { RSSConfig } from '@/api/rss'
+import PushHistoryTab from './components/PushHistoryTab.vue'
 
 interface Subscriber {
   id: number

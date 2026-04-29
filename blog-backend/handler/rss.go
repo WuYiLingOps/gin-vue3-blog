@@ -41,13 +41,21 @@ func NewRSSHandler(cfg *config.Config) *RSSHandler {
 // @Success 200 {string} string "RSS XML"
 // @Router /api/rss/posts.xml [get]
 func (h *RSSHandler) GetPostsFeed(c *gin.Context) {
-	rss, err := h.rssService.GeneratePostsFeed(c.Request.Context())
+	rss, etag, lastModified, err := h.rssService.GeneratePostsFeed(c.Request.Context())
 	if err != nil {
 		logger.Error("生成文章 RSS Feed 失败: " + err.Error())
 		c.String(http.StatusInternalServerError, "生成 RSS Feed 失败")
 		return
 	}
 
+	// 检查客户端缓存
+	if checkClientCache(c, etag, lastModified) {
+		c.Status(http.StatusNotModified)
+		return
+	}
+
+	// 设置缓存头
+	setCacheHeaders(c, etag, lastModified)
 	c.Header("Content-Type", "application/xml; charset=utf-8")
 	c.String(http.StatusOK, rss)
 }
@@ -60,13 +68,21 @@ func (h *RSSHandler) GetPostsFeed(c *gin.Context) {
 // @Success 200 {string} string "RSS XML"
 // @Router /api/rss/moments.xml [get]
 func (h *RSSHandler) GetMomentsFeed(c *gin.Context) {
-	rss, err := h.rssService.GenerateMomentsFeed(c.Request.Context())
+	rss, etag, lastModified, err := h.rssService.GenerateMomentsFeed(c.Request.Context())
 	if err != nil {
 		logger.Error("生成说说 RSS Feed 失败: " + err.Error())
 		c.String(http.StatusInternalServerError, "生成 RSS Feed 失败")
 		return
 	}
 
+	// 检查客户端缓存
+	if checkClientCache(c, etag, lastModified) {
+		c.Status(http.StatusNotModified)
+		return
+	}
+
+	// 设置缓存头
+	setCacheHeaders(c, etag, lastModified)
 	c.Header("Content-Type", "application/xml; charset=utf-8")
 	c.String(http.StatusOK, rss)
 }
@@ -80,13 +96,21 @@ func (h *RSSHandler) GetMomentsFeed(c *gin.Context) {
 // @Router /api/rss/feed.xml [get]
 // @Router /feed.xml [get]
 func (h *RSSHandler) GetAllFeed(c *gin.Context) {
-	rss, err := h.rssService.GenerateAllFeed(c.Request.Context())
+	rss, etag, lastModified, err := h.rssService.GenerateAllFeed(c.Request.Context())
 	if err != nil {
 		logger.Error("生成全站 RSS Feed 失败: " + err.Error())
 		c.String(http.StatusInternalServerError, "生成 RSS Feed 失败")
 		return
 	}
 
+	// 检查客户端缓存
+	if checkClientCache(c, etag, lastModified) {
+		c.Status(http.StatusNotModified)
+		return
+	}
+
+	// 设置缓存头
+	setCacheHeaders(c, etag, lastModified)
 	c.Header("Content-Type", "application/xml; charset=utf-8")
 	c.String(http.StatusOK, rss)
 }
@@ -107,13 +131,21 @@ func (h *RSSHandler) GetCategoryFeed(c *gin.Context) {
 		return
 	}
 
-	rss, err := h.rssService.GenerateCategoryFeed(c.Request.Context(), uint(id))
+	rss, etag, lastModified, err := h.rssService.GenerateCategoryFeed(c.Request.Context(), uint(id))
 	if err != nil {
 		logger.Error("生成分类 RSS Feed 失败: " + err.Error())
 		c.String(http.StatusInternalServerError, "生成 RSS Feed 失败")
 		return
 	}
 
+	// 检查客户端缓存
+	if checkClientCache(c, etag, lastModified) {
+		c.Status(http.StatusNotModified)
+		return
+	}
+
+	// 设置缓存头
+	setCacheHeaders(c, etag, lastModified)
 	c.Header("Content-Type", "application/xml; charset=utf-8")
 	c.String(http.StatusOK, rss)
 }
@@ -134,15 +166,50 @@ func (h *RSSHandler) GetTagFeed(c *gin.Context) {
 		return
 	}
 
-	rss, err := h.rssService.GenerateTagFeed(c.Request.Context(), uint(id))
+	rss, etag, lastModified, err := h.rssService.GenerateTagFeed(c.Request.Context(), uint(id))
 	if err != nil {
 		logger.Error("生成标签 RSS Feed 失败: " + err.Error())
 		c.String(http.StatusInternalServerError, "生成 RSS Feed 失败")
 		return
 	}
 
+	// 检查客户端缓存
+	if checkClientCache(c, etag, lastModified) {
+		c.Status(http.StatusNotModified)
+		return
+	}
+
+	// 设置缓存头
+	setCacheHeaders(c, etag, lastModified)
 	c.Header("Content-Type", "application/xml; charset=utf-8")
 	c.String(http.StatusOK, rss)
+}
+
+// checkClientCache 检查客户端缓存是否有效
+func checkClientCache(c *gin.Context, etag, lastModified string) bool {
+	// 检查 If-None-Match (ETag)
+	if clientETag := c.GetHeader("If-None-Match"); clientETag != "" && clientETag == etag {
+		return true
+	}
+
+	// 检查 If-Modified-Since (Last-Modified)
+	if clientLastModified := c.GetHeader("If-Modified-Since"); clientLastModified != "" && clientLastModified == lastModified {
+		return true
+	}
+
+	return false
+}
+
+// setCacheHeaders 设置缓存响应头
+func setCacheHeaders(c *gin.Context, etag, lastModified string) {
+	if etag != "" {
+		c.Header("ETag", etag)
+	}
+	if lastModified != "" {
+		c.Header("Last-Modified", lastModified)
+	}
+	// 设置缓存控制：公开缓存，最大缓存时间 1 小时
+	c.Header("Cache-Control", "public, max-age=3600")
 }
 
 // GetConfig 获取 RSS 配置（管理后台）
@@ -222,20 +289,23 @@ func (h *RSSHandler) Preview(c *gin.Context) {
 		feedType = "posts"
 	}
 
-	var rss string
+	var rss, etag, lastModified string
 	var err error
 
 	switch feedType {
 	case "posts":
-		rss, err = h.rssService.GeneratePostsFeed(c.Request.Context())
+		rss, etag, lastModified, err = h.rssService.GeneratePostsFeed(c.Request.Context())
 	case "moments":
-		rss, err = h.rssService.GenerateMomentsFeed(c.Request.Context())
+		rss, etag, lastModified, err = h.rssService.GenerateMomentsFeed(c.Request.Context())
 	case "all":
-		rss, err = h.rssService.GenerateAllFeed(c.Request.Context())
+		rss, etag, lastModified, err = h.rssService.GenerateAllFeed(c.Request.Context())
 	default:
 		c.String(http.StatusBadRequest, "无效的 Feed 类型")
 		return
 	}
+
+	// 预览时不需要使用 etag 和 lastModified，用 _ 忽略
+	_, _ = etag, lastModified
 
 	if err != nil {
 		logger.Error("预览 RSS Feed 失败: " + err.Error())

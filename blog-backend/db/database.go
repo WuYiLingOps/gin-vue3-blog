@@ -15,7 +15,6 @@ import (
 
 	"blog-backend/config"
 	blogLogger "blog-backend/logger"
-	"blog-backend/model"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -49,15 +48,30 @@ func InitDB() error {
 	var err error
 	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Silent), // 关闭SQL日志输出，减少日志噪音
+		DisableForeignKeyConstraintWhenMigrating: true, // 禁用外键约束迁移，避免约束名称冲突
 	})
 
 	if err != nil {
 		return err
 	}
 
-	// 自动迁移数据库表结构
-	if err := DB.AutoMigrate(&model.Subscriber{}); err != nil {
-		blogLogger.Warn(fmt.Sprintf("Failed to migrate Subscriber table: %v", err))
+	// 检查必要的表是否存在（不使用 GORM AutoMigrate，避免约束名冲突）
+	// 所有表结构由 sql/init.sql 管理
+	var tableCount int64
+	requiredTables := []string{
+		"users", "posts", "categories", "tags", "comments",
+		"subscribers", "push_histories", "push_details", "post_revisions",
+	}
+
+	for _, tableName := range requiredTables {
+		if err := DB.Raw("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_name = ?", tableName).Scan(&tableCount).Error; err != nil {
+			blogLogger.Error(fmt.Sprintf("Failed to check table %s: %v", tableName, err))
+			return fmt.Errorf("检查表 %s 失败: %w", tableName, err)
+		}
+		if tableCount == 0 {
+			blogLogger.Warn(fmt.Sprintf("Table %s does not exist, please run sql/init.sql first", tableName))
+			return fmt.Errorf("表 %s 不存在，请先执行 sql/init.sql 初始化数据库", tableName)
+		}
 	}
 
 	// 连接成功，记录日志

@@ -29,6 +29,7 @@ email:
   username: xxxxxxxxx@qq.com  # 请替换为你的QQ邮箱
   password: xxxxxxxxx     # 请替换为你的QQ邮箱授权码
   from_name: 無以菱
+  site_name: 菱风叙  # 网站名称，用于邮件模板
 
 log:
   level: debug

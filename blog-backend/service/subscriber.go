@@ -27,24 +27,26 @@ import (
 
 // SubscriberService 订阅者业务逻辑层结构体
 type SubscriberService struct {
-	repo        *repository.SubscriberRepository
-	emailClient *email.Client
-	config      *config.Config
-	settingRepo *repository.SettingRepository
+	repo            *repository.SubscriberRepository
+	pushHistoryRepo *repository.PushHistoryRepository
+	emailClient     *email.Client
+	config          *config.Config
+	settingRepo     *repository.SettingRepository
 }
 
 // NewSubscriberService 创建订阅者业务逻辑层实例
 func NewSubscriberService(cfg *config.Config) *SubscriberService {
 	return &SubscriberService{
-		repo:        repository.NewSubscriberRepository(),
-		emailClient: email.Initialize(cfg),
-		config:      cfg,
-		settingRepo: repository.NewSettingRepository(),
+		repo:            repository.NewSubscriberRepository(),
+		pushHistoryRepo: repository.NewPushHistoryRepository(),
+		emailClient:     email.Initialize(cfg),
+		config:          cfg,
+		settingRepo:     repository.NewSettingRepository(),
 	}
 }
 
 // Subscribe 订阅
-func (s *SubscriberService) Subscribe(ctx context.Context, emailAddr string) error {
+func (s *SubscriberService) Subscribe(ctx context.Context, emailAddr, source, sourceURL, ip, userAgent string) error {
 	if s.emailClient == nil {
 		return errors.New("邮件服务未配置")
 	}
@@ -59,9 +61,14 @@ func (s *SubscriberService) Subscribe(ctx context.Context, emailAddr string) err
 		sub.IsActive = true
 		sub.SubscribedAt = &now
 		sub.UnsubscribedAt = nil
+		sub.Source = source
+		sub.SourceURL = sourceURL
+		sub.IP = ip
+		sub.UserAgent = userAgent
 		if err := s.repo.Update(ctx, sub); err != nil {
 			return fmt.Errorf("重新激活订阅失败: %w", err)
 		}
+
 		return s.sendWelcomeEmail(sub)
 	}
 
@@ -75,6 +82,10 @@ func (s *SubscriberService) Subscribe(ctx context.Context, emailAddr string) err
 		Email:        emailAddr,
 		IsActive:     true,
 		Token:        email.GenerateToken(),
+		Source:       source,
+		SourceURL:    sourceURL,
+		IP:           ip,
+		UserAgent:    userAgent,
 		SubscribedAt: &now,
 	}
 
@@ -109,7 +120,7 @@ func (s *SubscriberService) Unsubscribe(ctx context.Context, token string) error
 	return nil
 }
 
-// SendArticleNotification 发送文章推送通知（并发发送）
+// SendArticleNotification 发送文章推送通知（并发发送，记录推送历史）
 func (s *SubscriberService) SendArticleNotification(ctx context.Context, article *model.Post) error {
 	if s.emailClient == nil {
 		logger.Warn("邮件服务未配置，跳过文章推送")
@@ -125,11 +136,27 @@ func (s *SubscriberService) SendArticleNotification(ctx context.Context, article
 		return nil
 	}
 
+	// 创建推送历史记录
+	now := time.Now()
+	pushHistory := &model.PushHistory{
+		PostID:       article.ID,
+		PostTitle:    article.Title,
+		TotalCount:   len(subscribers),
+		SuccessCount: 0,
+		FailedCount:  0,
+		Status:       0, // 进行中
+		StartedAt:    now,
+	}
+	if err := s.pushHistoryRepo.Create(ctx, pushHistory); err != nil {
+		logger.Error(fmt.Sprintf("创建推送历史记录失败: %v", err))
+	}
+
 	// 并发控制：最多10个并发
 	semaphore := make(chan struct{}, 10)
 	var wg sync.WaitGroup
 	var mu sync.Mutex
 	successCount := 0
+	failedCount := 0
 
 	// 并发发送邮件
 	for _, sub := range subscribers {
@@ -140,17 +167,58 @@ func (s *SubscriberService) SendArticleNotification(ctx context.Context, article
 			defer wg.Done()
 			defer func() { <-semaphore }()
 
-			if err := s.sendArticleEmail(subscriber, article); err != nil {
+			// 创建推送详情记录
+			detail := &model.PushDetail{
+				PushHistoryID:   pushHistory.ID,
+				SubscriberID:    subscriber.ID,
+				SubscriberEmail: subscriber.Email,
+				Status:          0, // 待发送
+			}
+			s.pushHistoryRepo.CreateDetail(ctx, detail)
+
+			// 发送邮件
+			sentAt := time.Now()
+			err := s.sendArticleEmail(subscriber, article)
+
+			// 更新推送详情
+			if err != nil {
+				detail.Status = 2 // 失败
+				detail.ErrorMessage = err.Error()
 				logger.Warn(fmt.Sprintf("发送文章推送失败 (邮箱: %s): %v", subscriber.Email, err))
+				mu.Lock()
+				failedCount++
+				mu.Unlock()
 			} else {
+				detail.Status = 1 // 成功
+				detail.SentAt = &sentAt
 				mu.Lock()
 				successCount++
 				mu.Unlock()
 			}
+			s.pushHistoryRepo.UpdateDetail(ctx, detail)
 		}(sub)
 	}
 
 	wg.Wait()
+
+	// 更新推送历史记录
+	completedAt := time.Now()
+	pushHistory.SuccessCount = successCount
+	pushHistory.FailedCount = failedCount
+	pushHistory.CompletedAt = &completedAt
+
+	// 确定推送状态
+	if failedCount == 0 {
+		pushHistory.Status = 1 // 已完成
+	} else if successCount > 0 {
+		pushHistory.Status = 2 // 部分失败
+	} else {
+		pushHistory.Status = 2 // 全部失败
+	}
+
+	if err := s.pushHistoryRepo.Update(ctx, pushHistory); err != nil {
+		logger.Error(fmt.Sprintf("更新推送历史记录失败: %v", err))
+	}
 
 	logger.Info(fmt.Sprintf("文章推送完成: 成功 %d/%d", successCount, len(subscribers)))
 	return nil
@@ -216,4 +284,36 @@ func (s *SubscriberService) GetActiveCount(ctx context.Context) (int64, error) {
 // GetTotalCount 获取累积订阅者总数（公开接口，包括已退订的用户）
 func (s *SubscriberService) GetTotalCount(ctx context.Context) (int64, error) {
 	return s.repo.CountTotal(ctx)
+}
+
+// ==================== 推送历史记录相关方法 ====================
+
+// GetPushHistories 获取推送历史记录列表
+func (s *SubscriberService) GetPushHistories(ctx context.Context, page, pageSize int) ([]model.PushHistory, int64, error) {
+	return s.pushHistoryRepo.List(ctx, page, pageSize)
+}
+
+// GetPushHistoryDetail 获取推送历史详情
+func (s *SubscriberService) GetPushHistoryDetail(ctx context.Context, id uint, page, pageSize int) (*model.PushHistory, []model.PushDetail, int64, error) {
+	history, err := s.pushHistoryRepo.GetByID(ctx, id)
+	if err != nil {
+		return nil, nil, 0, errors.New("推送历史不存在")
+	}
+
+	details, total, err := s.pushHistoryRepo.GetDetailsByHistoryID(ctx, id, page, pageSize)
+	if err != nil {
+		return nil, nil, 0, err
+	}
+
+	return history, details, total, nil
+}
+
+// DeletePushHistory 删除推送历史
+func (s *SubscriberService) DeletePushHistory(ctx context.Context, id uint) error {
+	return s.pushHistoryRepo.Delete(ctx, id)
+}
+
+// GetPushStats 获取推送统计信息
+func (s *SubscriberService) GetPushStats(ctx context.Context) (map[string]interface{}, error) {
+	return s.pushHistoryRepo.GetStats(ctx)
 }

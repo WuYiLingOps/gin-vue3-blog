@@ -16,6 +16,8 @@ import (
 	"blog-backend/model"
 	"blog-backend/repository"
 	"context"
+	"crypto/md5"
+	"encoding/hex"
 	"fmt"
 	"sync"
 	"time"
@@ -234,28 +236,29 @@ func (s *RSSService) UpdateRSSConfig(ctx context.Context, config *RSSConfig) err
 }
 
 // GeneratePostsFeed 生成文章 RSS Feed
-func (s *RSSService) GeneratePostsFeed(ctx context.Context) (string, error) {
+func (s *RSSService) GeneratePostsFeed(ctx context.Context) (string, string, string, error) {
 	cacheKey := "rss:posts"
 
 	// 检查缓存
 	if cached := s.getCache(cacheKey); cached != "" {
-		return cached, nil
+		etag, lastModified := s.generateCacheHeaders(cached)
+		return cached, etag, lastModified, nil
 	}
 
 	config, err := s.GetRSSConfig(ctx)
 	if err != nil {
-		return "", err
+		return "", "", "", err
 	}
 
 	if !config.Enabled {
-		return "", fmt.Errorf("RSS 功能未启用")
+		return "", "", "", fmt.Errorf("RSS 功能未启用")
 	}
 
 	// 获取最新文章（只获取已发布的公开文章）
 	visibility := 1
 	posts, _, err := s.postRepo.List(1, config.ItemLimit, 0, "", 1, &visibility)
 	if err != nil {
-		return "", fmt.Errorf("获取文章列表失败: %w", err)
+		return "", "", "", fmt.Errorf("获取文章列表失败: %w", err)
 	}
 
 	feed := s.createBaseFeed(config, "最新文章")
@@ -268,38 +271,42 @@ func (s *RSSService) GeneratePostsFeed(ctx context.Context) (string, error) {
 
 	rss, err := feed.ToRss()
 	if err != nil {
-		return "", fmt.Errorf("生成 RSS Feed 失败: %w", err)
+		return "", "", "", fmt.Errorf("生成 RSS Feed 失败: %w", err)
 	}
 
 	// 缓存结果
 	s.setCache(cacheKey, rss, config.CacheDuration)
 
-	return rss, nil
+	// 生成缓存头
+	etag, lastModified := s.generateCacheHeaders(rss)
+
+	return rss, etag, lastModified, nil
 }
 
 // GenerateMomentsFeed 生成说说 RSS Feed
-func (s *RSSService) GenerateMomentsFeed(ctx context.Context) (string, error) {
+func (s *RSSService) GenerateMomentsFeed(ctx context.Context) (string, string, string, error) {
 	cacheKey := "rss:moments"
 
 	// 检查缓存
 	if cached := s.getCache(cacheKey); cached != "" {
-		return cached, nil
+		etag, lastModified := s.generateCacheHeaders(cached)
+		return cached, etag, lastModified, nil
 	}
 
 	config, err := s.GetRSSConfig(ctx)
 	if err != nil {
-		return "", err
+		return "", "", "", err
 	}
 
 	if !config.Enabled {
-		return "", fmt.Errorf("RSS 功能未启用")
+		return "", "", "", fmt.Errorf("RSS 功能未启用")
 	}
 
 	// 获取最新说说（只获取公开的）
 	status := 1
 	moments, _, err := s.momentRepo.List(1, config.ItemLimit, &status, "")
 	if err != nil {
-		return "", fmt.Errorf("获取说说列表失败: %w", err)
+		return "", "", "", fmt.Errorf("获取说说列表失败: %w", err)
 	}
 
 	feed := s.createBaseFeed(config, "最新说说")
@@ -312,31 +319,33 @@ func (s *RSSService) GenerateMomentsFeed(ctx context.Context) (string, error) {
 
 	rss, err := feed.ToRss()
 	if err != nil {
-		return "", fmt.Errorf("生成 RSS Feed 失败: %w", err)
+		return "", "", "", fmt.Errorf("生成 RSS Feed 失败: %w", err)
 	}
 
 	// 缓存结果
 	s.setCache(cacheKey, rss, config.CacheDuration)
 
-	return rss, nil
+	etag, lastModified := s.generateCacheHeaders(rss)
+	return rss, etag, lastModified, nil
 }
 
 // GenerateAllFeed 生成全站 RSS Feed（文章 + 说说混合）
-func (s *RSSService) GenerateAllFeed(ctx context.Context) (string, error) {
+func (s *RSSService) GenerateAllFeed(ctx context.Context) (string, string, string, error) {
 	cacheKey := "rss:all"
 
 	// 检查缓存
 	if cached := s.getCache(cacheKey); cached != "" {
-		return cached, nil
+		etag, lastModified := s.generateCacheHeaders(cached)
+		return cached, etag, lastModified, nil
 	}
 
 	config, err := s.GetRSSConfig(ctx)
 	if err != nil {
-		return "", err
+		return "", "", "", err
 	}
 
 	if !config.Enabled {
-		return "", fmt.Errorf("RSS 功能未启用")
+		return "", "", "", fmt.Errorf("RSS 功能未启用")
 	}
 
 	feed := s.createBaseFeed(config, "全站更新")
@@ -375,44 +384,46 @@ func (s *RSSService) GenerateAllFeed(ctx context.Context) (string, error) {
 
 	rss, err := feed.ToRss()
 	if err != nil {
-		return "", fmt.Errorf("生成 RSS Feed 失败: %w", err)
+		return "", "", "", fmt.Errorf("生成 RSS Feed 失败: %w", err)
 	}
 
 	// 缓存结果
 	s.setCache(cacheKey, rss, config.CacheDuration)
 
-	return rss, nil
+	etag, lastModified := s.generateCacheHeaders(rss)
+	return rss, etag, lastModified, nil
 }
 
 // GenerateCategoryFeed 生成分类 RSS Feed
-func (s *RSSService) GenerateCategoryFeed(ctx context.Context, categoryID uint) (string, error) {
+func (s *RSSService) GenerateCategoryFeed(ctx context.Context, categoryID uint) (string, string, string, error) {
 	cacheKey := fmt.Sprintf("rss:category:%d", categoryID)
 
 	// 检查缓存
 	if cached := s.getCache(cacheKey); cached != "" {
-		return cached, nil
+		etag, lastModified := s.generateCacheHeaders(cached)
+		return cached, etag, lastModified, nil
 	}
 
 	config, err := s.GetRSSConfig(ctx)
 	if err != nil {
-		return "", err
+		return "", "", "", err
 	}
 
 	if !config.Enabled {
-		return "", fmt.Errorf("RSS 功能未启用")
+		return "", "", "", fmt.Errorf("RSS 功能未启用")
 	}
 
 	// 获取分类信息
 	category, err := s.categoryRepo.GetByID(categoryID)
 	if err != nil {
-		return "", fmt.Errorf("获取分类信息失败: %w", err)
+		return "", "", "", fmt.Errorf("获取分类信息失败: %w", err)
 	}
 
 	// 获取该分类的文章
 	visibility := 1
 	posts, _, err := s.postRepo.List(1, config.ItemLimit, categoryID, "", 1, &visibility)
 	if err != nil {
-		return "", fmt.Errorf("获取文章列表失败: %w", err)
+		return "", "", "", fmt.Errorf("获取文章列表失败: %w", err)
 	}
 
 	feed := s.createBaseFeed(config, fmt.Sprintf("%s - %s", category.Name, config.Title))
@@ -426,43 +437,45 @@ func (s *RSSService) GenerateCategoryFeed(ctx context.Context, categoryID uint) 
 
 	rss, err := feed.ToRss()
 	if err != nil {
-		return "", fmt.Errorf("生成 RSS Feed 失败: %w", err)
+		return "", "", "", fmt.Errorf("生成 RSS Feed 失败: %w", err)
 	}
 
 	// 缓存结果
 	s.setCache(cacheKey, rss, config.CacheDuration)
 
-	return rss, nil
+	etag, lastModified := s.generateCacheHeaders(rss)
+	return rss, etag, lastModified, nil
 }
 
 // GenerateTagFeed 生成标签 RSS Feed
-func (s *RSSService) GenerateTagFeed(ctx context.Context, tagID uint) (string, error) {
+func (s *RSSService) GenerateTagFeed(ctx context.Context, tagID uint) (string, string, string, error) {
 	cacheKey := fmt.Sprintf("rss:tag:%d", tagID)
 
 	// 检查缓存
 	if cached := s.getCache(cacheKey); cached != "" {
-		return cached, nil
+		etag, lastModified := s.generateCacheHeaders(cached)
+		return cached, etag, lastModified, nil
 	}
 
 	config, err := s.GetRSSConfig(ctx)
 	if err != nil {
-		return "", err
+		return "", "", "", err
 	}
 
 	if !config.Enabled {
-		return "", fmt.Errorf("RSS 功能未启用")
+		return "", "", "", fmt.Errorf("RSS 功能未启用")
 	}
 
 	// 获取标签信息
 	tag, err := s.tagRepo.GetByID(tagID)
 	if err != nil {
-		return "", fmt.Errorf("获取标签信息失败: %w", err)
+		return "", "", "", fmt.Errorf("获取标签信息失败: %w", err)
 	}
 
 	// 获取该标签的已发布文章
 	posts, err := s.postRepo.GetPublishedPostsByTag(tagID, config.ItemLimit)
 	if err != nil {
-		return "", fmt.Errorf("获取文章列表失败: %w", err)
+		return "", "", "", fmt.Errorf("获取文章列表失败: %w", err)
 	}
 
 	feed := s.createBaseFeed(config, fmt.Sprintf("#%s - %s", tag.Name, config.Title))
@@ -475,13 +488,14 @@ func (s *RSSService) GenerateTagFeed(ctx context.Context, tagID uint) (string, e
 
 	rss, err := feed.ToRss()
 	if err != nil {
-		return "", fmt.Errorf("生成 RSS Feed 失败: %w", err)
+		return "", "", "", fmt.Errorf("生成 RSS Feed 失败: %w", err)
 	}
 
 	// 缓存结果
 	s.setCache(cacheKey, rss, config.CacheDuration)
 
-	return rss, nil
+	etag, lastModified := s.generateCacheHeaders(rss)
+	return rss, etag, lastModified, nil
 }
 
 // ClearCache 清除所有 RSS 缓存
@@ -587,4 +601,16 @@ func (s *RSSService) getCache(key string) string {
 // setCache 设置缓存（RSSService 方法）
 func (s *RSSService) setCache(key, content string, duration int) {
 	s.cache.setCache(key, content, duration)
+}
+
+// generateCacheHeaders 生成缓存头（ETag 和 Last-Modified）
+func (s *RSSService) generateCacheHeaders(content string) (string, string) {
+	// 生成 ETag：使用内容的 MD5 哈希
+	hash := md5.Sum([]byte(content))
+	etag := `"` + hex.EncodeToString(hash[:]) + `"`
+
+	// 生成 Last-Modified：使用当前时间（RFC1123 格式）
+	lastModified := time.Now().UTC().Format(time.RFC1123)
+
+	return etag, lastModified
 }

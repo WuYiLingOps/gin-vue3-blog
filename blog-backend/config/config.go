@@ -65,6 +65,7 @@ type Config struct {
 		Username string `mapstructure:"username"`  // 发件人邮箱
 		Password string `mapstructure:"password"`  // 邮箱密码或授权码
 		FromName string `mapstructure:"from_name"` // 发件人名称
+		SiteName string `mapstructure:"site_name"` // 网站名称
 	} `mapstructure:"email"`
 
 	// Log 日志配置

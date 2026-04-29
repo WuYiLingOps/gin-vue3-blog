@@ -30,7 +30,7 @@ func main() {
 
 	// 初始化日志
 	isDev := config.Cfg.Env == "dev"
-	if err := logger.InitLogger(config.Cfg.Log.Level, isDev); err != nil {
+	if err := logger.InitLogger(config.Cfg.Log.Level, isDev, ""); err != nil {
 		log.Fatalf("日志初始化失败: %v", err)
 	}
 	defer logger.Sync()

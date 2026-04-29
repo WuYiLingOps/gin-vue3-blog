@@ -28,6 +28,7 @@ email:
   username: xxxxxxxxx@qq.com
   password: xxxxxxxxx
   from_name: 無以菱
+  site_name: 菱风叙
 
 # 日志配置（生产环境使用 info 级别，减少日志输出）
 log:

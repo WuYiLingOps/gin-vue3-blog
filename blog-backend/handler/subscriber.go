@@ -33,7 +33,9 @@ func NewSubscriberHandler(cfg *config.Config) *SubscriberHandler {
 
 // SubscribeRequest 订阅请求
 type SubscribeRequest struct {
-	Email string `json:"email" binding:"required,email"`
+	Email     string `json:"email" binding:"required,email"`
+	Source    string `json:"source"`     // 订阅来源：homepage/post/subscribe/other
+	SourceURL string `json:"source_url"` // 来源URL
 }
 
 // Subscribe 订阅
@@ -44,7 +46,16 @@ func (h *SubscriberHandler) Subscribe(c *gin.Context) {
 		return
 	}
 
-	if err := h.service.Subscribe(c.Request.Context(), req.Email); err != nil {
+	// 获取客户端信息
+	ip := c.ClientIP()
+	userAgent := c.GetHeader("User-Agent")
+
+	// 如果前端没有传递来源，默认为 subscribe
+	if req.Source == "" {
+		req.Source = "subscribe"
+	}
+
+	if err := h.service.Subscribe(c.Request.Context(), req.Email, req.Source, req.SourceURL, ip, userAgent); err != nil {
 		util.Error(c, 400, err.Error())
 		return
 	}
@@ -123,3 +134,71 @@ func (h *SubscriberHandler) GetStats(c *gin.Context) {
 		"active_count": activeCount, // 当前活跃订阅者数量
 	})
 }
+
+// GetPushHistories 获取推送历史记录列表（管理员）
+func (h *SubscriberHandler) GetPushHistories(c *gin.Context) {
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "20"))
+
+	histories, total, err := h.service.GetPushHistories(c.Request.Context(), page, pageSize)
+	if err != nil {
+		util.ServerError(c, "获取推送历史失败")
+		return
+	}
+
+	util.PageSuccess(c, histories, total, page, pageSize)
+}
+
+// GetPushHistoryDetail 获取推送历史详情（管理员）
+func (h *SubscriberHandler) GetPushHistoryDetail(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		util.BadRequest(c, "无效的推送历史ID")
+		return
+	}
+
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "20"))
+
+	history, details, total, err := h.service.GetPushHistoryDetail(c.Request.Context(), uint(id), page, pageSize)
+	if err != nil {
+		util.Error(c, 400, err.Error())
+		return
+	}
+
+	util.Success(c, gin.H{
+		"history": history,
+		"details": details,
+		"total":   total,
+		"page":    page,
+		"page_size": pageSize,
+	})
+}
+
+// DeletePushHistory 删除推送历史（管理员）
+func (h *SubscriberHandler) DeletePushHistory(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		util.BadRequest(c, "无效的推送历史ID")
+		return
+	}
+
+	if err := h.service.DeletePushHistory(c.Request.Context(), uint(id)); err != nil {
+		util.Error(c, 400, err.Error())
+		return
+	}
+
+	util.SuccessWithMessage(c, "删除成功", nil)
+}
+
+// GetPushStats 获取推送统计信息（管理员）
+func (h *SubscriberHandler) GetPushStats(c *gin.Context) {
+	stats, err := h.service.GetPushStats(c.Request.Context())
+	if err != nil {
+		util.ServerError(c, "获取推送统计失败")
+		return
+	}
+
+	util.Success(c, stats)
+}
+
