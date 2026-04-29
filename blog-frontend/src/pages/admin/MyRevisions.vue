@@ -44,7 +44,7 @@
         <div class="diff-header">
           <p><strong>文章：</strong>{{ currentDiff.post_title }}</p>
           <p><strong>修改说明：</strong>{{ currentRevision?.editor_comment || '无' }}</p>
-          <p><strong>提交时间：</strong>{{ formatDate(currentRevision?.created_at) }}</p>
+          <p><strong>提交时间：</strong>{{ formatDate(currentRevision?.created_at || '') }}</p>
         </div>
 
         <n-divider />
@@ -88,7 +88,7 @@ import { ref, onMounted, h, computed } from 'vue'
 import { NButton, NTag, NSpace, useMessage, useDialog } from 'naive-ui'
 import type { DataTableColumns, PaginationProps } from 'naive-ui'
 import { getMyRevisions, getRevisionDiff, withdrawRevision } from '@/api/postRevision'
-import type { PostRevision, RevisionDiff } from '@/types/blog'
+import type { PostRevision } from '@/types/blog'
 import DiffViewer from '@/components/DiffViewer.vue'
 
 const message = useMessage()
@@ -219,8 +219,8 @@ const fetchRevisions = async () => {
     }
 
     const res = await getMyRevisions(params)
-    revisions.value = res.data.list || []
-    pagination.value.total = res.data.total || 0
+    revisions.value = res.data?.list || []
+    pagination.value.total = res.data?.total || 0
   } catch (error: any) {
     message.error(error.message || '获取列表失败')
   } finally {
