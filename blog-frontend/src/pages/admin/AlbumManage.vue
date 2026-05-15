@@ -112,6 +112,7 @@
             v-model="formData.image_url"
             :width="400"
             :height="250"
+            :upload-fn="uploadPhotoAlbum"
           />
         </n-form-item>
 
@@ -156,6 +157,7 @@ import { useMessage, NSpace, NButton } from 'naive-ui'
 import type { FormInst, DataTableColumns } from 'naive-ui'
 import { AddOutline, GridOutline, AppsOutline } from '@vicons/ionicons5'
 import { getAlbums, createAlbum, updateAlbum, deleteAlbum, type Album } from '@/api/album'
+import { uploadPhotoAlbum } from '@/api/upload'
 import ImageUpload from '@/components/ImageUpload.vue'
 
 const message = useMessage()
