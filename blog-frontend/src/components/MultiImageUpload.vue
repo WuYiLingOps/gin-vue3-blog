@@ -68,6 +68,8 @@ import { uploadImage } from '@/api/upload'
 interface Props {
   modelValue?: string | string[]
   maxCount?: number
+  /** 自定义上传函数，不传则使用默认的 uploadImage */
+  uploadFn?: (file: File) => Promise<any>
 }
 
 interface Emits {
@@ -77,7 +79,8 @@ interface Emits {
 
 const props = withDefaults(defineProps<Props>(), {
   modelValue: '',
-  maxCount: 9
+  maxCount: 9,
+  uploadFn: undefined
 })
 
 const emit = defineEmits<Emits>()
@@ -135,10 +138,11 @@ function handleBeforeUpload(data: { file: UploadFileInfo }): boolean {
 // 使用自定义上传请求
 async function customRequest(options: UploadCustomRequestOptions) {
   const { file, onFinish, onError } = options
-  
+
   try {
-    const result = await uploadImage(file.file as File)
-    
+    const upload = props.uploadFn || uploadImage
+    const result = await upload(file.file as File)
+
     if (result.data?.url) {
       imageList.value.push(result.data.url)
       const jsonStr = JSON.stringify(imageList.value)
