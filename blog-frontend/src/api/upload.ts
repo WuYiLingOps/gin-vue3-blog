@@ -64,3 +64,95 @@ export async function uploadImage(file: File) {
   return result
 }
 
+/**
+ * 上传相册图片
+ * @param file 相册图片文件对象
+ * @returns 返回上传结果，包含文件URL（已转换为完整URL）
+ */
+export async function uploadPhotoAlbum(file: File) {
+  const formData = new FormData()
+  formData.append('file', file)
+
+  const result = await request.post<UploadResponse>('/upload/photo-album', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+
+  // 将相对路径转换为完整 URL
+  if (result.data?.url) {
+    result.data.url = getFileUrl(result.data.url)
+  }
+
+  return result
+}
+
+/**
+ * 上传友链图片
+ * @param file 友链图片文件对象
+ * @returns 返回上传结果，包含文件URL（已转换为完整URL）
+ */
+export async function uploadFriendLinkImage(file: File) {
+  const formData = new FormData()
+  formData.append('file', file)
+
+  const result = await request.post<UploadResponse>('/upload/friend-link', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+
+  // 将相对路径转换为完整 URL
+  if (result.data?.url) {
+    result.data.url = getFileUrl(result.data.url)
+  }
+
+  return result
+}
+
+/**
+ * 上传首页封面
+ * @param file 首页封面文件对象
+ * @returns 返回上传结果，包含文件URL（已转换为完整URL）
+ */
+export async function uploadSiteCover(file: File) {
+  const formData = new FormData()
+  formData.append('file', file)
+
+  const result = await request.post<UploadResponse>('/upload/site-cover', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+
+  // 将相对路径转换为完整 URL
+  if (result.data?.url) {
+    result.data.url = getFileUrl(result.data.url)
+  }
+
+  return result
+}
+
+/**
+ * 上传文章封面
+ * @param file 文章封面文件对象
+ * @returns 返回上传结果，包含文件URL（已转换为完整URL）
+ */
+export async function uploadPostCover(file: File) {
+  const formData = new FormData()
+  formData.append('file', file)
+
+  const result = await request.post<UploadResponse>('/upload/post-cover', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+
+  // 将相对路径转换为完整 URL
+  if (result.data?.url) {
+    result.data.url = getFileUrl(result.data.url)
+  }
+
+  return result
+}
+
