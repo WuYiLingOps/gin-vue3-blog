@@ -542,10 +542,14 @@ security:
 
 ```
 blog-backend/
-└── uploads/              # 主上传目录
-    ├── avatars/          # 头像目录
+└── uploads/                  # 主上传目录
+    ├── avatars/              # 头像目录
     │   └── 20251214051715_bdbcaf98.jpg
-    └── 20251214055346_5161a8e6.JPG  # 普通图片
+    ├── photoAlbum/           # 相册图片
+    ├── friendLinks/          # 友链图片
+    ├── siteCovers/           # 首页封面图
+    ├── postCovers/           # 文章封面图
+    └── 20251214055346_5161a8e6.JPG  # 通用图片（历史兼容）
 ```
 
 ### 文件命名规则
