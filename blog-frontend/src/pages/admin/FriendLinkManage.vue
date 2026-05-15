@@ -178,7 +178,24 @@
         </n-form-item>
 
         <n-form-item label="网站图标">
-          <n-input v-model:value="formData.icon" placeholder="https://example.com/icon.ico" />
+          <div style="width: 100%;">
+            <ImageUpload
+              v-model="formData.icon"
+              :width="160"
+              :height="160"
+              :max-size-m-b="2"
+              alt="网站图标"
+              compact
+              :upload-fn="uploadFriendLinkImage"
+            />
+            <n-input
+              v-model:value="formData.icon"
+              placeholder="或手动输入图标URL，如 https://example.com/icon.ico"
+              maxlength="500"
+              clearable
+              style="margin-top: 8px;"
+            />
+          </div>
         </n-form-item>
 
         <n-form-item label="网站描述">
@@ -191,7 +208,24 @@
         </n-form-item>
 
         <n-form-item label="网站截图">
-          <n-input v-model:value="formData.screenshot" placeholder="https://example.com/screenshot.jpg" />
+          <div style="width: 100%;">
+            <ImageUpload
+              v-model="formData.screenshot"
+              :width="400"
+              :height="225"
+              :max-size-m-b="5"
+              alt="网站截图"
+              compact
+              :upload-fn="uploadFriendLinkImage"
+            />
+            <n-input
+              v-model:value="formData.screenshot"
+              placeholder="或手动输入截图URL，如 https://example.com/screenshot.jpg"
+              maxlength="500"
+              clearable
+              style="margin-top: 8px;"
+            />
+          </div>
         </n-form-item>
 
         <n-form-item label="Atom/RSS 地址（可选）">
@@ -331,6 +365,8 @@ import {
 } from '@/api/friendlink'
 import type { FriendLink, FriendLinkForm, FriendLinkCategory, FriendLinkCategoryForm } from '@/api/friendlink'
 import { getFriendLinkInfo, updateFriendLinkInfo, type FriendLinkInfo } from '@/api/setting'
+import { uploadFriendLinkImage } from '@/api/upload'
+import ImageUpload from '@/components/ImageUpload.vue'
 
 // 更宽松且可靠的 URL 校验：使用浏览器 URL 解析，限定 http/https
 const validateUrl = (_rule: unknown, value: string) => {
