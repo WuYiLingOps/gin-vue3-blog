@@ -96,3 +96,147 @@ func (h *UploadHandler) UploadImage(c *gin.Context) {
 		"url": fileURL,
 	})
 }
+
+// UploadPhotoAlbum 上传相册图片
+func (h *UploadHandler) UploadPhotoAlbum(c *gin.Context) {
+	// 获取上传的文件
+	file, err := c.FormFile("file")
+	if err != nil {
+		util.BadRequest(c, "请选择要上传的文件")
+		return
+	}
+
+	var fileURL string
+	// 获取用户角色，普通用户强制使用本地存储
+	roleVal, exists := c.Get("role")
+	role, _ := roleVal.(string)
+	if exists && constant.IsAdminRole(role) {
+		// 具备管理员权限的用户使用配置的存储方式（本地/OSS/COS）
+		fileURL, err = util.UploadFile(file, util.PhotoAlbumDir)
+		if err != nil {
+			util.Error(c, 400, err.Error())
+			return
+		}
+	} else {
+		// 普通用户强制使用本地存储
+		filePath, err := util.SaveUploadedFile(file, util.PhotoAlbumDir)
+		if err != nil {
+			util.Error(c, 400, err.Error())
+			return
+		}
+		fileURL = util.GetFileURL(filePath)
+	}
+
+	// 返回文件 URL
+	util.SuccessWithMessage(c, "上传成功", gin.H{
+		"url": fileURL,
+	})
+}
+
+// UploadFriendLinkImage 上传友链图片
+func (h *UploadHandler) UploadFriendLinkImage(c *gin.Context) {
+	// 获取上传的文件
+	file, err := c.FormFile("file")
+	if err != nil {
+		util.BadRequest(c, "请选择要上传的文件")
+		return
+	}
+
+	var fileURL string
+	// 获取用户角色，普通用户强制使用本地存储
+	roleVal, exists := c.Get("role")
+	role, _ := roleVal.(string)
+	if exists && constant.IsAdminRole(role) {
+		// 具备管理员权限的用户使用配置的存储方式（本地/OSS/COS）
+		fileURL, err = util.UploadFile(file, util.FriendLinkDir)
+		if err != nil {
+			util.Error(c, 400, err.Error())
+			return
+		}
+	} else {
+		// 普通用户强制使用本地存储
+		filePath, err := util.SaveUploadedFile(file, util.FriendLinkDir)
+		if err != nil {
+			util.Error(c, 400, err.Error())
+			return
+		}
+		fileURL = util.GetFileURL(filePath)
+	}
+
+	// 返回文件 URL
+	util.SuccessWithMessage(c, "上传成功", gin.H{
+		"url": fileURL,
+	})
+}
+
+// UploadSiteCover 上传首页封面
+func (h *UploadHandler) UploadSiteCover(c *gin.Context) {
+	// 获取上传的文件
+	file, err := c.FormFile("file")
+	if err != nil {
+		util.BadRequest(c, "请选择要上传的文件")
+		return
+	}
+
+	var fileURL string
+	// 获取用户角色，普通用户强制使用本地存储
+	roleVal, exists := c.Get("role")
+	role, _ := roleVal.(string)
+	if exists && constant.IsAdminRole(role) {
+		// 具备管理员权限的用户使用配置的存储方式（本地/OSS/COS）
+		fileURL, err = util.UploadFile(file, util.SiteCoverDir)
+		if err != nil {
+			util.Error(c, 400, err.Error())
+			return
+		}
+	} else {
+		// 普通用户强制使用本地存储
+		filePath, err := util.SaveUploadedFile(file, util.SiteCoverDir)
+		if err != nil {
+			util.Error(c, 400, err.Error())
+			return
+		}
+		fileURL = util.GetFileURL(filePath)
+	}
+
+	// 返回文件 URL
+	util.SuccessWithMessage(c, "上传成功", gin.H{
+		"url": fileURL,
+	})
+}
+
+// UploadPostCover 上传文章封面
+func (h *UploadHandler) UploadPostCover(c *gin.Context) {
+	// 获取上传的文件
+	file, err := c.FormFile("file")
+	if err != nil {
+		util.BadRequest(c, "请选择要上传的文件")
+		return
+	}
+
+	var fileURL string
+	// 获取用户角色，普通用户强制使用本地存储
+	roleVal, exists := c.Get("role")
+	role, _ := roleVal.(string)
+	if exists && constant.IsAdminRole(role) {
+		// 具备管理员权限的用户使用配置的存储方式（本地/OSS/COS）
+		fileURL, err = util.UploadFile(file, util.PostCoverDir)
+		if err != nil {
+			util.Error(c, 400, err.Error())
+			return
+		}
+	} else {
+		// 普通用户强制使用本地存储
+		filePath, err := util.SaveUploadedFile(file, util.PostCoverDir)
+		if err != nil {
+			util.Error(c, 400, err.Error())
+			return
+		}
+		fileURL = util.GetFileURL(filePath)
+	}
+
+	// 返回文件 URL
+	util.SuccessWithMessage(c, "上传成功", gin.H{
+		"url": fileURL,
+	})
+}

@@ -105,6 +105,8 @@ interface Props {
   maxSizeMB?: number
   alt?: string
   compact?: boolean
+  /** 自定义上传函数，不传则使用默认的 uploadImage */
+  uploadFn?: (file: File) => Promise<any>
 }
 
 interface Emits {
@@ -119,7 +121,8 @@ const props = withDefaults(defineProps<Props>(), {
   height: 250,
   maxSizeMB: 5,
   alt: '图片',
-  compact: false
+  compact: false,
+  uploadFn: undefined
 })
 
 const emit = defineEmits<Emits>()
@@ -194,7 +197,8 @@ async function uploadAndSet(file: File) {
 
   uploading.value = true
   try {
-    const result = await uploadImage(file)
+    const upload = props.uploadFn || uploadImage
+    const result = await upload(file)
     if (result.data?.url) {
       imageUrl.value = result.data.url
       emit('update:modelValue', result.data.url)
@@ -276,10 +280,11 @@ onBeforeUnmount(() => {
 // 使用自定义上传请求
 async function customRequest(options: UploadCustomRequestOptions) {
   const { file, onFinish, onError } = options
-  
+
   try {
-    const result = await uploadImage(file.file as File)
-    
+    const upload = props.uploadFn || uploadImage
+    const result = await upload(file.file as File)
+
     if (result.data?.url) {
       imageUrl.value = result.data.url
       emit('update:modelValue', result.data.url)

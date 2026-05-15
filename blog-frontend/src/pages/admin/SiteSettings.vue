@@ -411,6 +411,7 @@
             <MultiImageUpload
               v-model="formData.cover_bg_images"
               :max-count="3"
+              :upload-fn="uploadSiteCover"
             />
             <n-text depth="3" style="font-size: 12px; margin-top: 8px; display: block;">
               建议上传 1920×1080 或更高分辨率的横版图片，最多上传 3 张，每次刷新页面随机显示其中一张
@@ -433,6 +434,7 @@
 import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
 import { useMessage, type FormInst } from 'naive-ui'
 import { getSiteSettings, updateSiteSettings, getUploadSettings, updateUploadSettings, getNotificationSettings, updateNotificationSettings } from '@/api/setting'
+import { uploadSiteCover } from '@/api/upload'
 import ImageUpload from '@/components/ImageUpload.vue'
 import MultiImageUpload from '@/components/MultiImageUpload.vue'
 

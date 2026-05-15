@@ -302,6 +302,10 @@ func setupUploadRoutes(api *gin.RouterGroup, h *handler.UploadHandler) {
 	{
 		upload.POST("/avatar", h.UploadAvatar)
 		upload.POST("/image", h.UploadImage)
+		upload.POST("/photo-album", h.UploadPhotoAlbum)   // 相册图片上传
+		upload.POST("/friend-link", h.UploadFriendLinkImage) // 友链图片上传
+		upload.POST("/site-cover", h.UploadSiteCover)      // 首页封面上传
+		upload.POST("/post-cover", h.UploadPostCover)      // 文章封面上传
 	}
 }
 

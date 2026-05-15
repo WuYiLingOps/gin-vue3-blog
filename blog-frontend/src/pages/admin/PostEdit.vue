@@ -67,6 +67,7 @@
                 :height="340"
                 :max-size-m-b="5"
                 alt="文章封面"
+                :upload-fn="uploadPostCover"
                 @success="handleCoverSuccess"
               />
               <n-text depth="3" style="font-size: 12px">
@@ -133,6 +134,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useMessage } from 'naive-ui'
 import type { FormInst, FormRules, SelectOption } from 'naive-ui'
 import { getPostById, createPost, updatePost } from '@/api/post'
+import { uploadPostCover } from '@/api/upload'
 import { useBlogStore, useAuthStore } from '@/stores'
 import type { PostForm } from '@/types/blog'
 import MarkdownEditor from '@/components/MarkdownEditor.vue'
