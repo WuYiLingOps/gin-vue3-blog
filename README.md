@@ -861,7 +861,13 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
 
    - 如果使用**本地存储**，需要将旧服务器的 `blog-backend/uploads/` 目录完整复制到新服务器
 
-   - 包括 `uploads/avatars/`（用户头像）和 `uploads/` 下的其他图片文件
+   - 包括以下子目录：
+     - `uploads/avatars/` - 用户头像
+     - `uploads/photoAlbum/` - 相册图片
+     - `uploads/friendLinks/` - 友链图片
+     - `uploads/siteCovers/` - 首页封面图
+     - `uploads/postCovers/` - 文章封面图
+     - `uploads/` 根目录下的通用图片（历史兼容）
 
    - 迁移方法：
 
@@ -1039,6 +1045,11 @@ myBlog/
 │   ├── service/           # 业务逻辑层
 │   ├── util/              # 工具函数
 │   ├── uploads/           # 上传文件
+│   │   ├── avatars/       # 用户头像
+│   │   ├── photoAlbum/    # 相册图片
+│   │   ├── friendLinks/   # 友链图片
+│   │   ├── siteCovers/    # 首页封面图
+│   │   └── postCovers/    # 文章封面图
 │   └── go.mod
 │
 └── README.md              # 项目说明
@@ -1356,7 +1367,11 @@ myBlog/
 - `POST /api/upload/avatar` - 上传头像（需认证）
   - 普通用户：强制使用本地存储，不上传到 OSS/COS
   - 管理员：根据后台配置选择存储方式（本地/OSS/COS）
-- `POST /api/upload/image` - 上传图片（需认证，根据配置选择存储方式）
+- `POST /api/upload/image` - 上传通用图片（需认证，根据配置选择存储方式）
+- `POST /api/upload/photo-album` - 上传相册图片（需认证，存储到 `uploads/photoAlbum/`）
+- `POST /api/upload/friend-link` - 上传友链图片（需认证，存储到 `uploads/friendLinks/`）
+- `POST /api/upload/site-cover` - 上传首页封面图（需认证，存储到 `uploads/siteCovers/`）
+- `POST /api/upload/post-cover` - 上传文章封面图（需认证，存储到 `uploads/postCovers/`）
 
 ## 9.8 友链相关
 
