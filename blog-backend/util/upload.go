@@ -28,6 +28,14 @@ const (
 	UploadDir = "uploads"
 	// 头像目录
 	AvatarDir = "uploads/avatars"
+	// 相册图片目录
+	PhotoAlbumDir = "uploads/photoAlbum"
+	// 友链图片目录
+	FriendLinkDir = "uploads/friendLinks"
+	// 首页封面目录
+	SiteCoverDir = "uploads/siteCovers"
+	// 文章封面目录
+	PostCoverDir = "uploads/postCovers"
 	// 最大文件大小 (5MB)
 	MaxFileSize = 5 << 20
 )
@@ -43,7 +51,14 @@ var allowedImageTypes = map[string]bool{
 
 // InitUploadDirs 初始化上传目录
 func InitUploadDirs() error {
-	dirs := []string{UploadDir, AvatarDir}
+	dirs := []string{
+		UploadDir,
+		AvatarDir,
+		PhotoAlbumDir,
+		FriendLinkDir,
+		SiteCoverDir,
+		PostCoverDir,
+	}
 	for _, dir := range dirs {
 		if err := os.MkdirAll(dir, 0755); err != nil {
 			return fmt.Errorf("failed to create directory %s: %w", dir, err)
