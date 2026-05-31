@@ -167,3 +167,36 @@ export function updateAboutInfo(content: string) {
 export function getPublicAboutInfo() {
   return request.get<{ content: string }>('/blog/about')
 }
+
+/**
+ * 显示设置接口
+ */
+export interface DisplaySettings {
+  home_page_size?: string      // 首页文章列表每页数量
+  recent_posts_limit?: string  // 最新发布文章卡片显示数量
+}
+
+/**
+ * 公开接口：获取显示配置（首页使用）
+ * @returns 返回显示配置
+ */
+export function getPublicDisplaySettings() {
+  return request.get<DisplaySettings>('/settings/public/display')
+}
+
+/**
+ * 获取显示配置（管理员）
+ * @returns 返回显示配置
+ */
+export function getDisplaySettings() {
+  return request.get<DisplaySettings>('/settings/display')
+}
+
+/**
+ * 更新显示配置（管理员）
+ * @param data 显示配置数据（键值对）
+ * @returns 返回更新结果
+ */
+export function updateDisplaySettings(data: Record<string, string>) {
+  return request.put('/settings/display', data)
+}
