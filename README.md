@@ -1303,7 +1303,6 @@ myBlog/
 - `GET /api/posts` - 获取文章列表
 - `GET /api/posts/:id` - 获取文章详情（支持ID或slug，向后兼容）
 - `GET /api/posts/archives` - 获取归档
-- `GET /api/posts/hot` - 获取热门文章
 - `GET /api/posts/recent` - 获取最新文章
 - `POST /api/posts` - 创建文章（需认证）
 - `PUT /api/posts/:id` - 更新文章（需认证）
