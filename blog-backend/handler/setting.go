@@ -238,3 +238,30 @@ func (h *SettingHandler) UpdateAboutInfo(c *gin.Context) {
 
 	util.SuccessWithMessage(c, "更新成功", nil)
 }
+
+// GetDisplaySettings 获取显示配置（管理员）
+func (h *SettingHandler) GetDisplaySettings(c *gin.Context) {
+	settings, err := h.service.GetDisplaySettings()
+	if err != nil {
+		util.Error(c, 500, "获取显示配置失败")
+		return
+	}
+
+	util.Success(c, settings)
+}
+
+// UpdateDisplaySettings 更新显示配置（管理员）
+func (h *SettingHandler) UpdateDisplaySettings(c *gin.Context) {
+	var req map[string]string
+	if err := c.ShouldBindJSON(&req); err != nil {
+		util.BadRequest(c, "参数错误")
+		return
+	}
+
+	if err := h.service.UpdateDisplaySettings(req); err != nil {
+		util.Error(c, 500, "更新显示配置失败")
+		return
+	}
+
+	util.SuccessWithMessage(c, "更新成功", nil)
+}

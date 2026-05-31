@@ -319,6 +319,7 @@ func setupSettingRoutes(api *gin.RouterGroup, h *handler.SettingHandler) {
 	{
 		// 公开接口
 		settings.GET("/public", h.GetPublicSettings)
+		settings.GET("/public/display", h.GetDisplaySettings)
 		settings.GET("/friendlink-info", h.GetFriendLinkInfo)
 
 		// 需要超级管理员（super_admin）权限：系统级配置
@@ -333,6 +334,8 @@ func setupSettingRoutes(api *gin.RouterGroup, h *handler.SettingHandler) {
 			settingsAdmin.PUT("/notification", h.UpdateNotificationSettings)
 			settingsAdmin.GET("/register", h.GetRegisterSettings)
 			settingsAdmin.PUT("/register", h.UpdateRegisterSettings)
+			settingsAdmin.GET("/display", h.GetDisplaySettings)
+			settingsAdmin.PUT("/display", h.UpdateDisplaySettings)
 			settingsAdmin.PUT("/friendlink-info", h.UpdateFriendLinkInfo)
 		}
 	}
