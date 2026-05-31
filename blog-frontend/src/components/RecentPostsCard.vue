@@ -1,6 +1,6 @@
 <!--
   项目名称：blog-frontend
-  文件名称：HotPostsCard.vue
+  文件名称：RecentPostsCard.vue
   创建时间：2026-02-01 20:03:19
 
   系统用户：Administrator
@@ -9,7 +9,7 @@
   功能描述：最新发布文章卡片组件，展示最新发布的文章列表，包含文章封面、标题、发布时间、浏览量、点赞数等信息，点击可跳转到文章详情页。
 -->
 <template>
-  <n-card class="hot-posts-card" :bordered="false">
+  <n-card class="recent-posts-card" :bordered="false">
     <template #header>
       <div class="card-title">
         <span>📰</span>
@@ -107,7 +107,7 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.hot-posts-card {
+.recent-posts-card {
   background: rgba(255, 255, 255, 0.9);
   border-radius: 16px;
 }
@@ -208,7 +208,7 @@ onMounted(async () => {
   gap: 4px;
 }
 
-html.dark .hot-posts-card {
+html.dark .recent-posts-card {
   background: rgba(30, 41, 59, 0.7);
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
@@ -230,4 +230,3 @@ html.dark .item-meta {
   color: #94a3b8;
 }
 </style>
-
