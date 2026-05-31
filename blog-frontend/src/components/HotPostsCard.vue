@@ -65,18 +65,19 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { TimeOutline, EyeOutline, HeartOutline, ImageOutline } from '@vicons/ionicons5'
 import { getRecentPosts } from '@/api/post'
+import { getPublicDisplaySettings } from '@/api/setting'
 import { formatDate } from '@/utils/format'
 import type { Post } from '@/types/blog'
 
 const router = useRouter()
 const posts = ref<Post[]>([])
 const loading = ref(false)
-const LIMIT = 5
+const limit = ref(5)
 
 async function fetchRecent() {
   loading.value = true
   try {
-    const res = await getRecentPosts(LIMIT)
+    const res = await getRecentPosts(limit.value)
     posts.value = res.data || []
   } catch (error) {
     console.error('获取最新文章失败', error)
@@ -89,7 +90,20 @@ function goPost(post: { id: number; slug: string }) {
   router.push(`/post/${post.slug}`)
 }
 
-onMounted(fetchRecent)
+onMounted(async () => {
+  try {
+    const res = await getPublicDisplaySettings()
+    if (res.data?.recent_posts_limit) {
+      const parsed = parseInt(res.data.recent_posts_limit, 10)
+      if (!isNaN(parsed) && parsed > 0) {
+        limit.value = parsed
+      }
+    }
+  } catch {
+    // 配置加载失败时使用默认值 5
+  }
+  fetchRecent()
+})
 </script>
 
 <style scoped>

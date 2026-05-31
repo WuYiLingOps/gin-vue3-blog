@@ -155,6 +155,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useMessage } from 'naive-ui'
 import { TimeOutline, EyeOutline, CreateOutline } from '@vicons/ionicons5'
 import { getPosts } from '@/api'
+import { getPublicDisplaySettings } from '@/api/setting'
 import { formatDate } from '@/utils/format'
 import { highlightKeyword, extractHighlightSnippet } from '@/utils/highlight'
 import type { Post } from '@/types/blog'
@@ -192,11 +193,23 @@ watch(() => route.query.keyword, (newKeyword) => {
   }
 }, { immediate: true })
 
-onMounted(() => {
+onMounted(async () => {
   // blogStore.init() 已在 main.ts 中预加载，这里不再重复调用
   // 从URL获取搜索关键词
   if (route.query.keyword) {
     searchKeyword.value = route.query.keyword as string
+  }
+  // 先获取显示配置，再加载文章列表
+  try {
+    const res = await getPublicDisplaySettings()
+    if (res.data?.home_page_size) {
+      const parsed = parseInt(res.data.home_page_size, 10)
+      if (!isNaN(parsed) && parsed > 0) {
+        pageSize.value = parsed
+      }
+    }
+  } catch {
+    // 配置加载失败时使用默认值 8
   }
   fetchPosts()
 })
