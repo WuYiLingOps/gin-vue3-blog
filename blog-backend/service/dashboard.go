@@ -11,8 +11,12 @@
 package service
 
 import (
-	"blog-backend/repository"
+	"context"
+	"encoding/json"
 	"time"
+
+	"blog-backend/db"
+	"blog-backend/repository"
 )
 
 // DashboardService 仪表盘业务逻辑层结构体
@@ -58,6 +62,18 @@ type CategoryStats struct {
 
 // GetStats 获取统计数据
 func (s *DashboardService) GetStats() (*DashboardStats, error) {
+	ctx := context.Background()
+	cacheKey := "dashboard:stats"
+
+	// 1. 先尝试从 Redis 获取缓存
+	if cached, err := db.RDB.Get(ctx, cacheKey).Result(); err == nil && cached != "" {
+		var stats DashboardStats
+		if err := json.Unmarshal([]byte(cached), &stats); err == nil {
+			return &stats, nil
+		}
+	}
+
+	// 2. 缓存未命中，从数据库获取
 	stats := &DashboardStats{}
 
 	// 获取文章总数（已发布）
@@ -88,12 +104,29 @@ func (s *DashboardService) GetStats() (*DashboardStats, error) {
 	}
 	stats.Views = totalViews
 
+	// 3. 写入缓存，设置过期时间 2 分钟
+	if data, err := json.Marshal(stats); err == nil {
+		_ = db.RDB.Set(ctx, cacheKey, string(data), 2*time.Minute).Err()
+	}
+
 	return stats, nil
 }
 
 // GetCategoryStats 获取分类统计
 // 直接从文章表统计每个分类的已发布文章数量，确保统计准确性
 func (s *DashboardService) GetCategoryStats() ([]CategoryStats, error) {
+	ctx := context.Background()
+	cacheKey := "dashboard:category_stats"
+
+	// 1. 先尝试从 Redis 获取缓存
+	if cached, err := db.RDB.Get(ctx, cacheKey).Result(); err == nil && cached != "" {
+		var stats []CategoryStats
+		if err := json.Unmarshal([]byte(cached), &stats); err == nil {
+			return stats, nil
+		}
+	}
+
+	// 2. 缓存未命中，从数据库获取
 	categories, err := s.categoryRepo.List()
 	if err != nil {
 		return nil, err
@@ -116,6 +149,11 @@ func (s *DashboardService) GetCategoryStats() ([]CategoryStats, error) {
 		}
 	}
 
+	// 3. 写入缓存，设置过期时间 5 分钟
+	if data, err := json.Marshal(stats); err == nil {
+		_ = db.RDB.Set(ctx, cacheKey, string(data), 5*time.Minute).Err()
+	}
+
 	return stats, nil
 }
 
@@ -126,6 +164,18 @@ func (s *DashboardService) GetVisitStats(days int) ([]VisitStat, error) {
 		days = 7
 	}
 
+	ctx := context.Background()
+	cacheKey := "dashboard:visit_stats"
+
+	// 1. 先尝试从 Redis 获取缓存
+	if cached, err := db.RDB.Get(ctx, cacheKey).Result(); err == nil && cached != "" {
+		var result []VisitStat
+		if err := json.Unmarshal([]byte(cached), &result); err == nil {
+			return result, nil
+		}
+	}
+
+	// 2. 缓存未命中，从数据库获取
 	// 取 [start, end) 区间，按天统计
 	now := time.Now()
 	// 以本地时区的当天 00:00 为基准，end 为明天 00:00
@@ -154,6 +204,11 @@ func (s *DashboardService) GetVisitStats(days int) ([]VisitStat, error) {
 			Date:  key,
 			Count: countMap[key],
 		})
+	}
+
+	// 3. 写入缓存，设置过期时间 2 分钟
+	if data, err := json.Marshal(result); err == nil {
+		_ = db.RDB.Set(ctx, cacheKey, string(data), 2*time.Minute).Err()
 	}
 
 	return result, nil

@@ -11,8 +11,12 @@
 package service
 
 import (
+	"context"
+	"encoding/json"
 	"errors"
+	"strconv"
 
+	"blog-backend/db"
 	"blog-backend/model"
 	"blog-backend/repository"
 	"time"
@@ -58,11 +62,34 @@ func (s *SettingService) UpdateSiteSettings(data map[string]string) error {
 		})
 	}
 
-	return s.repo.BatchUpsert(settings)
+	err := s.repo.BatchUpsert(settings)
+	if err != nil {
+		return err
+	}
+
+	// 写操作成功后，清除网站配置缓存
+	go func() {
+		ctx := context.Background()
+		db.RDB.Del(ctx, "settings:public")
+	}()
+
+	return nil
 }
 
 // GetPublicSettings 获取公开的网站配置（前端用）
 func (s *SettingService) GetPublicSettings() (map[string]string, error) {
+	ctx := context.Background()
+	cacheKey := "settings:public"
+
+	// 1. 先尝试从 Redis 获取缓存
+	if cached, err := db.RDB.Get(ctx, cacheKey).Result(); err == nil && cached != "" {
+		var result map[string]string
+		if err := json.Unmarshal([]byte(cached), &result); err == nil {
+			return result, nil
+		}
+	}
+
+	// 2. 缓存未命中，从数据库获取
 	settings, err := s.repo.GetByGroup("site")
 	if err != nil {
 		return nil, err
@@ -71,6 +98,11 @@ func (s *SettingService) GetPublicSettings() (map[string]string, error) {
 	result := make(map[string]string)
 	for _, setting := range settings {
 		result[setting.Key] = setting.Value
+	}
+
+	// 3. 写入缓存，设置过期时间 5 分钟
+	if data, err := json.Marshal(result); err == nil {
+		_ = db.RDB.Set(ctx, cacheKey, string(data), 5*time.Minute).Err()
 	}
 
 	return result, nil
@@ -275,6 +307,93 @@ func (s *SettingService) UpdateAboutInfo(content string) error {
 		UpdatedAt: time.Now(),
 	}
 	return s.repo.BatchUpsert([]model.Setting{setting})
+}
+
+// GetDisplaySettings 获取显示配置
+func (s *SettingService) GetDisplaySettings() (map[string]string, error) {
+	ctx := context.Background()
+	cacheKey := "settings:display"
+
+	// 1. 先尝试从 Redis 获取缓存
+	if cached, err := db.RDB.Get(ctx, cacheKey).Result(); err == nil && cached != "" {
+		var result map[string]string
+		if err := json.Unmarshal([]byte(cached), &result); err == nil {
+			return result, nil
+		}
+	}
+
+	// 2. 缓存未命中，从数据库获取
+	settings, err := s.repo.GetByGroup("display")
+	if err != nil {
+		return nil, err
+	}
+
+	result := make(map[string]string)
+	for _, setting := range settings {
+		result[setting.Key] = setting.Value
+	}
+
+	// 设置默认值
+	if result["home_page_size"] == "" {
+		result["home_page_size"] = "8"
+	}
+	if result["recent_posts_limit"] == "" {
+		result["recent_posts_limit"] = "5"
+	}
+
+	// 3. 写入缓存，设置过期时间 5 分钟
+	if data, err := json.Marshal(result); err == nil {
+		_ = db.RDB.Set(ctx, cacheKey, string(data), 5*time.Minute).Err()
+	}
+
+	return result, nil
+}
+
+// UpdateDisplaySettings 更新显示配置
+func (s *SettingService) UpdateDisplaySettings(data map[string]string) error {
+	// 允许的字段和对应的最大值
+	allowedKeys := map[string]int{
+		"home_page_size":     50,
+		"recent_posts_limit": 20,
+	}
+
+	var settings []model.Setting
+	for key, value := range data {
+		maxVal, ok := allowedKeys[key]
+		if !ok {
+			continue
+		}
+
+		// 校验值必须为正整数且在合法范围内
+		intVal, err := strconv.Atoi(value)
+		if err != nil || intVal < 1 || intVal > maxVal {
+			return errors.New(key + " 必须是 1-" + strconv.Itoa(maxVal) + " 之间的整数")
+		}
+
+		settings = append(settings, model.Setting{
+			Group:     "display",
+			Key:       key,
+			Value:     value,
+			UpdatedAt: time.Now(),
+		})
+	}
+
+	if len(settings) == 0 {
+		return nil
+	}
+
+	err := s.repo.BatchUpsert(settings)
+	if err != nil {
+		return err
+	}
+
+	// 写操作成功后，清除显示配置缓存
+	go func() {
+		ctx := context.Background()
+		db.RDB.Del(ctx, "settings:display")
+	}()
+
+	return nil
 }
 
 // getFriendLinkInfoLabel 获取字段标签

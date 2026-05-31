@@ -44,7 +44,69 @@
 
     <!-- 推送历史列表 -->
     <n-card title="推送历史记录" :bordered="false">
+      <template #header-extra>
+        <!-- 视图切换按钮（仅桌面端显示） -->
+        <n-button-group v-if="!isMobile" size="small" class="view-toggle-group">
+          <n-button :type="viewMode === 'table' ? 'primary' : 'default'" @click="viewMode = 'table'">
+            <template #icon>
+              <n-icon :component="GridOutline" />
+            </template>
+            表格
+          </n-button>
+          <n-button :type="viewMode === 'card' ? 'primary' : 'default'" @click="viewMode = 'card'">
+            <template #icon>
+              <n-icon :component="AppsOutline" />
+            </template>
+            卡片
+          </n-button>
+        </n-button-group>
+      </template>
+
+      <!-- 卡片视图 -->
+      <div v-if="isMobile || viewMode === 'card'" class="card-list">
+        <n-card v-for="history in histories" :key="history.id" class="list-card" :size="isMobile ? 'small' : 'medium'">
+          <template #header>
+            <div class="card-header-content">
+              <span class="post-title">{{ history.post_title }}</span>
+              <n-tag :type="getStatusType(history.status)" :size="isMobile ? 'tiny' : 'small'">
+                {{ getStatusText(history.status) }}
+              </n-tag>
+            </div>
+          </template>
+          <div class="card-content">
+            <div class="info-item">
+              <span class="label">推送统计：</span>
+              <span class="value">
+                成功 <n-text type="success">{{ history.success_count }}</n-text> /
+                失败 <n-text type="error">{{ history.failed_count }}</n-text> /
+                总计 {{ history.total_count }}
+              </span>
+            </div>
+            <div class="info-item">
+              <span class="label">开始时间：</span>
+              <span class="value">{{ formatDate(history.started_at, 'YYYY-MM-DD HH:mm') }}</span>
+            </div>
+            <div v-if="history.completed_at" class="info-item">
+              <span class="label">完成时间：</span>
+              <span class="value">{{ formatDate(history.completed_at, 'YYYY-MM-DD HH:mm') }}</span>
+            </div>
+          </div>
+          <template #footer>
+            <n-space justify="end" :size="isMobile ? 'small' : 'medium'">
+              <n-button :size="isMobile ? 'tiny' : 'small'" @click="handleViewDetail(history)">
+                查看详情
+              </n-button>
+              <n-button :size="isMobile ? 'tiny' : 'small'" type="error" @click="handleDelete(history.id)">
+                删除
+              </n-button>
+            </n-space>
+          </template>
+        </n-card>
+      </div>
+
+      <!-- 表格视图 -->
       <n-data-table
+        v-else
         :columns="columns"
         :data="histories"
         :loading="loading"
@@ -55,8 +117,8 @@
     </n-card>
 
     <!-- 推送详情抽屉 -->
-    <n-drawer v-model:show="showDetail" :width="isMobile ? '100%' : 600" placement="right">
-      <n-drawer-content :title="`推送详情 - ${currentHistory?.post_title}`">
+    <n-drawer v-model:show="showDetail" :width="isMobile ? '100%' : 600" placement="right" :closable="true">
+      <n-drawer-content :title="`推送详情 - ${currentHistory?.post_title}`" :closable="true">
         <div v-if="currentHistory" class="detail-content">
           <!-- 推送概览 -->
           <n-descriptions :column="1" bordered>
@@ -97,10 +159,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, h } from 'vue'
-import { useMessage, useDialog, NButton, NTag, NIcon } from 'naive-ui'
+import { ref, reactive, onMounted, onUnmounted, h, watch } from 'vue'
+import { useMessage, useDialog, NButton, NButtonGroup, NTag, NIcon } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
-import { SendOutline, CheckmarkCircleOutline, CloseCircleOutline, TimeOutline, EyeOutline, TrashOutline } from '@vicons/ionicons5'
+import { SendOutline, CheckmarkCircleOutline, CloseCircleOutline, TimeOutline, EyeOutline, TrashOutline, GridOutline, AppsOutline } from '@vicons/ionicons5'
 import { formatDate } from '@/utils/format'
 import { getPushHistories, getPushHistoryDetail, deletePushHistory, getPushStats } from '@/api/subscribe'
 import type { PushHistory, PushDetail, PushStats } from '@/api/subscribe'
@@ -108,6 +170,7 @@ import type { PushHistory, PushDetail, PushStats } from '@/api/subscribe'
 const message = useMessage()
 const dialog = useDialog()
 const isMobile = ref(window.innerWidth < 768)
+const viewMode = ref<'table' | 'card'>('table')
 
 // 统计数据
 const stats = reactive<PushStats>({
@@ -302,9 +365,32 @@ const handleDetailPageChange = (page: number) => {
   fetchDetails()
 }
 
+// 检测屏幕尺寸
+const checkMobile = () => {
+  isMobile.value = window.innerWidth < 768
+}
+
+// 监听视图模式变化，保存到 localStorage
+watch(viewMode, (newMode) => {
+  localStorage.setItem('push-history-view-mode', newMode)
+})
+
 onMounted(() => {
+  checkMobile()
+  window.addEventListener('resize', checkMobile)
+
+  // 从本地存储恢复视图模式
+  const savedMode = localStorage.getItem('push-history-view-mode')
+  if (savedMode === 'card' || savedMode === 'table') {
+    viewMode.value = savedMode
+  }
+
   fetchStats()
   fetchHistories()
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', checkMobile)
 })
 </script>
 
@@ -315,6 +401,107 @@ onMounted(() => {
       margin: 16px 0;
       font-size: 16px;
       font-weight: 600;
+    }
+  }
+
+  .view-toggle-group {
+    flex-shrink: 0;
+  }
+
+  .card-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    padding: 8px 0;
+  }
+
+  @media (max-width: 1100px) {
+    .card-list {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .list-card {
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+  }
+
+  .list-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  }
+
+  .card-header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .post-title {
+    font-weight: 500;
+    font-size: 14px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .card-content {
+    padding: 4px 0;
+  }
+
+  .info-item {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 6px;
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  .info-item .label {
+    color: #888;
+    width: 65px;
+    flex-shrink: 0;
+  }
+
+  .info-item .value {
+    color: #555;
+    flex: 1;
+  }
+}
+
+html.dark .push-history-tab {
+  .list-card {
+    :deep(.n-card__content) {
+      background: rgba(30, 41, 59, 0.85);
+    }
+  }
+}
+
+// 移动端抽屉样式优化
+@media (max-width: 768px) {
+  :deep(.n-drawer) {
+    .n-drawer-content {
+      .n-drawer-body-content-wrapper {
+        padding: 16px;
+      }
+    }
+
+    .n-drawer-header {
+      .n-drawer-header__main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .n-drawer-header__title {
+        font-size: 16px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
     }
   }
 }

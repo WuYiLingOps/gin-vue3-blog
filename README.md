@@ -1172,7 +1172,7 @@ myBlog/
     - 用户管理：状态更新、角色更新、删除用户
     - 说说管理：创建、更新、删除说说
     - 聊天室管理：系统广播、全员禁言、删除消息
-- 网站设置（包含通知配置、注册控制、打赏收款码配置）
+- 网站设置（包含通知配置、注册控制、打赏收款码配置、显示配置）
 - IP 访问控制（黑名单/白名单统一管理）
 
 ### 7.2.9 打赏功能
@@ -1303,7 +1303,6 @@ myBlog/
 - `GET /api/posts` - 获取文章列表
 - `GET /api/posts/:id` - 获取文章详情（支持ID或slug，向后兼容）
 - `GET /api/posts/archives` - 获取归档
-- `GET /api/posts/hot` - 获取热门文章
 - `GET /api/posts/recent` - 获取最新文章
 - `POST /api/posts` - 创建文章（需认证）
 - `PUT /api/posts/:id` - 更新文章（需认证）
@@ -1395,6 +1394,11 @@ myBlog/
 - `GET /api/admin/settings/register` - 获取注册配置（管理员）
 - `PUT /api/admin/settings/register` - 更新注册配置（管理员）
   - 支持配置是否限制用户注册（`disable_register`: `"0"` 允许注册，`"1"` 禁止注册）
+- `GET /api/settings/public/display` - 获取显示配置（公开，首页使用）
+- `GET /api/settings/display` - 获取显示配置（超级管理员）
+- `PUT /api/settings/display` - 更新显示配置（超级管理员）
+  - `home_page_size`: 首页文章列表每页数量（1-50，默认 8）
+  - `recent_posts_limit`: 最新发布文章卡片显示数量（1-20，默认 5）
 
 ## 9.10 验证码相关
 

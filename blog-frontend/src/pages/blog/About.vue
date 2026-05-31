@@ -223,8 +223,8 @@
         <div class="sidebar-card-wrapper sidebar-announcement">
           <AnnouncementBoard :limit="3" />
         </div>
-        <div class="sidebar-card-wrapper sidebar-hot-posts">
-          <HotPostsCard />
+        <div class="sidebar-card-wrapper sidebar-recent-posts">
+          <RecentPostsCard />
         </div>
         <div class="sidebar-card-wrapper sidebar-category-list">
           <CategoryListWidget />
@@ -273,7 +273,7 @@ import { useAppStore, useAuthStore } from '@/stores'
 import MarkdownPreview from '@/components/MarkdownPreview.vue'
 import { useMessage } from 'naive-ui'
 import AnnouncementBoard from '@/components/AnnouncementBoard.vue'
-import HotPostsCard from '@/components/HotPostsCard.vue'
+import RecentPostsCard from '@/components/RecentPostsCard.vue'
 import CategoryListWidget from '@/components/CategoryListWidget.vue'
 import TagCloudWidget from '@/components/TagCloudWidget.vue'
 import WebsiteInfoWidget from '@/components/WebsiteInfoWidget.vue'
@@ -1487,7 +1487,7 @@ html.dark .chart-title {
 
   /* 平板端和移动端隐藏侧边栏 */
   .sidebar-announcement,
-  .sidebar-hot-posts,
+  .sidebar-recent-posts,
   .sidebar-category-list,
   .sidebar-tag-cloud,
   .sidebar-website-info {

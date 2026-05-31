@@ -269,19 +269,6 @@ func (h *PostHandler) GetArchives(c *gin.Context) {
 	util.Success(c, archives)
 }
 
-// GetHotPosts 获取热门文章
-func (h *PostHandler) GetHotPosts(c *gin.Context) {
-	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
-
-	posts, err := h.service.GetHotPosts(limit)
-	if err != nil {
-		util.ServerError(c, "获取热门文章失败")
-		return
-	}
-
-	util.Success(c, posts)
-}
-
 // GetRecentPosts 获取最新文章
 func (h *PostHandler) GetRecentPosts(c *gin.Context) {
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))

@@ -229,16 +229,6 @@ func (r *PostRepository) GetArchives() ([]map[string]interface{}, error) {
 	return results, err
 }
 
-// GetHotPosts 获取热门文章
-func (r *PostRepository) GetHotPosts(limit int) ([]model.Post, error) {
-	var posts []model.Post
-	err := db.DB.Preload("User").Preload("Category").
-		Where("status = 1").
-		Order("view_count DESC").
-		Limit(limit).Find(&posts).Error
-	return posts, err
-}
-
 // GetRecentPosts 获取最新文章
 // - 普通用户/游客：仅公开
 // - 管理员（包含 super_admin）：公开 + 自己的私密
