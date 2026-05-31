@@ -633,14 +633,6 @@ func (s *PostService) GetArchives() ([]map[string]interface{}, error) {
 	return s.postRepo.GetArchives()
 }
 
-// GetHotPosts 获取热门文章
-func (s *PostService) GetHotPosts(limit int) ([]model.Post, error) {
-	if limit < 1 || limit > 50 {
-		limit = 10
-	}
-	return s.postRepo.GetHotPosts(limit)
-}
-
 // GetRecentPosts 获取最新文章
 func (s *PostService) GetRecentPosts(limit int, userID *uint, role string) ([]model.Post, error) {
 	if limit < 1 || limit > 50 {

@@ -206,7 +206,6 @@ func setupPostRoutes(api *gin.RouterGroup, h *handler.PostHandler) {
 		posts.GET("", h.List)
 		posts.GET("/:id", h.GetByID)
 		posts.GET("/archives", h.GetArchives)
-		posts.GET("/hot", h.GetHotPosts)
 		posts.GET("/recent", h.GetRecentPosts)
 		posts.POST("/:id/like", h.Like)
 
