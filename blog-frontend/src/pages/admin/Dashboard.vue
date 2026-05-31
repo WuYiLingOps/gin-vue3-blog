@@ -273,8 +273,8 @@ function initCategoryChart() {
 
   // 获取容器实际宽度
   const containerWidth = categoryChartRef.value.clientWidth
-  // 决定布局模式：如果容器宽度小于 520px，则使用垂直布局（图例在底部）
-  const isVerticalLayout = containerWidth < 520
+  // 判断是否为窄屏模式
+  const isNarrow = containerWidth < 500
 
   const option = {
     tooltip: {
@@ -283,27 +283,31 @@ function initCategoryChart() {
     },
     legend: {
       type: 'scroll',
-      orient: isVerticalLayout ? 'horizontal' : 'vertical',
-      right: isVerticalLayout ? 'center' : '5%',
-      bottom: isVerticalLayout ? 10 : 'auto',
-      top: isVerticalLayout ? 'auto' : 'center',
+      orient: 'vertical',
+      right: '2%',
+      top: 'middle',
       padding: [5, 10],
       textStyle: {
         color: appStore.theme === 'dark' ? '#fff' : '#333',
-        fontSize: 12
+        fontSize: 12,
+        overflow: 'truncate',
+        width: isNarrow ? 100 : 160
       },
       pageIconColor: appStore.theme === 'dark' ? '#fff' : '#333',
       pageTextStyle: {
         color: appStore.theme === 'dark' ? '#fff' : '#333'
+      },
+      tooltip: {
+        show: true
       }
     },
     series: [
       {
         name: '文章分类',
         type: 'pie',
-        // 动态调整半径和中心点
-        radius: isVerticalLayout ? ['30%', '50%'] : ['35%', '60%'],
-        center: isVerticalLayout ? ['50%', '40%'] : ['40%', '50%'],
+        // 饼图偏左，给右侧图例留空间
+        radius: isNarrow ? ['25%', '45%'] : ['30%', '55%'],
+        center: isNarrow ? ['38%', '50%'] : ['32%', '50%'],
         avoidLabelOverlap: true,
         itemStyle: {
           borderRadius: 8,
@@ -311,23 +315,24 @@ function initCategoryChart() {
           borderWidth: 2
         },
         label: {
-          // 在极窄环境下隐藏外部标签，避免重叠
-          show: containerWidth > 350,
+          show: !isNarrow,
           position: 'outside',
           formatter: '{b}',
-          fontSize: 11
+          fontSize: 12,
+          overflow: 'truncate',
+          width: 120
         },
         emphasis: {
           label: {
-            show: true,
-            fontSize: isVerticalLayout ? 14 : 16,
+            show: !isNarrow,
+            fontSize: 14,
             fontWeight: 'bold'
           }
         },
         labelLine: {
-          show: containerWidth > 350,
-          length: 10,
-          length2: 10
+          show: !isNarrow,
+          length: 8,
+          length2: 5
         },
         data: chartData
       }
