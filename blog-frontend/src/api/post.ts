@@ -100,15 +100,6 @@ export function getArchives() {
 }
 
 /**
- * 获取热门文章
- * @param limit 返回数量限制，默认为10
- * @returns 返回热门文章列表
- */
-export function getHotPosts(limit = 10) {
-  return request.get<Post[]>('/posts/hot', { params: { limit } })
-}
-
-/**
  * 获取最新文章
  * @param limit 返回数量限制，默认为10
  * @returns 返回最新文章列表
