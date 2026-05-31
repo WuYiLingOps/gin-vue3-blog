@@ -126,13 +126,13 @@
     </n-space>
       </div>
 
-    <!-- 右侧：公告栏 + 热门文章（保持原有组件和顺序，部分仅桌面端显示） -->
+    <!-- 右侧：公告栏 + 最新文章（保持原有组件和顺序，部分仅桌面端显示） -->
     <div class="sidebar-section desktop-only">
       <div class="sidebar-card-wrapper sidebar-announcement">
         <AnnouncementBoard :limit="3" />
       </div>
-      <div class="sidebar-card-wrapper sidebar-hot-posts">
-        <HotPostsCard />
+      <div class="sidebar-card-wrapper sidebar-recent-posts">
+        <RecentPostsCard />
       </div>
       <div class="sidebar-card-wrapper sidebar-category-list">
         <CategoryListWidget />
@@ -161,7 +161,7 @@ import { highlightKeyword, extractHighlightSnippet } from '@/utils/highlight'
 import type { Post } from '@/types/blog'
 import AuthorCard from '@/components/AuthorCard.vue'
 import AnnouncementBoard from '@/components/AnnouncementBoard.vue'
-import HotPostsCard from '@/components/HotPostsCard.vue'
+import RecentPostsCard from '@/components/RecentPostsCard.vue'
 import TagCloudWidget from '@/components/TagCloudWidget.vue'
 import CategoryListWidget from '@/components/CategoryListWidget.vue'
 import WebsiteInfoWidget from '@/components/WebsiteInfoWidget.vue'
@@ -382,7 +382,7 @@ function getHighlightedSummary(post: Post): string {
   }
 
   .sidebar-announcement,
-  .sidebar-hot-posts,
+  .sidebar-recent-posts,
   .sidebar-tag-cloud,
   .sidebar-category-list {
     display: none;
