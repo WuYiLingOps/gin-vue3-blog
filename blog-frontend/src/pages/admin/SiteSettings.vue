@@ -325,6 +325,53 @@
       </n-form>
     </n-card>
 
+    <n-card title="显示配置" style="margin-top: 24px;">
+      <n-form
+        :model="displayFormData"
+        :label-placement="isMobile ? 'top' : 'left'"
+        :label-width="isMobile ? 'auto' : '120'"
+      >
+        <n-form-item label="首页文章数量" path="home_page_size">
+          <n-input-number
+            v-model:value="displayFormData.home_page_size"
+            :min="1"
+            :max="50"
+            style="width: 200px;"
+          />
+          <template #feedback>
+            <span style="font-size: 12px; color: #999;">
+              首页文章列表每页显示的文章数量，默认 8
+            </span>
+          </template>
+        </n-form-item>
+
+        <n-form-item label="最新文章数量" path="recent_posts_limit">
+          <n-input-number
+            v-model:value="displayFormData.recent_posts_limit"
+            :min="1"
+            :max="20"
+            style="width: 200px;"
+          />
+          <template #feedback>
+            <span style="font-size: 12px; color: #999;">
+              侧边栏"最新发布文章"卡片显示的文章数量，默认 5
+            </span>
+          </template>
+        </n-form-item>
+
+        <n-form-item>
+          <n-space>
+            <n-button type="primary" @click="handleDisplaySubmit" :loading="displayLoading">
+              保存配置
+            </n-button>
+            <n-button @click="handleDisplayReset">
+              重置
+            </n-button>
+          </n-space>
+        </n-form-item>
+      </n-form>
+    </n-card>
+
     <n-card title="打赏配置" style="margin-top: 24px;">
       <n-form
         :model="formData"
@@ -433,7 +480,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
 import { useMessage, type FormInst } from 'naive-ui'
-import { getSiteSettings, updateSiteSettings, getUploadSettings, updateUploadSettings, getNotificationSettings, updateNotificationSettings } from '@/api/setting'
+import { getSiteSettings, updateSiteSettings, getUploadSettings, updateUploadSettings, getNotificationSettings, updateNotificationSettings, getDisplaySettings, updateDisplaySettings } from '@/api/setting'
 import { uploadSiteCover } from '@/api/upload'
 import ImageUpload from '@/components/ImageUpload.vue'
 import MultiImageUpload from '@/components/MultiImageUpload.vue'
@@ -486,12 +533,19 @@ const notificationFormData = ref({
   notify_admin_on_comment: false
 })
 
+const displayFormData = ref({
+  home_page_size: 8,
+  recent_posts_limit: 5
+})
+
 const originalData = ref({ ...formData.value })
 const originalUploadData = ref({ ...uploadFormData.value })
 const originalNotificationData = ref({ ...notificationFormData.value })
+const originalDisplayData = ref({ ...displayFormData.value })
 const loading = ref(false)
 const uploadLoading = ref(false)
 const notificationLoading = ref(false)
+const displayLoading = ref(false)
 const isMobile = ref(false)
 
 // 社交链接配置
@@ -677,6 +731,22 @@ async function fetchNotificationSettings() {
   }
 }
 
+// 获取显示配置
+async function fetchDisplaySettings() {
+  try {
+    const res = await getDisplaySettings()
+    if (res.data) {
+      displayFormData.value = {
+        home_page_size: parseInt(res.data.home_page_size || '8', 10),
+        recent_posts_limit: parseInt(res.data.recent_posts_limit || '5', 10)
+      }
+      originalDisplayData.value = { ...displayFormData.value }
+    }
+  } catch (error: any) {
+    message.error(error.response?.data?.message || '获取显示配置失败')
+  }
+}
+
 // 提交表单
 async function handleSubmit() {
   loading.value = true
@@ -760,6 +830,30 @@ function handleNotificationReset() {
   message.info('已重置为上次保存的数据')
 }
 
+// 提交显示配置
+async function handleDisplaySubmit() {
+  displayLoading.value = true
+  try {
+    await updateDisplaySettings({
+      home_page_size: String(displayFormData.value.home_page_size),
+      recent_posts_limit: String(displayFormData.value.recent_posts_limit)
+    })
+    message.success('显示配置保存成功')
+    originalDisplayData.value = { ...displayFormData.value }
+    message.info('配置已更新，请刷新首页查看效果')
+  } catch (error: any) {
+    message.error(error.response?.data?.message || '保存失败')
+  } finally {
+    displayLoading.value = false
+  }
+}
+
+// 重置显示配置
+function handleDisplayReset() {
+  displayFormData.value = { ...originalDisplayData.value }
+  message.info('已重置为上次保存的数据')
+}
+
 // 单字段清除
 function clearField(key: keyof typeof formData.value) {
   formData.value[key] = ''
@@ -790,6 +884,7 @@ onMounted(() => {
   fetchSettings()
   fetchUploadSettings()
   fetchNotificationSettings()
+  fetchDisplaySettings()
 })
 
 onUnmounted(() => {
