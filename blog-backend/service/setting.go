@@ -12,6 +12,7 @@ package service
 
 import (
 	"errors"
+	"strconv"
 
 	"blog-backend/model"
 	"blog-backend/repository"
@@ -275,6 +276,65 @@ func (s *SettingService) UpdateAboutInfo(content string) error {
 		UpdatedAt: time.Now(),
 	}
 	return s.repo.BatchUpsert([]model.Setting{setting})
+}
+
+// GetDisplaySettings 获取显示配置
+func (s *SettingService) GetDisplaySettings() (map[string]string, error) {
+	settings, err := s.repo.GetByGroup("display")
+	if err != nil {
+		return nil, err
+	}
+
+	result := make(map[string]string)
+	for _, setting := range settings {
+		result[setting.Key] = setting.Value
+	}
+
+	// 设置默认值
+	if result["home_page_size"] == "" {
+		result["home_page_size"] = "8"
+	}
+	if result["recent_posts_limit"] == "" {
+		result["recent_posts_limit"] = "5"
+	}
+
+	return result, nil
+}
+
+// UpdateDisplaySettings 更新显示配置
+func (s *SettingService) UpdateDisplaySettings(data map[string]string) error {
+	// 允许的字段和对应的最大值
+	allowedKeys := map[string]int{
+		"home_page_size":     50,
+		"recent_posts_limit": 20,
+	}
+
+	var settings []model.Setting
+	for key, value := range data {
+		maxVal, ok := allowedKeys[key]
+		if !ok {
+			continue
+		}
+
+		// 校验值必须为正整数且在合法范围内
+		intVal, err := strconv.Atoi(value)
+		if err != nil || intVal < 1 || intVal > maxVal {
+			return errors.New(key + " 必须是 1-" + strconv.Itoa(maxVal) + " 之间的整数")
+		}
+
+		settings = append(settings, model.Setting{
+			Group:     "display",
+			Key:       key,
+			Value:     value,
+			UpdatedAt: time.Now(),
+		})
+	}
+
+	if len(settings) == 0 {
+		return nil
+	}
+
+	return s.repo.BatchUpsert(settings)
 }
 
 // getFriendLinkInfoLabel 获取字段标签
