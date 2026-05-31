@@ -162,7 +162,7 @@
 import { ref, reactive, onMounted, onUnmounted, h, watch } from 'vue'
 import { useMessage, useDialog, NButton, NButtonGroup, NTag, NIcon } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
-import { SendOutline, CheckmarkCircleOutline, CloseCircleOutline, TimeOutline, EyeOutline, TrashOutline, GridOutline, AppsOutline, CloseOutline } from '@vicons/ionicons5'
+import { SendOutline, CheckmarkCircleOutline, CloseCircleOutline, TimeOutline, EyeOutline, TrashOutline, GridOutline, AppsOutline } from '@vicons/ionicons5'
 import { formatDate } from '@/utils/format'
 import { getPushHistories, getPushHistoryDetail, deletePushHistory, getPushStats } from '@/api/subscribe'
 import type { PushHistory, PushDetail, PushStats } from '@/api/subscribe'
