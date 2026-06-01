@@ -21,7 +21,8 @@ services:
   # 模式一：新建 PostgreSQL 容器（使用已有容器时注释此块）
   # ----------------------------------------------------------------
   postgres:
-    image: postgres:17-alpine
+    # image: postgres:17-alpine # 官方镜像仓库地址
+    image: registry.cn-hangzhou.aliyuncs.com/wylhub/postgres:17-alpine # 私人镜像仓库地址
     container_name: gin-vue3-blog-postgres
     restart: unless-stopped
     environment:
@@ -38,7 +39,8 @@ services:
   # 模式一：新建 Redis 容器（使用已有容器时注释此块）
   # ----------------------------------------------------------------
   redis:
-    image: redis:7-alpine
+    # image: redis:7-alpine # 官方镜像仓库地址
+    image: registry.cn-hangzhou.aliyuncs.com/wylhub/redis:7-alpine # 私人镜像仓库地址
     container_name: gin-vue3-blog-redis
     restart: always
     command: redis-server --requirepass ${REDIS_PASSWORD:-123456} --appendonly yes
