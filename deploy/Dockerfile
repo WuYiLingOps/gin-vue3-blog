@@ -12,7 +12,8 @@
 ############################
 # 1) frontend builder
 ############################
-FROM node:20-bookworm-slim AS frontend-builder
+#FROM node:20-bookworm-slim AS frontend-builder
+FROM registry.cn-hangzhou.aliyuncs.com/wylhub/node:20-bookworm-slim AS frontend-builder
 
 WORKDIR /src/blog-frontend
 
@@ -29,7 +30,8 @@ RUN pnpm build
 ############################
 # 2) blog-backend builder
 ############################
-FROM golang:1.25-bookworm AS blog-backend-builder
+#FROM golang:1.25-bookworm AS blog-backend-builder
+FROM registry.cn-hangzhou.aliyuncs.com/wylhub/golang:1.25-bookworm AS blog-backend-builder
 
 WORKDIR /src/blog-backend
 
@@ -51,7 +53,8 @@ RUN go build -o /out/blog-backend ./cmd/server
 ############################
 # 3) runtime
 ############################
-FROM debian:bookworm-slim AS runtime
+#FROM debian:bookworm-slim AS runtime
+FROM registry.cn-hangzhou.aliyuncs.com/wylhub/debian:bookworm-slim AS runtime
 
 ENV TZ=Asia/Shanghai
 
