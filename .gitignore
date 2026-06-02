@@ -93,6 +93,8 @@ blog-frontend/src/types/components.d.ts
 # Uploaded files  上传的文件
 blog-backend/uploads/*
 !blog-backend/uploads/.gitkeep
+# 容器状态下的上传文件
+deploy/uploads
 
 # Keep avatar directory structure but ignore contents  保留头像目录结构但忽略文件内容
 blog-backend/uploads/avatars/*
