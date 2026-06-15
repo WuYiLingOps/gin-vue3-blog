@@ -8,6 +8,9 @@
 # 联系邮箱：huangjing510@126.com
 # 功能描述：生产环境一体化容器编排，单镜像运行 Nginx + blog-backend，外部依赖 postgres + redis
 #
+# Docker Compose 版本：v2.27.1
+# 资源限制语法：使用顶层属性（mem_limit/mem_reservation/cpus）
+#
 # 使用说明：
 #   模式一（新建数据库容器）：保持下方 postgres/redis 服务配置不变，直接 docker compose up -d
 #   模式二（使用已有容器）：
@@ -33,6 +36,9 @@ services:
       - ../blog-backend/sql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     ports:
       - "5432:5432"
+    mem_limit: 1g
+    mem_reservation: 512m
+    cpus: 2.0
 
   # ----------------------------------------------------------------
   # 模式一：新建 Redis 容器（使用已有容器时注释此块）
@@ -48,6 +54,9 @@ services:
       - ./redisData:/data
     ports:
       - "6379:6379"
+    mem_limit: 512m
+    mem_reservation: 128m
+    cpus: 1.0
 
   blog:
     image: registry.cn-hangzhou.aliyuncs.com/wylhub/gin-vue3-blog:latest
@@ -85,3 +94,6 @@ services:
       timeout: 5s
       start_period: 15s
       retries: 3
+    mem_limit: 512m
+    mem_reservation: 128m
+    cpus: 1.0
