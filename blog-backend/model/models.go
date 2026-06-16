@@ -51,11 +51,12 @@ type Post struct {
 	UpdatedAt   time.Time  `json:"updated_at"`
 
 	// 关联关系
-	User     User      `json:"user" gorm:"foreignKey:UserID"`
-	Category Category  `json:"category" gorm:"foreignKey:CategoryID"`
-	Tags     []Tag     `json:"tags" gorm:"many2many:post_tags;"`
-	Comments []Comment `json:"comments,omitempty" gorm:"foreignKey:PostID"`
-	Liked    bool      `json:"liked" gorm:"-"` // 当前用户是否点赞（不存储到数据库）
+	User          User      `json:"user" gorm:"foreignKey:UserID"`
+	Category      Category  `json:"category" gorm:"foreignKey:CategoryID"`
+	Tags          []Tag     `json:"tags" gorm:"many2many:post_tags;"`
+	Comments      []Comment `json:"comments,omitempty" gorm:"foreignKey:PostID"`
+	Collaborators []User    `json:"collaborators" gorm:"many2many:post_collaborators;"`
+	Liked         bool      `json:"liked" gorm:"-"` // 当前用户是否点赞（不存储到数据库）
 }
 
 // Category 分类模型
@@ -425,6 +426,26 @@ type PushDetail struct {
 // TableName 指定PushDetail模型的数据库表名
 func (PushDetail) TableName() string {
 	return "push_details"
+}
+
+// PostCollaborator 文章协作者模型
+// 功能说明：存储文章协作者信息，支持多对多关系，每篇文章最多1个协作者
+type PostCollaborator struct {
+	ID        uint      `json:"id" gorm:"primaryKey"`
+	PostID    uint      `json:"post_id" gorm:"index;not null"`
+	UserID    uint      `json:"user_id" gorm:"index;not null"`
+	SortOrder int       `json:"sort_order" gorm:"default:0"`
+	Removed   bool      `json:"removed" gorm:"default:false"` // 是否被移除（软删除）
+	CreatedAt time.Time `json:"created_at"`
+
+	// 关联关系
+	Post Post `json:"post" gorm:"foreignKey:PostID"`
+	User User `json:"user" gorm:"foreignKey:UserID"`
+}
+
+// TableName 指定PostCollaborator模型的数据库表名
+func (PostCollaborator) TableName() string {
+	return "post_collaborators"
 }
 
 // PostRevision 文章修订版本模型

@@ -823,7 +823,37 @@ COMMENT ON COLUMN operation_logs.user_agent IS '用户代理（浏览器信息�
 COMMENT ON COLUMN operation_logs.created_at IS '操作时间';
 
 -- =============================================================================
--- 14. 更新现有数据的全文搜索向量
+-- 16. 文章协作者系统
+-- =============================================================================
+
+-- 创建文章协作者关联表（每篇文章最多1个协作者，通过审批自动添加）
+CREATE TABLE IF NOT EXISTS post_collaborators (
+    id SERIAL PRIMARY KEY,
+    post_id INT NOT NULL,
+    user_id INT NOT NULL,
+    sort_order INT DEFAULT 0,
+    removed BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE(post_id, user_id)
+);
+
+-- 文章协作者表索引
+CREATE INDEX IF NOT EXISTS idx_post_collaborators_post_id ON post_collaborators(post_id);
+CREATE INDEX IF NOT EXISTS idx_post_collaborators_user_id ON post_collaborators(user_id);
+CREATE INDEX IF NOT EXISTS idx_post_collaborators_removed ON post_collaborators(removed);
+
+-- 文章协作者表注释
+COMMENT ON TABLE post_collaborators IS '文章协作者关联表（每篇文章最多1个协作者）';
+COMMENT ON COLUMN post_collaborators.post_id IS '文章ID';
+COMMENT ON COLUMN post_collaborators.user_id IS '协作者用户ID';
+COMMENT ON COLUMN post_collaborators.sort_order IS '排序权重（数字越小越靠前）';
+COMMENT ON COLUMN post_collaborators.removed IS '是否被移除（软删除）';
+COMMENT ON COLUMN post_collaborators.created_at IS '添加时间';
+
+-- =============================================================================
+-- 17. 更新现有数据的全文搜索向量
 -- =============================================================================
 
 -- 更新文章的全文搜索向量（组合标题和内容，标题权重更高）

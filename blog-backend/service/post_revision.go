@@ -27,15 +27,17 @@ import (
 
 // PostRevisionService 文章修订版本服务
 type PostRevisionService struct {
-	revisionRepo *repository.PostRevisionRepository
-	postRepo     *repository.PostRepository
+	revisionRepo      *repository.PostRevisionRepository
+	postRepo          *repository.PostRepository
+	collaboratorRepo  *repository.PostCollaboratorRepository
 }
 
 // NewPostRevisionService 创建文章修订版本服务实例
 func NewPostRevisionService() *PostRevisionService {
 	return &PostRevisionService{
-		revisionRepo: repository.NewPostRevisionRepository(),
-		postRepo:     repository.NewPostRepository(),
+		revisionRepo:     repository.NewPostRevisionRepository(),
+		postRepo:         repository.NewPostRepository(),
+		collaboratorRepo: repository.NewPostCollaboratorRepository(),
 	}
 }
 
@@ -51,10 +53,10 @@ func (s *PostRevisionService) GetRevisionDetail(id uint) (*model.PostRevision, e
 	return s.revisionRepo.GetByID(ctx, id)
 }
 
-// ApproveRevision 审批通过（合并修改到原文章）
+// ApproveRevision 审批通过（合并修改到原文章，并自动添加编辑者为协作者）
 func (s *PostRevisionService) ApproveRevision(id, reviewerID uint) error {
 	var editorEmail, editorName, reviewerName, postTitle string
-	var postID uint
+	var postID, editorID uint
 
 	// 使用事务合并修改
 	err := s.postRepo.Transaction(func(tx *gorm.DB) error {
@@ -77,6 +79,7 @@ func (s *PostRevisionService) ApproveRevision(id, reviewerID uint) error {
 			editorEmail = revision.Editor.Email
 			editorName = revision.Editor.Username
 		}
+		editorID = revision.EditorID
 		postTitle = revision.Post.Title
 		postID = revision.PostID
 
@@ -129,28 +132,42 @@ func (s *PostRevisionService) ApproveRevision(id, reviewerID uint) error {
 		return s.revisionRepo.UpdateStatusTx(tx, &revision)
 	})
 
-	// 事务成功后发送邮件通知
-	if err == nil && editorEmail != "" {
-		go func() {
-			// 从数据库获取网站名称
-			settingRepo := repository.NewSettingRepository()
-			siteName := config.Cfg.Email.SiteName // 默认使用配置文件中的值
-			if siteNameSetting, err := settingRepo.GetByKey("site_name"); err == nil && siteNameSetting.Value != "" {
-				siteName = siteNameSetting.Value
+	// 事务成功后：自动添加编辑者为协作者 + 发送邮件通知
+	if err == nil {
+		// 自动添加编辑者为协作者（如果编辑者不是文章作者，且从未成为过协作者）
+		if editorID > 0 && postID > 0 {
+			// 获取文章检查作者是否为编辑者本身
+			if post, getErr := s.postRepo.GetByID(postID); getErr == nil && post.UserID != editorID {
+				// 检查是否曾经是协作者（包括被移除的）
+				if everExisted, existErr := s.collaboratorRepo.EverExisted(postID, editorID); existErr == nil && !everExisted {
+					_ = s.collaboratorRepo.Add(postID, editorID, 1)
+				}
 			}
+		}
 
-			emailConfig := util.EmailConfig{
-				Host:     config.Cfg.Email.Host,
-				Port:     config.Cfg.Email.Port,
-				Username: config.Cfg.Email.Username,
-				Password: config.Cfg.Email.Password,
-				FromName: config.Cfg.Email.FromName,
-				SiteName: siteName,
-			}
+		// 发送邮件通知
+		if editorEmail != "" {
+			go func() {
+				// 从数据库获取网站名称
+				settingRepo := repository.NewSettingRepository()
+				siteName := config.Cfg.Email.SiteName // 默认使用配置文件中的值
+				if siteNameSetting, err := settingRepo.GetByKey("site_name"); err == nil && siteNameSetting.Value != "" {
+					siteName = siteNameSetting.Value
+				}
 
-			postURL := fmt.Sprintf("%s/post/%d", config.Cfg.App.BlogURL, postID)
-			_ = util.SendRevisionApprovedEmail(emailConfig, editorEmail, editorName, postTitle, reviewerName, postURL)
-		}()
+				emailConfig := util.EmailConfig{
+					Host:     config.Cfg.Email.Host,
+					Port:     config.Cfg.Email.Port,
+					Username: config.Cfg.Email.Username,
+					Password: config.Cfg.Email.Password,
+					FromName: config.Cfg.Email.FromName,
+					SiteName: siteName,
+				}
+
+				postURL := fmt.Sprintf("%s/post/%d", config.Cfg.App.BlogURL, postID)
+				_ = util.SendRevisionApprovedEmail(emailConfig, editorEmail, editorName, postTitle, reviewerName, postURL)
+			}()
+		}
 	}
 
 	return err

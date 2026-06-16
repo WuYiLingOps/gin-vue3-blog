@@ -108,3 +108,42 @@ export function getRecentPosts(limit = 10) {
   return request.get<Post[]>('/posts/recent', { params: { limit } })
 }
 
+/**
+ * 获取文章协作者列表
+ * @param postId 文章ID
+ * @returns 返回协作者用户列表
+ */
+export function getCollaborators(postId: number) {
+  return request.get(`/posts/${postId}/collaborators`)
+}
+
+/**
+ * 添加文章协作者
+ * @param postId 文章ID
+ * @param userId 协作者用户ID
+ * @param sortOrder 排序权重（可选）
+ * @returns 返回添加结果
+ */
+export function addCollaborator(postId: number, userId: number, sortOrder?: number) {
+  return request.post(`/posts/${postId}/collaborators`, { user_id: userId, sort_order: sortOrder })
+}
+
+/**
+ * 移除文章协作者
+ * @param postId 文章ID
+ * @param userId 协作者用户ID
+ * @returns 返回移除结果
+ */
+export function removeCollaborator(postId: number, userId: number) {
+  return request.delete(`/posts/${postId}/collaborators/${userId}`)
+}
+
+/**
+ * 搜索用户（用于添加协作者时选择用户）
+ * @param keyword 搜索关键词
+ * @returns 返回用户列表
+ */
+export function searchUsers(keyword: string) {
+  return request.get('/posts/search-users', { params: { keyword } })
+}
+

@@ -74,9 +74,19 @@
               <!-- 底部信息栏 -->
               <div class="post-footer">
                 <div class="post-meta">
-                  <n-space :size="8">
+                  <n-space :size="8" align="center">
+                    <!-- 第一作者 -->
                     <n-avatar :src="post.user.avatar" :size="24" round />
                     <span class="meta-item">{{ post.user.nickname }}</span>
+                    
+                    <!-- 协作者（如果有） -->
+                    <template v-if="post.collaborators && post.collaborators.length > 0">
+                      <n-divider vertical />
+                      <span class="collab-label">协作</span>
+                      <n-avatar :src="post.collaborators[0].avatar" :size="22" round />
+                      <span class="meta-item">{{ post.collaborators[0].nickname }}</span>
+                    </template>
+                    
                     <n-divider vertical />
                     <span class="meta-item">
                       <n-icon :component="TimeOutline" size="14" />
@@ -595,6 +605,30 @@ html.dark .meta-item {
 .private-badge {
   align-self: center;
   margin-left: 4px;
+}
+
+.collab-label {
+  color: #0891b2;
+  font-size: 12px;
+  font-weight: 500;
+  background: rgba(8, 145, 178, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+html.dark .collab-label {
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.15);
+}
+
+.collab-count {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+html.dark .collab-count {
+  color: #94a3b8;
 }
 
 .post-cover {
