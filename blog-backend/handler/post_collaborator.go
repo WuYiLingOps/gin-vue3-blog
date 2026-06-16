@@ -169,7 +169,7 @@ func (h *PostCollaboratorHandler) RemoveCollaborator(c *gin.Context) {
 		util.Unauthorized(c, "未登录")
 		return
 	}
-	role, _ := c.Get("role")
+	currentRole, _ := c.Get("role")
 
 	// 检查文章是否存在
 	post, err := h.postRepo.GetByID(uint(postID))
@@ -178,10 +178,28 @@ func (h *PostCollaboratorHandler) RemoveCollaborator(c *gin.Context) {
 		return
 	}
 
-	// 检查权限：只有文章作者和超级管理员可以移除协作者
-	if post.UserID != currentUserID.(uint) && role != constant.RoleSuperAdmin {
-		util.Forbidden(c, "无权操作此文章")
+	// 获取被移除的协作者信息
+	collaborator, err := h.userRepo.GetByID(uint(userID))
+	if err != nil {
+		util.Error(c, 404, "用户不存在")
 		return
+	}
+
+	// 权限检查：
+	// 1. 如果协作者是超级管理员 → 只有超级管理员自己可以移除
+	// 2. 如果协作者是普通管理员 → 文章作者或超级管理员可以移除
+	if collaborator.Role == constant.RoleSuperAdmin {
+		// 协作者是超级管理员，只有自己可以移除自己
+		if currentUserID.(uint) != uint(userID) {
+			util.Forbidden(c, "超级管理员协作者只能由其本人移除")
+			return
+		}
+	} else {
+		// 协作者是普通管理员，文章作者或超级管理员可以移除
+		if post.UserID != currentUserID.(uint) && currentRole != constant.RoleSuperAdmin {
+			util.Forbidden(c, "无权操作此文章")
+			return
+		}
 	}
 
 	// 移除协作者
