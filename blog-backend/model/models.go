@@ -429,12 +429,13 @@ func (PushDetail) TableName() string {
 }
 
 // PostCollaborator 文章协作者模型
-// 功能说明：存储文章协作者信息，支持多对多关系，最多2个协作者
+// 功能说明：存储文章协作者信息，支持多对多关系，每篇文章最多1个协作者
 type PostCollaborator struct {
 	ID        uint      `json:"id" gorm:"primaryKey"`
 	PostID    uint      `json:"post_id" gorm:"index;not null"`
 	UserID    uint      `json:"user_id" gorm:"index;not null"`
 	SortOrder int       `json:"sort_order" gorm:"default:0"`
+	Removed   bool      `json:"removed" gorm:"default:false"` // 是否被移除（软删除）
 	CreatedAt time.Time `json:"created_at"`
 
 	// 关联关系
