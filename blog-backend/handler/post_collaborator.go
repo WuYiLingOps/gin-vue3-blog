@@ -11,6 +11,7 @@
 package handler
 
 import (
+	"blog-backend/constant"
 	"blog-backend/repository"
 	"blog-backend/util"
 	"strconv"
@@ -177,8 +178,8 @@ func (h *PostCollaboratorHandler) RemoveCollaborator(c *gin.Context) {
 		return
 	}
 
-	// 检查权限：只有文章作者和管理员可以移除协作者
-	if post.UserID != currentUserID.(uint) && !util.IsAdminRole(role.(string)) {
+	// 检查权限：只有文章作者和超级管理员可以移除协作者
+	if post.UserID != currentUserID.(uint) && role != constant.RoleSuperAdmin {
 		util.Forbidden(c, "无权操作此文章")
 		return
 	}
