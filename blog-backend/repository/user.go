@@ -106,3 +106,14 @@ func (r *UserRepository) GetSuperAdmins(ctx context.Context) ([]model.User, erro
 	err := db.DB.Where("role = ? AND status = ?", constant.RoleSuperAdmin, 1).Find(&admins).Error
 	return admins, err
 }
+
+// Search 搜索用户（根据用户名或昵称）
+func (r *UserRepository) Search(keyword string, limit int) ([]model.User, error) {
+	var users []model.User
+	err := db.DB.
+		Where("(username ILIKE ? OR nickname ILIKE ?) AND status = ?",
+			"%"+keyword+"%", "%"+keyword+"%", 1).
+		Limit(limit).
+		Find(&users).Error
+	return users, err
+}
