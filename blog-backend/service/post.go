@@ -461,9 +461,9 @@ func (s *PostService) Update(id, userID uint, role string, req *UpdatePostReques
 		return nil, errors.New("文章更新失败")
 	}
 
-	// 如果编辑者不是文章作者，且文章还没有协作者，则自动添加为协作者
+	// 如果编辑者不是文章作者，且从未成为过该文章的协作者，则自动添加
 	if post.UserID != userID && constant.IsAdminRole(role) {
-		if count, countErr := s.collaboratorRepo.CountByPostID(post.ID); countErr == nil && count == 0 {
+		if everExisted, existErr := s.collaboratorRepo.EverExisted(post.ID, userID); existErr == nil && !everExisted {
 			_ = s.collaboratorRepo.Add(post.ID, userID, 1)
 		}
 	}
