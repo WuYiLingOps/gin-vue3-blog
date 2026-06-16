@@ -59,6 +59,7 @@ export interface Post {
   category: Category
   tags: Tag[]
   comments?: Comment[]
+  collaborators?: User[] // 协作者列表（最多2个）
 }
 
 // 评论
