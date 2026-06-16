@@ -832,6 +832,7 @@ CREATE TABLE IF NOT EXISTS post_collaborators (
     post_id INT NOT NULL,
     user_id INT NOT NULL,
     sort_order INT DEFAULT 0,
+    removed BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
@@ -841,12 +842,14 @@ CREATE TABLE IF NOT EXISTS post_collaborators (
 -- 文章协作者表索引
 CREATE INDEX IF NOT EXISTS idx_post_collaborators_post_id ON post_collaborators(post_id);
 CREATE INDEX IF NOT EXISTS idx_post_collaborators_user_id ON post_collaborators(user_id);
+CREATE INDEX IF NOT EXISTS idx_post_collaborators_removed ON post_collaborators(removed);
 
 -- 文章协作者表注释
 COMMENT ON TABLE post_collaborators IS '文章协作者关联表（每篇文章最多1个协作者）';
 COMMENT ON COLUMN post_collaborators.post_id IS '文章ID';
 COMMENT ON COLUMN post_collaborators.user_id IS '协作者用户ID';
 COMMENT ON COLUMN post_collaborators.sort_order IS '排序权重（数字越小越靠前）';
+COMMENT ON COLUMN post_collaborators.removed IS '是否被移除（软删除）';
 COMMENT ON COLUMN post_collaborators.created_at IS '添加时间';
 
 -- =============================================================================
