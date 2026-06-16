@@ -46,14 +46,24 @@ func (r *PostRepository) Create(post *model.Post) error {
 // GetByID 根据ID获取文章
 func (r *PostRepository) GetByID(id uint) (*model.Post, error) {
 	var post model.Post
-	err := db.DB.Preload("User").Preload("Category").Preload("Tags").Preload("Collaborators").First(&post, id).Error
+	err := db.DB.Preload("User").Preload("Category").Preload("Tags").
+		Preload("Collaborators", func(db *gorm.DB) *gorm.DB {
+			return db.Joins("JOIN post_collaborators pc ON pc.user_id = users.id").
+				Where("pc.removed = ?", false)
+		}).
+		First(&post, id).Error
 	return &post, err
 }
 
 // GetBySlug 根据slug获取文章
 func (r *PostRepository) GetBySlug(slug string) (*model.Post, error) {
 	var post model.Post
-	err := db.DB.Preload("User").Preload("Category").Preload("Tags").Preload("Collaborators").Where("slug = ?", slug).First(&post).Error
+	err := db.DB.Preload("User").Preload("Category").Preload("Tags").
+		Preload("Collaborators", func(db *gorm.DB) *gorm.DB {
+			return db.Joins("JOIN post_collaborators pc ON pc.user_id = users.id").
+				Where("pc.removed = ?", false)
+		}).
+		Where("slug = ?", slug).First(&post).Error
 	return &post, err
 }
 
@@ -127,7 +137,11 @@ func (r *PostRepository) List(page, pageSize int, categoryID uint, keyword strin
 		return nil, 0, err
 	}
 
-	err := query.Preload("User").Preload("Category").Preload("Tags").Preload("Collaborators").
+	err := query.Preload("User").Preload("Category").Preload("Tags").
+		Preload("Collaborators", func(db *gorm.DB) *gorm.DB {
+			return db.Joins("JOIN post_collaborators pc ON pc.user_id = users.id").
+				Where("pc.removed = ?", false)
+		}).
 		Order("is_top DESC, created_at DESC").
 		Offset(offset).Limit(pageSize).Find(&posts).Error
 
@@ -149,7 +163,11 @@ func (r *PostRepository) GetByTag(tagID uint, page, pageSize int) ([]model.Post,
 		return nil, 0, err
 	}
 
-	err := db.DB.Preload("User").Preload("Category").Preload("Tags").Preload("Collaborators").
+	err := db.DB.Preload("User").Preload("Category").Preload("Tags").
+		Preload("Collaborators", func(db *gorm.DB) *gorm.DB {
+			return db.Joins("JOIN post_collaborators pc ON pc.user_id = users.id").
+				Where("pc.removed = ?", false)
+		}).
 		Joins("JOIN post_tags ON posts.id = post_tags.post_id").
 		Where("post_tags.tag_id = ? AND posts.status = 1", tagID).
 		Order("posts.created_at DESC").
@@ -161,7 +179,11 @@ func (r *PostRepository) GetByTag(tagID uint, page, pageSize int) ([]model.Post,
 // GetPublishedPostsByTag 根据标签ID获取已发布的文章列表（用于RSS）
 func (r *PostRepository) GetPublishedPostsByTag(tagID uint, limit int) ([]model.Post, error) {
 	var posts []model.Post
-	err := db.DB.Preload("User").Preload("Category").Preload("Tags").Preload("Collaborators").
+	err := db.DB.Preload("User").Preload("Category").Preload("Tags").
+		Preload("Collaborators", func(db *gorm.DB) *gorm.DB {
+			return db.Joins("JOIN post_collaborators pc ON pc.user_id = users.id").
+				Where("pc.removed = ?", false)
+		}).
 		Joins("JOIN post_tags ON posts.id = post_tags.post_id").
 		Where("post_tags.tag_id = ? AND posts.status = 1 AND posts.visibility = 1", tagID).
 		Order("posts.created_at DESC").
@@ -235,7 +257,12 @@ func (r *PostRepository) GetArchives() ([]map[string]interface{}, error) {
 func (r *PostRepository) GetRecentPosts(limit int, userID *uint, role string) ([]model.Post, error) {
 	var posts []model.Post
 
-	query := db.DB.Preload("User").Preload("Category").Preload("Collaborators").Where("status = 1")
+	query := db.DB.Preload("User").Preload("Category").
+		Preload("Collaborators", func(db *gorm.DB) *gorm.DB {
+			return db.Joins("JOIN post_collaborators pc ON pc.user_id = users.id").
+				Where("pc.removed = ?", false)
+		}).
+		Where("status = 1")
 
 	if constant.IsAdminRole(role) && userID != nil {
 		// 管理员（包含 super_admin）可见自己的私密文章，其余仍需公开
