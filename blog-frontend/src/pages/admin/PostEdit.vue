@@ -102,6 +102,28 @@
             <n-switch v-model:value="formData.is_top" />
           </n-form-item>
 
+          <!-- 协作者管理（仅编辑模式且有协作者时显示） -->
+          <n-form-item v-if="isEdit && collaborators.length > 0" label="协作者">
+            <n-space :size="12">
+              <n-tag
+                v-for="collab in collaborators"
+                :key="collab.id"
+                :closable="canRemoveCollaborator"
+                @close="handleRemoveCollaborator(collab.id)"
+              >
+                <template #avatar>
+                  <n-avatar :src="collab.avatar" :size="18" round />
+                </template>
+                {{ collab.nickname || collab.username }}
+              </n-tag>
+            </n-space>
+            <template #feedback>
+              <n-text depth="3" style="font-size: 12px">
+                {{ canRemoveCollaborator ? '协作者由系统自动添加，点击可移除' : '协作者由系统自动添加，仅文章作者或超级管理员可移除' }}
+              </n-text>
+            </template>
+          </n-form-item>
+
           <n-form-item v-if="isEdit && isEditingSuperAdminPost" label="修改说明" path="editor_comment">
             <n-input
               v-model:value="formData.editor_comment"
@@ -133,10 +155,11 @@ import { ref, reactive, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useMessage } from 'naive-ui'
 import type { FormInst, FormRules, SelectOption } from 'naive-ui'
-import { getPostById, createPost, updatePost } from '@/api/post'
+import { getPostById, createPost, updatePost, getCollaborators, removeCollaborator } from '@/api/post'
 import { uploadPostCover } from '@/api/upload'
 import { useBlogStore, useAuthStore } from '@/stores'
 import type { PostForm } from '@/types/blog'
+import type { User } from '@/types/auth'
 import MarkdownEditor from '@/components/MarkdownEditor.vue'
 import ImageUpload from '@/components/ImageUpload.vue'
 
@@ -151,8 +174,19 @@ const loading = ref(false)
 const submitting = ref(false)
 const isMobile = ref(false)
 const originalPost = ref<any>(null)
+const collaborators = ref<User[]>([])
 
 const isEdit = computed(() => !!route.params.id)
+
+// 判断当前用户是否可以移除协作者（文章作者或超级管理员）
+const canRemoveCollaborator = computed(() => {
+  if (!isEdit.value || !originalPost.value || !authStore.user) return false
+  // 文章作者可以移除
+  if (originalPost.value.user_id === authStore.user.id) return true
+  // 超级管理员可以移除
+  if (authStore.user.role === 'super_admin') return true
+  return false
+})
 
 // 判断是否正在编辑超级管理员的文章
 const isEditingSuperAdminPost = computed(() => {
@@ -305,6 +339,9 @@ async function loadPost() {
     formData.status = post.status
     formData.visibility = post.visibility ?? 1
     formData.is_top = post.is_top
+
+    // 加载协作者列表
+    loadCollaborators(id)
   } catch (error: any) {
     message.error(error.message || '加载文章失败')
     handleBack()
@@ -388,6 +425,28 @@ async function handleSubmit() {
     message.error(errorMessage)
   } finally {
     submitting.value = false
+  }
+}
+
+async function loadCollaborators(postId: number) {
+  try {
+    const res = await getCollaborators(postId)
+    if (res.data) {
+      collaborators.value = res.data
+    }
+  } catch {
+    // 静默失败，不影响页面
+  }
+}
+
+async function handleRemoveCollaborator(userId: number) {
+  const id = Number(route.params.id)
+  try {
+    await removeCollaborator(id, userId)
+    message.success('移除协作者成功')
+    collaborators.value = collaborators.value.filter(c => c.id !== userId)
+  } catch (error: any) {
+    message.error(error.message || '移除协作者失败')
   }
 }
 
