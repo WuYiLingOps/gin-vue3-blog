@@ -34,6 +34,7 @@ type PostService struct {
 	categoryRepo      *repository.CategoryRepository
 	tagRepo           *repository.TagRepository
 	postViewRepo      *repository.PostViewRepository
+	collaboratorRepo  *repository.PostCollaboratorRepository
 	subscriberService *SubscriberService
 }
 
@@ -42,6 +43,7 @@ func NewPostService(subscriberService *SubscriberService) *PostService {
 	return &PostService{
 		postRepo:          repository.NewPostRepository(),
 		categoryRepo:      repository.NewCategoryRepository(),
+		collaboratorRepo:  repository.NewPostCollaboratorRepository(),
 		tagRepo:           repository.NewTagRepository(),
 		postViewRepo:      repository.NewPostViewRepository(),
 		subscriberService: subscriberService,
@@ -457,6 +459,13 @@ func (s *PostService) Update(id, userID uint, role string, req *UpdatePostReques
 
 	if err != nil {
 		return nil, errors.New("文章更新失败")
+	}
+
+	// 如果编辑者不是文章作者，且文章还没有协作者，则自动添加为协作者
+	if post.UserID != userID && constant.IsAdminRole(role) {
+		if count, countErr := s.collaboratorRepo.CountByPostID(post.ID); countErr == nil && count == 0 {
+			_ = s.collaboratorRepo.Add(post.ID, userID, 1)
+		}
 	}
 
 	// 写操作成功后，删除与文章列表相关的缓存（最新文章等）
