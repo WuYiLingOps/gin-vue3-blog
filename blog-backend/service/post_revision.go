@@ -134,12 +134,12 @@ func (s *PostRevisionService) ApproveRevision(id, reviewerID uint) error {
 
 	// 事务成功后：自动添加编辑者为协作者 + 发送邮件通知
 	if err == nil {
-		// 自动添加编辑者为协作者（如果编辑者不是文章作者）
+		// 自动添加编辑者为协作者（如果编辑者不是文章作者，且从未成为过协作者）
 		if editorID > 0 && postID > 0 {
 			// 获取文章检查作者是否为编辑者本身
 			if post, getErr := s.postRepo.GetByID(postID); getErr == nil && post.UserID != editorID {
-				// 检查是否已有协作者
-				if count, countErr := s.collaboratorRepo.CountByPostID(postID); countErr == nil && count == 0 {
+				// 检查是否曾经是协作者（包括被移除的）
+				if everExisted, existErr := s.collaboratorRepo.EverExisted(postID, editorID); existErr == nil && !everExisted {
 					_ = s.collaboratorRepo.Add(postID, editorID, 1)
 				}
 			}
