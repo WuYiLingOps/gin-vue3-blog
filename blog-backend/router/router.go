@@ -57,6 +57,7 @@ func SetupRouter() *gin.Engine {
 	authHandler := handler.NewAuthHandler()
 	postHandler := handler.NewPostHandler(subscriberService)
 	postRevisionHandler := handler.NewPostRevisionHandler()
+	postCollaboratorHandler := handler.NewPostCollaboratorHandler()
 	categoryHandler := handler.NewCategoryHandler()
 	tagHandler := handler.NewTagHandler()
 	commentHandler := handler.NewCommentHandler()
@@ -92,7 +93,7 @@ func SetupRouter() *gin.Engine {
 		setupCaptchaRoutes(api, captchaHandler)                                                                                                                                                                                           // 验证码路由
 		setupBlogRoutes(api, blogHandler, announcementHandler, friendLinkHandler, friendLinkCategoryHandler, albumHandler)                                                                                                                // 博客公开接口路由
 		setupCalendarRoutes(api, calendarHandler)                                                                                                                                                                                         // 日历路由
-		setupPostRoutes(api, postHandler)                                                                                                                                                                                                 // 文章路由
+		setupPostRoutes(api, postHandler, postCollaboratorHandler)                                                                                                                                                                        // 文章路由
 		setupCategoryRoutes(api, categoryHandler)                                                                                                                                                                                         // 分类路由
 		setupTagRoutes(api, tagHandler)                                                                                                                                                                                                   // 标签路由
 		setupCommentRoutes(api, commentHandler)                                                                                                                                                                                           // 评论路由
@@ -197,7 +198,8 @@ func setupCalendarRoutes(api *gin.RouterGroup, h *handler.CalendarHandler) {
 // 参数:
 //   - api: API路由组
 //   - h: 文章处理器实例
-func setupPostRoutes(api *gin.RouterGroup, h *handler.PostHandler) {
+//   - ch: 文章协作者处理器实例
+func setupPostRoutes(api *gin.RouterGroup, h *handler.PostHandler, ch *handler.PostCollaboratorHandler) {
 	posts := api.Group("/posts")
 	// 前台获取文章相关接口允许携带可选认证信息，用于区分管理员和普通用户
 	posts.Use(middleware.OptionalAuthMiddleware())
@@ -209,13 +211,18 @@ func setupPostRoutes(api *gin.RouterGroup, h *handler.PostHandler) {
 		posts.GET("/recent", h.GetRecentPosts)
 		posts.POST("/:id/like", h.Like)
 
-		// 需要认证的接口
+		// 文章协作者接口（需要认证）
 		postsAuth := posts.Group("")
 		postsAuth.Use(middleware.AuthMiddleware())
 		{
 			postsAuth.POST("", h.Create)
 			postsAuth.PUT("/:id", h.Update)
 			postsAuth.DELETE("/:id", h.Delete)
+
+			// 协作者管理
+			postsAuth.GET("/:id/collaborators", ch.GetCollaborators)
+			postsAuth.POST("/:id/collaborators", ch.AddCollaborator)
+			postsAuth.DELETE("/:id/collaborators/:userId", ch.RemoveCollaborator)
 		}
 	}
 }
