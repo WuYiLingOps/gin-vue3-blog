@@ -44,7 +44,7 @@ export class ChatWebSocket {
           resolve()
         }
 
-        this.ws.onmessage = (event) => {
+        this.ws.onmessage = event => {
           try {
             const messages = event.data.split('\n')
             messages.forEach((msgStr: string) => {
@@ -58,14 +58,14 @@ export class ChatWebSocket {
           }
         }
 
-        this.ws.onerror = (error) => {
+        this.ws.onerror = error => {
           console.error('WebSocket连接错误:', error)
           console.error('WebSocket URL:', this.url)
           this.emit('error', error)
           reject(error)
         }
 
-        this.ws.onclose = (event) => {
+        this.ws.onclose = event => {
           console.log('WebSocket连接关闭', {
             code: event.code,
             reason: event.reason,
@@ -194,10 +194,14 @@ export class ChatWebSocket {
 }
 
 // 创建聊天WebSocket连接
-export function createChatWebSocket(username?: string, avatar?: string, token?: string): ChatWebSocket {
+export function createChatWebSocket(
+  username?: string,
+  avatar?: string,
+  token?: string
+): ChatWebSocket {
   // 优先使用专门的 WebSocket URL
   let wsBaseUrl = import.meta.env.VITE_WS_BASE_URL
-  
+
   if (!wsBaseUrl) {
     // 开发环境：使用当前页面的 host（通过 Vite 代理）
     // 生产环境：从 API URL 自动转换或直接使用当前页面 host
@@ -208,7 +212,7 @@ export function createChatWebSocket(username?: string, avatar?: string, token?: 
       // 生产环境，优先使用当前页面的 host（最可靠）
       // 这样可以避免从 VITE_API_BASE_URL 提取时可能包含路径的问题
       wsBaseUrl = window.location.host
-      
+
       // 如果 VITE_API_BASE_URL 配置了不同的域名，才从它提取
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL
       if (apiBaseUrl) {
@@ -231,13 +235,13 @@ export function createChatWebSocket(username?: string, avatar?: string, token?: 
     // 如果包含路径，只保留 host 部分
     wsBaseUrl = wsBaseUrl.split('/')[0]
   }
-  
+
   // 根据当前页面协议决定使用 ws 还是 wss
   const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-  
+
   // 构建WebSocket URL
   let wsUrl = `${protocol}//${wsBaseUrl}/api/chat/ws`
-  
+
   // 添加查询参数
   const params = new URLSearchParams()
   if (username) {
@@ -250,7 +254,7 @@ export function createChatWebSocket(username?: string, avatar?: string, token?: 
   if (token) {
     params.append('token', token)
   }
-  
+
   if (params.toString()) {
     wsUrl += `?${params.toString()}`
   }
@@ -259,4 +263,3 @@ export function createChatWebSocket(username?: string, avatar?: string, token?: 
 
   return new ChatWebSocket(wsUrl)
 }
-
