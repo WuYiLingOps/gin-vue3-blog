@@ -13,13 +13,7 @@
     <n-space :size="12">
       <!-- 已上传的图片列表 -->
       <div v-for="(url, index) in imageList" :key="index" class="image-item">
-        <n-image
-          :src="url"
-          width="120"
-          height="120"
-          object-fit="cover"
-          class="preview-image"
-        />
+        <n-image :src="url" width="120" height="120" object-fit="cover" class="preview-image" />
         <div class="image-mask">
           <n-space>
             <n-button size="tiny" circle @click="handleRemove(index)">
@@ -42,9 +36,7 @@
       >
         <div class="upload-button">
           <n-icon size="32" :component="CloudUploadOutline" />
-          <n-text style="font-size: 12px; margin-top: 8px; display: block">
-            上传图片
-          </n-text>
+          <n-text style="font-size: 12px; margin-top: 8px; display: block"> 上传图片 </n-text>
           <n-text depth="3" style="font-size: 11px; display: block">
             {{ imageList.length }}/{{ maxCount }}
           </n-text>
@@ -91,7 +83,7 @@ const imageList = ref<string[]>([])
 // 监听外部传入的值变化
 watch(
   () => props.modelValue,
-  (newVal) => {
+  newVal => {
     if (typeof newVal === 'string' && newVal) {
       try {
         imageList.value = JSON.parse(newVal)
@@ -238,4 +230,3 @@ html.dark .upload-button:hover {
   background: #1e293b;
 }
 </style>
-

@@ -33,8 +33,8 @@ function addCopyButtons() {
   if (!previewRef.value) return
 
   const codeBlocks = previewRef.value.querySelectorAll('pre code')
-  
-  codeBlocks.forEach((codeBlock) => {
+
+  codeBlocks.forEach(codeBlock => {
     const pre = codeBlock.parentElement as HTMLElement
     if (!pre || pre.querySelector('.copy-code-btn')) return
 
@@ -43,15 +43,18 @@ function addCopyButtons() {
     button.textContent = '复制'
     button.onclick = () => {
       const code = codeBlock.textContent || ''
-      navigator.clipboard.writeText(code).then(() => {
-        button.textContent = '已复制!'
-        message.success('代码已复制到剪贴板')
-        setTimeout(() => {
-          button.textContent = '复制'
-        }, 2000)
-      }).catch(() => {
-        message.error('复制失败，请手动复制')
-      })
+      navigator.clipboard
+        .writeText(code)
+        .then(() => {
+          button.textContent = '已复制!'
+          message.success('代码已复制到剪贴板')
+          setTimeout(() => {
+            button.textContent = '复制'
+          }, 2000)
+        })
+        .catch(() => {
+          message.error('复制失败，请手动复制')
+        })
     }
 
     pre.style.position = 'relative'
@@ -62,29 +65,29 @@ function addCopyButtons() {
 // 确保代码块滚动位置正确的函数
 function ensureCodeBlockScrollPosition() {
   if (!previewRef.value) return
-  
+
   // 确保代码块在容器内正确显示且不丢失内容
   const setScrollPosition = () => {
     if (!previewRef.value) return
     const preElements = previewRef.value.querySelectorAll('pre')
-    preElements.forEach((pre) => {
+    preElements.forEach(pre => {
       const preElement = pre as HTMLElement
       const codeElement = preElement.querySelector('code') as HTMLElement
-      
+
       if (codeElement) {
         // 确保代码块宽度正确
         codeElement.style.width = 'max-content'
         codeElement.style.minWidth = '100%'
-        
+
         // 重置滚动位置到最左侧
         preElement.scrollLeft = 0
       }
     })
   }
-  
+
   // 立即执行一次
   setScrollPosition()
-  
+
   // 延迟执行，确保 DOM 完全渲染和代码高亮完成
   setTimeout(setScrollPosition, 50)
   setTimeout(setScrollPosition, 100)
@@ -102,11 +105,11 @@ function ensureCodeBlockScrollPosition() {
 // 设置 MutationObserver 监听代码块变化
 function setupCodeBlockObserver() {
   if (!previewRef.value || observer) return
-  
+
   observer = new MutationObserver(() => {
     ensureCodeBlockScrollPosition()
   })
-  
+
   observer.observe(previewRef.value, {
     childList: true,
     subtree: true,
@@ -136,18 +139,21 @@ function handleResize() {
   ensureCodeBlockScrollPosition()
 }
 
-watch(() => props.content, () => {
-  nextTick(() => {
-    addCopyButtons()
-    ensureCodeBlockScrollPosition()
-    // 重新设置 observer
-    if (observer) {
-      observer.disconnect()
-      observer = null
-    }
-    setupCodeBlockObserver()
-  })
-})
+watch(
+  () => props.content,
+  () => {
+    nextTick(() => {
+      addCopyButtons()
+      ensureCodeBlockScrollPosition()
+      // 重新设置 observer
+      if (observer) {
+        observer.disconnect()
+        observer = null
+      }
+      setupCodeBlockObserver()
+    })
+  }
+)
 </script>
 
 <style scoped>
@@ -463,7 +469,7 @@ html.dark .markdown-preview :deep(.copy-code-btn:hover) {
     padding-left: 0 !important;
     padding-right: 0 !important;
   }
-  
+
   .markdown-preview :deep(pre) {
     margin: 12px auto !important;
     padding: 10px 12px !important;
@@ -535,7 +541,7 @@ html.dark .markdown-preview :deep(.copy-code-btn:hover) {
     padding-top: 12px !important;
     padding-bottom: 12px !important;
   }
-  
+
   .markdown-preview :deep(pre) {
     margin: 12px auto !important;
     /* 进一步减小 padding，为代码内容留出更多空间 */
@@ -577,7 +583,7 @@ html.dark .markdown-preview :deep(.copy-code-btn:hover) {
     position: relative;
     left: 0 !important;
   }
-  
+
   /* 确保代码块内的所有子元素都不影响位置 */
   .markdown-preview :deep(pre code *) {
     margin-left: 0 !important;
@@ -590,7 +596,7 @@ html.dark .markdown-preview :deep(.copy-code-btn:hover) {
     float: none !important;
     clear: both !important;
   }
-  
+
   /* 确保代码块内的 token 元素不影响位置 */
   .markdown-preview :deep(pre code .token) {
     margin-left: 0 !important;
@@ -642,15 +648,14 @@ html.dark .markdown-preview :deep(.copy-code-btn:hover) {
   }
 }
 
-  /* 复制按钮默认隐藏，仅在悬停时显示（包括移动端，移动端通过点击触发悬停态） */
-  .markdown-preview :deep(.copy-code-btn) {
-    opacity: 0;
-    padding: 6px 10px;
-    font-size: 11px;
-  }
-  
-  .markdown-preview :deep(pre:hover .copy-code-btn) {
-    opacity: 1;
-  }
-</style>
+/* 复制按钮默认隐藏，仅在悬停时显示（包括移动端，移动端通过点击触发悬停态） */
+.markdown-preview :deep(.copy-code-btn) {
+  opacity: 0;
+  padding: 6px 10px;
+  font-size: 11px;
+}
 
+.markdown-preview :deep(pre:hover .copy-code-btn) {
+  opacity: 1;
+}
+</style>

@@ -14,13 +14,7 @@
       <template #header>
         <div class="card-header">
           <span class="title">贡献度热力图</span>
-          <a
-            v-if="username"
-            :href="profileUrl"
-            target="_blank"
-            rel="noopener"
-            class="subtitle"
-          >
+          <a v-if="username" :href="profileUrl" target="_blank" rel="noopener" class="subtitle">
             @{{ username }}
           </a>
         </div>
@@ -46,11 +40,7 @@
             <div class="graph-content-col">
               <div class="months-row">
                 <template v-for="(pos, idx) in monthPositions" :key="idx">
-                  <span
-                    v-if="pos !== null"
-                    class="month-label"
-                    :style="{ left: pos + 'px' }"
-                  >
+                  <span v-if="pos !== null" class="month-label" :style="{ left: pos + 'px' }">
                     {{ monthLabels[idx] }}
                   </span>
                 </template>
@@ -73,12 +63,7 @@
         <div v-if="flatDays.length" class="meta-info">
           <div class="source">
             数据来源
-            <a
-              v-if="username"
-              :href="profileUrl"
-              target="_blank"
-              rel="noopener"
-            >
+            <a v-if="username" :href="profileUrl" target="_blank" rel="noopener">
               @{{ username }}
             </a>
           </div>
@@ -113,9 +98,7 @@
           </div>
         </div>
 
-        <div v-if="!error && !flatDays.length" class="calendar-empty">
-          暂无贡献数据
-        </div>
+        <div v-if="!error && !flatDays.length" class="calendar-empty">暂无贡献数据</div>
       </div>
     </n-card>
   </div>
@@ -189,7 +172,7 @@ function updateScale() {
 
   const ratio = outerWidth / innerWidth
   const next = Math.min(1, ratio)
-  
+
   // 完全自适应缩放，确保所有数据都完整显示在容器内
   // 移除下限限制，允许适当缩小以完全适配容器宽度
   // 这样就不需要横向滚动，所有内容都能一次性看到
@@ -205,58 +188,58 @@ const dateRange = computed(() => {
 
 const lastWeekStats = computed(() => {
   if (!flatDays.value.length) return { total: 0, from: '', to: '' }
-  
+
   // 过滤掉无效日期（count < 0 表示超出范围的空白天数）
-  const validDays = flatDays.value.filter((d) => d.count >= 0)
+  const validDays = flatDays.value.filter(d => d.count >= 0)
   if (!validDays.length) return { total: 0, from: '', to: '' }
-  
+
   // 获取最后一个有效日期作为结束日期
   const last = validDays[validDays.length - 1]
   const to = last.date
-  
+
   // 计算7天前的日期（包含今天，所以是6天前）
   const toDate = new Date(to + 'T00:00:00')
   const fromDate = new Date(toDate)
   fromDate.setDate(toDate.getDate() - 6)
   const fromStr = fromDate.toISOString().slice(0, 10)
-  
+
   // 筛选出最近7天的有效数据（基于日期范围，而不是数组索引）
-  const slice = validDays.filter((d) => d.date >= fromStr && d.date <= to)
+  const slice = validDays.filter(d => d.date >= fromStr && d.date <= to)
   // 只累加有效的提交次数（确保 count >= 0）
   const sum = slice.reduce((s, d) => s + Math.max(0, d.count), 0)
-  
-  return { 
-    total: sum, 
-    from: slice.length ? slice[0].date : fromStr, 
-    to 
+
+  return {
+    total: sum,
+    from: slice.length ? slice[0].date : fromStr,
+    to
   }
 })
 
 const lastMonthStats = computed(() => {
   if (!flatDays.value.length) return { total: 0, from: '', to: '' }
-  
+
   // 过滤掉无效日期（count < 0 表示超出范围的空白天数）
-  const validDays = flatDays.value.filter((d) => d.count >= 0)
+  const validDays = flatDays.value.filter(d => d.count >= 0)
   if (!validDays.length) return { total: 0, from: '', to: '' }
-  
+
   // 获取最后一个有效日期作为结束日期
   const last = validDays[validDays.length - 1]
   const to = last.date
-  
+
   // 计算30天前的日期（包含今天，所以是29天前）
   const fromDate = new Date(to + 'T00:00:00')
   fromDate.setDate(fromDate.getDate() - 29)
   const fromStr = fromDate.toISOString().slice(0, 10)
-  
+
   // 筛选出最近30天的有效数据（基于日期范围）
-  const slice = validDays.filter((d) => d.date >= fromStr && d.date <= to)
+  const slice = validDays.filter(d => d.date >= fromStr && d.date <= to)
   // 只累加有效的提交次数（确保 count >= 0）
   const sum = slice.reduce((s, d) => s + Math.max(0, d.count), 0)
-  
-  return { 
-    total: sum, 
-    from: slice.length ? slice[0].date : fromStr, 
-    to 
+
+  return {
+    total: sum,
+    from: slice.length ? slice[0].date : fromStr,
+    to
   }
 })
 
@@ -267,7 +250,20 @@ const CELL_GAP = 5
 const MIN_MONTH_GAP = (CELL_SIZE + CELL_GAP) * 2
 
 // 月份标签（中文）
-const monthLabelsArray = ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月']
+const monthLabelsArray = [
+  '一月',
+  '二月',
+  '三月',
+  '四月',
+  '五月',
+  '六月',
+  '七月',
+  '八月',
+  '九月',
+  '十月',
+  '十一月',
+  '十二月'
+]
 
 // 构造「需要展示的月份」时间轴：始终显示12个月份
 // - 如果当前月份未到15号，显示12个历史月份（不包括当前月份）
@@ -279,24 +275,24 @@ const monthTimeline = computed(() => {
   const currentMonth = new Date(today.getFullYear(), today.getMonth(), 1)
   const monthHalf = new Date(today.getFullYear(), today.getMonth(), 15)
   monthHalf.setHours(0, 0, 0, 0)
-  
+
   // 判断当前月份是否应该显示
   const shouldShowCurrentMonth = today >= monthHalf
-  
+
   // 如果当前月份未到15号，需要显示12个历史月份（不包括当前月份）
   // 如果当前月份已到15号，显示11个历史月份 + 1个当前月份 = 12个月份
   const monthsToShow = 12
   const startOffset = shouldShowCurrentMonth ? 11 : 12 // 如果当前月份显示，从11个月前开始；否则从12个月前开始
-  
+
   const start = new Date(currentMonth)
   start.setMonth(start.getMonth() - startOffset)
-  
+
   for (let i = 0; i < monthsToShow; i++) {
     const cur = new Date(start)
     cur.setMonth(start.getMonth() + i)
     months.push({ year: cur.getFullYear(), month: cur.getMonth() })
   }
-  
+
   return months
 })
 
@@ -313,7 +309,7 @@ const monthMeta = computed(() => {
   let latest: Date | null = null
 
   weeks.value.forEach((week, colIndex) => {
-    week.forEach((d) => {
+    week.forEach(d => {
       if (!d.date || d.count < 0) return
       const date = new Date(d.date + 'T00:00:00')
       if (Number.isNaN(date.getTime())) return
@@ -333,7 +329,7 @@ const monthMeta = computed(() => {
 })
 
 // 动态月份标签（支持跨年、缺失月份插值、最小间距防重叠）
-const monthLabels = computed(() => monthTimeline.value.map((m) => monthLabelsArray[m.month]))
+const monthLabels = computed(() => monthTimeline.value.map(m => monthLabelsArray[m.month]))
 
 // 每个月份对应的像素位置（相对于网格左侧），支持缺失月份插值与最小间距防重叠
 // 位置以「月份首列单元格的中心点」为基准，确保缩放/压缩后仍与网格精确对齐
@@ -361,7 +357,7 @@ const monthPositions = computed(() => {
     const key = `${year}-${month}`
     const meta = info.get(key)
     if (!meta) return null
-    
+
     // 如果该月份不应该显示，返回 null
     if (!shouldShowMonth[idx]) {
       return null
@@ -369,7 +365,7 @@ const monthPositions = computed(() => {
 
     return meta.firstCol * (CELL_SIZE + CELL_GAP) + CELL_SIZE / 2
   })
-  const anchors = basePositions.map((p) => p !== null)
+  const anchors = basePositions.map(p => p !== null)
 
   // 兜底参考间距（均匀分布，避免全空导致无法插值），同样以中心点为单位
   const uniformSpacing =
@@ -381,7 +377,7 @@ const monthPositions = computed(() => {
   // 注意：对于不应该显示的月份（shouldShowMonth[idx] === false），不进行插值，保持为 null
   // 但对于应该显示的月份（历史月份），即使没有 meta，也要通过插值得到位置
   const interpolated = [...basePositions]
-  
+
   // 先为所有应该显示但没有位置的月份设置初始位置（基于均匀分布）
   // 这样可以确保历史月份即使没有 meta 也能有一个初始位置
   for (let i = 0; i < interpolated.length; i++) {
@@ -394,14 +390,14 @@ const monthPositions = computed(() => {
       interpolated[i] = Math.max(minCenter, uniformSpacing * i)
     }
   }
-  
+
   // 然后进行插值优化，使用实际数据位置
   for (let i = 0; i < interpolated.length; i++) {
     // 如果该月份不应该显示，跳过插值，保持为 null
     if (!shouldShowMonth[i]) {
       continue
     }
-    
+
     // 如果已经有位置了（从 meta 获取的），跳过插值
     if (basePositions[i] !== null) continue
 
@@ -415,7 +411,7 @@ const monthPositions = computed(() => {
       }
       leftIdx--
     }
-    
+
     // 找到右侧最近的已知位置
     // 注意：优先查找有位置的月份（不管是否应该显示），用于插值计算
     // 这样可以确保历史月份即使没有 meta 也能通过插值得到位置
@@ -429,7 +425,12 @@ const monthPositions = computed(() => {
     }
 
     // 如果找到了左右两侧的位置，进行线性插值
-    if (leftIdx >= 0 && rightIdx < interpolated.length && interpolated[leftIdx] !== null && interpolated[rightIdx] !== null) {
+    if (
+      leftIdx >= 0 &&
+      rightIdx < interpolated.length &&
+      interpolated[leftIdx] !== null &&
+      interpolated[rightIdx] !== null
+    ) {
       const leftPos = interpolated[leftIdx] as number
       const rightPos = interpolated[rightIdx] as number
       const gap = rightIdx - leftIdx
@@ -449,7 +450,7 @@ const monthPositions = computed(() => {
       const rightPos = interpolated[rightIdx] as number
       const steps = rightIdx - i
       const calculatedPos = rightPos - uniformSpacing * steps
-      
+
       // 确保计算出的位置不为负数（最左侧月份可能计算出负数）
       // 如果计算出负数或很小的值，使用更合理的位置
       const minCenter = CELL_SIZE / 2
@@ -465,10 +466,14 @@ const monthPositions = computed(() => {
       // 这种情况应该很少见，但作为最后的兜底
       interpolated[i] = Math.max(0, uniformSpacing * i)
     }
-    
+
     // 确保插值结果不为 null 且为有效数字（历史月份必须显示）
     const interpolatedValue = interpolated[i]
-    if (interpolatedValue === null || interpolatedValue === undefined || (typeof interpolatedValue === 'number' && (isNaN(interpolatedValue) || interpolatedValue < 0))) {
+    if (
+      interpolatedValue === null ||
+      interpolatedValue === undefined ||
+      (typeof interpolatedValue === 'number' && (isNaN(interpolatedValue) || interpolatedValue < 0))
+    ) {
       // 如果插值失败或计算出负数，使用均匀分布作为兜底
       interpolated[i] = Math.max(0, uniformSpacing * i)
     }
@@ -496,7 +501,8 @@ const monthPositions = computed(() => {
     if (anchors[i]) continue
     // 查找后一个应该显示的月份位置
     let nextIdx = i + 1
-    while (nextIdx < adjusted.length && (!shouldShowMonth[nextIdx] || adjusted[nextIdx] === null)) nextIdx++
+    while (nextIdx < adjusted.length && (!shouldShowMonth[nextIdx] || adjusted[nextIdx] === null))
+      nextIdx++
     if (nextIdx < adjusted.length && adjusted[nextIdx] !== null) {
       if (adjusted[i] > adjusted[nextIdx] - MIN_MONTH_GAP) {
         adjusted[i] = adjusted[nextIdx] - MIN_MONTH_GAP
@@ -515,26 +521,30 @@ const monthPositions = computed(() => {
   return adjusted.map((pos, idx) => {
     // 如果该月份不应该显示，返回 null
     if (!shouldShowMonth[idx]) return null
-    
+
     // 如果位置为 null 或无效，但该月份应该显示（历史月份），使用均匀分布作为兜底
     // 确保历史月份必须显示，即使没有 meta 或插值失败
     let finalPos = pos
-    if (finalPos === null || finalPos === undefined || (typeof finalPos === 'number' && (isNaN(finalPos) || finalPos < 0))) {
+    if (
+      finalPos === null ||
+      finalPos === undefined ||
+      (typeof finalPos === 'number' && (isNaN(finalPos) || finalPos < 0))
+    ) {
       // 历史月份必须显示，使用均匀分布
       // 计算合理的位置：基于索引和总长度
       // 对于最左侧的月份（idx === 0），使用 minCenter 作为最小值
       const minCenter = CELL_SIZE / 2
       finalPos = Math.max(minCenter, uniformSpacing * idx)
     }
-    
+
     // 中心点不能小于第一列中心，也不能大于最后一列中心
     const minCenter = CELL_SIZE / 2
     const maxCenter = maxPos + CELL_SIZE / 2
-    
+
     // 确保位置在有效范围内
     let center = Math.max(finalPos, minCenter)
     center = Math.min(center, maxCenter)
-    
+
     // 确保最终返回的位置不为 null 且为有效数字（历史月份必须显示）
     if (center === null || center === undefined || isNaN(center) || center < minCenter) {
       // 最后的兜底：使用均匀分布，确保至少是 minCenter
@@ -578,15 +588,15 @@ function getCalendarApiBase() {
 // 规范化周数据，确保每一周都从周日开始，不足7天的用空白天数补齐
 function normalizeWeeks(weeks: CalendarWeek[]): CalendarWeek[] {
   if (!weeks.length) return []
-  
+
   const normalized: CalendarWeek[] = []
-  
+
   // 处理第一周：确保从周日开始
   const firstWeek = weeks[0]
   if (firstWeek && firstWeek.length > 0) {
     const firstDate = new Date(firstWeek[0].date + 'T00:00:00') // 明确指定时区，避免时区问题
     const firstDayOfWeek = firstDate.getDay() // 0=周日, 1=周一, ..., 6=周六
-    
+
     // 如果第一天不是周日，需要在前面补全空白天数
     if (firstDayOfWeek !== 0) {
       const paddedWeek: CalendarDay[] = []
@@ -603,7 +613,7 @@ function normalizeWeeks(weeks: CalendarWeek[]): CalendarWeek[] {
       normalized.push([...firstWeek])
     }
   }
-  
+
   // 处理中间周：确保每周都有7天
   for (let i = 1; i < weeks.length - 1; i++) {
     const week = weeks[i]
@@ -621,7 +631,7 @@ function normalizeWeeks(weeks: CalendarWeek[]): CalendarWeek[] {
       normalized.push(paddedWeek)
     }
   }
-  
+
   // 处理最后一周：确保补齐到7天
   if (weeks.length > 1) {
     const lastWeek = weeks[weeks.length - 1]
@@ -630,15 +640,15 @@ function normalizeWeeks(weeks: CalendarWeek[]): CalendarWeek[] {
       const lastDate = new Date(lastWeek[lastWeek.length - 1].date + 'T00:00:00')
       const today = new Date()
       today.setHours(0, 0, 0, 0)
-      
+
       while (paddedWeek.length < 7) {
         const nextDate = new Date(lastDate)
         nextDate.setDate(lastDate.getDate() + (paddedWeek.length - lastWeek.length + 1))
         // 如果日期超过今天，标记为超出范围
         const isFuture = nextDate > today
-        paddedWeek.push({ 
-          date: nextDate.toISOString().slice(0, 10), 
-          count: isFuture ? -1 : 0 
+        paddedWeek.push({
+          date: nextDate.toISOString().slice(0, 10),
+          count: isFuture ? -1 : 0
         })
       }
       normalized.push(paddedWeek)
@@ -651,20 +661,20 @@ function normalizeWeeks(weeks: CalendarWeek[]): CalendarWeek[] {
       const lastDate = new Date(lastWeek[lastWeek.length - 1].date + 'T00:00:00')
       const today = new Date()
       today.setHours(0, 0, 0, 0)
-      
+
       while (paddedWeek.length < 7) {
         const nextDate = new Date(lastDate)
         nextDate.setDate(lastDate.getDate() + (paddedWeek.length - lastWeek.length + 1))
         const isFuture = nextDate > today
-        paddedWeek.push({ 
-          date: nextDate.toISOString().slice(0, 10), 
-          count: isFuture ? -1 : 0 
+        paddedWeek.push({
+          date: nextDate.toISOString().slice(0, 10),
+          count: isFuture ? -1 : 0
         })
       }
       normalized[0] = paddedWeek
     }
   }
-  
+
   return normalized
 }
 
@@ -676,7 +686,7 @@ function buildEmptyWeeks(): CalendarWeek[] {
   // 计算一年前的日期（365天前）
   const oneYearAgo = new Date(today)
   oneYearAgo.setDate(today.getDate() - 364) // 包含今天，所以是364天前
-  
+
   // 找到一年前那个日期所在周的周日（作为起始日期）
   const startDate = new Date(oneYearAgo)
   const dayOfWeek = startDate.getDay() // 0=周日, 1=周一, ..., 6=周六
@@ -689,11 +699,12 @@ function buildEmptyWeeks(): CalendarWeek[] {
   const daysToEndOfWeek = 6 - endDayOfWeek
   const finalDate = new Date(today)
   finalDate.setDate(today.getDate() + daysToEndOfWeek)
-  
+
   // 计算需要多少周（从起始周日到最终周六）
-  const daysDiff = Math.ceil((finalDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
+  const daysDiff =
+    Math.ceil((finalDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
   const weeksNeeded = Math.ceil(daysDiff / 7)
-  
+
   const weeksArr: CalendarWeek[] = []
   for (let weekIdx = 0; weekIdx < weeksNeeded; weekIdx++) {
     const week: CalendarDay[] = []
@@ -707,7 +718,7 @@ function buildEmptyWeeks(): CalendarWeek[] {
     }
     weeksArr.push(week)
   }
-  
+
   return weeksArr
 }
 
@@ -747,13 +758,17 @@ async function fetchData() {
     if (!res.ok) {
       throw new Error(`接口返回错误状态：${res.status}`)
     }
-    const response = (await res.json()) as { code: number; message: string; data: { total: number; contributions: CalendarWeek[] } }
-    
+    const response = (await res.json()) as {
+      code: number
+      message: string
+      data: { total: number; contributions: CalendarWeek[] }
+    }
+
     // 检查后端返回格式
     if (response.code !== 200 || !response.data) {
       throw new Error(response.message || '接口返回数据格式不正确')
     }
-    
+
     const data = response.data
     if (!data || !Array.isArray(data.contributions)) {
       throw new Error('接口返回数据格式不正确')
@@ -764,8 +779,8 @@ async function fetchData() {
     } else {
       total.value = data.total || 0
       // 先映射数据，然后规范化周数据以确保周几对齐
-      const mappedWeeks = data.contributions.map((week) =>
-        week.map((d) => ({
+      const mappedWeeks = data.contributions.map(week =>
+        week.map(d => ({
           date: d.date,
           count: d.count
         }))
@@ -1064,7 +1079,7 @@ html.dark .cell:not(.l1):not(.l2):not(.l3):not(.l4):not(.cell-empty) {
 
 /* 检测并调整最右侧列的提示框位置 */
 /* 由于网格使用 grid-auto-flow: column，最右侧列是最后7个方块 */
-.grid > .cell:nth-last-child(-n+7):hover::after {
+.grid > .cell:nth-last-child(-n + 7):hover::after {
   /* 最右侧列（最后7个方块），提示框左对齐：从方块中心向左完全延伸 */
   left: 50%;
   right: auto;
@@ -1073,7 +1088,7 @@ html.dark .cell:not(.l1):not(.l2):not(.l3):not(.l4):not(.cell-empty) {
 
 /* 检测并调整最左侧列的提示框位置 */
 /* 由于网格使用 grid-auto-flow: column，最左侧列是前7个方块 */
-.grid > .cell:nth-child(-n+7):hover::after {
+.grid > .cell:nth-child(-n + 7):hover::after {
   /* 最左侧列（前7个方块），提示框右对齐：从方块中心向右完全延伸 */
   left: 50%;
   right: auto;
@@ -1325,5 +1340,3 @@ html.dark .stat-item .range {
   }
 }
 </style>
-
-

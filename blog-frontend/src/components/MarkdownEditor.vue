@@ -59,26 +59,29 @@ function addCopyButtons() {
   if (!editorRef.value) return
 
   const codeBlocks = editorRef.value.querySelectorAll('.v-md-editor__right-area pre code')
-  
-  codeBlocks.forEach((codeBlock) => {
+
+  codeBlocks.forEach(codeBlock => {
     const pre = codeBlock.parentElement
     if (!pre || pre.querySelector('.copy-code-btn')) return
 
     const button = document.createElement('button')
     button.className = 'copy-code-btn'
     button.textContent = '复制'
-    button.onclick = (e) => {
+    button.onclick = e => {
       e.stopPropagation()
       const code = codeBlock.textContent || ''
-      navigator.clipboard.writeText(code).then(() => {
-        button.textContent = '已复制!'
-        message.success('代码已复制到剪贴板')
-        setTimeout(() => {
-          button.textContent = '复制'
-        }, 2000)
-      }).catch(() => {
-        message.error('复制失败，请手动复制')
-      })
+      navigator.clipboard
+        .writeText(code)
+        .then(() => {
+          button.textContent = '已复制!'
+          message.success('代码已复制到剪贴板')
+          setTimeout(() => {
+            button.textContent = '复制'
+          }, 2000)
+        })
+        .catch(() => {
+          message.error('复制失败，请手动复制')
+        })
     }
 
     pre.style.position = 'relative'
@@ -88,7 +91,7 @@ function addCopyButtons() {
 
 watch(
   () => props.modelValue,
-  (newValue) => {
+  newValue => {
     content.value = newValue
   }
 )
@@ -214,4 +217,3 @@ async function handleUploadImage(
   }
 }
 </style>
-

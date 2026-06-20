@@ -12,10 +12,10 @@
   <div class="avatar-upload">
     <div class="avatar-container" @click="triggerFileInput">
       <!-- 自定义圆形头像 -->
-      <div 
-        class="avatar-preview" 
-        :style="{ 
-          width: size + 'px', 
+      <div
+        class="avatar-preview"
+        :style="{
+          width: size + 'px',
           height: size + 'px',
           backgroundImage: currentAvatar ? `url(${currentAvatar})` : 'none'
         }"
@@ -23,17 +23,20 @@
         <!-- 显示默认文字（当没有头像时） -->
         <span v-if="!currentAvatar" class="avatar-text">{{ defaultText }}</span>
       </div>
-      
+
       <!-- 悬停遮罩层 -->
       <div class="upload-overlay" :style="{ width: size + 'px', height: size + 'px' }">
         <!-- 相机图标 -->
         <svg class="camera-icon" viewBox="0 0 512 512" width="24" height="24">
-          <path fill="currentColor" d="M512 144v288c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V144c0-26.5 21.5-48 48-48h88l12.3-32.9c7-18.7 24.9-31.1 44.9-31.1h125.5c20 0 37.9 12.4 44.9 31.1L376 96h88c26.5 0 48 21.5 48 48zM376 288c0-66.2-53.8-120-120-120s-120 53.8-120 120 53.8 120 120 120 120-53.8 120-120zm-32 0c0 48.5-39.5 88-88 88s-88-39.5-88-88 39.5-88 88-88 88 39.5 88 88z"/>
+          <path
+            fill="currentColor"
+            d="M512 144v288c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V144c0-26.5 21.5-48 48-48h88l12.3-32.9c7-18.7 24.9-31.1 44.9-31.1h125.5c20 0 37.9 12.4 44.9 31.1L376 96h88c26.5 0 48 21.5 48 48zM376 288c0-66.2-53.8-120-120-120s-120 53.8-120 120 53.8 120 120 120 120-53.8 120-120zm-32 0c0 48.5-39.5 88-88 88s-88-39.5-88-88 39.5-88 88-88 88 39.5 88 88z"
+          />
         </svg>
         <span class="upload-text">{{ uploading ? '上传中...' : '点击上传' }}</span>
       </div>
     </div>
-    
+
     <!-- 隐藏的文件输入框 -->
     <input
       ref="fileInputRef"
@@ -42,7 +45,7 @@
       style="display: none"
       @change="handleFileChange"
     />
-    
+
     <div v-if="tip" class="upload-tip">{{ tip }}</div>
   </div>
 </template>
@@ -82,7 +85,7 @@ const fileInputRef = ref<HTMLInputElement | null>(null)
 // 监听 modelValue 变化
 watch(
   () => props.modelValue,
-  (newValue) => {
+  newValue => {
     currentAvatar.value = newValue
   }
 )
@@ -98,9 +101,9 @@ function triggerFileInput() {
 async function handleFileChange(event: Event) {
   const target = event.target as HTMLInputElement
   const file = target.files?.[0]
-  
+
   if (!file) return
-  
+
   // 检查文件类型
   const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
   if (!allowedTypes.includes(file.type)) {
@@ -108,7 +111,7 @@ async function handleFileChange(event: Event) {
     target.value = '' // 重置 input
     return
   }
-  
+
   // 检查文件大小（5MB）
   const maxSize = 5 * 1024 * 1024
   if (file.size > maxSize) {
@@ -116,7 +119,7 @@ async function handleFileChange(event: Event) {
     target.value = '' // 重置 input
     return
   }
-  
+
   // 开始上传
   await uploadFile(file)
   target.value = '' // 重置 input，允许重复上传同一文件
@@ -125,10 +128,10 @@ async function handleFileChange(event: Event) {
 // 上传文件
 async function uploadFile(file: File) {
   uploading.value = true
-  
+
   try {
     const result = await uploadAvatar(file)
-    
+
     if (result.data?.url) {
       currentAvatar.value = result.data.url
       emit('update:modelValue', result.data.url)
@@ -218,4 +221,3 @@ async function uploadFile(file: File) {
   opacity: 0.7;
 }
 </style>
-

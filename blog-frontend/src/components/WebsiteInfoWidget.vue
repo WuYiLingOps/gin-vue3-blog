@@ -69,7 +69,7 @@ function formatLastUpdateTime(timeStr: string): string {
     if (diff <= 0) return '刚刚'
 
     const days = Math.floor(diff / (1000 * 60 * 60 * 24))
-    
+
     if (days === 0) {
       const hours = Math.floor(diff / (1000 * 60 * 60))
       if (hours === 0) {

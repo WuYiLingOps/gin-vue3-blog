@@ -12,11 +12,9 @@
   <div class="diff-viewer">
     <div class="inline-diff">
       <div class="diff-content">
-        <span
-          v-for="(part, index) in diffParts"
-          :key="index"
-          :class="getDiffClass(part.type)"
-        >{{ part.text }}</span>
+        <span v-for="(part, index) in diffParts" :key="index" :class="getDiffClass(part.type)">{{
+          part.text
+        }}</span>
       </div>
       <div class="diff-legend">
         <span class="legend-item">

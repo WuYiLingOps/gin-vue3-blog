@@ -33,8 +33,8 @@ function addCopyButtons() {
   if (!previewRef.value) return
 
   const codeBlocks = previewRef.value.querySelectorAll('pre code')
-  
-  codeBlocks.forEach((codeBlock) => {
+
+  codeBlocks.forEach(codeBlock => {
     const pre = codeBlock.parentElement
     if (!pre || pre.querySelector('.copy-code-btn')) return
 
@@ -43,15 +43,18 @@ function addCopyButtons() {
     button.textContent = '复制'
     button.onclick = () => {
       const code = codeBlock.textContent || ''
-      navigator.clipboard.writeText(code).then(() => {
-        button.textContent = '已复制!'
-        message.success('代码已复制到剪贴板')
-        setTimeout(() => {
-          button.textContent = '复制'
-        }, 2000)
-      }).catch(() => {
-        message.error('复制失败，请手动复制')
-      })
+      navigator.clipboard
+        .writeText(code)
+        .then(() => {
+          button.textContent = '已复制!'
+          message.success('代码已复制到剪贴板')
+          setTimeout(() => {
+            button.textContent = '复制'
+          }, 2000)
+        })
+        .catch(() => {
+          message.error('复制失败，请手动复制')
+        })
     }
 
     pre.style.position = 'relative'
@@ -64,11 +67,11 @@ function fixCodeBlockSpacing() {
   if (!previewRef.value) return
 
   const codeBlocks = previewRef.value.querySelectorAll('pre code')
-  
-  codeBlocks.forEach((codeBlock) => {
+
+  codeBlocks.forEach(codeBlock => {
     // 移除所有 token 和 span 的 margin 和 padding
     const allElements = codeBlock.querySelectorAll('*')
-    allElements.forEach((element) => {
+    allElements.forEach(element => {
       const el = element as HTMLElement
       // 强制设置所有样式属性
       el.style.margin = '0'
@@ -86,7 +89,7 @@ function fixCodeBlockSpacing() {
       el.style.background = 'transparent'
       el.style.boxSizing = 'border-box'
     })
-    
+
     // 确保 code 元素本身没有额外的样式
     const codeElement = codeBlock as HTMLElement
     codeElement.style.wordSpacing = 'normal'
@@ -101,7 +104,7 @@ function fixCodeBlockSpacing() {
     // 关键：使用 max-content 确保内容不被压缩
     codeElement.style.width = 'max-content'
     codeElement.style.minWidth = '100%'
-    
+
     // 确保 pre 元素也没有额外的样式
     const preElement = codeBlock.parentElement as HTMLElement
     if (preElement) {
@@ -124,10 +127,10 @@ function handleImageClick() {
   if (!previewRef.value) return
 
   const images = previewRef.value.querySelectorAll('img')
-  images.forEach((imgElement) => {
+  images.forEach(imgElement => {
     const img = imgElement as HTMLImageElement
     if (img.hasAttribute('data-lightbox')) return
-    
+
     img.setAttribute('data-lightbox', 'true')
     img.style.cursor = 'pointer'
     img.onclick = () => {
@@ -146,17 +149,17 @@ function handleImageClick() {
         z-index: 9999;
         cursor: pointer;
       `
-      
+
       const imgClone = img.cloneNode(true) as HTMLImageElement
       imgClone.style.cssText = `
         max-width: 90%;
         max-height: 90%;
         object-fit: contain;
       `
-      
+
       modal.appendChild(imgClone)
       document.body.appendChild(modal)
-      
+
       modal.onclick = () => {
         document.body.removeChild(modal)
       }
@@ -169,20 +172,20 @@ onMounted(() => {
     addCopyButtons()
     handleImageClick()
     fixCodeBlockSpacing()
-    
+
     // 使用 MutationObserver 监听代码块变化，确保间距修复持续生效
     if (previewRef.value) {
       const observer = new MutationObserver(() => {
         fixCodeBlockSpacing()
       })
-      
+
       observer.observe(previewRef.value, {
         childList: true,
         subtree: true,
         attributes: true,
         attributeFilter: ['class', 'style']
       })
-      
+
       // 在组件卸载时断开观察
       return () => {
         observer.disconnect()
@@ -191,16 +194,19 @@ onMounted(() => {
   })
 })
 
-watch(() => props.content, () => {
-  nextTick(() => {
-    addCopyButtons()
-    handleImageClick()
-    // 延迟执行，确保 Prism.js 完成渲染
-    setTimeout(() => {
-      fixCodeBlockSpacing()
-    }, 100)
-  })
-})
+watch(
+  () => props.content,
+  () => {
+    nextTick(() => {
+      addCopyButtons()
+      handleImageClick()
+      // 延迟执行，确保 Prism.js 完成渲染
+      setTimeout(() => {
+        fixCodeBlockSpacing()
+      }, 100)
+    })
+  }
+)
 </script>
 
 <style scoped>
@@ -441,18 +447,18 @@ watch(() => props.content, () => {
     font-size: 15px;
     line-height: 1.7;
   }
-  
+
   .comment-content :deep(.vuepress-markdown-body img) {
     margin: 12px 0;
     border-radius: 6px;
   }
-  
+
   .comment-content :deep(pre) {
     padding: 6px 8px;
     font-size: 12px;
     margin: 6px 0;
   }
-  
+
   .comment-content :deep(pre code) {
     font-size: 12px;
   }
@@ -467,7 +473,7 @@ watch(() => props.content, () => {
     width: 100%;
     max-width: 100%;
   }
-  
+
   .comment-content :deep(.vuepress-markdown-body) {
     font-size: 14px;
     /* 允许代码块溢出以便滚动查看 */
@@ -476,7 +482,7 @@ watch(() => props.content, () => {
     width: 100%;
     max-width: 100%;
   }
-  
+
   .comment-content :deep(pre) {
     padding: 6px 12px;
     font-size: 11px;
@@ -500,7 +506,7 @@ watch(() => props.content, () => {
     direction: ltr;
     text-align: left;
   }
-  
+
   .comment-content :deep(pre code) {
     font-size: 11px;
     padding: 0;
@@ -510,7 +516,7 @@ watch(() => props.content, () => {
     min-width: 100%;
     white-space: pre !important;
   }
-  
+
   /* 确保代码块容器可以扩展 */
   .comment-content :deep(.vuepress-markdown-body pre) {
     max-width: calc(100% + 16px);
@@ -565,4 +571,3 @@ html.dark .comment-content :deep(.copy-code-btn:hover) {
   color: #38bdf8 !important;
 }
 </style>
-

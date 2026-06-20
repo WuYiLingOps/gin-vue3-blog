@@ -23,9 +23,9 @@ onMounted(() => {
   const el = container.value || document.body
   instance = new CanvasNest(el, {
     color: '24,170,204', // 主色调 RGB
-    opacity: 0.8,        // 线条透明度
-    count: 120,          // 线条数量
-    zIndex: 1            // 置于壁纸之上、内容之下（配合封面页层级）
+    opacity: 0.8, // 线条透明度
+    count: 120, // 线条数量
+    zIndex: 1 // 置于壁纸之上、内容之下（配合封面页层级）
   })
 })
 
@@ -43,4 +43,3 @@ onBeforeUnmount(() => {
   z-index: 1;
 }
 </style>
-
