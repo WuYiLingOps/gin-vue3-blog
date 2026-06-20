@@ -24,20 +24,20 @@
 
             <!-- 按分类展示友链 -->
             <div v-else class="categories-container">
-              <div
-                v-for="category in sortedCategories"
-                :key="category.id"
-                class="category-section"
-              >
+              <div v-for="category in sortedCategories" :key="category.id" class="category-section">
                 <div class="category-header">
-                  <h2 class="category-title">{{ category.name }} ({{ getCategoryLinksCount(category.id) }})</h2>
-                  <p v-if="category.description" class="category-description">{{ category.description }}</p>
+                  <h2 class="category-title">
+                    {{ category.name }} ({{ getCategoryLinksCount(category.id) }})
+                  </h2>
+                  <p v-if="category.description" class="category-description">
+                    {{ category.description }}
+                  </p>
                 </div>
-                
+
                 <div v-if="getCategoryLinks(category.id).length === 0" class="empty-category">
                   <n-empty description="该分类下暂无友链" size="small" />
                 </div>
-                
+
                 <div v-else class="friendlinks-grid">
                   <div
                     v-for="link in getCategoryLinks(category.id)"
@@ -63,10 +63,12 @@
                       </div>
                       <div class="link-info">
                         <h3 class="link-name">{{ link.name }}</h3>
-                        <p v-if="link.description" class="link-description">{{ link.description }}</p>
+                        <p v-if="link.description" class="link-description">
+                          {{ link.description }}
+                        </p>
                       </div>
                     </div>
-                    
+
                     <div v-if="link.screenshot" class="card-screenshot">
                       <n-image
                         :src="link.screenshot"
@@ -80,13 +82,27 @@
                     </div>
 
                     <div class="card-footer">
-                      <a :href="link.url" target="_blank" rel="noopener noreferrer" class="link-url" @click.stop>
+                      <a
+                        :href="link.url"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="link-url"
+                        @click.stop
+                      >
                         {{ formatURL(link.url) }}
                       </a>
                       <span v-if="link.atom_url" class="rss-badge" title="支持 RSS 订阅">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="14" height="14">
-                          <circle cx="6.18" cy="17.82" r="2.18"/>
-                          <path d="M4 4.44v2.83c7.03 0 12.73 5.7 12.73 12.73h2.83c0-8.59-6.97-15.56-15.56-15.56zm0 5.66v2.83c3.9 0 7.07 3.17 7.07 7.07h2.83c0-5.47-4.43-9.9-9.9-9.9z"/>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 24 24"
+                          fill="currentColor"
+                          width="14"
+                          height="14"
+                        >
+                          <circle cx="6.18" cy="17.82" r="2.18" />
+                          <path
+                            d="M4 4.44v2.83c7.03 0 12.73 5.7 12.73 12.73h2.83c0-8.59-6.97-15.56-15.56-15.56zm0 5.66v2.83c3.9 0 7.07 3.17 7.07 7.07h2.83c0-5.47-4.43-9.9-9.9-9.9z"
+                          />
                         </svg>
                       </span>
                     </div>
@@ -101,30 +117,48 @@
         <div class="application-section">
           <n-card class="application-card">
             <h2 class="section-title">友情链接申请</h2>
-            
+
             <div class="intro-text">
-              <p>很高兴能和各位优秀的朋友们交流，本站友链目前采用手动添加，如果你想加入友链，可以在下方留言，我会在不忙的时候统一添加。</p>
+              <p>
+                很高兴能和各位优秀的朋友们交流，本站友链目前采用手动添加，如果你想加入友链，可以在下方留言，我会在不忙的时候统一添加。
+              </p>
             </div>
 
             <div class="rules-section">
               <h3 class="rules-title">申请友链</h3>
               <ul class="rules-list">
-                <li>我已添加 
+                <li>
+                  我已添加
                   <strong v-if="myFriendLinkInfo.url">
-                    <a :href="myFriendLinkInfo.url" target="_blank" rel="noopener noreferrer" class="site-link">
+                    <a
+                      :href="myFriendLinkInfo.url"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="site-link"
+                    >
                       {{ myFriendLinkInfo.name || '菱风叙' }}
                     </a>
                   </strong>
                   <strong v-else>{{ myFriendLinkInfo.name || '菱风叙' }}</strong>
                   的友情链接。
                 </li>
-                <li><strong>请多多进行互动后再来进行友链添加</strong>，若为首次评论直接申请友链，将不会通过。</li>
-                <li>本站不添加<strong>采集站、纯搬运站点、论坛类站点</strong>等<strong>非个人博客</strong>类型的站点。</li>
+                <li>
+                  <strong>请多多进行互动后再来进行友链添加</strong
+                  >，若为首次评论直接申请友链，将不会通过。
+                </li>
+                <li>
+                  本站不添加<strong>采集站、纯搬运站点、论坛类站点</strong>等<strong>非个人博客</strong>类型的站点。
+                </li>
                 <li>站点目前可以在<strong>中国大陆区域</strong>正常访问。</li>
-                <li>需要是独立域名，不接受 <code>github.io</code>、<code>vercel.app</code> 等第三方域名。</li>
+                <li>
+                  需要是独立域名，不接受 <code>github.io</code>、<code>vercel.app</code>
+                  等第三方域名。
+                </li>
                 <li>网站内容符合<strong>中国大陆法律法规</strong>。</li>
               </ul>
-              <p class="disclaimer">若申请时或日后有违反上述规定的站点，博主有权自行删除且不进行通知！</p>
+              <p class="disclaimer">
+                若申请时或日后有违反上述规定的站点，博主有权自行删除且不进行通知！
+              </p>
             </div>
 
             <div class="my-info-section">
@@ -161,12 +195,7 @@
               <h3 class="yaml-title">YAML 格式</h3>
               <div class="code-wrapper">
                 <n-code :code="yamlCode" language="yaml" :show-line-numbers="true" />
-                <n-button
-                  class="copy-code-btn"
-                  size="small"
-                  quaternary
-                  @click="handleCopyYaml"
-                >
+                <n-button class="copy-code-btn" size="small" quaternary @click="handleCopyYaml">
                   <template #icon>
                     <n-icon :component="CopyOutline" />
                   </template>
@@ -190,16 +219,17 @@
                 type="info"
                 closable
                 style="margin-bottom: 12px"
-                @close="replyToComment = null; replyToUser = null; commentContent = ''"
+                @close="
+                  replyToComment = null
+                  replyToUser = null
+                  commentContent = ''
+                "
               >
-                正在回复 <strong>@{{ (replyToUser || replyToComment).user.nickname }}</strong> 的评论
+                正在回复
+                <strong>@{{ (replyToUser || replyToComment).user.nickname }}</strong> 的评论
               </n-alert>
-              
-              <CommentMarkdownEditor
-                v-model="commentContent"
-                height="250px"
-                :max-length="5000"
-              />
+
+              <CommentMarkdownEditor v-model="commentContent" height="250px" :max-length="5000" />
               <div style="margin-top: 12px; text-align: right">
                 <n-button type="primary" :loading="submitting" @click="handleSubmitComment">
                   {{ replyToComment ? '发表回复' : '发表评论' }}
@@ -208,7 +238,9 @@
             </n-card>
 
             <n-alert v-else type="info" style="margin-bottom: 16px">
-              请 <n-button text type="primary" @click="router.push('/auth/login')">登录</n-button> 后发表评论
+              请
+              <n-button text type="primary" @click="router.push('/auth/login')">登录</n-button>
+              后发表评论
             </n-alert>
 
             <!-- 评论列表 -->
@@ -222,7 +254,9 @@
                   <div class="comment-content">
                     <div class="comment-header">
                       <strong>{{ comment.user.nickname }}</strong>
-                      <span class="comment-time">{{ formatDate(comment.created_at, 'YYYY年MM月DD日 HH:mm') }}</span>
+                      <span class="comment-time">{{
+                        formatDate(comment.created_at, 'YYYY年MM月DD日 HH:mm')
+                      }}</span>
                     </div>
                     <CommentContent :content="comment.content" />
                     <div class="comment-actions">
@@ -234,13 +268,17 @@
                       >
                         回复
                       </n-button>
-                      <n-button 
+                      <n-button
                         v-if="comment.children && comment.children.length > 0"
-                        text 
-                        size="small" 
+                        text
+                        size="small"
                         @click="toggleExpand(comment.id)"
                       >
-                        {{ expandedComments.has(comment.id) ? '收起' : `展开 ${comment.children.length} 条回复` }}
+                        {{
+                          expandedComments.has(comment.id)
+                            ? '收起'
+                            : `展开 ${comment.children.length} 条回复`
+                        }}
                       </n-button>
                       <n-popconfirm
                         v-if="canDeleteComment(comment)"
@@ -254,19 +292,26 @@
                     </div>
 
                     <!-- 子评论 -->
-                    <div v-if="comment.children && comment.children.length > 0 && expandedComments.has(comment.id)" class="reply-list">
-                      <div
-                        v-for="reply in comment.children"
-                        :key="reply.id"
-                        class="reply-item"
-                      >
+                    <div
+                      v-if="
+                        comment.children &&
+                        comment.children.length > 0 &&
+                        expandedComments.has(comment.id)
+                      "
+                      class="reply-list"
+                    >
+                      <div v-for="reply in comment.children" :key="reply.id" class="reply-item">
                         <n-space align="start">
                           <n-avatar :src="reply.user.avatar" round size="small" />
                           <div class="reply-content">
                             <div class="reply-header">
                               <strong>{{ reply.user.nickname }}</strong>
-                              <span class="reply-to">回复 @{{ getReplyTargetName(reply, comment) }}</span>
-                              <span class="comment-time">{{ formatDate(reply.created_at, 'YYYY年MM月DD日 HH:mm') }}</span>
+                              <span class="reply-to"
+                                >回复 @{{ getReplyTargetName(reply, comment) }}</span
+                              >
+                              <span class="comment-time">{{
+                                formatDate(reply.created_at, 'YYYY年MM月DD日 HH:mm')
+                              }}</span>
                             </div>
                             <CommentContent :content="removeAtMention(reply.content)" />
                             <div class="comment-actions">
@@ -483,12 +528,12 @@ async function handleSubmitComment() {
       comment_type: FRIENDLINK_COMMENT_TYPE,
       target_id: FRIENDLINK_TARGET_ID
     }
-    
+
     // 如果是回复评论，添加 parent_id
     if (replyToComment.value) {
       commentData.parent_id = replyToComment.value.id
     }
-    
+
     await createComment(commentData)
     message.success(replyToComment.value ? '回复成功' : '评论成功')
     commentContent.value = ''
@@ -508,16 +553,16 @@ function handleReply(parentComment: Comment, targetUser?: Comment) {
     message.warning('请先登录')
     return
   }
-  
+
   replyToComment.value = parentComment
   replyToUser.value = targetUser || parentComment
   commentContent.value = `@${(targetUser || parentComment).user.nickname} `
-  
+
   // 滚动到评论框
   nextTick(() => {
     const commentForm = document.querySelector('.comment-form textarea')
     if (commentForm) {
-      (commentForm as HTMLElement).focus()
+      ;(commentForm as HTMLElement).focus()
       commentForm.scrollIntoView({ behavior: 'smooth', block: 'center' })
     }
   })
@@ -1249,7 +1294,7 @@ html.dark .reply-content p {
   .friendlink-card {
     padding: 14px;
   }
-  
+
   .comment-item {
     padding: 12px;
   }
@@ -1260,7 +1305,7 @@ html.dark .reply-content p {
   .friendlinks-layout {
     padding: 0 12px;
   }
-  
+
   .comment-item {
     padding: 10px 0;
     margin: 0;
@@ -1269,7 +1314,7 @@ html.dark .reply-content p {
     width: 100%;
     max-width: 100%;
   }
-  
+
   .comment-content {
     padding: 0 8px;
     /* 允许代码块溢出以便滚动查看 */
@@ -1277,7 +1322,7 @@ html.dark .reply-content p {
     width: 100%;
     max-width: 100%;
   }
-  
+
   .reply-item {
     padding: 8px 0;
     margin: 0;
@@ -1286,7 +1331,7 @@ html.dark .reply-content p {
     width: 100%;
     max-width: 100%;
   }
-  
+
   .reply-content {
     padding: 0 6px;
     /* 允许代码块溢出以便滚动查看 */
@@ -1296,4 +1341,3 @@ html.dark .reply-content p {
   }
 }
 </style>
-

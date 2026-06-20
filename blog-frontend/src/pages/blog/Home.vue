@@ -14,148 +14,163 @@
 
     <!-- 主体内容区 -->
     <div class="home-content">
-    <!-- 顶部：贡献热力图（左） + 个人名片（右） -->
-    <div class="top-row">
-      <div class="calendar-wrapper">
-        <GiteeCalendar />
-      </div>
-      <div class="top-author-wrapper">
-        <AuthorCard />
-        <div class="tablet-calendar">
+      <!-- 顶部：贡献热力图（左） + 个人名片（右） -->
+      <div class="top-row">
+        <div class="calendar-wrapper">
           <GiteeCalendar />
         </div>
-        <div class="mobile-announcement">
-          <AnnouncementBoard :limit="3" />
-        </div>
-        <div class="mobile-tag-cloud">
-          <TagCloudWidget />
+        <div class="top-author-wrapper">
+          <AuthorCard />
+          <div class="tablet-calendar">
+            <GiteeCalendar />
+          </div>
+          <div class="mobile-announcement">
+            <AnnouncementBoard :limit="3" />
+          </div>
+          <div class="mobile-tag-cloud">
+            <TagCloudWidget />
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="home-layout">
-      <!-- 左侧：文章列表 -->
-      <div class="posts-section">
-        <n-space vertical :size="24">
-          <!-- 文章列表 -->
-          <n-spin :show="loading">
-            <n-space vertical :size="16">
-              <n-card
-                v-for="post in posts"
-                :key="post.id"
-                hoverable
-                class="post-card"
-                @click="router.push(`/post/${post.slug}`)"
-              >
-            <div class="post-card-wrapper">
-              <div class="post-card-content">
-                <!-- 文章信息 -->
-                <div class="post-info">
-                  <h2 class="post-title">
-                    <n-tag v-if="post.is_top" type="error" size="small" class="top-tag">置顶</n-tag>
-                    <span v-html="getHighlightedTitle(post.title)"></span>
-                  </h2>
+      <div class="home-layout">
+        <!-- 左侧：文章列表 -->
+        <div class="posts-section">
+          <n-space vertical :size="24">
+            <!-- 文章列表 -->
+            <n-spin :show="loading">
+              <n-space vertical :size="16">
+                <n-card
+                  v-for="post in posts"
+                  :key="post.id"
+                  hoverable
+                  class="post-card"
+                  @click="router.push(`/post/${post.slug}`)"
+                >
+                  <div class="post-card-wrapper">
+                    <div class="post-card-content">
+                      <!-- 文章信息 -->
+                      <div class="post-info">
+                        <h2 class="post-title">
+                          <n-tag v-if="post.is_top" type="error" size="small" class="top-tag"
+                            >置顶</n-tag
+                          >
+                          <span v-html="getHighlightedTitle(post.title)"></span>
+                        </h2>
 
-                  <p class="post-summary" v-html="getHighlightedSummary(post)"></p>
-                </div>
+                        <p class="post-summary" v-html="getHighlightedSummary(post)"></p>
+                      </div>
 
-                <!-- 封面图 -->
-                <div v-if="post.cover" class="post-cover">
-                  <n-image
-                    :src="post.cover"
-                    :alt="post.title"
-                    object-fit="cover"
-                    :preview-disabled="true"
-                    class="cover-image"
+                      <!-- 封面图 -->
+                      <div v-if="post.cover" class="post-cover">
+                        <n-image
+                          :src="post.cover"
+                          :alt="post.title"
+                          object-fit="cover"
+                          :preview-disabled="true"
+                          class="cover-image"
+                        />
+                      </div>
+                    </div>
+
+                    <!-- 底部信息栏 -->
+                    <div class="post-footer">
+                      <div class="post-meta">
+                        <n-space :size="8" align="center">
+                          <!-- 第一作者 -->
+                          <n-avatar :src="post.user.avatar" :size="24" round />
+                          <span class="meta-item">{{ post.user.nickname }}</span>
+
+                          <!-- 协作者（如果有） -->
+                          <template v-if="post.collaborators && post.collaborators.length > 0">
+                            <n-divider vertical />
+                            <span class="collab-label">协作</span>
+                            <n-avatar :src="post.collaborators[0].avatar" :size="22" round />
+                            <span class="meta-item">{{ post.collaborators[0].nickname }}</span>
+                          </template>
+
+                          <n-divider vertical />
+                          <span class="meta-item">
+                            <n-icon :component="TimeOutline" size="14" />
+                            {{ formatDate(post.created_at, 'YYYY-MM-DD') }}
+                          </span>
+                          <n-divider vertical />
+                          <span class="meta-item">
+                            <n-icon :component="CreateOutline" size="14" />
+                            {{ formatDate(post.updated_at, 'YYYY-MM-DD') }}
+                          </span>
+                          <n-divider vertical />
+                          <span class="meta-item">
+                            <n-icon :component="EyeOutline" size="14" />
+                            {{ post.view_count }}
+                          </span>
+                          <n-tag
+                            v-if="post.visibility === 0"
+                            size="small"
+                            type="warning"
+                            class="private-badge"
+                          >
+                            私密
+                          </n-tag>
+                        </n-space>
+                      </div>
+
+                      <div class="post-tags">
+                        <n-tag :bordered="false" type="info" size="small">{{
+                          post.category.name
+                        }}</n-tag>
+                        <n-tag
+                          v-for="tag in post.tags"
+                          :key="tag.id"
+                          :bordered="false"
+                          size="small"
+                        >
+                          {{ tag.name }}
+                        </n-tag>
+                      </div>
+                    </div>
+                  </div>
+                </n-card>
+
+                <!-- 空状态 -->
+                <n-empty v-if="!loading && posts.length === 0" description="暂无文章" />
+
+                <!-- 分页 -->
+                <div v-if="total > 0" class="pagination-wrapper">
+                  <n-pagination
+                    v-model:page="currentPage"
+                    :page-count="totalPages"
+                    :page-size="pageSize"
+                    :page-slot="7"
+                    @update:page="handlePageChange"
                   />
                 </div>
-              </div>
+              </n-space>
+            </n-spin>
+          </n-space>
+        </div>
 
-              <!-- 底部信息栏 -->
-              <div class="post-footer">
-                <div class="post-meta">
-                  <n-space :size="8" align="center">
-                    <!-- 第一作者 -->
-                    <n-avatar :src="post.user.avatar" :size="24" round />
-                    <span class="meta-item">{{ post.user.nickname }}</span>
-                    
-                    <!-- 协作者（如果有） -->
-                    <template v-if="post.collaborators && post.collaborators.length > 0">
-                      <n-divider vertical />
-                      <span class="collab-label">协作</span>
-                      <n-avatar :src="post.collaborators[0].avatar" :size="22" round />
-                      <span class="meta-item">{{ post.collaborators[0].nickname }}</span>
-                    </template>
-                    
-                    <n-divider vertical />
-                    <span class="meta-item">
-                      <n-icon :component="TimeOutline" size="14" />
-                      {{ formatDate(post.created_at, 'YYYY-MM-DD') }}
-                    </span>
-                    <n-divider vertical />
-                    <span class="meta-item">
-                      <n-icon :component="CreateOutline" size="14" />
-                      {{ formatDate(post.updated_at, 'YYYY-MM-DD') }}
-                    </span>
-                    <n-divider vertical />
-                    <span class="meta-item">
-                      <n-icon :component="EyeOutline" size="14" />
-                      {{ post.view_count }}
-                    </span>
-                    <n-tag v-if="post.visibility === 0" size="small" type="warning" class="private-badge">
-                      私密
-                    </n-tag>
-                  </n-space>
-                </div>
-
-                <div class="post-tags">
-                  <n-tag :bordered="false" type="info" size="small">{{ post.category.name }}</n-tag>
-                  <n-tag v-for="tag in post.tags" :key="tag.id" :bordered="false" size="small">
-                    {{ tag.name }}
-                  </n-tag>
-                </div>
-              </div>
-            </div>
-          </n-card>
-
-          <!-- 空状态 -->
-          <n-empty v-if="!loading && posts.length === 0" description="暂无文章" />
-
-          <!-- 分页 -->
-          <div v-if="total > 0" class="pagination-wrapper">
-            <n-pagination
-              v-model:page="currentPage"
-              :page-count="totalPages"
-              :page-size="pageSize"
-              :page-slot="7"
-              @update:page="handlePageChange"
-            />
+        <!-- 右侧：公告栏 + 最新文章（保持原有组件和顺序，部分仅桌面端显示） -->
+        <div class="sidebar-section desktop-only">
+          <div class="sidebar-card-wrapper sidebar-announcement">
+            <AnnouncementBoard :limit="3" />
           </div>
-        </n-space>
-      </n-spin>
-    </n-space>
-      </div>
-
-    <!-- 右侧：公告栏 + 最新文章（保持原有组件和顺序，部分仅桌面端显示） -->
-    <div class="sidebar-section desktop-only">
-      <div class="sidebar-card-wrapper sidebar-announcement">
-        <AnnouncementBoard :limit="3" />
-      </div>
-      <div class="sidebar-card-wrapper sidebar-recent-posts">
-        <RecentPostsCard />
-      </div>
-      <div class="sidebar-card-wrapper sidebar-category-list">
-        <CategoryListWidget />
-      </div>
-      <div class="sidebar-card-wrapper sidebar-tag-cloud">
-        <TagCloudWidget />
-      </div>
-      <div class="sidebar-card-wrapper sidebar-website-info">
-        <WebsiteInfoWidget />
+          <div class="sidebar-card-wrapper sidebar-recent-posts">
+            <RecentPostsCard />
+          </div>
+          <div class="sidebar-card-wrapper sidebar-category-list">
+            <CategoryListWidget />
+          </div>
+          <div class="sidebar-card-wrapper sidebar-tag-cloud">
+            <TagCloudWidget />
+          </div>
+          <div class="sidebar-card-wrapper sidebar-website-info">
+            <WebsiteInfoWidget />
+          </div>
+        </div>
       </div>
     </div>
-    </div>
-    </div><!-- .home-content -->
+    <!-- .home-content -->
   </div>
 </template>
 
@@ -195,13 +210,17 @@ const searchKeyword = ref('')
 const totalPages = computed(() => Math.ceil(total.value / pageSize.value))
 
 // 监听路由变化，处理搜索
-watch(() => route.query.keyword, (newKeyword) => {
-  if (newKeyword) {
-    searchKeyword.value = newKeyword as string
-    currentPage.value = 1
-    fetchPosts()
-  }
-}, { immediate: true })
+watch(
+  () => route.query.keyword,
+  newKeyword => {
+    if (newKeyword) {
+      searchKeyword.value = newKeyword as string
+      currentPage.value = 1
+      fetchPosts()
+    }
+  },
+  { immediate: true }
+)
 
 onMounted(async () => {
   // blogStore.init() 已在 main.ts 中预加载，这里不再重复调用
@@ -261,15 +280,15 @@ function getHighlightedTitle(title: string): string {
 // 高亮摘要
 function getHighlightedSummary(post: Post): string {
   const summary = post.summary || ''
-  
+
   if (!searchKeyword.value) {
     return summary
   }
-  
+
   // 检查摘要中是否包含关键词
   const lowerSummary = summary.toLowerCase()
   const lowerKeyword = searchKeyword.value.toLowerCase()
-  
+
   if (lowerSummary.includes(lowerKeyword)) {
     // 如果摘要中包含关键词，直接高亮
     return highlightKeyword(summary, searchKeyword.value)
@@ -281,7 +300,7 @@ function getHighlightedSummary(post: Post): string {
       return highlightKeyword(snippet, searchKeyword.value)
     }
   }
-  
+
   // 默认返回原摘要（可能不包含关键词，但至少显示文章的原始摘要）
   return summary
 }
@@ -674,12 +693,12 @@ html.dark .post-cover {
   .post-card-content {
     flex-direction: column-reverse;
   }
-  
+
   .post-cover {
     width: 100%;
     height: 200px;
   }
-  
+
   .post-footer {
     flex-direction: column;
     align-items: flex-start;
@@ -757,4 +776,3 @@ html.dark .post-card:hover {
   border-color: rgba(255, 255, 255, 0.06) !important;
 }
 </style>
-

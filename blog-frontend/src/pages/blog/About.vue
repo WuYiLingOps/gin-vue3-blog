@@ -27,16 +27,30 @@
                       :fallback-src="defaultAvatar"
                     >
                       <template v-if="!authorProfile?.author.avatar">
-                        {{ (authorProfile?.author.nickname || authorProfile?.author.username || '博主').charAt(0).toUpperCase() }}
+                        {{
+                          (
+                            authorProfile?.author.nickname ||
+                            authorProfile?.author.username ||
+                            '博主'
+                          )
+                            .charAt(0)
+                            .toUpperCase()
+                        }}
                       </template>
                     </n-avatar>
                   </div>
                   <div class="profile-info">
-                    <h1 class="author-name">{{ authorProfile?.author.nickname || authorProfile?.author.username || '博主' }}</h1>
-                    <p v-if="authorProfile?.author.bio" class="author-bio">{{ authorProfile.author.bio }}</p>
+                    <h1 class="author-name">
+                      {{
+                        authorProfile?.author.nickname || authorProfile?.author.username || '博主'
+                      }}
+                    </h1>
+                    <p v-if="authorProfile?.author.bio" class="author-bio">
+                      {{ authorProfile.author.bio }}
+                    </p>
                   </div>
                 </div>
-                
+
                 <!-- 关于我内容区域 -->
                 <div v-if="personalIntroMarkdown" class="philosophy-section">
                   <h3 class="section-title">关于我</h3>
@@ -67,7 +81,12 @@
             <!-- 相册 -->
             <n-card v-if="albums.length > 0" class="album-card" title="相册" :bordered="false">
               <div class="album-grid">
-                <div v-for="album in albums" :key="album.id" class="album-item" @click="handleImageClick(album)">
+                <div
+                  v-for="album in albums"
+                  :key="album.id"
+                  class="album-item"
+                  @click="handleImageClick(album)"
+                >
                   <n-image
                     :src="album.image_url"
                     :alt="album.title || '相册照片'"
@@ -106,11 +125,16 @@
                     type="info"
                     closable
                     style="margin-bottom: 12px"
-                    @close="replyToComment = null; replyToUser = null; commentContent = ''"
+                    @close="
+                      replyToComment = null
+                      replyToUser = null
+                      commentContent = ''
+                    "
                   >
-                    正在回复 <strong>@{{ (replyToUser || replyToComment).user.nickname }}</strong> 的评论
+                    正在回复
+                    <strong>@{{ (replyToUser || replyToComment).user.nickname }}</strong> 的评论
                   </n-alert>
-                  
+
                   <CommentMarkdownEditor
                     v-model="commentContent"
                     height="250px"
@@ -124,7 +148,9 @@
                 </n-card>
 
                 <n-alert v-else type="info" style="margin-bottom: 16px">
-                  请 <n-button text type="primary" @click="router.push('/auth/login')">登录</n-button> 后发表评论
+                  请
+                  <n-button text type="primary" @click="router.push('/auth/login')">登录</n-button>
+                  后发表评论
                 </n-alert>
 
                 <!-- 评论列表 -->
@@ -138,7 +164,9 @@
                       <div class="comment-content">
                         <div class="comment-header">
                           <strong>{{ comment.user.nickname }}</strong>
-                          <span class="comment-time">{{ formatDate(comment.created_at, 'YYYY年MM月DD日 HH:mm') }}</span>
+                          <span class="comment-time">{{
+                            formatDate(comment.created_at, 'YYYY年MM月DD日 HH:mm')
+                          }}</span>
                         </div>
                         <CommentContent :content="comment.content" />
                         <div class="comment-actions">
@@ -150,13 +178,17 @@
                           >
                             回复
                           </n-button>
-                          <n-button 
+                          <n-button
                             v-if="comment.children && comment.children.length > 0"
-                            text 
-                            size="small" 
+                            text
+                            size="small"
                             @click="toggleExpand(comment.id)"
                           >
-                            {{ expandedComments.has(comment.id) ? '收起' : `展开 ${comment.children.length} 条回复` }}
+                            {{
+                              expandedComments.has(comment.id)
+                                ? '收起'
+                                : `展开 ${comment.children.length} 条回复`
+                            }}
                           </n-button>
                           <n-popconfirm
                             v-if="canDeleteComment(comment)"
@@ -170,19 +202,26 @@
                         </div>
 
                         <!-- 子评论 -->
-                        <div v-if="comment.children && comment.children.length > 0 && expandedComments.has(comment.id)" class="reply-list">
-                          <div
-                            v-for="reply in comment.children"
-                            :key="reply.id"
-                            class="reply-item"
-                          >
+                        <div
+                          v-if="
+                            comment.children &&
+                            comment.children.length > 0 &&
+                            expandedComments.has(comment.id)
+                          "
+                          class="reply-list"
+                        >
+                          <div v-for="reply in comment.children" :key="reply.id" class="reply-item">
                             <n-space align="start">
                               <n-avatar :src="reply.user.avatar" round size="small" />
                               <div class="reply-content">
                                 <div class="reply-header">
                                   <strong>{{ reply.user.nickname }}</strong>
-                                  <span class="reply-to">回复 @{{ getReplyTargetName(reply, comment) }}</span>
-                                  <span class="comment-time">{{ formatDate(reply.created_at, 'YYYY年MM月DD日 HH:mm') }}</span>
+                                  <span class="reply-to"
+                                    >回复 @{{ getReplyTargetName(reply, comment) }}</span
+                                  >
+                                  <span class="comment-time">{{
+                                    formatDate(reply.created_at, 'YYYY年MM月DD日 HH:mm')
+                                  }}</span>
                                 </div>
                                 <CommentContent :content="removeAtMention(reply.content)" />
                                 <div class="comment-actions">
@@ -246,23 +285,12 @@ import { useRouter } from 'vue-router'
 // echarts 按需导入
 import * as echarts from 'echarts/core'
 import { LineChart, BarChart } from 'echarts/charts'
-import {
-  TooltipComponent,
-  LegendComponent,
-  GridComponent
-} from 'echarts/components'
+import { TooltipComponent, LegendComponent, GridComponent } from 'echarts/components'
 import { CanvasRenderer } from 'echarts/renderers'
 import type { ECharts } from 'echarts/core'
 
 // 注册必需的组件
-echarts.use([
-  LineChart,
-  BarChart,
-  TooltipComponent,
-  LegendComponent,
-  GridComponent,
-  CanvasRenderer
-])
+echarts.use([LineChart, BarChart, TooltipComponent, LegendComponent, GridComponent, CanvasRenderer])
 import { getAuthorProfile, type AuthorProfile, getPublicTagStats, type TagStat } from '@/api/blog'
 import { getArchives } from '@/api/post'
 import { getPublicAboutInfo } from '@/api/setting'
@@ -280,7 +308,6 @@ import WebsiteInfoWidget from '@/components/WebsiteInfoWidget.vue'
 import CommentMarkdownEditor from '@/components/CommentMarkdownEditor.vue'
 import CommentContent from '@/components/CommentContent.vue'
 import type { Comment } from '@/types/blog'
-
 
 const router = useRouter()
 const appStore = useAppStore()
@@ -321,7 +348,6 @@ const personalIntroMarkdown = ref<string>('')
 const albums = ref<Album[]>([])
 const previewImageUrl = ref<string>('')
 const showImagePreview = ref(false)
-
 
 // 获取博主信息
 async function fetchAuthorProfile() {
@@ -441,12 +467,12 @@ async function handleSubmitComment() {
       comment_type: ABOUT_COMMENT_TYPE,
       target_id: ABOUT_TARGET_ID
     }
-    
+
     // 如果是回复评论，添加 parent_id
     if (replyToComment.value) {
       commentData.parent_id = replyToComment.value.id
     }
-    
+
     await createComment(commentData)
     message.success(replyToComment.value ? '回复成功' : '评论成功')
     commentContent.value = ''
@@ -466,16 +492,16 @@ function handleReply(parentComment: Comment, targetUser?: Comment) {
     message.warning('请先登录')
     return
   }
-  
+
   replyToComment.value = parentComment
   replyToUser.value = targetUser || parentComment
   commentContent.value = `@${(targetUser || parentComment).user.nickname} `
-  
+
   // 滚动到评论框
   nextTick(() => {
     const commentForm = document.querySelector('.comment-form textarea')
     if (commentForm) {
-      (commentForm as HTMLElement).focus()
+      ;(commentForm as HTMLElement).focus()
       commentForm.scrollIntoView({ behavior: 'smooth', block: 'center' })
     }
   })
@@ -546,7 +572,7 @@ function initPostPublishChart() {
   // 检测是否为移动端
   const isMobile = window.innerWidth <= 1024
   const isSmallMobile = window.innerWidth <= 767
-  
+
   if (!postPublishChart) {
     postPublishChart = echarts.init(postPublishChartRef.value)
   } else {
@@ -567,14 +593,14 @@ function initPostPublishChart() {
     const sortedMonths = Array.from(dataMap.keys()).sort()
     const startMonth = sortedMonths[0]
     const endMonth = sortedMonths[sortedMonths.length - 1]
-    
+
     // 生成月份数组
     const [startYear, startMonthNum] = startMonth.split('-').map(Number)
     const [endYear, endMonthNum] = endMonth.split('-').map(Number)
-    
+
     let currentYear = startYear
     let currentMonth = startMonthNum
-    
+
     while (currentYear < endYear || (currentYear === endYear && currentMonth <= endMonthNum)) {
       const monthStr = `${currentYear}-${String(currentMonth).padStart(2, '0')}`
       months.push(monthStr)
@@ -587,30 +613,26 @@ function initPostPublishChart() {
   }
 
   const counts = months.map(month => dataMap.get(month) || 0)
-  
+
   // 计算平均值
   const total = counts.reduce((sum, count) => sum + count, 0)
   const average = counts.length > 0 ? (total / counts.length).toFixed(2) : 0
 
   const isDark = appStore.theme === 'dark'
-  
+
   // 根据数据点数量判断是否需要旋转标签
   const dataPointCount = months.length
   // 策略：桌面端超过3个数据点就旋转（因为"2025-10"这样的标签较长，容易重叠）
   // 移动端总是旋转
   const needRotate = isSmallMobile ? true : dataPointCount > 3
   // 旋转角度：移动端45度，桌面端60度（更倾斜避免重叠）
-  const rotateAngle = isSmallMobile ? 45 : (needRotate ? 60 : 0)
-  
+  const rotateAngle = isSmallMobile ? 45 : needRotate ? 60 : 0
+
   // 根据屏幕尺寸和数据点数量动态调整grid配置
   const gridLeft = isSmallMobile ? 45 : isMobile ? 50 : 60
   const gridRight = isSmallMobile ? 20 : isMobile ? 30 : 90
   // 如果需要旋转，增加底部边距（60度旋转需要更多空间）
-  const gridBottom = isSmallMobile 
-    ? 50 
-    : isMobile 
-      ? (needRotate ? 80 : 55)
-      : (needRotate ? 90 : 60)
+  const gridBottom = isSmallMobile ? 50 : isMobile ? (needRotate ? 80 : 55) : needRotate ? 90 : 60
 
   const option = {
     tooltip: {
@@ -642,13 +664,13 @@ function initPostPublishChart() {
         color: isDark ? '#e5e7eb' : '#64748b',
         // 根据needRotate判断旋转角度
         rotate: rotateAngle,
-        fontSize: isSmallMobile ? 10 : (needRotate ? 11 : 12),
+        fontSize: isSmallMobile ? 10 : needRotate ? 11 : 12,
         // 旋转时显示所有标签，不旋转时也显示所有（避免间隔显示）
         interval: 0,
         overflow: 'break',
-        width: isSmallMobile ? 50 : (needRotate ? 70 : 60),
+        width: isSmallMobile ? 50 : needRotate ? 70 : 60,
         // 旋转时需要更大的margin避免与图表重叠
-        margin: isSmallMobile ? 8 : (needRotate ? 15 : 0),
+        margin: isSmallMobile ? 8 : needRotate ? 15 : 0,
         // 旋转时使用更紧凑的字体
         fontWeight: needRotate ? 'normal' : 'normal'
       }
@@ -749,16 +771,16 @@ function initTagChart() {
   const sortedTags = [...tagStats.value].sort((a, b) => b.value - a.value)
   const tagNames = sortedTags.map(t => t.name)
   const tagCounts = sortedTags.map(t => t.value)
-  
+
   // 计算平均值
   const total = tagCounts.reduce((sum, count) => sum + count, 0)
   const average = tagCounts.length > 0 ? (total / tagCounts.length).toFixed(1) : 0
 
   const isDark = appStore.theme === 'dark'
-  
+
   // 标签名称通常较长（如"Git代码托"、"脚本合集"等），统一使用60度旋转避免重叠
   const rotateAngle = 60
-  
+
   // 根据屏幕尺寸和旋转角度动态调整grid配置
   const gridLeft = isSmallMobile ? 50 : isMobile ? 60 : 70
   const gridRight = isSmallMobile ? 15 : isMobile ? 25 : 90
@@ -872,12 +894,15 @@ function initTagChart() {
 }
 
 // 监听主题变化，重新渲染图表
-watch(() => appStore.theme, () => {
-  nextTick(() => {
-    if (archiveStats.value.length > 0) initPostPublishChart()
-    if (tagStats.value.length > 0) initTagChart()
-  })
-})
+watch(
+  () => appStore.theme,
+  () => {
+    nextTick(() => {
+      if (archiveStats.value.length > 0) initPostPublishChart()
+      if (tagStats.value.length > 0) initTagChart()
+    })
+  }
+)
 
 // 防抖函数
 function debounce(func: Function, wait: number) {
@@ -951,10 +976,10 @@ onMounted(() => {
   fetchArchiveStats()
   fetchTagStats()
   fetchComments()
-  
+
   // 监听窗口resize
   window.addEventListener('resize', handleResize)
-  
+
   // 监听媒体查询变化（用于响应式断点）
   if (window.matchMedia) {
     mediaQueryList = window.matchMedia('(max-width: 1024px)')
@@ -1011,7 +1036,6 @@ onUnmounted(() => {
   flex-direction: column;
   gap: 16px;
 }
-
 
 /* 个人介绍卡片 */
 .intro-card {
@@ -1471,9 +1495,6 @@ html.dark .chart-title {
   }
 }
 
-
-
-
 /* 平板端和移动端布局 */
 @media (max-width: 1024px) {
   .about-layout {
@@ -1749,14 +1770,14 @@ html.dark .reply-content p {
     width: 100%;
     max-width: 100%;
   }
-  
+
   .comment-content {
     padding: 0 8px;
     overflow-x: auto;
     width: 100%;
     max-width: 100%;
   }
-  
+
   .reply-item {
     padding: 8px 0;
     margin: 0;
@@ -1764,7 +1785,7 @@ html.dark .reply-content p {
     width: 100%;
     max-width: 100%;
   }
-  
+
   .reply-content {
     padding: 0 6px;
     overflow-x: auto;

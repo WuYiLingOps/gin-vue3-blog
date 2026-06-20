@@ -16,7 +16,7 @@
           <div class="year-header">
             <h2 class="year-title">{{ group.date }}</h2>
           </div>
-          
+
           <!-- 文章列表 -->
           <div class="posts-list">
             <div
@@ -96,7 +96,9 @@ const groupedPosts = computed(() => {
     .sort((a, b) => parseInt(b) - parseInt(a))
     .map(year => ({
       date: year,
-      posts: groups[year].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      posts: groups[year].sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      )
     }))
 })
 </script>
