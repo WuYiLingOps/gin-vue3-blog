@@ -56,4 +56,3 @@ export function stripHtml(html: string): string {
   div.innerHTML = html
   return div.textContent || div.innerText || ''
 }
-
