@@ -11,13 +11,23 @@
   <div class="default-layout">
     <GlobalBackground />
     <CanvasBackground />
-<n-layout position="absolute">
+    <n-layout position="absolute">
       <!-- 头部 -->
       <n-layout-header
         class="header"
         :class="{ 'header-hidden': headerHidden, 'header-transparent': isOnCover }"
-        :style="isOnCover ? { background: 'transparent', backdropFilter: 'none', borderBottom: 'none', boxShadow: 'none' } : {}"
-        position="absolute">
+        :style="
+          isOnCover
+            ? {
+                background: 'transparent',
+                backdropFilter: 'none',
+                borderBottom: 'none',
+                boxShadow: 'none'
+              }
+            : {}
+        "
+        position="absolute"
+      >
         <div class="header-content">
           <div class="logo" @click="router.push('/')">
             <h2>{{ siteSettings.site_name || defaultSiteName }}</h2>
@@ -40,10 +50,7 @@
               </template>
             </n-button>
             <!-- 打赏按钮 -->
-            <n-button
-              text
-              @click="showRewardModal = true"
-            >
+            <n-button text @click="showRewardModal = true">
               <template #icon>
                 <n-icon :component="CafeOutline" size="20" />
               </template>
@@ -61,16 +68,18 @@
               </template>
             </n-button>
 
-            <n-dropdown v-if="authStore.isLoggedIn" :options="userMenuOptions" @select="handleUserMenu">
+            <n-dropdown
+              v-if="authStore.isLoggedIn"
+              :options="userMenuOptions"
+              @select="handleUserMenu"
+            >
               <n-button text>
                 <n-avatar round size="small" :src="authStore.user?.avatar" />
                 <span class="ml-2">{{ authStore.user?.nickname }}</span>
               </n-button>
             </n-dropdown>
 
-            <n-button v-else type="primary" @click="router.push('/auth/login')">
-              登录
-            </n-button>
+            <n-button v-else type="primary" @click="router.push('/auth/login')"> 登录 </n-button>
           </div>
         </div>
       </n-layout-header>
@@ -86,17 +95,31 @@
         <div class="content-wrapper" :class="{ 'content-wrapper-home': route.name === 'Home' }">
           <router-view />
         </div>
-        
+
         <!-- 底部 -->
         <div class="footer">
           <div class="footer-content">
-            <p>&copy; {{ copyrightYear }} {{ siteSettings.site_name || defaultSiteName }}. All rights reserved.</p>
+            <p>
+              &copy; {{ copyrightYear }} {{ siteSettings.site_name || defaultSiteName }}. All rights
+              reserved.
+            </p>
             <p class="running-time" v-html="runningTime"></p>
             <div v-if="siteSettings.site_icp || siteSettings.site_police" class="filing-info">
-              <a v-if="siteSettings.site_icp" href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">
+              <a
+                v-if="siteSettings.site_icp"
+                href="https://beian.miit.gov.cn/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 {{ siteSettings.site_icp }}
               </a>
-              <a v-if="siteSettings.site_police" href="https://www.beian.gov.cn/" target="_blank" rel="noopener noreferrer" class="police-filing">
+              <a
+                v-if="siteSettings.site_police"
+                href="https://www.beian.gov.cn/"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="police-filing"
+              >
                 <img src="/备案图标.png" alt="公安备案" class="police-icon" />
                 {{ siteSettings.site_police }}
               </a>
@@ -114,9 +137,9 @@
           :options="menuOptions"
           @update:value="handleMobileMenuSelect"
         />
-        
+
         <n-divider style="margin: 24px 0" />
-        
+
         <!-- 用户信息 -->
         <div v-if="authStore.isLoggedIn" class="mobile-user-info">
           <n-space vertical :size="12">
@@ -127,21 +150,26 @@
                 <div class="user-role">{{ authStore.isAdmin ? '管理员' : '普通用户' }}</div>
               </div>
             </div>
-            
+
             <n-button block @click="handleMobileUserAction('profile')">
               <template #icon>
                 <n-icon :component="PersonOutline" />
               </template>
               个人资料
             </n-button>
-            
-            <n-button v-if="authStore.isAdmin" block type="info" @click="handleMobileUserAction('admin')">
+
+            <n-button
+              v-if="authStore.isAdmin"
+              block
+              type="info"
+              @click="handleMobileUserAction('admin')"
+            >
               <template #icon>
                 <n-icon :component="SettingsOutline" />
               </template>
               管理后台
             </n-button>
-            
+
             <n-button block type="error" @click="handleMobileUserAction('logout')">
               <template #icon>
                 <n-icon :component="LogOutOutline" />
@@ -150,12 +178,10 @@
             </n-button>
           </n-space>
         </div>
-        
+
         <!-- 未登录状态 -->
         <div v-else class="mobile-login">
-          <n-button block type="primary" @click="handleMobileLogin">
-            登录 / 注册
-          </n-button>
+          <n-button block type="primary" @click="handleMobileLogin"> 登录 / 注册 </n-button>
         </div>
       </n-drawer-content>
     </n-drawer>
@@ -186,10 +212,18 @@
         </n-input>
 
         <!-- 搜索结果列表 -->
-        <div v-if="searchResults.length > 0 || (searchKeyword && searchLoading)" class="search-results">
+        <div
+          v-if="searchResults.length > 0 || (searchKeyword && searchLoading)"
+          class="search-results"
+        >
           <n-divider style="margin: 20px 0" />
           <n-spin :show="searchLoading">
-            <div class="search-result-item" v-for="post in searchResults" :key="post.id" @click="goToPost(post)">
+            <div
+              class="search-result-item"
+              v-for="post in searchResults"
+              :key="post.id"
+              @click="goToPost(post)"
+            >
               <div class="result-title" v-html="highlightText(post.title)"></div>
               <div class="result-meta">
                 <span>{{ post.category.name }}</span>
@@ -200,22 +234,28 @@
               </div>
               <div class="result-summary" v-html="getHighlightedSummary(post)"></div>
             </div>
-            <n-empty v-if="searchKeyword && !searchLoading && searchResults.length === 0" description="未找到相关文章" style="margin: 32px 0" />
+            <n-empty
+              v-if="searchKeyword && !searchLoading && searchResults.length === 0"
+              description="未找到相关文章"
+              style="margin: 32px 0"
+            />
           </n-spin>
         </div>
 
         <!-- 空状态占位 -->
         <div v-else-if="!searchKeyword" class="search-empty-placeholder">
-          <n-icon :component="SearchOutline" size="64" style="color: #d1d5db; margin-bottom: 16px" />
+          <n-icon
+            :component="SearchOutline"
+            size="64"
+            style="color: #d1d5db; margin-bottom: 16px"
+          />
           <p style="color: #9ca3af; font-size: 15px; margin: 0">输入关键词开始搜索文章</p>
         </div>
 
         <!-- 提示信息 -->
         <div v-if="searchResults.length > 0" class="search-footer">
           <span class="search-count">找到 {{ searchResults.length }} 篇文章</span>
-          <n-button type="primary" size="small" @click="handleSearch">
-            查看全部搜索结果
-          </n-button>
+          <n-button type="primary" size="small" @click="handleSearch"> 查看全部搜索结果 </n-button>
         </div>
       </div>
     </n-modal>
@@ -245,7 +285,7 @@
           <p class="reward-tip">感谢您的支持与鼓励！</p>
         </template>
         <template v-else>
-          <n-empty description="暂未开放打赏功能" style="padding: 32px 0;" />
+          <n-empty description="暂未开放打赏功能" style="padding: 32px 0" />
         </template>
       </div>
     </n-modal>
@@ -301,9 +341,34 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, h, onMounted, onBeforeUnmount, reactive, nextTick, provide, watch } from 'vue'
+import {
+  ref,
+  computed,
+  h,
+  onMounted,
+  onBeforeUnmount,
+  reactive,
+  nextTick,
+  provide,
+  watch
+} from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { MoonOutline, SunnyOutline, PersonOutline, LogOutOutline, SettingsOutline, SearchOutline, MenuOutline, HomeOutline, ArchiveOutline, ChatbubblesOutline, ChatboxEllipsesOutline, LinkOutline, InformationCircleOutline, CafeOutline } from '@vicons/ionicons5'
+import {
+  MoonOutline,
+  SunnyOutline,
+  PersonOutline,
+  LogOutOutline,
+  SettingsOutline,
+  SearchOutline,
+  MenuOutline,
+  HomeOutline,
+  ArchiveOutline,
+  ChatbubblesOutline,
+  ChatboxEllipsesOutline,
+  LinkOutline,
+  InformationCircleOutline,
+  CafeOutline
+} from '@vicons/ionicons5'
 import { useAuthStore, useAppStore } from '@/stores'
 import { NIcon, useMessage, useDialog } from 'naive-ui'
 import type { FormInst, FormRules } from 'naive-ui'
@@ -359,9 +424,7 @@ const passwordForm = reactive<PasswordForm>({
 })
 
 const passwordRules: FormRules = {
-  old_password: [
-    { required: true, message: '请输入当前密码', trigger: 'blur' }
-  ],
+  old_password: [{ required: true, message: '请输入当前密码', trigger: 'blur' }],
   new_password: [
     { required: true, message: '请输入新密码', trigger: 'blur' },
     { min: 6, message: '密码至少6个字符', trigger: 'blur' }
@@ -462,10 +525,10 @@ const userMenuOptions = computed(() => {
 // 处理菜单选择
 function handleMenuSelect(key: string) {
   activeKey.value = key
-  
+
   // 查找菜单项，优先使用 path，如果没有 path 则使用 name
   let targetPath: string | undefined = undefined
-  
+
   for (const item of menuOptions.value) {
     // 检查是否是当前项
     if (item.key === key) {
@@ -481,16 +544,16 @@ function handleMenuSelect(key: string) {
       }
     }
   }
-  
+
   if (targetPath) {
-    router.push(targetPath).catch((err) => {
+    router.push(targetPath).catch(err => {
       // 忽略导航重复的错误
       if (err.name !== 'NavigationDuplicated') {
         console.error('路由跳转失败:', err)
       }
     })
   } else {
-    router.push({ name: key }).catch((err) => {
+    router.push({ name: key }).catch(err => {
       // 忽略导航重复的错误
       if (err.name !== 'NavigationDuplicated') {
         console.error('路由跳转失败:', err)
@@ -503,10 +566,10 @@ function handleMenuSelect(key: string) {
 function handleMobileMenuSelect(key: string) {
   activeKey.value = key
   showMobileMenu.value = false
-  
+
   // 查找菜单项，优先使用 path，如果没有 path 则使用 name
   let targetPath: string | undefined = undefined
-  
+
   for (const item of menuOptions.value) {
     // 检查是否是当前项
     if (item.key === key) {
@@ -522,16 +585,16 @@ function handleMobileMenuSelect(key: string) {
       }
     }
   }
-  
+
   if (targetPath) {
-    router.push(targetPath).catch((err) => {
+    router.push(targetPath).catch(err => {
       // 忽略导航重复的错误
       if (err.name !== 'NavigationDuplicated') {
         console.error('路由跳转失败:', err)
       }
     })
   } else {
-    router.push({ name: key }).catch((err) => {
+    router.push({ name: key }).catch(err => {
       // 忽略导航重复的错误
       if (err.name !== 'NavigationDuplicated') {
         console.error('路由跳转失败:', err)
@@ -586,12 +649,12 @@ async function fetchSiteSettings() {
 function calculateRunningTime() {
   const now = new Date()
   const diff = now.getTime() - siteStartDate.value.getTime()
-  
+
   const days = Math.floor(diff / (1000 * 60 * 60 * 24))
   const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
   const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
   const seconds = Math.floor((diff % (1000 * 60)) / 1000)
-  
+
   runningTime.value = `网站已运行 <span class="time-number">${days}</span> 天 <span class="time-number">${hours}</span> 小时 <span class="time-number">${minutes}</span> 分钟 <span class="time-number">${seconds}</span> 秒`
 }
 
@@ -602,17 +665,20 @@ provide('layoutScrollEl', scrollEl)
 provide('isOnCover', isOnCover)
 
 // 路由切换时重置封面状态
-watch(() => route.name, (name) => {
-  if (name === 'Home') {
-    isOnCover.value = true
-    headerHidden.value = false
-    // 通过 Naive UI 组件方法滚回顶部
-    mainContentRef.value?.scrollTo({ top: 0 })
-    lastScrollTop = 0
-  } else {
-    isOnCover.value = false
+watch(
+  () => route.name,
+  name => {
+    if (name === 'Home') {
+      isOnCover.value = true
+      headerHidden.value = false
+      // 通过 Naive UI 组件方法滚回顶部
+      mainContentRef.value?.scrollTo({ top: 0 })
+      lastScrollTop = 0
+    } else {
+      isOnCover.value = false
+    }
   }
-})
+)
 
 onMounted(async () => {
   await nextTick()
@@ -632,7 +698,7 @@ onMounted(async () => {
 // 更新页面标题
 function updatePageTitle() {
   const siteName = siteSettings.value.site_name || defaultSiteName
-  const currentTitle = route.meta.title as string || '首页'
+  const currentTitle = (route.meta.title as string) || '首页'
   document.title = `${currentTitle} | ${siteName}`
 }
 
@@ -687,7 +753,7 @@ async function handleSearchInput() {
   }
 
   const keyword = searchKeyword.value.trim()
-  
+
   if (!keyword) {
     searchResults.value = []
     return
@@ -703,7 +769,7 @@ async function handleSearchInput() {
         keyword: keyword,
         status: 1
       })
-      
+
       if (res.data) {
         searchResults.value = res.data.list
       }
@@ -755,15 +821,15 @@ function highlightText(text: string): string {
 function getHighlightedSummary(post: Post): string {
   const summary = post.summary || ''
   const keyword = searchKeyword.value
-  
+
   if (!keyword) {
     return summary
   }
-  
+
   // 检查摘要中是否包含关键词
   const lowerSummary = summary.toLowerCase()
   const lowerKeyword = keyword.toLowerCase()
-  
+
   if (lowerSummary.includes(lowerKeyword)) {
     // 如果摘要中包含关键词，直接高亮
     return highlightKeyword(summary, keyword)
@@ -775,7 +841,7 @@ function getHighlightedSummary(post: Post): string {
       return highlightKeyword(snippet, keyword)
     }
   }
-  
+
   // 默认返回原摘要
   return summary
 }
@@ -821,13 +887,13 @@ async function handlePasswordSubmit() {
 
     await updatePassword(passwordForm)
     message.success('密码修改成功，请重新登录')
-    
+
     // 重置表单
     passwordForm.old_password = ''
     passwordForm.new_password = ''
     passwordForm.confirm_password = ''
     showPasswordModal.value = false
-    
+
     // 退出登录
     authStore.logout()
     router.push('/auth/login')
@@ -1023,7 +1089,9 @@ html.dark .logo h2 {
   z-index: 2;
   overflow-y: auto;
   height: calc(100vh - 72px);
-  transition: transform 0.3s ease, height 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    height 0.3s ease;
   transform: translateY(0);
 }
 
@@ -1037,7 +1105,9 @@ html.dark .logo h2 {
 }
 
 .header + .main-content {
-  transition: transform 0.3s ease, height 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    height 0.3s ease;
 }
 
 .header.header-hidden + .main-content {
@@ -1507,14 +1577,13 @@ html.dark .reward-tip {
     width: 20px;
     height: 20px;
   }
-  
+
   .logo h2 {
     font-size: 18px;
   }
-  
+
   .header-actions :deep(.n-button .n-button__content > span) {
     display: none;
   }
 }
 </style>
-
