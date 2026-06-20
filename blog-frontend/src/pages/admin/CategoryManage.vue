@@ -43,10 +43,18 @@
     </div>
 
     <div v-if="isMobile || viewMode === 'card'" class="card-list">
-      <n-card v-for="category in categories" :key="category.id" class="list-card" :size="isMobile ? 'small' : 'medium'">
+      <n-card
+        v-for="category in categories"
+        :key="category.id"
+        class="list-card"
+        :size="isMobile ? 'small' : 'medium'"
+      >
         <template #header>
           <n-space align="center">
-            <n-tag :color="{ color: category.color, textColor: '#fff' }" :size="isMobile ? 'small' : 'medium'">
+            <n-tag
+              :color="{ color: category.color, textColor: '#fff' }"
+              :size="isMobile ? 'small' : 'medium'"
+            >
               {{ category.name }}
             </n-tag>
           </n-space>
@@ -76,17 +84,17 @@
 
     <n-data-table
       v-else
-      :columns="columns" 
-      :data="categories" 
+      :columns="columns"
+      :data="categories"
       :loading="loading"
       :single-line="false"
     />
 
     <!-- 创建/编辑对话框 -->
-    <n-modal 
-      v-model:show="showModal" 
-      preset="card" 
-      :title="editingId ? '编辑分类' : '新建分类'" 
+    <n-modal
+      v-model:show="showModal"
+      preset="card"
+      :title="editingId ? '编辑分类' : '新建分类'"
       :style="{ width: isMobile ? '95%' : '500px', maxWidth: isMobile ? '95vw' : '500px' }"
     >
       <n-form ref="formRef" :model="formData" :rules="rules">
@@ -115,9 +123,7 @@
       <template #footer>
         <n-space justify="end">
           <n-button @click="showModal = false">取消</n-button>
-          <n-button type="primary" :loading="submitting" @click="handleSubmit">
-            保存
-          </n-button>
+          <n-button type="primary" :loading="submitting" @click="handleSubmit"> 保存 </n-button>
         </n-space>
       </template>
     </n-modal>
@@ -190,9 +196,9 @@ const rules = {
 }
 
 const columns: DataTableColumns<Category> = [
-  { 
-    title: 'ID', 
-    key: 'id', 
+  {
+    title: 'ID',
+    key: 'id',
     width: 60,
     render: (_row, index) => index + 1
   },
@@ -213,11 +219,7 @@ const columns: DataTableColumns<Category> = [
     render: row =>
       h(NSpace, null, {
         default: () => [
-          h(
-            NButton,
-            { size: 'small', onClick: () => handleEdit(row) },
-            { default: () => '编辑' }
-          ),
+          h(NButton, { size: 'small', onClick: () => handleEdit(row) }, { default: () => '编辑' }),
           h(
             NButton,
             { size: 'small', type: 'error', onClick: () => handleDelete(row.id) },
@@ -286,12 +288,13 @@ function handleDelete(id: number) {
   const category = categories.value.find(c => c.id === id)
   const categoryName = category?.name || '该分类'
   const postCount = category?.post_count || 0
-  
+
   dialog.warning({
     title: '确认删除',
-    content: postCount > 0 
-      ? `确定要删除分类"${categoryName}"吗？该分类下还有 ${postCount} 篇文章！` 
-      : `确定要删除分类"${categoryName}"吗？`,
+    content:
+      postCount > 0
+        ? `确定要删除分类"${categoryName}"吗？该分类下还有 ${postCount} 篇文章！`
+        : `确定要删除分类"${categoryName}"吗？`,
     positiveText: '确定',
     negativeText: '取消',
     onPositiveClick: async () => {
@@ -334,7 +337,7 @@ function resetForm() {
   .header h1 {
     font-size: 20px;
   }
-  
+
   .category-manage-page :deep(.n-data-table) {
     font-size: 13px;
   }
@@ -403,4 +406,3 @@ function resetForm() {
   word-break: break-all;
 }
 </style>
-

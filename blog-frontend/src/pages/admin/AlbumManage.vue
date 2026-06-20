@@ -14,7 +14,10 @@
       <n-space>
         <!-- 视图切换按钮（仅桌面端显示） -->
         <n-button-group v-if="!isMobile" size="small">
-          <n-button :type="viewMode === 'table' ? 'primary' : 'default'" @click="viewMode = 'table'">
+          <n-button
+            :type="viewMode === 'table' ? 'primary' : 'default'"
+            @click="viewMode = 'table'"
+          >
             <template #icon>
               <n-icon :component="GridOutline" />
             </template>
@@ -38,15 +41,20 @@
     </div>
 
     <div v-if="isMobile || viewMode === 'card'" class="card-list">
-      <n-card v-for="album in albums" :key="album.id" class="list-card" :size="isMobile ? 'small' : 'medium'">
+      <n-card
+        v-for="album in albums"
+        :key="album.id"
+        class="list-card"
+        :size="isMobile ? 'small' : 'medium'"
+      >
         <template #header>
           <n-space align="center">
-            <n-image 
-              :src="album.image_url" 
-              width="48" 
-              height="48" 
-              object-fit="cover" 
-              style="border-radius: 4px; cursor: pointer;"
+            <n-image
+              :src="album.image_url"
+              width="48"
+              height="48"
+              object-fit="cover"
+              style="border-radius: 4px; cursor: pointer"
               @click="openImage(album.image_url)"
             />
             <div class="card-title">{{ album.title || '未命名照片' }}</div>
@@ -72,8 +80,15 @@
         </div>
         <template #footer>
           <n-space justify="end">
-            <n-button :size="isMobile ? 'small' : 'medium'" @click="handleEdit(album)">编辑</n-button>
-            <n-button :size="isMobile ? 'small' : 'medium'" type="error" @click="handleDelete(album.id)">删除</n-button>
+            <n-button :size="isMobile ? 'small' : 'medium'" @click="handleEdit(album)"
+              >编辑</n-button
+            >
+            <n-button
+              :size="isMobile ? 'small' : 'medium'"
+              type="error"
+              @click="handleDelete(album.id)"
+              >删除</n-button
+            >
           </n-space>
         </template>
       </n-card>
@@ -100,10 +115,10 @@
     />
 
     <!-- 创建/编辑对话框 -->
-    <n-modal 
-      v-model:show="showModal" 
-      preset="card" 
-      :title="editingId ? '编辑照片' : '新增照片'" 
+    <n-modal
+      v-model:show="showModal"
+      preset="card"
+      :title="editingId ? '编辑照片' : '新增照片'"
       :style="{ width: isMobile ? '95%' : '700px', maxWidth: isMobile ? '95vw' : '700px' }"
     >
       <n-form ref="formRef" :model="formData" :rules="rules">
@@ -132,9 +147,7 @@
         <n-form-item label="排序">
           <n-input-number v-model:value="formData.sort_order" :min="0" style="width: 100%" />
           <template #feedback>
-            <n-text depth="3" style="font-size: 12px">
-              数字越大越靠前，默认为 0
-            </n-text>
+            <n-text depth="3" style="font-size: 12px"> 数字越大越靠前，默认为 0 </n-text>
           </template>
         </n-form-item>
       </n-form>
@@ -220,7 +233,8 @@ async function fetchAlbums() {
     if (res.data) {
       albums.value = res.data.list || []
       pagination.itemCount = res.data.total || 0
-      pagination.pageCount = res.data.total_pages || Math.ceil((res.data.total || 0) / pagination.pageSize)
+      pagination.pageCount =
+        res.data.total_pages || Math.ceil((res.data.total || 0) / pagination.pageSize)
     }
   } catch (error: any) {
     message.error(error.message || '获取相册列表失败')
@@ -243,21 +257,25 @@ const columns: DataTableColumns<Album> = [
     key: 'image_url',
     width: 120,
     render(row) {
-      return h('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'center' } }, [
-        h('img', {
-          src: row.image_url,
-          style: {
-            width: '80px',
-            height: '80px',
-            objectFit: 'cover',
-            borderRadius: '4px',
-            cursor: 'pointer'
-          },
-          onClick: () => {
-            window.open(row.image_url, '_blank')
-          }
-        })
-      ])
+      return h(
+        'div',
+        { style: { display: 'flex', alignItems: 'center', justifyContent: 'center' } },
+        [
+          h('img', {
+            src: row.image_url,
+            style: {
+              width: '80px',
+              height: '80px',
+              objectFit: 'cover',
+              borderRadius: '4px',
+              cursor: 'pointer'
+            },
+            onClick: () => {
+              window.open(row.image_url, '_blank')
+            }
+          })
+        ]
+      )
     }
   },
   {
@@ -297,11 +315,7 @@ const columns: DataTableColumns<Album> = [
     render: row =>
       h(NSpace, null, {
         default: () => [
-          h(
-            NButton,
-            { size: 'small', onClick: () => handleEdit(row) },
-            { default: () => '编辑' }
-          ),
+          h(NButton, { size: 'small', onClick: () => handleEdit(row) }, { default: () => '编辑' }),
           h(
             NButton,
             { size: 'small', type: 'error', onClick: () => handleDelete(row.id) },
@@ -349,9 +363,9 @@ async function handleSubmit() {
   try {
     // 表单验证
     await formRef.value?.validate()
-    
+
     submitting.value = true
-    
+
     if (editingId.value) {
       // 更新
       await updateAlbum(editingId.value, {
@@ -371,7 +385,7 @@ async function handleSubmit() {
       })
       message.success('创建成功')
     }
-    
+
     showModal.value = false
     fetchAlbums()
   } catch (error: any) {
@@ -414,7 +428,7 @@ onUnmounted(() => {
 })
 
 // 监听视图模式变化并保存到 localStorage
-watch(viewMode, (newMode) => {
+watch(viewMode, newMode => {
   localStorage.setItem('album-manage-view-mode', newMode)
 })
 </script>

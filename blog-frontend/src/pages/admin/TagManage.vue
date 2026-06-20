@@ -43,10 +43,18 @@
     </div>
 
     <div v-if="isMobile || viewMode === 'card'" class="card-list">
-      <n-card v-for="tag in tags" :key="tag.id" class="list-card" :size="isMobile ? 'small' : 'medium'">
+      <n-card
+        v-for="tag in tags"
+        :key="tag.id"
+        class="list-card"
+        :size="isMobile ? 'small' : 'medium'"
+      >
         <template #header>
           <n-space align="center">
-            <n-tag :color="{ color: tag.color, textColor: tag.text_color || '#fff' }" :size="isMobile ? 'small' : 'medium'">
+            <n-tag
+              :color="{ color: tag.color, textColor: tag.text_color || '#fff' }"
+              :size="isMobile ? 'small' : 'medium'"
+            >
               {{ tag.name }}
             </n-tag>
           </n-space>
@@ -74,19 +82,13 @@
       </n-card>
     </div>
 
-    <n-data-table
-      v-else
-      :columns="columns" 
-      :data="tags" 
-      :loading="loading"
-      :single-line="false"
-    />
+    <n-data-table v-else :columns="columns" :data="tags" :loading="loading" :single-line="false" />
 
     <!-- 创建/编辑对话框 -->
-    <n-modal 
-      v-model:show="showModal" 
-      preset="card" 
-      :title="editingId ? '编辑标签' : '新建标签'" 
+    <n-modal
+      v-model:show="showModal"
+      preset="card"
+      :title="editingId ? '编辑标签' : '新建标签'"
       :style="{ width: isMobile ? '95%' : '500px', maxWidth: isMobile ? '95vw' : '500px' }"
     >
       <n-form ref="formRef" :model="formData" :rules="rules">
@@ -95,22 +97,38 @@
         </n-form-item>
 
         <n-form-item label="背景颜色">
-          <n-color-picker v-model:value="formData.color" :swatches="colorSwatches" :modes="['hex']" />
+          <n-color-picker
+            v-model:value="formData.color"
+            :swatches="colorSwatches"
+            :modes="['hex']"
+          />
         </n-form-item>
 
         <n-form-item label="文字颜色">
-          <n-color-picker v-model:value="formData.text_color" :swatches="colorSwatches" :modes="['hex']" />
+          <n-color-picker
+            v-model:value="formData.text_color"
+            :swatches="colorSwatches"
+            :modes="['hex']"
+          />
           <template #feedback>
-            <span style="font-size: 12px; color: #999;">不设置则默认为白色</span>
+            <span style="font-size: 12px; color: #999">不设置则默认为白色</span>
           </template>
         </n-form-item>
 
         <n-form-item label="文字大小">
-          <n-input-number v-model:value="formData.font_size" :min="12" :max="32" placeholder="16" style="width: 100%">
+          <n-input-number
+            v-model:value="formData.font_size"
+            :min="12"
+            :max="32"
+            placeholder="16"
+            style="width: 100%"
+          >
             <template #suffix>px</template>
           </n-input-number>
           <template #feedback>
-            <span style="font-size: 12px; color: #999;">不设置则根据文章数量自动调整（16-20px）</span>
+            <span style="font-size: 12px; color: #999"
+              >不设置则根据文章数量自动调整（16-20px）</span
+            >
           </template>
         </n-form-item>
       </n-form>
@@ -118,9 +136,7 @@
       <template #footer>
         <n-space justify="end">
           <n-button @click="showModal = false">取消</n-button>
-          <n-button type="primary" :loading="submitting" @click="handleSubmit">
-            保存
-          </n-button>
+          <n-button type="primary" :loading="submitting" @click="handleSubmit"> 保存 </n-button>
         </n-space>
       </template>
     </n-modal>
@@ -193,9 +209,9 @@ const rules = {
 }
 
 const columns: DataTableColumns<Tag> = [
-  { 
-    title: 'ID', 
-    key: 'id', 
+  {
+    title: 'ID',
+    key: 'id',
     width: 60,
     render: (_row, index) => index + 1
   },
@@ -215,11 +231,7 @@ const columns: DataTableColumns<Tag> = [
     render: row =>
       h(NSpace, null, {
         default: () => [
-          h(
-            NButton,
-            { size: 'small', onClick: () => handleEdit(row) },
-            { default: () => '编辑' }
-          ),
+          h(NButton, { size: 'small', onClick: () => handleEdit(row) }, { default: () => '编辑' }),
           h(
             NButton,
             { size: 'small', type: 'error', onClick: () => handleDelete(row.id) },
@@ -288,12 +300,13 @@ function handleDelete(id: number) {
   const tag = tags.value.find(t => t.id === id)
   const tagName = tag?.name || '该标签'
   const postCount = tag?.post_count || 0
-  
+
   dialog.warning({
     title: '确认删除',
-    content: postCount > 0 
-      ? `确定要删除标签"${tagName}"吗？该标签下还有 ${postCount} 篇文章！` 
-      : `确定要删除标签"${tagName}"吗？`,
+    content:
+      postCount > 0
+        ? `确定要删除标签"${tagName}"吗？该标签下还有 ${postCount} 篇文章！`
+        : `确定要删除标签"${tagName}"吗？`,
     positiveText: '确定',
     negativeText: '取消',
     onPositiveClick: async () => {
@@ -336,7 +349,7 @@ function resetForm() {
   .header h1 {
     font-size: 20px;
   }
-  
+
   .tag-manage-page :deep(.n-data-table) {
     font-size: 13px;
   }
@@ -405,4 +418,3 @@ function resetForm() {
   word-break: break-all;
 }
 </style>
-

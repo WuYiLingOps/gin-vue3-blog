@@ -19,7 +19,11 @@
           <span v-if="!isMobile">上传Markdown</span>
           <span v-else>上传</span>
         </n-button>
-        <n-button type="primary" :size="isMobile ? 'small' : 'medium'" @click="showCreateModal = true">
+        <n-button
+          type="primary"
+          :size="isMobile ? 'small' : 'medium'"
+          @click="showCreateModal = true"
+        >
           <template #icon>
             <n-icon :component="AddOutline" />
           </template>
@@ -85,7 +89,12 @@
     <div class="content-area">
       <!-- 卡片视图（移动端强制使用，桌面端可选） -->
       <div v-if="isMobile || viewMode === 'card'" class="card-list">
-        <n-card v-for="post in posts" :key="post.id" class="list-card" :size="isMobile ? 'small' : 'medium'">
+        <n-card
+          v-for="post in posts"
+          :key="post.id"
+          class="list-card"
+          :size="isMobile ? 'small' : 'medium'"
+        >
           <div class="card-inner">
             <!-- 卡片内容 -->
             <div class="card-body">
@@ -94,15 +103,23 @@
               <div class="card-content">
                 <div class="info-item">
                   <span class="label">分类：</span>
-                  <n-tag type="info" :size="isMobile ? 'tiny' : 'small'">{{ post.category?.name || '无' }}</n-tag>
+                  <n-tag type="info" :size="isMobile ? 'tiny' : 'small'">{{
+                    post.category?.name || '无'
+                  }}</n-tag>
                 </div>
                 <div class="info-item">
                   <span class="label">状态：</span>
                   <n-space size="small">
-                    <n-tag :type="post.status === 1 ? 'success' : 'default'" :size="isMobile ? 'tiny' : 'small'">
+                    <n-tag
+                      :type="post.status === 1 ? 'success' : 'default'"
+                      :size="isMobile ? 'tiny' : 'small'"
+                    >
                       {{ post.status === 1 ? '已发布' : '草稿' }}
                     </n-tag>
-                    <n-tag :type="post.visibility === 1 ? 'success' : 'warning'" :size="isMobile ? 'tiny' : 'small'">
+                    <n-tag
+                      :type="post.visibility === 1 ? 'success' : 'warning'"
+                      :size="isMobile ? 'tiny' : 'small'"
+                    >
                       {{ post.visibility === 1 ? '公开' : '私密' }}
                     </n-tag>
                   </n-space>
@@ -119,7 +136,9 @@
 
               <div class="card-actions">
                 <n-space justify="end" size="small">
-                  <n-button :size="isMobile ? 'tiny' : 'small'" @click="handleEdit(post.id)">编辑</n-button>
+                  <n-button :size="isMobile ? 'tiny' : 'small'" @click="handleEdit(post.id)"
+                    >编辑</n-button
+                  >
                   <n-button
                     :size="isMobile ? 'tiny' : 'small'"
                     type="error"
@@ -128,7 +147,12 @@
                   >
                     删除
                   </n-button>
-                  <n-button :size="isMobile ? 'tiny' : 'small'" type="primary" ghost @click="handleExport(post.id, post.title)">
+                  <n-button
+                    :size="isMobile ? 'tiny' : 'small'"
+                    type="primary"
+                    ghost
+                    @click="handleExport(post.id, post.title)"
+                  >
                     导出
                   </n-button>
                 </n-space>
@@ -171,10 +195,10 @@
     </div>
 
     <!-- 上传Markdown文件对话框 -->
-    <n-modal 
-      v-model:show="showUploadModal" 
-      preset="card" 
-      title="上传Markdown文档" 
+    <n-modal
+      v-model:show="showUploadModal"
+      preset="card"
+      title="上传Markdown文档"
       :style="{ width: isMobile ? '95%' : '600px', maxWidth: isMobile ? '95vw' : '600px' }"
       :mask-closable="false"
       :close-on-esc="false"
@@ -190,7 +214,15 @@
         <n-upload-dragger>
           <div style="margin-bottom: 12px">
             <n-icon size="48" :depth="3">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                 <polyline points="14 2 14 8 20 8"></polyline>
                 <line x1="16" y1="13" x2="8" y2="13"></line>
@@ -199,12 +231,8 @@
               </svg>
             </n-icon>
           </div>
-          <n-text style="font-size: 16px">
-            点击或拖拽文件到此区域上传
-          </n-text>
-          <n-p depth="3" style="margin: 8px 0 0 0">
-            支持上传 .md 或 .markdown 格式的文件
-          </n-p>
+          <n-text style="font-size: 16px"> 点击或拖拽文件到此区域上传 </n-text>
+          <n-p depth="3" style="margin: 8px 0 0 0"> 支持上传 .md 或 .markdown 格式的文件 </n-p>
         </n-upload-dragger>
       </n-upload>
       <template #footer>
@@ -218,10 +246,10 @@
     </n-modal>
 
     <!-- 创建/编辑文章对话框 -->
-    <n-modal 
-      v-model:show="showCreateModal" 
-      preset="card" 
-      title="创建文章" 
+    <n-modal
+      v-model:show="showCreateModal"
+      preset="card"
+      title="创建文章"
       :style="{ width: isMobile ? '95%' : '800px', maxWidth: isMobile ? '95vw' : '800px' }"
       :mask-closable="false"
       :close-on-esc="false"
@@ -258,11 +286,7 @@
         </n-form-item>
 
         <n-form-item label="内容" path="content">
-          <markdown-editor 
-            v-model="formData.content" 
-            height="400px" 
-            :subfield="!isMobile"
-          />
+          <markdown-editor v-model="formData.content" height="400px" :subfield="!isMobile" />
         </n-form-item>
 
         <n-form-item label="分类" path="category_id">
@@ -304,9 +328,7 @@
       <template #footer>
         <n-space justify="end">
           <n-button @click="handleCancel">取消</n-button>
-          <n-button type="primary" :loading="submitting" @click="handleSubmit">
-            保存
-          </n-button>
+          <n-button type="primary" :loading="submitting" @click="handleSubmit"> 保存 </n-button>
         </n-space>
       </template>
     </n-modal>
@@ -365,9 +387,11 @@ function checkMobile() {
 function canDeletePost(post: Post): boolean {
   const currentUserRole = authStore.user?.role || 'user'
   const postAuthorRole = post.user?.role || 'user'
-  return currentUserRole === 'super_admin' ||
-         (currentUserRole === 'admin' && postAuthorRole !== 'super_admin') ||
-         (currentUserRole === 'user' && post.user_id === authStore.user?.id)
+  return (
+    currentUserRole === 'super_admin' ||
+    (currentUserRole === 'admin' && postAuthorRole !== 'super_admin') ||
+    (currentUserRole === 'user' && post.user_id === authStore.user?.id)
+  )
 }
 
 // 切换视图模式
@@ -422,9 +446,9 @@ const tagOptions = computed(() => blogStore.tags.map(t => ({ label: t.name, valu
 
 // 桌面端完整列
 const desktopColumns: DataTableColumns<Post> = [
-  { 
-    title: 'ID', 
-    key: 'id', 
+  {
+    title: 'ID',
+    key: 'id',
     width: 60,
     render: (_row, index) => {
       return (currentPage.value - 1) * pageSize + index + 1
@@ -487,10 +511,11 @@ const desktopColumns: DataTableColumns<Post> = [
       // 检查删除权限：普通管理员不能删除超级管理员创建的文章
       const currentUserRole = authStore.user?.role || 'user'
       const postAuthorRole = row.user?.role || 'user'
-      const canDelete = currentUserRole === 'super_admin' || 
-                       (currentUserRole === 'admin' && postAuthorRole !== 'super_admin') ||
-                       (currentUserRole === 'user' && row.user_id === authStore.user?.id)
-      
+      const canDelete =
+        currentUserRole === 'super_admin' ||
+        (currentUserRole === 'admin' && postAuthorRole !== 'super_admin') ||
+        (currentUserRole === 'user' && row.user_id === authStore.user?.id)
+
       return h(NSpace, null, {
         default: () => [
           h(
@@ -500,17 +525,22 @@ const desktopColumns: DataTableColumns<Post> = [
           ),
           h(
             NButton,
-            { 
-              size: 'small', 
-              type: 'error', 
+            {
+              size: 'small',
+              type: 'error',
               disabled: !canDelete,
-              onClick: () => handleDelete(row.id) 
+              onClick: () => handleDelete(row.id)
             },
             { default: () => '删除' }
           ),
           h(
             NButton,
-            { size: 'small', type: 'primary', ghost: true, onClick: () => handleExport(row.id, row.title) },
+            {
+              size: 'small',
+              type: 'primary',
+              ghost: true,
+              onClick: () => handleExport(row.id, row.title)
+            },
             { default: () => '导出MD' }
           )
         ]
@@ -526,9 +556,9 @@ const rules = {
   title: [{ required: true, message: '请输入标题', trigger: 'blur' }],
   content: [{ required: true, message: '请输入内容', trigger: 'blur' }],
   category_id: [
-    { 
-      required: true, 
-      message: '请选择分类', 
+    {
+      required: true,
+      message: '请选择分类',
       trigger: ['blur', 'change'],
       validator: (_rule: any, value: any) => {
         if (value === null || value === undefined || value === 0) {
@@ -610,27 +640,27 @@ function handleBeforeUploadMarkdown(data: { file: UploadFileInfo }) {
     message.error('文件读取失败')
     return false
   }
-  
+
   // 检查文件类型
   const fileName = file.name.toLowerCase()
   if (!fileName.endsWith('.md') && !fileName.endsWith('.markdown')) {
     message.error('只能上传 .md 或 .markdown 格式的文件')
     return false
   }
-  
+
   // 检查文件大小（10MB）
   const maxSize = 10 * 1024 * 1024
   if (file.size > maxSize) {
     message.error('文件大小不能超过 10MB')
     return false
   }
-  
+
   // 添加到文件列表
   markdownFileList.value = [data.file]
-  
+
   // 读取文件内容
   const reader = new FileReader()
-  reader.onload = (e) => {
+  reader.onload = e => {
     const content = e.target?.result as string
     markdownContent.value = content
     markdownFileName.value = file.name
@@ -641,7 +671,7 @@ function handleBeforeUploadMarkdown(data: { file: UploadFileInfo }) {
     markdownFileList.value = []
   }
   reader.readAsText(file, 'UTF-8')
-  
+
   return false // 阻止自动上传，我们手动处理
 }
 
@@ -658,26 +688,26 @@ function handleParseMarkdown() {
     message.warning('请先上传Markdown文件')
     return
   }
-  
+
   try {
     // 解析Markdown内容，尝试提取front matter
     const parsed = parseMarkdownContent(markdownContent.value)
-    
+
     // 填充表单数据
     formData.title = parsed.title || markdownFileName.value.replace(/\.(md|markdown)$/i, '')
     formData.content = parsed.content
     formData.summary = parsed.summary || ''
     formData.cover = parsed.cover || ''
-    
+
     // 关闭上传对话框，打开创建文章对话框
     showUploadModal.value = false
     showCreateModal.value = true
-    
+
     // 清空上传相关数据
     markdownFileList.value = []
     markdownContent.value = ''
     markdownFileName.value = ''
-    
+
     message.success('Markdown内容已解析，请完善文章信息后保存')
   } catch (error: any) {
     message.error('解析Markdown文件失败：' + (error.message || '未知错误'))
@@ -689,20 +719,20 @@ function convertHtmlImgToMarkdown(content: string): string {
   // 匹配HTML img标签，支持自闭合和普通格式
   // 匹配 <img src="url" alt="alt" ... /> 或 <img src="url" alt="alt" ...>
   const imgTagRegex = /<img\s+([^>]*?)\/?>/gi
-  
+
   return content.replace(imgTagRegex, (match, attributes) => {
     // 提取src属性
     const srcMatch = attributes.match(/src\s*=\s*["']([^"']+)["']/i)
     if (!srcMatch) {
       return match // 如果没有src属性，保留原标签
     }
-    
+
     const imageUrl = srcMatch[1]
-    
+
     // 提取alt属性，如果没有则从URL中提取文件名作为alt
     const altMatch = attributes.match(/alt\s*=\s*["']([^"']*)["']/i)
     let altText = altMatch ? altMatch[1] : ''
-    
+
     // 如果alt为空，从URL中提取文件名（不含扩展名）
     if (!altText && imageUrl) {
       const urlMatch = imageUrl.match(/\/([^\/]+)\.(jpg|jpeg|png|gif|webp|svg)$/i)
@@ -713,7 +743,7 @@ function convertHtmlImgToMarkdown(content: string): string {
         altText = 'image'
       }
     }
-    
+
     // 转换为Markdown格式
     return `![${altText}](${imageUrl})`
   })
@@ -729,24 +759,24 @@ function parseMarkdownContent(content: string) {
   } = {
     content: content
   }
-  
+
   // 先将HTML格式的img标签转换为Markdown格式
   content = convertHtmlImgToMarkdown(content)
-  
+
   // 尝试解析YAML front matter
   const frontMatterRegex = /^---\s*\n([\s\S]*?)\n---\s*\n([\s\S]*)$/
   const match = content.match(frontMatterRegex)
-  
+
   if (match) {
     const frontMatter = match[1]
     // 内容部分也需要转换HTML img标签
     result.content = convertHtmlImgToMarkdown(match[2])
-    
+
     // 解析YAML front matter中的字段
     const titleMatch = frontMatter.match(/^title:\s*(.+)$/m)
     const summaryMatch = frontMatter.match(/^summary:\s*(.+)$/m)
     const coverMatch = frontMatter.match(/^cover:\s*(.+)$/m)
-    
+
     if (titleMatch) {
       result.title = titleMatch[1].trim().replace(/^["']|["']$/g, '')
     }
@@ -767,7 +797,7 @@ function parseMarkdownContent(content: string) {
       // 如果没有标题，直接使用转换后的内容
       result.content = content
     }
-    
+
     // 尝试提取摘要（前200个字符，去除markdown语法和HTML标签）
     // 先移除代码块（包括多行和单行）
     let plainText = result.content.replace(/```[\s\S]*?```/g, '')
@@ -785,7 +815,7 @@ function parseMarkdownContent(content: string) {
     plainText = plainText.replace(/&[a-z]+;/gi, ' ')
     // 移除多余的空格和换行
     plainText = plainText.replace(/\n+/g, ' ').replace(/\s+/g, ' ').trim()
-    
+
     if (plainText.length > 0) {
       result.summary = plainText.substring(0, 200)
       if (plainText.length > 200) {
@@ -793,7 +823,7 @@ function parseMarkdownContent(content: string) {
       }
     }
   }
-  
+
   return result
 }
 
@@ -809,7 +839,7 @@ async function handleSubmit() {
   try {
     // 先进行前端表单验证
     await formRef.value?.validate()
-    
+
     submitting.value = true
     await createPost(formData)
     message.success('文章创建成功')
@@ -821,7 +851,7 @@ async function handleSubmit() {
     if (error?.errors) {
       return
     }
-    
+
     // 处理后端返回的错误
     let errorMessage = '创建失败'
     if (error.response?.data?.message) {
@@ -829,7 +859,7 @@ async function handleSubmit() {
     } else if (error.message) {
       errorMessage = error.message
     }
-    
+
     message.error(errorMessage)
   } finally {
     submitting.value = false
@@ -847,7 +877,7 @@ function handleDelete(id: number) {
   // 前端权限检查：普通管理员不能删除超级管理员创建的文章
   const currentUserRole = authStore.user?.role || 'user'
   const postAuthorRole = post.user?.role || 'user'
-  
+
   if (currentUserRole === 'admin' && postAuthorRole === 'super_admin') {
     message.error('普通管理员无权删除超级管理员创建的文章')
     return
@@ -941,7 +971,7 @@ async function saveAsDraft() {
     }
 
     submitting.value = true
-    
+
     // 设置为草稿状态
     const draftData = { ...formData, status: 0 }
     await createPost(draftData)
@@ -1045,11 +1075,11 @@ function handleModalClose() {
   .header h1 {
     font-size: 20px;
   }
-  
+
   .post-manage-page :deep(.n-data-table) {
     font-size: 13px;
   }
-  
+
   .pagination-wrapper {
     justify-content: center; /* 手机上居中显示分页器，避免贴边 */
     margin-top: 12px;
@@ -1178,6 +1208,4 @@ function handleModalClose() {
   color: #333;
   word-break: break-all;
 }
-
 </style>
-

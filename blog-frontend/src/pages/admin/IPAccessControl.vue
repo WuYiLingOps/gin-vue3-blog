@@ -13,216 +13,246 @@
 
     <!-- 标签页 -->
     <n-tabs v-model:value="activeTab" type="line" animated @update:value="onTabChange">
-    <!-- 黑名单标签页 -->
-    <n-tab-pane name="blacklist" tab="IP 黑名单">
-      <!-- 操作栏 -->
-      <n-space style="margin-bottom: 16px; margin-top: 16px" justify="space-between" align="center">
-        <n-space>
-          <n-button type="primary" @click="showAddBlacklistModal = true">
+      <!-- 黑名单标签页 -->
+      <n-tab-pane name="blacklist" tab="IP 黑名单">
+        <!-- 操作栏 -->
+        <n-space
+          style="margin-bottom: 16px; margin-top: 16px"
+          justify="space-between"
+          align="center"
+        >
+          <n-space>
+            <n-button type="primary" @click="showAddBlacklistModal = true">
+              <template #icon>
+                <n-icon>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+                  </svg>
+                </n-icon>
+              </template>
+              添加 IP
+            </n-button>
+            <n-button @click="showCheckBlacklistModal = true">
+              <template #icon>
+                <n-icon>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path
+                      fill="currentColor"
+                      d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+                    />
+                  </svg>
+                </n-icon>
+              </template>
+              检查 IP
+            </n-button>
+            <n-button type="warning" @click="handleCleanExpiredBlacklist">
+              <template #icon>
+                <n-icon>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path
+                      fill="currentColor"
+                      d="M19 4h-3.5l-1-1h-5l-1 1H5v2h14M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6v12z"
+                    />
+                  </svg>
+                </n-icon>
+              </template>
+              清理过期记录
+            </n-button>
+          </n-space>
+          <n-button @click="fetchBlacklist">
             <template #icon>
               <n-icon>
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                  <path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                  <path
+                    fill="currentColor"
+                    d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"
+                  />
                 </svg>
               </n-icon>
             </template>
-            添加 IP
-          </n-button>
-          <n-button @click="showCheckBlacklistModal = true">
-            <template #icon>
-              <n-icon>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                  <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                </svg>
-              </n-icon>
-            </template>
-            检查 IP
-          </n-button>
-          <n-button type="warning" @click="handleCleanExpiredBlacklist">
-            <template #icon>
-              <n-icon>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                  <path fill="currentColor" d="M19 4h-3.5l-1-1h-5l-1 1H5v2h14M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6v12z"/>
-                </svg>
-              </n-icon>
-            </template>
-            清理过期记录
+            刷新
           </n-button>
         </n-space>
-        <n-button @click="fetchBlacklist">
-          <template #icon>
-            <n-icon>
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                <path fill="currentColor" d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
-              </svg>
-            </n-icon>
-          </template>
-          刷新
-        </n-button>
-      </n-space>
 
-      <!-- 移动端卡片布局 -->
-      <div v-if="isMobile" class="ip-cards">
-        <n-card v-for="item in blacklist" :key="item.id" class="ip-card" size="small">
-          <template #header>
-            <n-space align="center" justify="space-between">
+        <!-- 移动端卡片布局 -->
+        <div v-if="isMobile" class="ip-cards">
+          <n-card v-for="item in blacklist" :key="item.id" class="ip-card" size="small">
+            <template #header>
+              <n-space align="center" justify="space-between">
+                <span class="ip-address">{{ item.ip }}</span>
+                <n-tag :type="item.ban_type === 1 ? 'warning' : 'error'" size="tiny">
+                  {{ item.ban_type === 1 ? '自动封禁' : '手动封禁' }}
+                </n-tag>
+              </n-space>
+            </template>
+
+            <div class="card-content">
+              <div class="info-item">
+                <span class="label">原因：</span>
+                <span class="value">{{ item.reason || '无' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">过期时间：</span>
+                <span class="value">{{
+                  item.expire_at ? formatDate(item.expire_at) : '永久封禁'
+                }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">封禁时间：</span>
+                <span class="value">{{ formatDate(item.created_at) }}</span>
+              </div>
+            </div>
+
+            <template #footer>
+              <n-space justify="end">
+                <n-button size="tiny" type="error" @click="handleDeleteBlacklist(item.id, item.ip)">
+                  解除封禁
+                </n-button>
+              </n-space>
+            </template>
+          </n-card>
+
+          <!-- 移动端分页 -->
+          <div class="pagination-wrapper is-mobile">
+            <n-pagination
+              v-model:page="blacklistCurrentPage"
+              :page-count="blacklistPagination.pageCount"
+              :simple="true"
+              @update:page="handleBlacklistPageChange"
+            />
+          </div>
+        </div>
+
+        <!-- 数据表格 (PC端) -->
+        <n-data-table
+          v-else
+          :columns="blacklistColumns"
+          :data="blacklist"
+          :loading="blacklistLoading"
+          :pagination="blacklistPagination"
+          :single-line="false"
+          @update:page="handleBlacklistPageChange"
+          @update:page-size="handleBlacklistPageSizeChange"
+        />
+      </n-tab-pane>
+
+      <!-- 白名单标签页 -->
+      <n-tab-pane name="whitelist" tab="IP 白名单">
+        <!-- 操作栏 -->
+        <n-space
+          style="margin-bottom: 16px; margin-top: 16px"
+          justify="space-between"
+          align="center"
+        >
+          <n-space>
+            <n-button type="primary" @click="showAddWhitelistModal = true">
+              <template #icon>
+                <n-icon>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+                  </svg>
+                </n-icon>
+              </template>
+              添加 IP
+            </n-button>
+            <n-button @click="showCheckWhitelistModal = true">
+              <template #icon>
+                <n-icon>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path
+                      fill="currentColor"
+                      d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+                    />
+                  </svg>
+                </n-icon>
+              </template>
+              检查 IP
+            </n-button>
+            <n-button type="warning" @click="handleCleanExpiredWhitelist">
+              <template #icon>
+                <n-icon>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path
+                      fill="currentColor"
+                      d="M19 4h-3.5l-1-1h-5l-1 1H5v2h14M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6v12z"
+                    />
+                  </svg>
+                </n-icon>
+              </template>
+              清理过期记录
+            </n-button>
+          </n-space>
+          <n-button @click="fetchWhitelist">
+            <template #icon>
+              <n-icon>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                  <path
+                    fill="currentColor"
+                    d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"
+                  />
+                </svg>
+              </n-icon>
+            </template>
+            刷新
+          </n-button>
+        </n-space>
+
+        <!-- 移动端卡片布局 -->
+        <div v-if="isMobile" class="ip-cards">
+          <n-card v-for="item in whitelist" :key="item.id" class="ip-card" size="small">
+            <template #header>
               <span class="ip-address">{{ item.ip }}</span>
-              <n-tag :type="item.ban_type === 1 ? 'warning' : 'error'" size="tiny">
-                {{ item.ban_type === 1 ? '自动封禁' : '手动封禁' }}
-              </n-tag>
-            </n-space>
-          </template>
-          
-          <div class="card-content">
-            <div class="info-item">
-              <span class="label">原因：</span>
-              <span class="value">{{ item.reason || '无' }}</span>
+            </template>
+
+            <div class="card-content">
+              <div class="info-item">
+                <span class="label">原因：</span>
+                <span class="value">{{ item.reason || '无' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">过期时间：</span>
+                <span class="value">{{
+                  item.expire_at ? formatDate(item.expire_at) : '永久有效'
+                }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">添加时间：</span>
+                <span class="value">{{ formatDate(item.created_at) }}</span>
+              </div>
             </div>
-            <div class="info-item">
-              <span class="label">过期时间：</span>
-              <span class="value">{{ item.expire_at ? formatDate(item.expire_at) : '永久封禁' }}</span>
-            </div>
-            <div class="info-item">
-              <span class="label">封禁时间：</span>
-              <span class="value">{{ formatDate(item.created_at) }}</span>
-            </div>
+
+            <template #footer>
+              <n-space justify="end">
+                <n-button size="tiny" type="error" @click="handleDeleteWhitelist(item.id, item.ip)">
+                  移除白名单
+                </n-button>
+              </n-space>
+            </template>
+          </n-card>
+
+          <!-- 移动端分页 -->
+          <div class="pagination-wrapper is-mobile">
+            <n-pagination
+              v-model:page="whitelistCurrentPage"
+              :page-count="whitelistPagination.pageCount"
+              :simple="true"
+              @update:page="handleWhitelistPageChange"
+            />
           </div>
-
-          <template #footer>
-            <n-space justify="end">
-              <n-button size="tiny" type="error" @click="handleDeleteBlacklist(item.id, item.ip)">
-                解除封禁
-              </n-button>
-            </n-space>
-          </template>
-        </n-card>
-
-        <!-- 移动端分页 -->
-        <div class="pagination-wrapper is-mobile">
-          <n-pagination
-            v-model:page="blacklistCurrentPage"
-            :page-count="blacklistPagination.pageCount"
-            :simple="true"
-            @update:page="handleBlacklistPageChange"
-          />
         </div>
-      </div>
 
-      <!-- 数据表格 (PC端) -->
-      <n-data-table
-        v-else
-        :columns="blacklistColumns"
-        :data="blacklist"
-        :loading="blacklistLoading"
-        :pagination="blacklistPagination"
-        :single-line="false"
-        @update:page="handleBlacklistPageChange"
-        @update:page-size="handleBlacklistPageSizeChange"
-      />
-    </n-tab-pane>
-
-    <!-- 白名单标签页 -->
-    <n-tab-pane name="whitelist" tab="IP 白名单">
-      <!-- 操作栏 -->
-      <n-space style="margin-bottom: 16px; margin-top: 16px" justify="space-between" align="center">
-        <n-space>
-          <n-button type="primary" @click="showAddWhitelistModal = true">
-            <template #icon>
-              <n-icon>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                  <path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
-                </svg>
-              </n-icon>
-            </template>
-            添加 IP
-          </n-button>
-          <n-button @click="showCheckWhitelistModal = true">
-            <template #icon>
-              <n-icon>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                  <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                </svg>
-              </n-icon>
-            </template>
-            检查 IP
-          </n-button>
-          <n-button type="warning" @click="handleCleanExpiredWhitelist">
-            <template #icon>
-              <n-icon>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                  <path fill="currentColor" d="M19 4h-3.5l-1-1h-5l-1 1H5v2h14M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6v12z"/>
-                </svg>
-              </n-icon>
-            </template>
-            清理过期记录
-          </n-button>
-        </n-space>
-        <n-button @click="fetchWhitelist">
-          <template #icon>
-            <n-icon>
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                <path fill="currentColor" d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
-              </svg>
-            </n-icon>
-          </template>
-          刷新
-        </n-button>
-      </n-space>
-
-      <!-- 移动端卡片布局 -->
-      <div v-if="isMobile" class="ip-cards">
-        <n-card v-for="item in whitelist" :key="item.id" class="ip-card" size="small">
-          <template #header>
-            <span class="ip-address">{{ item.ip }}</span>
-          </template>
-          
-          <div class="card-content">
-            <div class="info-item">
-              <span class="label">原因：</span>
-              <span class="value">{{ item.reason || '无' }}</span>
-            </div>
-            <div class="info-item">
-              <span class="label">过期时间：</span>
-              <span class="value">{{ item.expire_at ? formatDate(item.expire_at) : '永久有效' }}</span>
-            </div>
-            <div class="info-item">
-              <span class="label">添加时间：</span>
-              <span class="value">{{ formatDate(item.created_at) }}</span>
-            </div>
-          </div>
-
-          <template #footer>
-            <n-space justify="end">
-              <n-button size="tiny" type="error" @click="handleDeleteWhitelist(item.id, item.ip)">
-                移除白名单
-              </n-button>
-            </n-space>
-          </template>
-        </n-card>
-
-        <!-- 移动端分页 -->
-        <div class="pagination-wrapper is-mobile">
-          <n-pagination
-            v-model:page="whitelistCurrentPage"
-            :page-count="whitelistPagination.pageCount"
-            :simple="true"
-            @update:page="handleWhitelistPageChange"
-          />
-        </div>
-      </div>
-
-      <!-- 数据表格 (PC端) -->
-      <n-data-table
-        v-else
-        :columns="whitelistColumns"
-        :data="whitelist"
-        :loading="whitelistLoading"
-        :pagination="whitelistPagination"
-        :single-line="false"
-        @update:page="handleWhitelistPageChange"
-        @update:page-size="handleWhitelistPageSizeChange"
-      />
-    </n-tab-pane>
+        <!-- 数据表格 (PC端) -->
+        <n-data-table
+          v-else
+          :columns="whitelistColumns"
+          :data="whitelist"
+          :loading="whitelistLoading"
+          :pagination="whitelistPagination"
+          :single-line="false"
+          @update:page="handleWhitelistPageChange"
+          @update:page-size="handleWhitelistPageSizeChange"
+        />
+      </n-tab-pane>
     </n-tabs>
 
     <!-- 添加黑名单 IP 对话框 -->
@@ -235,7 +265,12 @@
         closable
         @close="handleAddBlacklistModalClose"
       >
-        <n-form ref="addBlacklistFormRef" :model="addBlacklistForm" :rules="addBlacklistFormRules" label-width="100px">
+        <n-form
+          ref="addBlacklistFormRef"
+          :model="addBlacklistForm"
+          :rules="addBlacklistFormRules"
+          label-width="100px"
+        >
           <n-form-item label="IP 地址" path="ip">
             <n-input
               v-model:value="addBlacklistForm.ip"
@@ -289,7 +324,12 @@
         closable
         @close="handleCheckBlacklistModalClose"
       >
-        <n-form ref="checkBlacklistFormRef" :model="checkBlacklistForm" :rules="checkBlacklistFormRules" label-width="100px">
+        <n-form
+          ref="checkBlacklistFormRef"
+          :model="checkBlacklistForm"
+          :rules="checkBlacklistFormRules"
+          label-width="100px"
+        >
           <n-form-item label="IP 地址" path="ip">
             <n-input
               v-model:value="checkBlacklistForm.ip"
@@ -328,7 +368,10 @@
               {{ checkBlacklistResult.banned ? '该 IP 已被封禁' : '该 IP 未被封禁' }}
             </template>
           </n-alert>
-          <div v-if="checkBlacklistResult.banned && checkBlacklistResult.info" class="check-result-info">
+          <div
+            v-if="checkBlacklistResult.banned && checkBlacklistResult.info"
+            class="check-result-info"
+          >
             <n-descriptions :column="1" bordered>
               <n-descriptions-item label="IP 地址">
                 {{ checkBlacklistResult.info.ip }}
@@ -342,7 +385,11 @@
                 {{ checkBlacklistResult.info.reason || '无' }}
               </n-descriptions-item>
               <n-descriptions-item label="过期时间">
-                {{ checkBlacklistResult.info.expire_at ? formatDate(checkBlacklistResult.info.expire_at) : '永久封禁' }}
+                {{
+                  checkBlacklistResult.info.expire_at
+                    ? formatDate(checkBlacklistResult.info.expire_at)
+                    : '永久封禁'
+                }}
               </n-descriptions-item>
               <n-descriptions-item label="封禁时间">
                 {{ formatDate(checkBlacklistResult.info.created_at) }}
@@ -375,7 +422,12 @@
         closable
         @close="handleAddWhitelistModalClose"
       >
-        <n-form ref="addWhitelistFormRef" :model="addWhitelistForm" :rules="addWhitelistFormRules" label-width="100px">
+        <n-form
+          ref="addWhitelistFormRef"
+          :model="addWhitelistForm"
+          :rules="addWhitelistFormRules"
+          label-width="100px"
+        >
           <n-form-item label="IP 地址" path="ip">
             <n-input
               v-model:value="addWhitelistForm.ip"
@@ -429,7 +481,12 @@
         closable
         @close="handleCheckWhitelistModalClose"
       >
-        <n-form ref="checkWhitelistFormRef" :model="checkWhitelistForm" :rules="checkWhitelistFormRules" label-width="100px">
+        <n-form
+          ref="checkWhitelistFormRef"
+          :model="checkWhitelistForm"
+          :rules="checkWhitelistFormRules"
+          label-width="100px"
+        >
           <n-form-item label="IP 地址" path="ip">
             <n-input
               v-model:value="checkWhitelistForm.ip"
@@ -468,7 +525,10 @@
               {{ checkWhitelistResult.whitelisted ? '该 IP 已在白名单中' : '该 IP 不在白名单中' }}
             </template>
           </n-alert>
-          <div v-if="checkWhitelistResult.whitelisted && checkWhitelistResult.info" class="check-result-info">
+          <div
+            v-if="checkWhitelistResult.whitelisted && checkWhitelistResult.info"
+            class="check-result-info"
+          >
             <n-descriptions :column="1" bordered>
               <n-descriptions-item label="IP 地址">
                 {{ checkWhitelistResult.info.ip }}
@@ -477,7 +537,11 @@
                 {{ checkWhitelistResult.info.reason || '无' }}
               </n-descriptions-item>
               <n-descriptions-item label="过期时间">
-                {{ checkWhitelistResult.info.expire_at ? formatDate(checkWhitelistResult.info.expire_at) : '永久有效' }}
+                {{
+                  checkWhitelistResult.info.expire_at
+                    ? formatDate(checkWhitelistResult.info.expire_at)
+                    : '永久有效'
+                }}
               </n-descriptions-item>
               <n-descriptions-item label="添加时间">
                 {{ formatDate(checkWhitelistResult.info.created_at) }}
@@ -636,7 +700,8 @@ const validateIP = (_rule: any, value: string): boolean | Error => {
   if (!value) {
     return new Error('请输入 IP 地址')
   }
-  const ipRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/
+  const ipRegex =
+    /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/
   const ipv6Regex = /^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$|^::1$|^::$/
   if (!ipRegex.test(value) && !ipv6Regex.test(value)) {
     return new Error('IP 地址格式不正确')
@@ -649,10 +714,12 @@ const validateIPOrCIDR = (_rule: any, value: string): boolean | Error => {
   if (!value) {
     return new Error('请输入 IP 地址或 CIDR')
   }
-  const ipv4Regex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/
+  const ipv4Regex =
+    /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/
   const ipv6Regex = /^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$|^::1$|^::$/
-  const cidrRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\/([0-9]|[1-2][0-9]|3[0-2])$/
-  
+  const cidrRegex =
+    /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\/([0-9]|[1-2][0-9]|3[0-2])$/
+
   if (ipv4Regex.test(value) || ipv6Regex.test(value) || cidrRegex.test(value)) {
     return true
   }
@@ -660,33 +727,39 @@ const validateIPOrCIDR = (_rule: any, value: string): boolean | Error => {
 }
 
 const addBlacklistFormRules: FormRules = {
-  ip: [
-    { required: true, validator: validateIP, trigger: ['blur', 'input'] }
-  ],
+  ip: [{ required: true, validator: validateIP, trigger: ['blur', 'input'] }],
   duration: [
-    { required: true, type: 'number', min: 0, max: 8760, message: '封禁时长必须在 0-8760 小时之间', trigger: 'blur' }
+    {
+      required: true,
+      type: 'number',
+      min: 0,
+      max: 8760,
+      message: '封禁时长必须在 0-8760 小时之间',
+      trigger: 'blur'
+    }
   ]
 }
 
 const checkBlacklistFormRules: FormRules = {
-  ip: [
-    { required: true, validator: validateIP, trigger: ['blur', 'input'] }
-  ]
+  ip: [{ required: true, validator: validateIP, trigger: ['blur', 'input'] }]
 }
 
 const addWhitelistFormRules: FormRules = {
-  ip: [
-    { required: true, validator: validateIPOrCIDR, trigger: ['blur', 'input'] }
-  ],
+  ip: [{ required: true, validator: validateIPOrCIDR, trigger: ['blur', 'input'] }],
   duration: [
-    { required: true, type: 'number', min: 0, max: 8760, message: '有效期必须在 0-8760 小时之间', trigger: 'blur' }
+    {
+      required: true,
+      type: 'number',
+      min: 0,
+      max: 8760,
+      message: '有效期必须在 0-8760 小时之间',
+      trigger: 'blur'
+    }
   ]
 }
 
 const checkWhitelistFormRules: FormRules = {
-  ip: [
-    { required: true, validator: validateIPOrCIDR, trigger: ['blur', 'input'] }
-  ]
+  ip: [{ required: true, validator: validateIPOrCIDR, trigger: ['blur', 'input'] }]
 }
 
 // 黑名单表格列
@@ -705,7 +778,7 @@ const blacklistColumns: DataTableColumns<IPBlacklist> = [
     title: '封禁类型',
     key: 'ban_type',
     width: 120,
-    render: (row) =>
+    render: row =>
       h(
         NTag,
         { type: row.ban_type === 1 ? 'warning' : 'error', size: 'small' },
@@ -721,19 +794,19 @@ const blacklistColumns: DataTableColumns<IPBlacklist> = [
     title: '过期时间',
     key: 'expire_at',
     width: 180,
-    render: (row) => row.expire_at ? formatDate(row.expire_at) : '永久封禁'
+    render: row => (row.expire_at ? formatDate(row.expire_at) : '永久封禁')
   },
   {
     title: '封禁时间',
     key: 'created_at',
     width: 180,
-    render: (row) => formatDate(row.created_at)
+    render: row => formatDate(row.created_at)
   },
   {
     title: '操作',
     key: 'actions',
     width: 100,
-    render: (row) =>
+    render: row =>
       h(
         NButton,
         {
@@ -767,19 +840,19 @@ const whitelistColumns: DataTableColumns<IPWhitelist> = [
     title: '过期时间',
     key: 'expire_at',
     width: 180,
-    render: (row) => row.expire_at ? formatDate(row.expire_at) : '永久有效'
+    render: row => (row.expire_at ? formatDate(row.expire_at) : '永久有效')
   },
   {
     title: '添加时间',
     key: 'created_at',
     width: 180,
-    render: (row) => formatDate(row.created_at)
+    render: row => formatDate(row.created_at)
   },
   {
     title: '操作',
     key: 'actions',
     width: 100,
-    render: (row) =>
+    render: row =>
       h(
         NButton,
         {
@@ -1105,7 +1178,7 @@ onUnmounted(() => {
   .page-title {
     font-size: 20px;
   }
-  
+
   .ip-access-control-page :deep(.n-data-table) {
     font-size: 13px;
   }
@@ -1164,4 +1237,3 @@ onUnmounted(() => {
   padding-bottom: 20px;
 }
 </style>
-

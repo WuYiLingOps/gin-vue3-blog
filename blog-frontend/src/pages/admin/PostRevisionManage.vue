@@ -29,7 +29,12 @@
     <!-- 内容区域 -->
     <div class="content-area">
       <div v-if="isMobile || viewMode === 'card'" class="card-list">
-        <n-card v-for="revision in revisions" :key="revision.id" class="list-card" :size="isMobile ? 'small' : 'medium'">
+        <n-card
+          v-for="revision in revisions"
+          :key="revision.id"
+          class="list-card"
+          :size="isMobile ? 'small' : 'medium'"
+        >
           <template #header>
             <div class="card-header-content">
               <span class="post-title">{{ revision.title }}</span>
@@ -55,13 +60,26 @@
               <n-button :size="isMobile ? 'tiny' : 'small'" @click="handleViewDiff(revision.id)">
                 查看对比
               </n-button>
-              <n-button v-if="canWithdraw(revision)" :size="isMobile ? 'tiny' : 'small'" type="warning" @click="handleWithdraw(revision.id)">
+              <n-button
+                v-if="canWithdraw(revision)"
+                :size="isMobile ? 'tiny' : 'small'"
+                type="warning"
+                @click="handleWithdraw(revision.id)"
+              >
                 撤回
               </n-button>
-              <n-button :size="isMobile ? 'tiny' : 'small'" type="success" @click="handleApprove(revision.id)">
+              <n-button
+                :size="isMobile ? 'tiny' : 'small'"
+                type="success"
+                @click="handleApprove(revision.id)"
+              >
                 通过
               </n-button>
-              <n-button :size="isMobile ? 'tiny' : 'small'" type="error" @click="handleReject(revision.id)">
+              <n-button
+                :size="isMobile ? 'tiny' : 'small'"
+                type="error"
+                @click="handleReject(revision.id)"
+              >
                 拒绝
               </n-button>
             </n-space>
@@ -92,24 +110,33 @@
     </div>
 
     <!-- 对比弹窗 -->
-    <n-modal v-model:show="showDiffModal" preset="card" title="修改对比" style="width: 90%; max-width: 1200px;">
+    <n-modal
+      v-model:show="showDiffModal"
+      preset="card"
+      title="修改对比"
+      style="width: 90%; max-width: 1200px"
+    >
       <div v-if="diffData" class="diff-container">
         <n-space vertical :size="16">
           <!-- 基本信息 -->
           <n-card title="基本信息" size="small">
             <n-descriptions :column="2" bordered>
               <n-descriptions-item label="文章标题">{{ diffData.post_title }}</n-descriptions-item>
-              <n-descriptions-item label="修改者">{{ diffData.editor.username }}</n-descriptions-item>
-              <n-descriptions-item label="修改时间">{{ formatDate(diffData.created_at) }}</n-descriptions-item>
-              <n-descriptions-item label="修改说明">{{ diffData.editor_comment || '无' }}</n-descriptions-item>
+              <n-descriptions-item label="修改者">{{
+                diffData.editor.username
+              }}</n-descriptions-item>
+              <n-descriptions-item label="修改时间">{{
+                formatDate(diffData.created_at)
+              }}</n-descriptions-item>
+              <n-descriptions-item label="修改说明">{{
+                diffData.editor_comment || '无'
+              }}</n-descriptions-item>
             </n-descriptions>
           </n-card>
 
           <!-- 修改内容 -->
           <n-card title="修改内容" size="small">
-            <n-alert v-if="diffData.changes_count === 0" type="info">
-              无修改内容
-            </n-alert>
+            <n-alert v-if="diffData.changes_count === 0" type="info"> 无修改内容 </n-alert>
             <n-space v-else vertical :size="16">
               <div v-for="change in diffData.changes" :key="change.field" class="change-item">
                 <n-divider title-placement="left">
@@ -171,7 +198,13 @@ import { ref, computed, onMounted, onUnmounted, h, watch } from 'vue'
 import { useMessage, useDialog, NButton, NIcon, NTag, NSpace, NEllipsis } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
 import { GridOutline, AppsOutline } from '@vicons/ionicons5'
-import { getPendingRevisions, getRevisionDiff, approveRevision, rejectRevision, withdrawRevision } from '@/api/postRevision'
+import {
+  getPendingRevisions,
+  getRevisionDiff,
+  approveRevision,
+  rejectRevision,
+  withdrawRevision
+} from '@/api/postRevision'
 import { useAuthStore } from '@/stores'
 import { formatDate } from '@/utils/format'
 import type { PostRevision, RevisionDiff } from '@/types/blog'
@@ -218,7 +251,8 @@ const columns: DataTableColumns<PostRevision> = [
     ellipsis: {
       tooltip: true
     },
-    render: row => h(NEllipsis, { style: 'max-width: 250px' }, { default: () => row.post?.title || '-' })
+    render: row =>
+      h(NEllipsis, { style: 'max-width: 250px' }, { default: () => row.post?.title || '-' })
   },
   {
     title: '编辑者',
@@ -245,43 +279,46 @@ const columns: DataTableColumns<PostRevision> = [
     width: 240,
     render: row =>
       h(NSpace, null, {
-        default: () => [
-          h(
-            NButton,
-            {
-              size: 'small',
-              onClick: () => handleViewDiff(row.id)
-            },
-            { default: () => '查看对比' }
-          ),
-          canWithdraw(row) ? h(
-            NButton,
-            {
-              size: 'small',
-              type: 'warning',
-              onClick: () => handleWithdraw(row.id)
-            },
-            { default: () => '撤回' }
-          ) : null,
-          h(
-            NButton,
-            {
-              size: 'small',
-              type: 'success',
-              onClick: () => handleApprove(row.id)
-            },
-            { default: () => '通过' }
-          ),
-          h(
-            NButton,
-            {
-              size: 'small',
-              type: 'error',
-              onClick: () => handleReject(row.id)
-            },
-            { default: () => '拒绝' }
-          )
-        ].filter(Boolean)
+        default: () =>
+          [
+            h(
+              NButton,
+              {
+                size: 'small',
+                onClick: () => handleViewDiff(row.id)
+              },
+              { default: () => '查看对比' }
+            ),
+            canWithdraw(row)
+              ? h(
+                  NButton,
+                  {
+                    size: 'small',
+                    type: 'warning',
+                    onClick: () => handleWithdraw(row.id)
+                  },
+                  { default: () => '撤回' }
+                )
+              : null,
+            h(
+              NButton,
+              {
+                size: 'small',
+                type: 'success',
+                onClick: () => handleApprove(row.id)
+              },
+              { default: () => '通过' }
+            ),
+            h(
+              NButton,
+              {
+                size: 'small',
+                type: 'error',
+                onClick: () => handleReject(row.id)
+              },
+              { default: () => '拒绝' }
+            )
+          ].filter(Boolean)
       })
   }
 ]
@@ -302,7 +339,7 @@ onUnmounted(() => {
   window.removeEventListener('resize', checkMobile)
 })
 
-watch(viewMode, (newMode) => {
+watch(viewMode, newMode => {
   localStorage.setItem('revision-manage-view-mode', newMode)
 })
 

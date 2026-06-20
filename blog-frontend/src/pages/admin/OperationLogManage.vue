@@ -12,7 +12,10 @@
     <n-card title="操作日志管理">
       <template #header-extra>
         <n-button-group v-if="!isMobile" size="small">
-          <n-button :type="viewMode === 'table' ? 'primary' : 'default'" @click="viewMode = 'table'">
+          <n-button
+            :type="viewMode === 'table' ? 'primary' : 'default'"
+            @click="viewMode = 'table'"
+          >
             <template #icon>
               <n-icon :component="GridOutline" />
             </template>
@@ -73,25 +76,26 @@
           <n-space align="center" justify="space-between">
             <n-text strong>已选择 {{ selectedRowKeys.length }} 条记录</n-text>
             <n-space>
-              <n-button type="error" @click="handleBatchDelete">
-                批量删除
-              </n-button>
-              <n-button @click="selectedRowKeys = []">
-                取消选择
-              </n-button>
+              <n-button type="error" @click="handleBatchDelete"> 批量删除 </n-button>
+              <n-button @click="selectedRowKeys = []"> 取消选择 </n-button>
             </n-space>
           </n-space>
         </n-card>
 
         <!-- 数据表格 -->
         <div v-if="isMobile || viewMode === 'card'" class="card-list">
-          <n-card v-for="log in logs" :key="log.id" class="list-card" :size="isMobile ? 'small' : 'medium'">
+          <n-card
+            v-for="log in logs"
+            :key="log.id"
+            class="list-card"
+            :size="isMobile ? 'small' : 'medium'"
+          >
             <template #header>
               <div class="card-header-content">
                 <div class="header-left">
-                  <n-checkbox 
+                  <n-checkbox
                     :checked="selectedRowKeys.includes(log.id)"
-                    @update:checked="(checked) => handleCardSelect(log.id, checked)"
+                    @update:checked="checked => handleCardSelect(log.id, checked)"
                   />
                   <span class="user-name">{{ log.username }}</span>
                 </div>
@@ -125,9 +129,7 @@
             </div>
             <template #footer>
               <n-space justify="end">
-                <n-button size="tiny" type="error" @click="handleDelete(log)">
-                  删除
-                </n-button>
+                <n-button size="tiny" type="error" @click="handleDelete(log)"> 删除 </n-button>
               </n-space>
             </template>
           </n-card>
@@ -163,7 +165,24 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch, h } from 'vue'
-import { useMessage, useDialog, NButton, NTag, NSpace, NCard, NForm, NFormItem, NSelect, NInput, NPagination, NSpin, NText, NCheckbox, NIcon, NButtonGroup } from 'naive-ui'
+import {
+  useMessage,
+  useDialog,
+  NButton,
+  NTag,
+  NSpace,
+  NCard,
+  NForm,
+  NFormItem,
+  NSelect,
+  NInput,
+  NPagination,
+  NSpin,
+  NText,
+  NCheckbox,
+  NIcon,
+  NButtonGroup
+} from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
 import { GridOutline, ListOutline } from '@vicons/ionicons5'
 import { getOperationLogs, deleteOperationLog, batchDeleteOperationLogs } from '@/api/operationLog'
@@ -356,7 +375,7 @@ async function fetchLogs() {
       page: currentPage.value,
       page_size: pageSize
     }
-    
+
     if (filterForm.value.module) {
       params.module = filterForm.value.module
     }
@@ -477,7 +496,7 @@ onUnmounted(() => {
 })
 
 // 监听视图模式变化并保存到 localStorage
-watch(viewMode, (newMode) => {
+watch(viewMode, newMode => {
   localStorage.setItem('operation-log-manage-view-mode', newMode)
 })
 </script>
@@ -498,7 +517,7 @@ watch(viewMode, (newMode) => {
   .operation-log-manage-page {
     padding: 12px;
   }
-  
+
   .pagination-wrapper {
     justify-content: center;
   }
@@ -513,17 +532,18 @@ watch(viewMode, (newMode) => {
     align-items: stretch;
     gap: 12px;
   }
-  
+
   :deep(.n-form-item) {
     margin-right: 0 !important;
     width: 100%;
   }
-  
+
   :deep(.n-form-item-blank) {
     width: 100% !important;
   }
-  
-  :deep(.n-select), :deep(.n-input) {
+
+  :deep(.n-select),
+  :deep(.n-input) {
     width: 100% !important;
   }
 

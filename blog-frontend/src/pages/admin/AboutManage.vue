@@ -11,14 +11,11 @@
   <div class="about-manage-page">
     <n-card title="关于我信息管理">
       <n-spin :show="loading">
-        <n-form
-          :model="formData"
-          label-placement="top"
-        >
+        <n-form :model="formData" label-placement="top">
           <n-form-item label="关于我内容（支持 Markdown 格式）" path="content">
-            <markdown-editor 
-              v-model="formData.content" 
-              :height="isMobile ? '500px' : '700px'" 
+            <markdown-editor
+              v-model="formData.content"
+              :height="isMobile ? '500px' : '700px'"
               :subfield="!isMobile"
               :mode="isSmallScreen ? 'edit' : 'editable'"
             />
@@ -30,20 +27,16 @@
           </n-form-item>
 
           <n-space :vertical="isMobile" style="margin-top: 24px">
-            <n-button 
-              type="primary" 
-              :size="isMobile ? 'medium' : 'large'" 
-              :block="isMobile" 
-              :loading="submitting" 
+            <n-button
+              type="primary"
+              :size="isMobile ? 'medium' : 'large'"
+              :block="isMobile"
+              :loading="submitting"
               @click="handleSubmit"
             >
               保存
             </n-button>
-            <n-button 
-              :size="isMobile ? 'medium' : 'large'" 
-              :block="isMobile" 
-              @click="handleReset"
-            >
+            <n-button :size="isMobile ? 'medium' : 'large'" :block="isMobile" @click="handleReset">
               重置
             </n-button>
           </n-space>

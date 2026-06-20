@@ -42,14 +42,18 @@
                   <n-tag :type="getRoleTagType(user.role)" size="tiny">
                     {{ getRoleText(user.role) }}
                   </n-tag>
-                  <n-tag :type="user.status === 1 ? 'success' : 'default'" size="tiny" style="margin-left: 4px">
+                  <n-tag
+                    :type="user.status === 1 ? 'success' : 'default'"
+                    size="tiny"
+                    style="margin-left: 4px"
+                  >
                     {{ user.status === 1 ? '正常' : '禁用' }}
                   </n-tag>
                 </div>
               </div>
             </n-space>
           </template>
-          
+
           <div class="card-content">
             <div class="info-item">
               <span class="label">用户名：</span>
@@ -67,13 +71,27 @@
 
           <template #footer>
             <n-space justify="end" size="small">
-              <n-button size="tiny" :disabled="user.role === 'super_admin'" @click="handleToggleStatus(user)">
+              <n-button
+                size="tiny"
+                :disabled="user.role === 'super_admin'"
+                @click="handleToggleStatus(user)"
+              >
                 {{ user.status === 1 ? '禁用' : '启用' }}
               </n-button>
-              <n-button size="tiny" :type="user.role === 'admin' ? 'warning' : 'info'" :disabled="user.role === 'super_admin'" @click="handleToggleRole(user)">
+              <n-button
+                size="tiny"
+                :type="user.role === 'admin' ? 'warning' : 'info'"
+                :disabled="user.role === 'super_admin'"
+                @click="handleToggleRole(user)"
+              >
                 {{ user.role === 'admin' ? '取消管理员' : '设为管理员' }}
               </n-button>
-              <n-button size="tiny" type="error" :disabled="user.role === 'super_admin'" @click="handleDelete(user)">
+              <n-button
+                size="tiny"
+                type="error"
+                :disabled="user.role === 'super_admin'"
+                @click="handleDelete(user)"
+              >
                 删除
               </n-button>
             </n-space>
@@ -88,7 +106,7 @@
         :loading="loading"
         :single-line="false"
       />
-      
+
       <!-- 分页 - 位于底部 -->
       <div class="pagination-wrapper" :class="{ 'is-mobile': isMobile }">
         <n-pagination
@@ -107,9 +125,26 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, h } from 'vue'
-import { useMessage, useDialog, NButton, NTag, NSpace, NAvatar, NCard, NText, NSwitch } from 'naive-ui'
+import {
+  useMessage,
+  useDialog,
+  NButton,
+  NTag,
+  NSpace,
+  NAvatar,
+  NCard,
+  NText,
+  NSwitch
+} from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
-import { getUsers, updateUserStatus, updateUserRole, deleteUser, getRegisterSettings, updateRegisterSettings } from '@/api/user'
+import {
+  getUsers,
+  updateUserStatus,
+  updateUserRole,
+  deleteUser,
+  getRegisterSettings,
+  updateRegisterSettings
+} from '@/api/user'
 import { formatDate } from '@/utils/format'
 import type { User } from '@/types/auth'
 
@@ -148,9 +183,9 @@ function getRoleText(role: string): string {
 }
 
 const columns: DataTableColumns<User> = [
-  { 
-    title: 'ID', 
-    key: 'id', 
+  {
+    title: 'ID',
+    key: 'id',
     width: 60,
     render: (_row, index) => {
       return (currentPage.value - 1) * pageSize + index + 1
@@ -201,7 +236,7 @@ const columns: DataTableColumns<User> = [
     render: row => {
       const isSuperAdmin = row.role === 'super_admin'
       const isAdmin = row.role === 'admin'
-      
+
       return h(NSpace, null, {
         default: () => [
           // 状态切换按钮（super_admin 禁用）
@@ -289,12 +324,13 @@ function handleToggleStatus(user: User) {
   const newStatus = user.status === 1 ? 0 : 1
   const action = newStatus === 0 ? '禁用' : '启用'
   const actionType = newStatus === 0 ? 'warning' : 'info'
-  
+
   dialog[actionType]({
     title: `确认${action}`,
-    content: newStatus === 0 
-      ? `确定要禁用用户"${user.nickname || user.username}"吗？禁用后该用户将无法登录！` 
-      : `确定要启用用户"${user.nickname || user.username}"吗？`,
+    content:
+      newStatus === 0
+        ? `确定要禁用用户"${user.nickname || user.username}"吗？禁用后该用户将无法登录！`
+        : `确定要启用用户"${user.nickname || user.username}"吗？`,
     positiveText: '确定',
     negativeText: '取消',
     onPositiveClick: async () => {
@@ -313,7 +349,7 @@ function handleToggleRole(user: User) {
   const isAdmin = user.role === 'admin'
   const newRole = isAdmin ? 'user' : 'admin'
   const action = isAdmin ? '取消管理员身份' : '设为管理员'
-  
+
   dialog.warning({
     title: `确认${action}`,
     content: `确定要将用户"${user.nickname || user.username}"${action}吗？`,
@@ -337,7 +373,7 @@ function handleDelete(user: User) {
     message.error('禁止删除超级管理员账号')
     return
   }
-  
+
   dialog.error({
     title: '确认删除',
     content: `确定要删除用户"${user.nickname || user.username}"吗？此操作不可恢复！`,
@@ -475,14 +511,13 @@ async function handleToggleRegister(value: boolean) {
   .page-title {
     font-size: 20px;
   }
-  
+
   .user-manage-page :deep(.n-data-table) {
     font-size: 13px;
   }
-  
+
   .register-settings-card :deep(.n-card__content) {
     padding: 12px;
   }
 }
 </style>
-

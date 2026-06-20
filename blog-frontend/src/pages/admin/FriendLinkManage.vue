@@ -14,7 +14,10 @@
       <n-space v-if="activeTab === 'links'">
         <!-- 视图切换按钮（仅桌面端显示） -->
         <n-button-group v-if="!isMobile" size="small">
-          <n-button :type="viewMode === 'table' ? 'primary' : 'default'" @click="viewMode = 'table'">
+          <n-button
+            :type="viewMode === 'table' ? 'primary' : 'default'"
+            @click="viewMode = 'table'"
+          >
             <template #icon>
               <n-icon :component="GridOutline" />
             </template>
@@ -42,7 +45,12 @@
           <span v-else>新建</span>
         </n-button>
       </n-space>
-      <n-button v-else type="primary" :size="isMobile ? 'small' : 'medium'" @click="handleCreateCategory">
+      <n-button
+        v-else
+        type="primary"
+        :size="isMobile ? 'small' : 'medium'"
+        @click="handleCreateCategory"
+      >
         <template #icon>
           <n-icon :component="AddOutline" />
         </template>
@@ -54,10 +62,22 @@
     <n-tabs v-model:value="activeTab" type="line" animated>
       <n-tab-pane name="links" tab="友链管理">
         <div v-if="isMobile || viewMode === 'card'" class="card-list">
-          <n-card v-for="link in friendLinks" :key="link.id" class="list-card" :size="isMobile ? 'small' : 'medium'">
+          <n-card
+            v-for="link in friendLinks"
+            :key="link.id"
+            class="list-card"
+            :size="isMobile ? 'small' : 'medium'"
+          >
             <template #header>
               <n-space align="center">
-                <n-image v-if="link.icon" :src="link.icon" width="32" height="32" object-fit="cover" style="border-radius: 4px;" />
+                <n-image
+                  v-if="link.icon"
+                  :src="link.icon"
+                  width="32"
+                  height="32"
+                  object-fit="cover"
+                  style="border-radius: 4px"
+                />
                 <div class="card-title">{{ link.name }}</div>
               </n-space>
             </template>
@@ -80,15 +100,25 @@
               </div>
               <div class="info-item">
                 <span class="label">状态：</span>
-                <n-tag :type="link.status === 1 ? 'success' : 'default'" :size="isMobile ? 'small' : 'medium'">
+                <n-tag
+                  :type="link.status === 1 ? 'success' : 'default'"
+                  :size="isMobile ? 'small' : 'medium'"
+                >
                   {{ link.status === 1 ? '启用' : '禁用' }}
                 </n-tag>
               </div>
             </div>
             <template #footer>
               <n-space justify="end">
-                <n-button :size="isMobile ? 'small' : 'medium'" @click="handleEdit(link)">编辑</n-button>
-                <n-button :size="isMobile ? 'small' : 'medium'" type="error" @click="handleDelete(link.id)">删除</n-button>
+                <n-button :size="isMobile ? 'small' : 'medium'" @click="handleEdit(link)"
+                  >编辑</n-button
+                >
+                <n-button
+                  :size="isMobile ? 'small' : 'medium'"
+                  type="error"
+                  @click="handleDelete(link.id)"
+                  >删除</n-button
+                >
               </n-space>
             </template>
           </n-card>
@@ -132,15 +162,17 @@
             <template #footer>
               <n-space justify="end">
                 <n-button size="small" @click="handleEditCategory(category)">编辑</n-button>
-                <n-button size="small" type="error" @click="handleDeleteCategory(category.id)">删除</n-button>
+                <n-button size="small" type="error" @click="handleDeleteCategory(category.id)"
+                  >删除</n-button
+                >
               </n-space>
             </template>
           </n-card>
         </div>
-        <n-data-table 
+        <n-data-table
           v-else
-          :columns="categoryColumns" 
-          :data="categories" 
+          :columns="categoryColumns"
+          :data="categories"
           :loading="categoryLoading"
           :single-line="false"
         />
@@ -148,10 +180,10 @@
     </n-tabs>
 
     <!-- 创建/编辑对话框 -->
-    <n-modal 
-      v-model:show="showModal" 
-      preset="card" 
-      :title="editingId ? '编辑友链' : '新建友链'" 
+    <n-modal
+      v-model:show="showModal"
+      preset="card"
+      :title="editingId ? '编辑友链' : '新建友链'"
       :style="{ width: isMobile ? '95%' : '700px', maxWidth: isMobile ? '95vw' : '700px' }"
     >
       <n-form ref="formRef" :model="formData" :rules="rules">
@@ -178,7 +210,7 @@
         </n-form-item>
 
         <n-form-item label="网站图标">
-          <div style="width: 100%;">
+          <div style="width: 100%">
             <ImageUpload
               v-model="formData.icon"
               :width="160"
@@ -193,7 +225,7 @@
               placeholder="或手动输入图标URL，如 https://example.com/icon.ico"
               maxlength="500"
               clearable
-              style="margin-top: 8px;"
+              style="margin-top: 8px"
             />
           </div>
         </n-form-item>
@@ -208,7 +240,7 @@
         </n-form-item>
 
         <n-form-item label="网站截图">
-          <div style="width: 100%;">
+          <div style="width: 100%">
             <ImageUpload
               v-model="formData.screenshot"
               :width="400"
@@ -223,7 +255,7 @@
               placeholder="或手动输入截图URL，如 https://example.com/screenshot.jpg"
               maxlength="500"
               clearable
-              style="margin-top: 8px;"
+              style="margin-top: 8px"
             />
           </div>
         </n-form-item>
@@ -252,18 +284,16 @@
       <template #footer>
         <n-space justify="end">
           <n-button @click="showModal = false">取消</n-button>
-          <n-button type="primary" :loading="submitting" @click="handleSubmit">
-            保存
-          </n-button>
+          <n-button type="primary" :loading="submitting" @click="handleSubmit"> 保存 </n-button>
         </n-space>
       </template>
     </n-modal>
 
     <!-- 我的友链信息对话框 -->
-    <n-modal 
-      v-model:show="showMyInfoModal" 
-      preset="card" 
-      title="我的友链信息" 
+    <n-modal
+      v-model:show="showMyInfoModal"
+      preset="card"
+      title="我的友链信息"
       :style="{ width: isMobile ? '95%' : '700px', maxWidth: isMobile ? '95vw' : '700px' }"
     >
       <n-form ref="myInfoFormRef" :model="myInfoFormData" :rules="myInfoRules">
@@ -285,11 +315,17 @@
         </n-form-item>
 
         <n-form-item label="头像">
-          <n-input v-model:value="myInfoFormData.avatar" placeholder="https://example.com/avatar.png" />
+          <n-input
+            v-model:value="myInfoFormData.avatar"
+            placeholder="https://example.com/avatar.png"
+          />
         </n-form-item>
 
         <n-form-item label="站点图片">
-          <n-input v-model:value="myInfoFormData.screenshot" placeholder="https://example.com/screenshot.jpg" />
+          <n-input
+            v-model:value="myInfoFormData.screenshot"
+            placeholder="https://example.com/screenshot.jpg"
+          />
         </n-form-item>
 
         <n-form-item label="RSS/Atom 订阅地址">
@@ -308,10 +344,10 @@
     </n-modal>
 
     <!-- 创建/编辑分类对话框 -->
-    <n-modal 
-      v-model:show="showCategoryModal" 
-      preset="card" 
-      :title="editingCategoryId ? '编辑分类' : '新建分类'" 
+    <n-modal
+      v-model:show="showCategoryModal"
+      preset="card"
+      :title="editingCategoryId ? '编辑分类' : '新建分类'"
       :style="{ width: isMobile ? '95%' : '600px', maxWidth: isMobile ? '95vw' : '600px' }"
     >
       <n-form ref="categoryFormRef" :model="categoryFormData" :rules="categoryRules">
@@ -329,9 +365,13 @@
         </n-form-item>
 
         <n-form-item label="排序">
-          <n-input-number v-model:value="categoryFormData.sort_order" :min="0" style="width: 100%" />
+          <n-input-number
+            v-model:value="categoryFormData.sort_order"
+            :min="0"
+            style="width: 100%"
+          />
           <template #feedback>
-            <span style="color: #909399; font-size: 12px;">数字越大越靠前</span>
+            <span style="color: #909399; font-size: 12px">数字越大越靠前</span>
           </template>
         </n-form-item>
       </n-form>
@@ -353,17 +393,22 @@ import { ref, reactive, computed, onMounted, onUnmounted, h, watch } from 'vue'
 import { useMessage, useDialog, NButton, NButtonGroup, NIcon, NTag, NSpace, NImage } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
 import { AddOutline, PersonOutline, GridOutline, AppsOutline } from '@vicons/ionicons5'
-import { 
-  getFriendLinksAdmin, 
-  createFriendLink, 
-  updateFriendLink, 
-  deleteFriendLink, 
+import {
+  getFriendLinksAdmin,
+  createFriendLink,
+  updateFriendLink,
+  deleteFriendLink,
   getFriendLinkCategoriesAdmin,
   createFriendLinkCategory,
   updateFriendLinkCategory,
   deleteFriendLinkCategory
 } from '@/api/friendlink'
-import type { FriendLink, FriendLinkForm, FriendLinkCategory, FriendLinkCategoryForm } from '@/api/friendlink'
+import type {
+  FriendLink,
+  FriendLinkForm,
+  FriendLinkCategory,
+  FriendLinkCategoryForm
+} from '@/api/friendlink'
 import { getFriendLinkInfo, updateFriendLinkInfo, type FriendLinkInfo } from '@/api/setting'
 import { uploadFriendLinkImage } from '@/api/upload'
 import ImageUpload from '@/components/ImageUpload.vue'
@@ -461,7 +506,9 @@ const rules = {
     { required: true, message: '请输入网址', trigger: 'blur' },
     { validator: validateUrl, trigger: 'blur' }
   ],
-  category_id: [{ required: true, message: '请选择分类', trigger: 'change', type: 'number' as const }]
+  category_id: [
+    { required: true, message: '请选择分类', trigger: 'change', type: 'number' as const }
+  ]
 }
 
 const categoryRules = {
@@ -469,31 +516,50 @@ const categoryRules = {
 }
 
 const columns: DataTableColumns<FriendLink> = [
-  { 
-    title: 'ID', 
-    key: 'id', 
+  {
+    title: 'ID',
+    key: 'id',
     width: 60
   },
   {
     title: '网站名称',
     key: 'name',
     width: 150,
-    render: row => h('div', { style: 'display: flex; align-items: center; gap: 8px;' }, [
-      row.icon ? h(NImage, { src: row.icon, width: 24, height: 24, objectFit: 'cover', style: 'border-radius: 4px;' }) : null,
-      h('span', row.name)
-    ])
+    render: row =>
+      h('div', { style: 'display: flex; align-items: center; gap: 8px;' }, [
+        row.icon
+          ? h(NImage, {
+              src: row.icon,
+              width: 24,
+              height: 24,
+              objectFit: 'cover',
+              style: 'border-radius: 4px;'
+            })
+          : null,
+        h('span', row.name)
+      ])
   },
   {
     title: '网址',
     key: 'url',
     width: 200,
-    render: row => h('a', { href: row.url, target: '_blank', rel: 'noopener noreferrer', style: 'color: #18a058; text-decoration: none;' }, row.url)
+    render: row =>
+      h(
+        'a',
+        {
+          href: row.url,
+          target: '_blank',
+          rel: 'noopener noreferrer',
+          style: 'color: #18a058; text-decoration: none;'
+        },
+        row.url
+      )
   },
   {
     title: '分类',
     key: 'category',
     width: 120,
-    render: row => row.category ? row.category.name : '-'
+    render: row => (row.category ? row.category.name : '-')
   },
   {
     title: '描述',
@@ -510,7 +576,12 @@ const columns: DataTableColumns<FriendLink> = [
     title: '状态',
     key: 'status',
     width: 80,
-    render: row => h(NTag, { type: row.status === 1 ? 'success' : 'default' }, { default: () => row.status === 1 ? '启用' : '禁用' })
+    render: row =>
+      h(
+        NTag,
+        { type: row.status === 1 ? 'success' : 'default' },
+        { default: () => (row.status === 1 ? '启用' : '禁用') }
+      )
   },
   {
     title: '操作',
@@ -520,11 +591,7 @@ const columns: DataTableColumns<FriendLink> = [
     render: row =>
       h(NSpace, null, {
         default: () => [
-          h(
-            NButton,
-            { size: 'small', onClick: () => handleEdit(row) },
-            { default: () => '编辑' }
-          ),
+          h(NButton, { size: 'small', onClick: () => handleEdit(row) }, { default: () => '编辑' }),
           h(
             NButton,
             { size: 'small', type: 'error', onClick: () => handleDelete(row.id) },
@@ -537,9 +604,9 @@ const columns: DataTableColumns<FriendLink> = [
 
 // 分类表格列
 const categoryColumns: DataTableColumns<FriendLinkCategory> = [
-  { 
-    title: 'ID', 
-    key: 'id', 
+  {
+    title: 'ID',
+    key: 'id',
     width: 60
   },
   {
@@ -664,7 +731,7 @@ async function handleSubmitCategory() {
 function handleDeleteCategory(id: number) {
   const category = categories.value.find(c => c.id === id)
   const categoryName = category?.name || '该分类'
-  
+
   dialog.warning({
     title: '确认删除',
     content: `确定要删除分类"${categoryName}"吗？删除后该分类下的友链需要重新分配分类。`,
@@ -738,7 +805,7 @@ onUnmounted(() => {
 })
 
 // 监听视图模式变化，保存到 localStorage
-watch(viewMode, (newMode) => {
+watch(viewMode, newMode => {
   localStorage.setItem('friendlink-manage-view-mode', newMode)
 })
 
@@ -838,7 +905,7 @@ async function handleSubmit() {
 function handleDelete(id: number) {
   const friendLink = friendLinks.value.find(f => f.id === id)
   const friendLinkName = friendLink?.name || '该友链'
-  
+
   dialog.warning({
     title: '确认删除',
     content: `确定要删除友链"${friendLinkName}"吗？`,
@@ -880,7 +947,7 @@ const categoryFormRef = ref()
   .header h1 {
     font-size: 20px;
   }
-  
+
   .friendlink-manage-page :deep(.n-data-table) {
     font-size: 13px;
   }
@@ -958,4 +1025,3 @@ const categoryFormRef = ref()
   margin-top: 8px;
 }
 </style>
-

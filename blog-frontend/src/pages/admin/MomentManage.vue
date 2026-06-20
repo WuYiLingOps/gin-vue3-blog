@@ -11,7 +11,11 @@
   <div class="moment-manage-page">
     <n-card title="说说管理" :bordered="false">
       <template #header-extra>
-        <n-button type="primary" :size="isMobile ? 'small' : 'medium'" @click="showCreateModal = true">
+        <n-button
+          type="primary"
+          :size="isMobile ? 'small' : 'medium'"
+          @click="showCreateModal = true"
+        >
           <template #icon>
             <n-icon :component="AddOutline" />
           </template>
@@ -40,7 +44,9 @@
                 <n-avatar :src="moment.user.avatar" :size="40" round />
                 <div>
                   <div class="moment-user">{{ moment.user.nickname }}</div>
-                  <div class="moment-time">{{ formatDate(moment.created_at, 'YYYY-MM-DD HH:mm') }}</div>
+                  <div class="moment-time">
+                    {{ formatDate(moment.created_at, 'YYYY-MM-DD HH:mm') }}
+                  </div>
                 </div>
               </n-space>
               <n-space>
@@ -89,7 +95,11 @@
           </div>
         </n-space>
 
-        <n-empty v-if="!loading && moments.length === 0" description="暂无说说" style="margin: 40px 0" />
+        <n-empty
+          v-if="!loading && moments.length === 0"
+          description="暂无说说"
+          style="margin: 40px 0"
+        />
       </n-spin>
 
       <!-- 分页 -->
@@ -229,7 +239,7 @@ async function fetchMoments() {
       page: currentPage.value,
       page_size: pageSize.value
     }
-    
+
     if (filterStatus.value !== null) {
       params.status = filterStatus.value
     }
@@ -274,9 +284,7 @@ async function handleSubmit() {
     submitting.value = true
 
     // 确保 status 是有效的数字（0 或 1），默认值为 1（公开）
-    const status = (formData.status === 0 || formData.status === 1) 
-      ? formData.status 
-      : 1
+    const status = formData.status === 0 || formData.status === 1 ? formData.status : 1
 
     if (editingMoment.value) {
       await updateMoment(editingMoment.value.id, {
@@ -423,20 +431,19 @@ html.dark .moment-footer {
   .moment-item {
     padding: 12px;
   }
-  
+
   .moment-header {
     flex-wrap: wrap;
     gap: 8px;
   }
-  
+
   .moment-content {
     font-size: 13px;
   }
-  
+
   .moment-footer {
     flex-wrap: wrap;
     gap: 8px;
   }
 }
 </style>
-
