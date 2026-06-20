@@ -18,8 +18,18 @@
               <div v-if="appStore.loading" class="global-loading">
                 <!-- 动态粒子背景 -->
                 <div class="particles">
-                  <div class="particle particle-up" v-for="i in 150" :key="'up-' + i" :style="getParticleStyle(i)"></div>
-                  <div class="particle particle-down" v-for="i in 150" :key="'down-' + i" :style="getParticleStyle(i)"></div>
+                  <div
+                    class="particle particle-up"
+                    v-for="i in 150"
+                    :key="'up-' + i"
+                    :style="getParticleStyle(i)"
+                  ></div>
+                  <div
+                    class="particle particle-down"
+                    v-for="i in 150"
+                    :key="'down-' + i"
+                    :style="getParticleStyle(i)"
+                  ></div>
                 </div>
 
                 <div class="loading-content">
@@ -56,13 +66,17 @@ const appStore = useAppStore()
 const theme = computed(() => (appStore.theme === 'dark' ? darkTheme : null))
 
 // 监听主题变化，切换 html class
-watch(() => appStore.theme, (newTheme) => {
-  if (newTheme === 'dark') {
-    document.documentElement.classList.add('dark')
-  } else {
-    document.documentElement.classList.remove('dark')
-  }
-}, { immediate: true })
+watch(
+  () => appStore.theme,
+  newTheme => {
+    if (newTheme === 'dark') {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+  },
+  { immediate: true }
+)
 
 // 初始化时应用主题
 onMounted(() => {
@@ -96,7 +110,14 @@ function getParticleStyle(_index: number) {
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 25%, #0f1729 50%, #1e2139 75%, #0a0e27 100%);
+  background: linear-gradient(
+    135deg,
+    #0a0e27 0%,
+    #1a1f3a 25%,
+    #0f1729 50%,
+    #1e2139 75%,
+    #0a0e27 100%
+  );
   display: flex;
   align-items: center;
   justify-content: center;
@@ -178,16 +199,23 @@ function getParticleStyle(_index: number) {
   color: rgba(255, 255, 255, 1);
   margin: 0 0 60px 0;
   letter-spacing: 4px;
-  text-shadow: 0 0 20px rgba(255, 255, 255, 0.5), 0 0 40px rgba(255, 255, 255, 0.3);
+  text-shadow:
+    0 0 20px rgba(255, 255, 255, 0.5),
+    0 0 40px rgba(255, 255, 255, 0.3);
   animation: titleGlow 2s ease-in-out infinite;
 }
 
 @keyframes titleGlow {
-  0%, 100% {
-    text-shadow: 0 0 20px rgba(255, 255, 255, 0.5), 0 0 40px rgba(255, 255, 255, 0.3);
+  0%,
+  100% {
+    text-shadow:
+      0 0 20px rgba(255, 255, 255, 0.5),
+      0 0 40px rgba(255, 255, 255, 0.3);
   }
   50% {
-    text-shadow: 0 0 30px rgba(255, 255, 255, 0.8), 0 0 60px rgba(255, 255, 255, 0.5);
+    text-shadow:
+      0 0 30px rgba(255, 255, 255, 0.8),
+      0 0 60px rgba(255, 255, 255, 0.5);
   }
 }
 
@@ -259,7 +287,8 @@ function getParticleStyle(_index: number) {
 }
 
 @keyframes fadeInOut {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.6;
   }
   50% {
@@ -279,10 +308,12 @@ function getParticleStyle(_index: number) {
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg,
+  background: linear-gradient(
+    90deg,
     rgba(255, 255, 255, 0.8) 0%,
     rgba(255, 255, 255, 1) 50%,
-    rgba(255, 255, 255, 0.8) 100%);
+    rgba(255, 255, 255, 0.8) 100%
+  );
   border-radius: 2px;
   animation: progress 2s ease-in-out infinite;
   box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
@@ -367,4 +398,3 @@ function getParticleStyle(_index: number) {
   }
 }
 </style>
-
