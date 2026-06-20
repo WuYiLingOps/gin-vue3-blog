@@ -61,7 +61,6 @@ async function initApp() {
 
     // 预加载博客基础数据（分类、标签）
     await blogStore.init()
-
   } catch (error) {
     console.error('预加载配置失败:', error)
   } finally {
@@ -73,4 +72,3 @@ async function initApp() {
 }
 
 initApp()
-
