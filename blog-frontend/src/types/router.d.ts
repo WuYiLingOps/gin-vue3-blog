@@ -18,4 +18,3 @@ declare module 'vue-router' {
     roles?: Array<'super_admin' | 'admin' | 'user'>
   }
 }
-

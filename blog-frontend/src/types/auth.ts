@@ -67,4 +67,3 @@ export interface PasswordForm {
   new_password: string
   confirm_password?: string
 }
-

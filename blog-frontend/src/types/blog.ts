@@ -167,4 +167,3 @@ export interface RevisionChange {
   old: any
   new: any
 }
-
