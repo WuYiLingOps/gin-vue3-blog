@@ -14,7 +14,7 @@
     </h2>
     <p class="page-subtitle">登录您的账号继续使用</p>
 
-    <n-form ref="formRef" :model="formData" :rules="rules" size="large" >
+    <n-form ref="formRef" :model="formData" :rules="rules" size="large">
       <n-form-item path="username" label="用户名">
         <n-input
           v-model:value="formData.username"
@@ -51,7 +51,9 @@
       </n-form-item>
 
       <n-form-item>
-        <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
+        <div
+          style="display: flex; justify-content: space-between; width: 100%; align-items: center"
+        >
           <n-checkbox v-model:checked="formData.remember">记住我</n-checkbox>
           <n-button text type="primary" @click="router.push('/auth/forgot-password')">
             忘记密码？
@@ -66,9 +68,7 @@
 
     <div class="footer-links">
       <span>还没有账号？</span>
-      <n-button text type="primary" @click="router.push('/auth/register')">
-        立即注册
-      </n-button>
+      <n-button text type="primary" @click="router.push('/auth/register')"> 立即注册 </n-button>
     </div>
   </div>
 </template>
@@ -190,4 +190,3 @@ html.dark h2 {
   }
 }
 </style>
-
