@@ -69,4 +69,3 @@ export function updateTag(id: number, data: Partial<TagForm>) {
 export function deleteTag(id: number) {
   return request.delete(`/tags/${id}`)
 }
-

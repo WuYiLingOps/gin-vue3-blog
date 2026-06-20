@@ -56,4 +56,3 @@ export function updateCategory(id: number, data: Partial<CategoryForm>) {
 export function deleteCategory(id: number) {
   return request.delete(`/categories/${id}`)
 }
-

@@ -146,4 +146,3 @@ export function removeCollaborator(postId: number, userId: number) {
 export function searchUsers(keyword: string) {
   return request.get('/posts/search-users', { params: { keyword } })
 }
-

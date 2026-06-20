@@ -15,8 +15,8 @@ import { request } from '@/utils/request'
  * 订阅统计信息接口
  */
 export interface SubscribeStats {
-  total_count: number   // 累积订阅总数（包括已退订）
-  active_count: number  // 当前活跃订阅者数量
+  total_count: number // 累积订阅总数（包括已退订）
+  active_count: number // 当前活跃订阅者数量
 }
 
 /**
@@ -29,7 +29,7 @@ export interface PushHistory {
   total_count: number
   success_count: number
   failed_count: number
-  status: number  // 0-进行中 1-已完成 2-部分失败
+  status: number // 0-进行中 1-已完成 2-部分失败
   started_at: string
   completed_at: string
   created_at: string
@@ -43,7 +43,7 @@ export interface PushDetail {
   push_history_id: number
   subscriber_id: number
   subscriber_email: string
-  status: number  // 0-待发送 1-成功 2-失败
+  status: number // 0-待发送 1-成功 2-失败
   error_message: string
   sent_at: string
   created_at: string
@@ -71,7 +71,7 @@ export function getSubscribeStats() {
  * 获取推送历史记录列表（管理员）
  */
 export function getPushHistories(page: number, pageSize: number) {
-  return request.get<{ list: PushHistory[], total: number }>('/admin/subscribers/push-histories', {
+  return request.get<{ list: PushHistory[]; total: number }>('/admin/subscribers/push-histories', {
     params: { page, page_size: pageSize }
   })
 }
@@ -80,9 +80,12 @@ export function getPushHistories(page: number, pageSize: number) {
  * 获取推送历史详情（管理员）
  */
 export function getPushHistoryDetail(id: number, page: number, pageSize: number) {
-  return request.get<{ history: PushHistory, details: PushDetail[], total: number }>(`/admin/subscribers/push-histories/${id}`, {
-    params: { page, page_size: pageSize }
-  })
+  return request.get<{ history: PushHistory; details: PushDetail[]; total: number }>(
+    `/admin/subscribers/push-histories/${id}`,
+    {
+      params: { page, page_size: pageSize }
+    }
+  )
 }
 
 /**

@@ -15,55 +15,55 @@ import { request } from '@/utils/request'
  * 友链分类接口
  */
 export interface FriendLinkCategory {
-  id: number              // 分类ID
-  name: string            // 分类名称
-  description?: string    // 分类描述（可选）
-  sort_order: number      // 排序顺序
-  created_at: string      // 创建时间
-  updated_at: string      // 更新时间
+  id: number // 分类ID
+  name: string // 分类名称
+  description?: string // 分类描述（可选）
+  sort_order: number // 排序顺序
+  created_at: string // 创建时间
+  updated_at: string // 更新时间
 }
 
 /**
  * 友链接口
  */
 export interface FriendLink {
-  id: number                        // 友链ID
-  name: string                      // 友链名称
-  url: string                       // 友链URL
-  icon?: string                     // 友链图标（可选）
-  description?: string              // 友链描述（可选）
-  screenshot?: string               // 友链截图（可选）
-  atom_url?: string                 // Atom/RSS订阅地址（可选）
-  category_id: number               // 所属分类ID
-  category?: FriendLinkCategory     // 所属分类信息（可选）
-  sort_order: number                // 排序顺序
-  status: number                    // 状态（0:待审核 1:已通过 2:已拒绝）
-  created_at: string                // 创建时间
-  updated_at: string                // 更新时间
+  id: number // 友链ID
+  name: string // 友链名称
+  url: string // 友链URL
+  icon?: string // 友链图标（可选）
+  description?: string // 友链描述（可选）
+  screenshot?: string // 友链截图（可选）
+  atom_url?: string // Atom/RSS订阅地址（可选）
+  category_id: number // 所属分类ID
+  category?: FriendLinkCategory // 所属分类信息（可选）
+  sort_order: number // 排序顺序
+  status: number // 状态（0:待审核 1:已通过 2:已拒绝）
+  created_at: string // 创建时间
+  updated_at: string // 更新时间
 }
 
 /**
  * 友链表单数据接口
  */
 export interface FriendLinkForm {
-  name: string          // 友链名称
-  url: string           // 友链URL
-  icon?: string         // 友链图标（可选）
-  description?: string  // 友链描述（可选）
-  screenshot?: string   // 友链截图（可选）
-  atom_url?: string     // Atom/RSS订阅地址（可选）
-  category_id: number   // 所属分类ID
-  sort_order: number    // 排序顺序
-  status: number        // 状态
+  name: string // 友链名称
+  url: string // 友链URL
+  icon?: string // 友链图标（可选）
+  description?: string // 友链描述（可选）
+  screenshot?: string // 友链截图（可选）
+  atom_url?: string // Atom/RSS订阅地址（可选）
+  category_id: number // 所属分类ID
+  sort_order: number // 排序顺序
+  status: number // 状态
 }
 
 /**
  * 友链分类表单数据接口
  */
 export interface FriendLinkCategoryForm {
-  name: string          // 分类名称
-  description?: string  // 分类描述（可选）
-  sort_order: number    // 排序顺序
+  name: string // 分类名称
+  description?: string // 分类描述（可选）
+  sort_order: number // 排序顺序
 }
 
 /**
@@ -184,4 +184,3 @@ export function updateFriendLinkCategory(id: number, data: Partial<FriendLinkCat
 export function deleteFriendLinkCategory(id: number) {
   return request.delete(`/admin/friend-link-categories/${id}`)
 }
-

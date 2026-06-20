@@ -16,16 +16,17 @@ import type { PageParams, PageResult } from '@/types/common'
  * 说说（动态）接口
  */
 export interface Moment {
-  id: number                // 说说ID
-  content: string            // 说说内容
-  images: string            // 图片列表（JSON字符串）
-  user_id: number           // 用户ID
-  status: number            // 状态（0:待审核 1:已发布 2:已删除）
-  like_count: number        // 点赞数
-  created_at: string        // 创建时间
-  updated_at: string        // 更新时间
-  liked?: boolean           // 前端标记是否已点赞
-  user: {                   // 发布者信息
+  id: number // 说说ID
+  content: string // 说说内容
+  images: string // 图片列表（JSON字符串）
+  user_id: number // 用户ID
+  status: number // 状态（0:待审核 1:已发布 2:已删除）
+  like_count: number // 点赞数
+  created_at: string // 创建时间
+  updated_at: string // 更新时间
+  liked?: boolean // 前端标记是否已点赞
+  user: {
+    // 发布者信息
     id: number
     username: string
     nickname: string
@@ -37,16 +38,16 @@ export interface Moment {
  * 说说表单数据接口
  */
 export interface MomentForm {
-  content: string      // 说说内容
-  images?: string      // 图片列表（JSON字符串，可选）
-  status?: number      // 状态（可选）
+  content: string // 说说内容
+  images?: string // 图片列表（JSON字符串，可选）
+  status?: number // 状态（可选）
 }
 
 /**
  * 说说查询参数接口
  */
 export interface MomentParams extends PageParams {
-  status?: number      // 状态筛选（可选）
+  status?: number // 状态筛选（可选）
 }
 
 /**
@@ -123,4 +124,3 @@ export function likeMoment(id: number) {
 export function getAdminMoments(params?: MomentParams) {
   return request.get<PageResult<Moment>>('/admin/moments', { params })
 }
-

@@ -10,7 +10,15 @@
  */
 
 import { request } from '@/utils/request'
-import type { LoginForm, RegisterForm, LoginResponse, User, ProfileForm, PasswordForm, CaptchaResponse } from '@/types/auth'
+import type {
+  LoginForm,
+  RegisterForm,
+  LoginResponse,
+  User,
+  ProfileForm,
+  PasswordForm,
+  CaptchaResponse
+} from '@/types/auth'
 
 export const VERIFICATION_CODE_RESEND_SECONDS = 60
 
@@ -101,9 +109,9 @@ export function updateEmail(data: { new_email: string }) {
  */
 export function getEmailChangeInfo() {
   return request.get<{
-    change_count: number        // 已修改次数
-    remaining_times: number     // 剩余可修改次数
-    can_change: boolean         // 是否可以修改
+    change_count: number // 已修改次数
+    remaining_times: number // 剩余可修改次数
+    can_change: boolean // 是否可以修改
   }>('/auth/email-change-info')
 }
 
@@ -133,11 +141,6 @@ export function forgotPassword(data: { email: string }) {
  * @param data.new_password 新密码
  * @returns 返回重置结果
  */
-export function resetPassword(data: {
-  email: string
-  code: string
-  new_password: string
-}) {
+export function resetPassword(data: { email: string; code: string; new_password: string }) {
   return request.post('/auth/reset-password', data)
 }
-

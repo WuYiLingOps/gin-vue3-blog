@@ -15,7 +15,7 @@ import { request, getFileUrl } from '@/utils/request'
  * 上传响应接口
  */
 export interface UploadResponse {
-  url: string  // 上传后的文件URL地址
+  url: string // 上传后的文件URL地址
 }
 
 /**
@@ -155,4 +155,3 @@ export async function uploadPostCover(file: File) {
 
   return result
 }
-

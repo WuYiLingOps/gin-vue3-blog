@@ -81,4 +81,3 @@ export function getAllComments(params: { page?: number; page_size?: number }) {
 export function updateCommentStatus(id: number, status: number) {
   return request.put(`/admin/comments/${id}/status`, { status })
 }
-
