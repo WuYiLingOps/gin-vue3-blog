@@ -18,7 +18,7 @@ import 'prismjs/components/prism-yaml'
 const config = {
   Prism,
   codeHighlightExtensionMap: {
-    vue: 'html',
+    vue: 'html'
   }
 }
 
