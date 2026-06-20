@@ -269,7 +269,12 @@ const routes: RouteRecordRaw[] = [
         path: 'about',
         name: 'AboutManage',
         component: AboutManage,
-        meta: { title: '关于我管理', requiresAuth: true, requiresAdmin: true, roles: ['super_admin'] }
+        meta: {
+          title: '关于我管理',
+          requiresAuth: true,
+          requiresAdmin: true,
+          roles: ['super_admin']
+        }
       },
       {
         path: 'operation-logs',
@@ -323,4 +328,3 @@ const router = createRouter({
 setupRouterGuards(router)
 
 export default router
-
