@@ -13,7 +13,12 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { User, LoginForm, RegisterForm } from '@/types/auth'
-import { login as loginApi, register as registerApi, getProfile, logout as logoutApi } from '@/api/auth'
+import {
+  login as loginApi,
+  register as registerApi,
+  getProfile,
+  logout as logoutApi
+} from '@/api/auth'
 
 export const useAuthStore = defineStore(
   'auth',
@@ -25,7 +30,9 @@ export const useAuthStore = defineStore(
     // 计算属性
     const isLoggedIn = computed(() => !!token.value)
     const isSuperAdmin = computed(() => user.value?.role === 'super_admin')
-    const isAdmin = computed(() => user.value?.role === 'admin' || user.value?.role === 'super_admin')
+    const isAdmin = computed(
+      () => user.value?.role === 'admin' || user.value?.role === 'super_admin'
+    )
 
     function hasRole(roles: User['role'][]): boolean {
       const r = user.value?.role
@@ -91,4 +98,3 @@ export const useAuthStore = defineStore(
     }
   }
 )
-
