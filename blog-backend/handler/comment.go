@@ -25,9 +25,11 @@ type CommentHandler struct {
 }
 
 // NewCommentHandler 创建评论处理器实例
-func NewCommentHandler() *CommentHandler {
+func NewCommentHandler(notificationService *service.NotificationService) *CommentHandler {
+	commentService := service.NewCommentService()
+	commentService.SetNotificationService(notificationService)
 	return &CommentHandler{
-		service: service.NewCommentService(),
+		service: commentService,
 	}
 }
 
