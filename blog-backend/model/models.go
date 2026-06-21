@@ -486,3 +486,46 @@ type PostRevision struct {
 func (PostRevision) TableName() string {
 	return "post_revisions"
 }
+
+// Notification 通知事件模型
+// 功能说明：存储通知事件信息，支持评论回复、新评论、文章推送、友链申请等通知类型
+type Notification struct {
+	ID         uint      `json:"id" gorm:"primaryKey"`
+	Type       string    `json:"type" gorm:"size:30;not null;index"`
+	Title      string    `json:"title" gorm:"size:255;not null"`
+	Content    string    `json:"content" gorm:"not null;type:text"`
+	SenderID   *uint     `json:"sender_id" gorm:"index"`
+	TargetType string    `json:"target_type" gorm:"size:50;index"`
+	TargetID   *uint     `json:"target_id" gorm:"index"`
+	Extra      *string   `json:"extra" gorm:"type:json"`
+	Status     int       `json:"status" gorm:"default:1"`
+	CreatedAt  time.Time `json:"created_at"`
+	UpdatedAt  time.Time `json:"updated_at"`
+
+	// 关联关系
+	Sender *User `json:"sender,omitempty" gorm:"foreignKey:SenderID"`
+}
+
+// TableName 指定Notification模型的数据库表名
+func (Notification) TableName() string {
+	return "notifications"
+}
+
+// UserNotification 用户通知关联模型
+// 功能说明：记录用户与通知的关联关系，包括已读状态和邮件发送状态
+type UserNotification struct {
+	ID             uint      `json:"id" gorm:"primaryKey"`
+	NotificationID uint      `json:"notification_id" gorm:"index;not null"`
+	UserID         uint      `json:"user_id" gorm:"index;not null"`
+	IsRead         bool      `json:"is_read" gorm:"default:false;index"`
+	EmailSent      bool      `json:"email_sent" gorm:"default:false"`
+	CreatedAt      time.Time `json:"created_at"`
+
+	// 关联关系
+	Notification Notification `json:"notification,omitempty" gorm:"foreignKey:NotificationID"`
+}
+
+// TableName 指定UserNotification模型的数据库表名
+func (UserNotification) TableName() string {
+	return "user_notifications"
+}
