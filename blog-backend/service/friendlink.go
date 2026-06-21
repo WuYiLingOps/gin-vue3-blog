@@ -22,7 +22,8 @@ import (
 
 // FriendLinkService 友链业务逻辑层结构体
 type FriendLinkService struct {
-	repo *repository.FriendLinkRepository
+	repo                *repository.FriendLinkRepository
+	notificationService *NotificationService
 }
 
 // NewFriendLinkService 创建友链业务逻辑层实例
@@ -30,6 +31,11 @@ func NewFriendLinkService() *FriendLinkService {
 	return &FriendLinkService{
 		repo: repository.NewFriendLinkRepository(),
 	}
+}
+
+// SetNotificationService 设置通知服务
+func (s *FriendLinkService) SetNotificationService(notificationService *NotificationService) {
+	s.notificationService = notificationService
 }
 
 // CreateFriendLinkRequest 创建友链请求
@@ -91,6 +97,11 @@ func (s *FriendLinkService) Create(req *CreateFriendLinkRequest) (*model.FriendL
 		ctx := context.Background()
 		db.RDB.Del(ctx, "friend_links:public:list")
 	}()
+
+	// 发送友链申请通知给管理员
+	if s.notificationService != nil {
+		go s.notificationService.NotifyFriendApply(0, req.Name, req.Name)
+	}
 
 	return s.repo.GetByID(friendLink.ID)
 }
