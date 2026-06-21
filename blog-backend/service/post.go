@@ -30,12 +30,13 @@ import (
 
 // PostService 文章业务逻辑层结构体
 type PostService struct {
-	postRepo          *repository.PostRepository
-	categoryRepo      *repository.CategoryRepository
-	tagRepo           *repository.TagRepository
-	postViewRepo      *repository.PostViewRepository
-	collaboratorRepo  *repository.PostCollaboratorRepository
-	subscriberService *SubscriberService
+	postRepo            *repository.PostRepository
+	categoryRepo        *repository.CategoryRepository
+	tagRepo             *repository.TagRepository
+	postViewRepo        *repository.PostViewRepository
+	collaboratorRepo    *repository.PostCollaboratorRepository
+	subscriberService   *SubscriberService
+	notificationService *NotificationService
 }
 
 // NewPostService 创建文章业务逻辑层实例
@@ -48,6 +49,11 @@ func NewPostService(subscriberService *SubscriberService) *PostService {
 		postViewRepo:      repository.NewPostViewRepository(),
 		subscriberService: subscriberService,
 	}
+}
+
+// SetNotificationService 设置通知服务
+func (s *PostService) SetNotificationService(notificationService *NotificationService) {
+	s.notificationService = notificationService
 }
 
 // CreatePostRequest 创建文章请求
@@ -215,6 +221,11 @@ func (s *PostService) Create(userID uint, req *CreatePostRequest) (*model.Post, 
 				fmt.Printf("发送新文章通知失败: %v\n", err)
 			}
 		}()
+	}
+
+	// 发送应用内通知（文章推送）
+	if req.Status == 1 && visibility == 1 && s.notificationService != nil {
+		go s.notificationService.NotifyArticlePush(createdPost.ID, createdPost.Title)
 	}
 
 	return createdPost, nil
@@ -488,6 +499,11 @@ func (s *PostService) Update(id, userID uint, role string, req *UpdatePostReques
 				fmt.Printf("发送新文章通知失败: %v\n", err)
 			}
 		}()
+	}
+
+	// 发送应用内通知（文章推送 - 从草稿发布时）
+	if oldStatus == 0 && req.Status == 1 && post.Visibility == 1 && s.notificationService != nil {
+		go s.notificationService.NotifyArticlePush(post.ID, post.Title)
 	}
 
 	return s.postRepo.GetByID(post.ID)
