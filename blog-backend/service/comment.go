@@ -26,11 +26,12 @@ import (
 
 // CommentService 评论业务逻辑层结构体
 type CommentService struct {
-	repo        *repository.CommentRepository
-	postRepo    *repository.PostRepository
-	momentRepo  *repository.MomentRepository
-	userRepo    *repository.UserRepository
-	settingRepo *repository.SettingRepository
+	repo               *repository.CommentRepository
+	postRepo           *repository.PostRepository
+	momentRepo         *repository.MomentRepository
+	userRepo           *repository.UserRepository
+	settingRepo        *repository.SettingRepository
+	notificationService *NotificationService
 }
 
 // NewCommentService 创建评论业务逻辑层实例
@@ -42,6 +43,11 @@ func NewCommentService() *CommentService {
 		userRepo:    repository.NewUserRepository(),
 		settingRepo: repository.NewSettingRepository(),
 	}
+}
+
+// SetNotificationService 设置通知服务
+func (s *CommentService) SetNotificationService(notificationService *NotificationService) {
+	s.notificationService = notificationService
 }
 
 // CreateCommentRequest 创建评论请求
@@ -135,14 +141,104 @@ func (s *CommentService) CreateWithContext(userID uint, req *CreateCommentReques
 		return nil, err
 	}
 
+	// 统一查询一次，避免重复查库
+	commenter, err := s.userRepo.GetByID(userID)
+	if err != nil {
+		return comment, nil
+	}
+
 	// 异步发送通知邮件（不阻塞请求）
-	go s.sendCommentNotifications(comment, userID, siteURL)
+	go s.sendCommentNotifications(comment, commenter, siteURL)
+
+	// 异步发送应用内通知
+	if s.notificationService != nil {
+		go s.sendInAppNotifications(comment, commenter)
+	}
 
 	return comment, nil
 }
 
+// sendInAppNotifications 发送应用内通知
+func (s *CommentService) sendInAppNotifications(comment *model.Comment, commenter *model.User) {
+	commenterID := commenter.ID
+	commenterName := commenter.Nickname
+	if commenterName == "" {
+		commenterName = commenter.Username
+	}
+
+	switch comment.CommentType {
+	case "post":
+		if comment.PostID == nil {
+			return
+		}
+		post, err := s.postRepo.GetByID(*comment.PostID)
+		if err != nil {
+			return
+		}
+		// 如果是回复评论，通知被回复的用户
+		if comment.ParentID != nil {
+			parentComment, err := s.repo.GetByID(*comment.ParentID)
+			if err == nil && parentComment.UserID != commenterID {
+				s.notificationService.NotifyCommentReply(commenter, parentComment.UserID, post.Title, post.ID, comment.Content)
+			}
+		}
+		// 通知管理员有新评论
+		s.notificationService.NotifyCommentNew(commenter, post.Title, post.ID, comment.Content)
+
+	case "moment":
+		if comment.TargetID == nil || *comment.TargetID == 0 {
+			return
+		}
+		moment, err := s.momentRepo.GetByID(*comment.TargetID)
+		if err != nil {
+			return
+		}
+		momentTitle := moment.Content
+		if len([]rune(momentTitle)) > 30 {
+			momentTitle = string([]rune(momentTitle)[:30]) + "..."
+		}
+		if momentTitle == "" {
+			momentTitle = "说说"
+		}
+		displayTitle := "说说：" + momentTitle
+		// 如果是回复评论，通知被回复的用户
+		if comment.ParentID != nil {
+			parentComment, err := s.repo.GetByID(*comment.ParentID)
+			if err == nil && parentComment.UserID != commenterID {
+				s.notificationService.NotifyCommentReply(commenter, parentComment.UserID, displayTitle, moment.ID, comment.Content)
+			}
+		}
+		// 通知管理员有新评论
+		s.notificationService.NotifyCommentNew(commenter, displayTitle, moment.ID, comment.Content)
+
+	case "friendlink":
+		targetTitle := "友链页面"
+		// 如果是回复评论，通知被回复的用户
+		if comment.ParentID != nil {
+			parentComment, err := s.repo.GetByID(*comment.ParentID)
+			if err == nil && parentComment.UserID != commenterID {
+				s.notificationService.NotifyCommentReply(commenter, parentComment.UserID, targetTitle, 0, comment.Content)
+			}
+		}
+		// 通知管理员有新评论
+		s.notificationService.NotifyCommentNew(commenter, targetTitle, 0, comment.Content)
+
+	case "about":
+		targetTitle := "关于我页面"
+		// 如果是回复评论，通知被回复的用户
+		if comment.ParentID != nil {
+			parentComment, err := s.repo.GetByID(*comment.ParentID)
+			if err == nil && parentComment.UserID != commenterID {
+				s.notificationService.NotifyCommentReply(commenter, parentComment.UserID, targetTitle, 0, comment.Content)
+			}
+		}
+		// 通知管理员有新评论
+		s.notificationService.NotifyCommentNew(commenter, targetTitle, 0, comment.Content)
+	}
+}
+
 // sendCommentNotifications 发送评论通知邮件
-func (s *CommentService) sendCommentNotifications(comment *model.Comment, commenterID uint, requestSiteURL string) {
+func (s *CommentService) sendCommentNotifications(comment *model.Comment, commenter *model.User, requestSiteURL string) {
 	// 检查邮件配置是否完整
 	if config.Cfg.Email.Host == "" || config.Cfg.Email.Username == "" {
 		return // 邮件未配置，不发送通知
@@ -160,11 +256,7 @@ func (s *CommentService) sendCommentNotifications(comment *model.Comment, commen
 		SiteName: siteName,
 	}
 
-	// 获取评论者信息
-	commenter, err := s.userRepo.GetByID(commenterID)
-	if err != nil {
-		return
-	}
+	commenterID := commenter.ID
 	commenterName := commenter.Nickname
 	if commenterName == "" {
 		commenterName = commenter.Username
