@@ -61,6 +61,8 @@
             </n-breadcrumb>
 
             <div class="header-actions">
+              <NotificationBell />
+
               <n-button v-if="!isMobile" text @click="router.push('/')">
                 <template #icon>
                   <n-icon :component="HomeOutline" />
@@ -138,6 +140,7 @@ import {
 } from '@vicons/ionicons5'
 import { useAuthStore } from '@/stores'
 import { NIcon, useLoadingBar } from 'naive-ui'
+import NotificationBell from '@/components/NotificationBell.vue'
 
 // LoadingBar 处理组件
 const LoadingBarHandler = defineComponent({
