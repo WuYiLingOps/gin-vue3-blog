@@ -853,7 +853,72 @@ COMMENT ON COLUMN post_collaborators.removed IS '是否被移除（软删除）'
 COMMENT ON COLUMN post_collaborators.created_at IS '添加时间';
 
 -- =============================================================================
--- 17. 更新现有数据的全文搜索向量
+-- 17. 通知系统
+-- =============================================================================
+
+-- 创建通知事件表
+CREATE TABLE IF NOT EXISTS notifications (
+    id SERIAL PRIMARY KEY,
+    type VARCHAR(30) NOT NULL,        -- comment_reply, comment_new, article_push, friend_apply
+    title VARCHAR(255) NOT NULL,
+    content TEXT NOT NULL,
+    sender_id INTEGER,
+    target_type VARCHAR(50),           -- post, comment, friend_link
+    target_id INTEGER,
+    extra JSONB,                       -- 场景元数据 (post_id, post_title 等)
+    status SMALLINT DEFAULT 1,         -- 1:正常 0:删除
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+-- 通知事件表索引
+CREATE INDEX IF NOT EXISTS idx_notifications_type ON notifications(type);
+CREATE INDEX IF NOT EXISTS idx_notifications_sender_id ON notifications(sender_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_target_type ON notifications(target_type);
+CREATE INDEX IF NOT EXISTS idx_notifications_target_id ON notifications(target_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_status ON notifications(status);
+CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON notifications(created_at DESC);
+
+-- 通知事件表注释
+COMMENT ON TABLE notifications IS '通知事件表';
+COMMENT ON COLUMN notifications.type IS '通知类型：comment_reply-评论回复，comment_new-新评论，article_push-文章推送，friend_apply-友链申请';
+COMMENT ON COLUMN notifications.title IS '通知标题';
+COMMENT ON COLUMN notifications.content IS '通知内容';
+COMMENT ON COLUMN notifications.sender_id IS '发送者用户ID';
+COMMENT ON COLUMN notifications.target_type IS '目标类型：post-文章，comment-评论，friend_link-友链';
+COMMENT ON COLUMN notifications.target_id IS '目标ID';
+COMMENT ON COLUMN notifications.extra IS '场景元数据（JSON格式）';
+COMMENT ON COLUMN notifications.status IS '状态：1-正常，0-删除';
+
+-- 创建用户通知关联表
+CREATE TABLE IF NOT EXISTS user_notifications (
+    id SERIAL PRIMARY KEY,
+    notification_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    is_read BOOLEAN DEFAULT FALSE,
+    email_sent BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(notification_id, user_id),
+    FOREIGN KEY (notification_id) REFERENCES notifications(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- 用户通知关联表索引
+CREATE INDEX IF NOT EXISTS idx_user_notifications_notification_id ON user_notifications(notification_id);
+CREATE INDEX IF NOT EXISTS idx_user_notifications_user_id ON user_notifications(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_notifications_is_read ON user_notifications(is_read);
+CREATE INDEX IF NOT EXISTS idx_user_notifications_user_read ON user_notifications(user_id, is_read);
+
+-- 用户通知关联表注释
+COMMENT ON TABLE user_notifications IS '用户通知关联表';
+COMMENT ON COLUMN user_notifications.notification_id IS '通知事件ID';
+COMMENT ON COLUMN user_notifications.user_id IS '接收用户ID';
+COMMENT ON COLUMN user_notifications.is_read IS '是否已读';
+COMMENT ON COLUMN user_notifications.email_sent IS '邮件是否已发送';
+
+-- =============================================================================
+-- 18. 更新现有数据的全文搜索向量
 -- =============================================================================
 
 -- 更新文章的全文搜索向量（组合标题和内容，标题权重更高）
@@ -867,6 +932,71 @@ WHERE search_tsv IS NULL;
 UPDATE moments 
 SET content_tsv = to_tsvector('english', content) 
 WHERE content_tsv IS NULL;
+
+-- =============================================================================
+-- 18. 通知消息系统
+-- =============================================================================
+
+-- 创建通知事件表
+CREATE TABLE IF NOT EXISTS notifications (
+    id SERIAL PRIMARY KEY,
+    type VARCHAR(30) NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    content TEXT NOT NULL,
+    sender_id INTEGER,
+    target_type VARCHAR(50),
+    target_id INTEGER,
+    extra JSONB,
+    status SMALLINT DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+-- 通知事件表索引
+CREATE INDEX IF NOT EXISTS idx_notifications_type ON notifications(type);
+CREATE INDEX IF NOT EXISTS idx_notifications_sender_id ON notifications(sender_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_target_type ON notifications(target_type);
+CREATE INDEX IF NOT EXISTS idx_notifications_target_id ON notifications(target_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_status ON notifications(status);
+CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON notifications(created_at DESC);
+
+-- 通知事件表注释
+COMMENT ON TABLE notifications IS '通知事件表';
+COMMENT ON COLUMN notifications.type IS '通知类型：comment_reply-评论回复，comment_new-新评论，article_push-文章推送，friend_apply-友链申请';
+COMMENT ON COLUMN notifications.title IS '通知标题';
+COMMENT ON COLUMN notifications.content IS '通知内容';
+COMMENT ON COLUMN notifications.sender_id IS '发送者用户ID';
+COMMENT ON COLUMN notifications.target_type IS '目标类型：post，comment，friend_link';
+COMMENT ON COLUMN notifications.target_id IS '目标ID';
+COMMENT ON COLUMN notifications.extra IS '场景元数据（JSON格式）';
+COMMENT ON COLUMN notifications.status IS '状态：1-正常，0-删除';
+
+-- 创建用户通知关联表
+CREATE TABLE IF NOT EXISTS user_notifications (
+    id SERIAL PRIMARY KEY,
+    notification_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    is_read BOOLEAN DEFAULT FALSE,
+    email_sent BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(notification_id, user_id),
+    FOREIGN KEY (notification_id) REFERENCES notifications(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- 用户通知关联表索引
+CREATE INDEX IF NOT EXISTS idx_user_notifications_notification_id ON user_notifications(notification_id);
+CREATE INDEX IF NOT EXISTS idx_user_notifications_user_id ON user_notifications(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_notifications_is_read ON user_notifications(is_read);
+CREATE INDEX IF NOT EXISTS idx_user_notifications_user_read ON user_notifications(user_id, is_read);
+
+-- 用户通知关联表注释
+COMMENT ON TABLE user_notifications IS '用户通知关联表';
+COMMENT ON COLUMN user_notifications.notification_id IS '通知事件ID';
+COMMENT ON COLUMN user_notifications.user_id IS '接收用户ID';
+COMMENT ON COLUMN user_notifications.is_read IS '是否已读';
+COMMENT ON COLUMN user_notifications.email_sent IS '邮件是否已发送';
 
 -- =============================================================================
 -- 初始化完成
