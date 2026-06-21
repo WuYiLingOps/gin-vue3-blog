@@ -219,11 +219,7 @@
                 type="info"
                 closable
                 style="margin-bottom: 12px"
-                @close="
-                  replyToComment = null
-                  replyToUser = null
-                  commentContent = ''
-                "
+                @close="replyToComment = null; replyToUser = null; commentContent = ''"
               >
                 正在回复
                 <strong>@{{ (replyToUser || replyToComment).user.nickname }}</strong> 的评论
