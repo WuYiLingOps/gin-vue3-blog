@@ -117,3 +117,10 @@ func (r *UserRepository) Search(keyword string, limit int) ([]model.User, error)
 		Find(&users).Error
 	return users, err
 }
+
+// GetSubscribers 获取所有活跃用户（用于文章推送通知）
+func (r *UserRepository) GetSubscribers() ([]model.User, error) {
+	var users []model.User
+	err := db.DB.Where("status = ?", 1).Find(&users).Error
+	return users, err
+}
