@@ -25,9 +25,11 @@ type FriendLinkHandler struct {
 }
 
 // NewFriendLinkHandler 创建友链处理器实例
-func NewFriendLinkHandler() *FriendLinkHandler {
+func NewFriendLinkHandler(notificationService *service.NotificationService) *FriendLinkHandler {
+	friendLinkService := service.NewFriendLinkService()
+	friendLinkService.SetNotificationService(notificationService)
 	return &FriendLinkHandler{
-		service: service.NewFriendLinkService(),
+		service: friendLinkService,
 	}
 }
 
