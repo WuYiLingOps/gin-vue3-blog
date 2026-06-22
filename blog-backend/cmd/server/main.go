@@ -17,6 +17,7 @@ import (
 	"blog-backend/config"
 	"blog-backend/db"
 	"blog-backend/logger"
+	"blog-backend/pkg/scheduler"
 	"blog-backend/router"
 	"blog-backend/service"
 	"blog-backend/util"
@@ -60,11 +61,25 @@ func main() {
 	cleanupService.StartCleanupTasks()
 	logger.Info("Cleanup tasks started")
 
+	// 初始化定时任务调度器
+	s := scheduler.NewScheduler()
+	friendLinkService := service.NewFriendLinkService()
+	if err := s.AddJob("友链状态检测", "0 0 2 * * 3", friendLinkService.CheckAllFriends); err != nil {
+		logger.Error(fmt.Sprintf("Failed to add friend link check job: %v", err))
+	} else {
+		s.Start()
+		defer s.Stop()
+		logger.Info("Scheduler started")
+	}
+
 	// 设置 Gin 模式
 	gin.SetMode(config.Cfg.Server.Mode)
 
 	// 配置路由
-	r := router.SetupRouter()
+	r, notificationService := router.SetupRouter()
+
+	// 设置定时任务的通知服务
+	friendLinkService.SetNotificationService(notificationService)
 
 	// 启动服务器
 	addr := fmt.Sprintf(":%d", config.Cfg.App.Port)
