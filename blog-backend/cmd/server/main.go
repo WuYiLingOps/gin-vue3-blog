@@ -64,7 +64,7 @@ func main() {
 	// 初始化定时任务调度器
 	s := scheduler.NewScheduler()
 	friendLinkService := service.NewFriendLinkService()
-	if err := s.AddJob("友链状态检测", "0 0 2 * * 3", friendLinkService.CheckAllFriends); err != nil {
+	if err := s.AddJob("友链状态检测", "0 2 * * 3", friendLinkService.CheckAllFriends); err != nil {
 		logger.Error(fmt.Sprintf("Failed to add friend link check job: %v", err))
 	} else {
 		s.Start()
