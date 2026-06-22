@@ -11,6 +11,7 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
+import hljs from 'highlight.js'
 import App from './App.vue'
 import router from './router'
 // v-md-editor 移除全局注册，改为按需导入
@@ -27,6 +28,9 @@ pinia.use(piniaPluginPersistedstate)
 
 app.use(pinia)
 app.use(router)
+
+// 配置 Naive UI 的 hljs（用于 NCode 组件代码高亮）
+app.provide('hljs', hljs)
 // v-md-editor 已移除全局注册，在需要的组件中按需导入
 
 // 先挂载应用（此时 loading 默认为 true，会显示加载动画）
