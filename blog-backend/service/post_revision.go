@@ -27,9 +27,10 @@ import (
 
 // PostRevisionService 文章修订版本服务
 type PostRevisionService struct {
-	revisionRepo      *repository.PostRevisionRepository
-	postRepo          *repository.PostRepository
-	collaboratorRepo  *repository.PostCollaboratorRepository
+	revisionRepo        *repository.PostRevisionRepository
+	postRepo            *repository.PostRepository
+	collaboratorRepo    *repository.PostCollaboratorRepository
+	notificationService *NotificationService
 }
 
 // NewPostRevisionService 创建文章修订版本服务实例
@@ -39,6 +40,11 @@ func NewPostRevisionService() *PostRevisionService {
 		postRepo:         repository.NewPostRepository(),
 		collaboratorRepo: repository.NewPostCollaboratorRepository(),
 	}
+}
+
+// SetNotificationService 设置通知服务
+func (s *PostRevisionService) SetNotificationService(notificationService *NotificationService) {
+	s.notificationService = notificationService
 }
 
 // GetPendingList 获取待审批列表
@@ -168,6 +174,15 @@ func (s *PostRevisionService) ApproveRevision(id, reviewerID uint) error {
 				_ = util.SendRevisionApprovedEmail(emailConfig, editorEmail, editorName, postTitle, reviewerName, postURL)
 			}()
 		}
+
+		// 发送应用内通知
+		if s.notificationService != nil {
+			userRepo := repository.NewUserRepository()
+			reviewer, getErr := userRepo.GetByID(reviewerID)
+			if getErr == nil {
+				go s.notificationService.NotifyRevisionApproved(reviewer, editorID, postTitle, postID, id)
+			}
+		}
 	}
 
 	return err
@@ -176,7 +191,7 @@ func (s *PostRevisionService) ApproveRevision(id, reviewerID uint) error {
 // RejectRevision 审批拒绝
 func (s *PostRevisionService) RejectRevision(id, reviewerID uint, reason string) error {
 	var editorEmail, editorName, reviewerName, postTitle string
-	var postID uint
+	var postID, editorID uint
 
 	// 使用事务更新状态
 	err := s.postRepo.Transaction(func(tx *gorm.DB) error {
@@ -199,6 +214,7 @@ func (s *PostRevisionService) RejectRevision(id, reviewerID uint, reason string)
 			editorEmail = revision.Editor.Email
 			editorName = revision.Editor.Username
 		}
+		editorID = revision.EditorID
 		postTitle = revision.Post.Title
 		postID = revision.PostID
 
@@ -240,6 +256,15 @@ func (s *PostRevisionService) RejectRevision(id, reviewerID uint, reason string)
 			postURL := fmt.Sprintf("%s/admin/post/edit/%d", config.Cfg.App.BlogURL, postID)
 			_ = util.SendRevisionRejectedEmail(emailConfig, editorEmail, editorName, postTitle, reviewerName, reason, postURL)
 		}()
+	}
+
+	// 发送应用内通知
+	if err == nil && s.notificationService != nil {
+		userRepo := repository.NewUserRepository()
+		reviewer, getErr := userRepo.GetByID(reviewerID)
+		if getErr == nil {
+			go s.notificationService.NotifyRevisionRejected(reviewer, editorID, postTitle, postID, id, reason)
+		}
 	}
 
 	return err
