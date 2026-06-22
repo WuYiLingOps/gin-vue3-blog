@@ -118,7 +118,6 @@ import {
   DocumentTextOutline,
   PricetagsOutline,
   FolderOutline,
-  FolderOpenOutline,
   ChatbubblesOutline,
   ChatboxEllipsesOutline,
   PeopleOutline,
