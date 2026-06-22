@@ -333,7 +333,9 @@ type FriendLink struct {
 	AtomURL     string    `json:"atom_url" gorm:"size:255"`
 	CategoryID  uint      `json:"category_id" gorm:"not null;index"` // 分类ID（必选）
 	SortOrder   int       `json:"sort_order" gorm:"default:0;index"`
-	Status      int       `json:"status" gorm:"default:1;index"` // 1:启用 0:禁用
+	Status      int       `json:"status" gorm:"default:1;index"`       // 1:启用 0:禁用
+	IsInvalid   bool      `json:"is_invalid" gorm:"default:false;index"` // 是否失效
+	Accessible  int       `json:"accessible" gorm:"default:0"`          // 可访问性状态：0-正常，-1-忽略检查，>0-连续失败次数
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 
@@ -488,7 +490,7 @@ func (PostRevision) TableName() string {
 }
 
 // Notification 通知事件模型
-// 功能说明：存储通知事件信息，支持评论回复、新评论、文章推送、友链申请等通知类型
+// 功能说明：存储通知事件信息，支持评论回复、新评论、文章推送、友链异常等通知类型
 type Notification struct {
 	ID         uint      `json:"id" gorm:"primaryKey"`
 	Type       string    `json:"type" gorm:"size:30;not null;index"`
