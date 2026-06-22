@@ -18,12 +18,7 @@
     </template>
     <n-spin :show="loading">
       <div v-if="posts.length" class="list">
-        <div
-          v-for="item in posts"
-          :key="item.id"
-          class="list-item"
-          @click="goPost(item)"
-        >
+        <div v-for="item in posts" :key="item.id" class="list-item" @click="goPost(item)">
           <div class="item-cover">
             <n-image
               v-if="item.cover"

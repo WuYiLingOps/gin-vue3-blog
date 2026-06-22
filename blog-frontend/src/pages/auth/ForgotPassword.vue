@@ -11,7 +11,7 @@
   <div class="forgot-password-page">
     <h2>找回密码</h2>
     <p class="subtitle">请输入您注册时使用的邮箱</p>
-    
+
     <n-form ref="formRef" :model="formData" :rules="rules" size="large">
       <n-form-item path="email">
         <n-input
@@ -38,8 +38,8 @@
             <n-icon :component="ShieldCheckmarkOutline" />
           </template>
           <template #suffix>
-            <n-button 
-              type="primary" 
+            <n-button
+              type="primary"
               :disabled="countdown > 0"
               :loading="sending"
               @click="handleSendCode"
@@ -80,21 +80,13 @@
         </n-input>
       </n-form-item>
 
-      <n-button 
-        type="primary" 
-        block 
-        size="large" 
-        :loading="submitting" 
-        @click="handleSubmit"
-      >
+      <n-button type="primary" block size="large" :loading="submitting" @click="handleSubmit">
         重置密码
       </n-button>
     </n-form>
 
     <div class="footer-links">
-      <n-button text type="primary" @click="router.push('/auth/login')">
-        返回登录
-      </n-button>
+      <n-button text type="primary" @click="router.push('/auth/login')"> 返回登录 </n-button>
     </div>
   </div>
 </template>
@@ -152,20 +144,20 @@ const rules: FormRules = {
 
 async function handleSendCode() {
   if (countdown.value > 0) return
-  
+
   // 验证邮箱字段
   if (!formData.email) {
     message.error('请先输入邮箱地址')
     return
   }
-  
+
   // 验证邮箱格式
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   if (!emailRegex.test(formData.email)) {
     message.error('邮箱格式不正确')
     return
   }
-  
+
   try {
     sending.value = true
     await forgotPassword({
@@ -202,13 +194,13 @@ async function handleSubmit() {
   try {
     await formRef.value?.validate()
     submitting.value = true
-    
+
     await resetPassword({
       email: formData.email,
       code: formData.code,
       new_password: formData.new_password
     })
-    
+
     message.success('密码重置成功，请使用新密码登录')
     router.push('/auth/login')
   } catch (error: any) {
@@ -260,18 +252,17 @@ h2 {
     font-size: 24px;
     margin-bottom: 8px;
   }
-  
+
   .subtitle {
     margin-bottom: 20px;
   }
-  
+
   .forgot-password-page :deep(.n-form-item) {
     margin-bottom: 16px;
   }
-  
+
   .last-item {
     margin-bottom: 12px;
   }
 }
 </style>
-

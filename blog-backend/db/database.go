@@ -61,6 +61,7 @@ func InitDB() error {
 	requiredTables := []string{
 		"users", "posts", "categories", "tags", "comments",
 		"subscribers", "push_histories", "push_details", "post_revisions",
+		"notifications", "user_notifications",
 	}
 
 	for _, tableName := range requiredTables {

@@ -7,6 +7,7 @@
 !.vscode/launch.json
 .claude/
 .codepilot-uploads/
+.mimocode/
 
 # JetBrains IDEs (IntelliJ IDEA, GoLand, WebStorm, etc.)  JetBrains 系列 IDE 配置
 .idea/
@@ -52,6 +53,7 @@ dist/
 dist-ssr/
 build/
 .cache/
+blog-frontend/.gitignore
 
 # Logs  日志文件
 logs/

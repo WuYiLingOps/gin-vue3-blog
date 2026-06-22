@@ -13,6 +13,7 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"net/http"
 	"time"
 
 	"blog-backend/db"
@@ -22,7 +23,8 @@ import (
 
 // FriendLinkService 友链业务逻辑层结构体
 type FriendLinkService struct {
-	repo *repository.FriendLinkRepository
+	repo                *repository.FriendLinkRepository
+	notificationService *NotificationService
 }
 
 // NewFriendLinkService 创建友链业务逻辑层实例
@@ -30,6 +32,11 @@ func NewFriendLinkService() *FriendLinkService {
 	return &FriendLinkService{
 		repo: repository.NewFriendLinkRepository(),
 	}
+}
+
+// SetNotificationService 设置通知服务
+func (s *FriendLinkService) SetNotificationService(notificationService *NotificationService) {
+	s.notificationService = notificationService
 }
 
 // CreateFriendLinkRequest 创建友链请求
@@ -101,14 +108,14 @@ func (s *FriendLinkService) GetByID(id uint) (*model.FriendLink, error) {
 }
 
 // List 获取友链列表（管理员用）
-func (s *FriendLinkService) List(page, pageSize int) ([]model.FriendLink, int64, error) {
+func (s *FriendLinkService) List(page, pageSize int, keyword, status, accessible string) ([]model.FriendLink, int64, error) {
 	if page < 1 {
 		page = 1
 	}
 	if pageSize < 1 || pageSize > 100 {
 		pageSize = 10
 	}
-	return s.repo.List(page, pageSize)
+	return s.repo.List(page, pageSize, keyword, status, accessible)
 }
 
 // ListPublic 获取公开的友链列表（前端用）
@@ -214,4 +221,90 @@ func (s *FriendLinkService) Delete(id uint) error {
 	}()
 
 	return nil
+}
+
+// CheckAllFriends 检测所有友链状态（定时任务调用，每次检测一次）
+func (s *FriendLinkService) CheckAllFriends() {
+	s.checkAllFriendsWithRetry(1)
+}
+
+// CheckAllFriendsManual 手动触发友链检测（连续检测3次，确保能触发通知）
+func (s *FriendLinkService) CheckAllFriendsManual() {
+	s.checkAllFriendsWithRetry(3)
+}
+
+// checkAllFriendsWithRetry 检测所有友链状态
+// retryCount: 每个友链的检测次数
+func (s *FriendLinkService) checkAllFriendsWithRetry(retryCount int) {
+	// 获取所有需要检测的友链
+	friendLinks, err := s.repo.GetAllForCheck()
+	if err != nil {
+		return
+	}
+
+	for _, link := range friendLinks {
+		// 连续检测 retryCount 次
+		allFailed := true
+		for i := 0; i < retryCount; i++ {
+			if s.checkAccessibility(link.URL) {
+				allFailed = false
+				break
+			}
+			if i < retryCount-1 {
+				time.Sleep(2 * time.Second)
+			}
+		}
+
+		oldAccessible := link.Accessible
+
+		if !allFailed {
+			// 访问正常，重置计数
+			if oldAccessible != 0 {
+				_ = s.repo.UpdateCheckStatus(link.ID, 0)
+				_ = s.repo.UpdateInvalidStatus(link.ID, false)
+				// 清除前台缓存
+				go func() {
+					ctx := context.Background()
+					db.RDB.Del(ctx, "friend_links:public:list")
+				}()
+			}
+		} else {
+			// 访问失败，计数+1
+			newCount := oldAccessible + 1
+			if newCount < 0 {
+				newCount = 1
+			}
+			_ = s.repo.UpdateCheckStatus(link.ID, newCount)
+
+			// 连续失败 >= 3 次，标记为失效并通知管理员
+			if newCount >= 3 {
+				_ = s.repo.UpdateInvalidStatus(link.ID, true)
+				// 清除前台缓存
+				go func() {
+					ctx := context.Background()
+					db.RDB.Del(ctx, "friend_links:public:list")
+				}()
+
+				if s.notificationService != nil {
+					s.notificationService.NotifyFriendAbnormal(link.ID, link.Name, link.URL, newCount)
+				}
+			}
+		}
+	}
+}
+
+// checkAccessibility 检测单个URL是否可访问
+func (s *FriendLinkService) checkAccessibility(url string) bool {
+	client := &http.Client{
+		Timeout: 10 * time.Second,
+	}
+
+	resp, err := client.Get(url)
+	if err != nil {
+		return false
+	}
+	defer resp.Body.Close()
+
+	// 2xx 和 3xx 状态码都认为是可访问的
+	return resp.StatusCode < 400
 }

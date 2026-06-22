@@ -15,18 +15,9 @@
 
     <n-card class="edit-card">
       <n-spin :show="loading">
-        <n-form
-          ref="formRef"
-          :model="formData"
-          :rules="rules"
-          label-placement="top"
-        >
+        <n-form ref="formRef" :model="formData" :rules="rules" label-placement="top">
           <n-form-item label="文章标题" path="title">
-            <n-input
-              v-model:value="formData.title"
-              placeholder="请输入文章标题"
-              size="large"
-            />
+            <n-input v-model:value="formData.title" placeholder="请输入文章标题" size="large" />
           </n-form-item>
 
           <n-form-item label="分类" path="category_id">
@@ -77,9 +68,9 @@
           </n-form-item>
 
           <n-form-item label="文章内容" path="content">
-            <markdown-editor 
-              v-model="formData.content" 
-              :height="isMobile ? '400px' : '600px'" 
+            <markdown-editor
+              v-model="formData.content"
+              :height="isMobile ? '400px' : '600px'"
               :subfield="!isMobile"
             />
           </n-form-item>
@@ -119,12 +110,18 @@
             </n-space>
             <template #feedback>
               <n-text depth="3" style="font-size: 12px">
-                协作者由系统自动添加{{ collaborators.some(c => canRemoveCollaborator(c)) ? '，点击可移除' : '' }}
+                协作者由系统自动添加{{
+                  collaborators.some(c => canRemoveCollaborator(c)) ? '，点击可移除' : ''
+                }}
               </n-text>
             </template>
           </n-form-item>
 
-          <n-form-item v-if="isEdit && isEditingSuperAdminPost" label="修改说明" path="editor_comment">
+          <n-form-item
+            v-if="isEdit && isEditingSuperAdminPost"
+            label="修改说明"
+            path="editor_comment"
+          >
             <n-input
               v-model:value="formData.editor_comment"
               type="textarea"
@@ -139,10 +136,18 @@
           </n-form-item>
 
           <n-space :vertical="isMobile">
-            <n-button type="primary" :size="isMobile ? 'medium' : 'large'" :block="isMobile" :loading="submitting" @click="handleSubmit">
+            <n-button
+              type="primary"
+              :size="isMobile ? 'medium' : 'large'"
+              :block="isMobile"
+              :loading="submitting"
+              @click="handleSubmit"
+            >
               {{ isEdit ? '保存修改' : '发布文章' }}
             </n-button>
-            <n-button :size="isMobile ? 'medium' : 'large'" :block="isMobile" @click="handleBack">取消</n-button>
+            <n-button :size="isMobile ? 'medium' : 'large'" :block="isMobile" @click="handleBack"
+              >取消</n-button
+            >
           </n-space>
         </n-form>
       </n-spin>
@@ -155,7 +160,13 @@ import { ref, reactive, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useMessage } from 'naive-ui'
 import type { FormInst, FormRules, SelectOption } from 'naive-ui'
-import { getPostById, createPost, updatePost, getCollaborators, removeCollaborator } from '@/api/post'
+import {
+  getPostById,
+  createPost,
+  updatePost,
+  getCollaborators,
+  removeCollaborator
+} from '@/api/post'
 import { uploadPostCover } from '@/api/upload'
 import { useBlogStore, useAuthStore } from '@/stores'
 import type { PostForm } from '@/types/blog'
@@ -229,9 +240,9 @@ const rules: FormRules = {
   title: [{ required: true, message: '请输入文章标题', trigger: 'blur' }],
   content: [{ required: true, message: '请输入文章内容', trigger: 'blur' }],
   category_id: [
-    { 
-      required: true, 
-      message: '请选择分类', 
+    {
+      required: true,
+      message: '请选择分类',
       trigger: ['blur', 'change'],
       validator: (_rule, value) => {
         if (value === null || value === undefined || value === 0) {
@@ -244,7 +255,7 @@ const rules: FormRules = {
 }
 
 const categoryOptions = computed<SelectOption[]>(() => {
-  return blogStore.categories.map((cat) => ({
+  return blogStore.categories.map(cat => ({
     label: cat.name,
     value: cat.id
   }))
@@ -254,7 +265,7 @@ const categoryOptions = computed<SelectOption[]>(() => {
 const tagSearchKeyword = ref('')
 
 const tagOptions = computed<SelectOption[]>(() => {
-  return blogStore.tags.map((tag) => ({
+  return blogStore.tags.map(tag => ({
     label: tag.name,
     value: tag.id
   }))
@@ -310,7 +321,7 @@ watch(
 onMounted(async () => {
   checkMobile()
   window.addEventListener('resize', checkMobile)
-  
+
   // 加载分类和标签
   await blogStore.fetchCategories()
   await blogStore.fetchTags()
@@ -340,7 +351,7 @@ async function loadPost() {
     formData.summary = post.summary
     formData.cover = post.cover || ''
     formData.category_id = post.category_id
-    formData.tag_ids = post.tags?.map((tag) => tag.id) || []
+    formData.tag_ids = post.tags?.map(tag => tag.id) || []
     formData.status = post.status
     formData.visibility = post.visibility ?? 1
     formData.is_top = post.is_top
@@ -418,7 +429,7 @@ async function handleSubmit() {
     if (error?.errors) {
       return
     }
-    
+
     // 处理后端返回的错误
     let errorMessage = '保存失败'
     if (error.response?.data?.message) {
@@ -426,7 +437,7 @@ async function handleSubmit() {
     } else if (error.message) {
       errorMessage = error.message
     }
-    
+
     message.error(errorMessage)
   } finally {
     submitting.value = false
@@ -479,14 +490,13 @@ onUnmounted(() => {
   .post-edit-page :deep(.n-page-header) {
     padding: 12px;
   }
-  
+
   .edit-card {
     margin: 0;
   }
-  
+
   .post-edit-page :deep(.n-form-item) {
     margin-bottom: 20px;
   }
 }
 </style>
-

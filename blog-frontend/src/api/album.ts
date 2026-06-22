@@ -15,13 +15,13 @@ import { request } from '@/utils/request'
  * 相册照片数据接口
  */
 export interface Album {
-  id: number                    // 相册照片ID
-  image_url: string             // 图片URL地址
-  title?: string                // 照片标题（可选）
-  description?: string          // 照片描述（可选）
-  sort_order: number            // 排序顺序
-  created_at: string            // 创建时间
-  updated_at: string            // 更新时间
+  id: number // 相册照片ID
+  image_url: string // 图片URL地址
+  title?: string // 照片标题（可选）
+  description?: string // 照片描述（可选）
+  sort_order: number // 排序顺序
+  created_at: string // 创建时间
+  updated_at: string // 更新时间
 }
 
 /**
@@ -39,7 +39,13 @@ export function getPublicAlbums() {
  * @returns 返回分页的相册列表数据
  */
 export function getAlbums(page = 1, pageSize = 10) {
-  return request.get<{ list: Album[]; total: number; page: number; page_size: number; total_pages: number }>('/admin/albums', {
+  return request.get<{
+    list: Album[]
+    total: number
+    page: number
+    page_size: number
+    total_pages: number
+  }>('/admin/albums', {
     params: { page, page_size: pageSize }
   })
 }
@@ -81,12 +87,15 @@ export function createAlbum(data: {
  * @param data.sort_order 排序顺序（可选）
  * @returns 返回更新后的相册照片数据
  */
-export function updateAlbum(id: number, data: {
-  image_url?: string
-  title?: string
-  description?: string
-  sort_order?: number
-}) {
+export function updateAlbum(
+  id: number,
+  data: {
+    image_url?: string
+    title?: string
+    description?: string
+    sort_order?: number
+  }
+) {
   return request.put<Album>(`/admin/albums/${id}`, data)
 }
 

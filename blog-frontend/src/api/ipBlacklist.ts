@@ -16,21 +16,21 @@ import type { PageData } from '@/types/common'
  * IP黑名单接口
  */
 export interface IPBlacklist {
-  id: number                // 记录ID
-  ip: string                // IP地址
-  reason: string            // 封禁原因
-  ban_type: number          // 封禁类型：1表示自动封禁，2表示手动封禁
-  expire_at: string | null  // 过期时间，null表示永久封禁
-  created_at: string        // 创建时间
-  updated_at: string        // 更新时间
+  id: number // 记录ID
+  ip: string // IP地址
+  reason: string // 封禁原因
+  ban_type: number // 封禁类型：1表示自动封禁，2表示手动封禁
+  expire_at: string | null // 过期时间，null表示永久封禁
+  created_at: string // 创建时间
+  updated_at: string // 更新时间
 }
 
 /**
  * IP检查结果接口
  */
 export interface IPCheckResult {
-  banned: boolean           // 是否被封禁
-  info?: IPBlacklist        // 封禁信息（如果被封禁）
+  banned: boolean // 是否被封禁
+  info?: IPBlacklist // 封禁信息（如果被封禁）
 }
 
 /**
@@ -85,4 +85,3 @@ export function checkIPStatus(ip: string) {
 export function cleanExpiredIPBlacklist() {
   return request.post<{ deleted_count: number }>('/admin/ip-blacklist/clean-expired')
 }
-

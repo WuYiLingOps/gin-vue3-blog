@@ -241,3 +241,159 @@ func GenerateToken() string {
 	rand.Read(b)
 	return hex.EncodeToString(b)
 }
+
+// SendCommentReplyNotification 发送评论回复邮件
+func (c *Client) SendCommentReplyNotification(to, siteName, replierName, postTitle, commentContent, articleURL string) error {
+	if !c.rateLimiter.Allow(to) {
+		return fmt.Errorf("发送频率过高，请稍后再试")
+	}
+
+	if siteName == "" {
+		siteName = "菱风叙"
+	}
+
+	subject := fmt.Sprintf("【%s】%s 回复了您的评论", siteName, replierName)
+
+	htmlReplierName := template.HTMLEscapeString(replierName)
+	htmlPostTitle := template.HTMLEscapeString(postTitle)
+	htmlCommentContent := template.HTMLEscapeString(commentContent)
+	htmlCommentContent = strings.ReplaceAll(htmlCommentContent, "\n", "<br>")
+
+	htmlBody := fmt.Sprintf(`
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f5f5f5; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #3b82f6 0%%, #60a5fa 100%%); color: white; padding: 40px 30px; text-align: center; border-radius: 12px 12px 0 0; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2); }
+        .header h2 { margin: 0; font-size: 28px; font-weight: 700; }
+        .content { background: white; padding: 40px 30px; border-radius: 0 0 12px 12px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); }
+        .content p { margin: 16px 0; font-size: 15px; color: #475569; }
+        .content strong { color: #3b82f6; font-weight: 600; }
+        .comment-box { background: #f8fafc; border-left: 4px solid #3b82f6; padding: 16px; margin: 24px 0; border-radius: 4px; }
+        .comment-box p { margin: 0; color: #475569; }
+        .btn { display: inline-block; background: linear-gradient(135deg, #3b82f6 0%%, #60a5fa 100%%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
+        .btn:hover { box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4); }
+        .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #94a3b8; font-size: 13px; text-align: center; }
+        .footer a { color: #3b82f6; text-decoration: none; }
+        .footer a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>💬 评论回复</h2>
+        </div>
+        <div class="content">
+            <p>您好！</p>
+            <p><strong>%s</strong> 回复了您在文章《<strong>%s</strong>》中的评论：</p>
+            <div class="comment-box">
+                <p>%s</p>
+            </div>
+            <div style="text-align: center;">
+                <a href="%s" class="btn">查看回复</a>
+            </div>
+        </div>
+        <div class="footer">
+            <p>这是来自 <strong>%s</strong> 的评论回复通知。</p>
+            <p>此邮件由系统自动发送，请勿直接回复</p>
+        </div>
+    </div>
+</body>
+</html>
+`, htmlReplierName, htmlPostTitle, htmlCommentContent, articleURL, siteName)
+
+	textBody := fmt.Sprintf(`评论回复通知
+
+%s 回复了您在文章《%s》中的评论：
+
+%s
+
+查看回复：%s
+
+---
+这是来自 %s 的评论回复通知。
+此邮件由系统自动发送，请勿直接回复`, replierName, postTitle, commentContent, articleURL, siteName)
+
+	return c.sendEmail(to, subject, htmlBody, textBody)
+}
+
+// SendCommentNewNotification 发送新评论邮件（管理员）
+func (c *Client) SendCommentNewNotification(to, siteName, commenterName, postTitle, commentContent, articleURL string) error {
+	if !c.rateLimiter.Allow(to) {
+		return fmt.Errorf("发送频率过高，请稍后再试")
+	}
+
+	if siteName == "" {
+		siteName = "菱风叙"
+	}
+
+	subject := fmt.Sprintf("【%s】新评论通知", siteName)
+
+	htmlCommenterName := template.HTMLEscapeString(commenterName)
+	htmlPostTitle := template.HTMLEscapeString(postTitle)
+	htmlCommentContent := template.HTMLEscapeString(commentContent)
+	htmlCommentContent = strings.ReplaceAll(htmlCommentContent, "\n", "<br>")
+
+	htmlBody := fmt.Sprintf(`
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f5f5f5; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #22c55e 0%%, #4ade80 100%%); color: white; padding: 40px 30px; text-align: center; border-radius: 12px 12px 0 0; box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2); }
+        .header h2 { margin: 0; font-size: 28px; font-weight: 700; }
+        .content { background: white; padding: 40px 30px; border-radius: 0 0 12px 12px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); }
+        .content p { margin: 16px 0; font-size: 15px; color: #475569; }
+        .content strong { color: #22c55e; font-weight: 600; }
+        .comment-box { background: #f0fdf4; border-left: 4px solid #22c55e; padding: 16px; margin: 24px 0; border-radius: 4px; }
+        .comment-box p { margin: 0; color: #475569; }
+        .btn { display: inline-block; background: linear-gradient(135deg, #22c55e 0%%, #4ade80 100%%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3); }
+        .btn:hover { box-shadow: 0 6px 16px rgba(34, 197, 94, 0.4); }
+        .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #94a3b8; font-size: 13px; text-align: center; }
+        .footer a { color: #22c55e; text-decoration: none; }
+        .footer a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>📝 新评论通知</h2>
+        </div>
+        <div class="content">
+            <p>您好！</p>
+            <p><strong>%s</strong> 在文章《<strong>%s</strong>》中发表了新评论：</p>
+            <div class="comment-box">
+                <p>%s</p>
+            </div>
+            <div style="text-align: center;">
+                <a href="%s" class="btn">查看评论</a>
+            </div>
+        </div>
+        <div class="footer">
+            <p>这是来自 <strong>%s</strong> 的新评论通知。</p>
+            <p>此邮件由系统自动发送，请勿直接回复</p>
+        </div>
+    </div>
+</body>
+</html>
+`, htmlCommenterName, htmlPostTitle, htmlCommentContent, articleURL, siteName)
+
+	textBody := fmt.Sprintf(`新评论通知
+
+%s 在文章《%s》中发表了新评论：
+
+%s
+
+查看评论：%s
+
+---
+这是来自 %s 的新评论通知。
+此邮件由系统自动发送，请勿直接回复`, commenterName, postTitle, commentContent, articleURL, siteName)
+
+	return c.sendEmail(to, subject, htmlBody, textBody)
+}

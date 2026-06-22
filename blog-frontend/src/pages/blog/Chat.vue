@@ -15,7 +15,10 @@
           <n-badge :value="onlineCount" :max="99" type="success">
             <n-icon size="20">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                <path fill="currentColor" d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                <path
+                  fill="currentColor"
+                  d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+                />
               </svg>
             </n-icon>
           </n-badge>
@@ -29,7 +32,7 @@
           <div v-if="messages.length === 0" class="empty-messages">
             <n-empty description="暂无消息" />
           </div>
-          
+
           <div v-else class="messages-list">
             <div
               v-for="msg in messages"
@@ -44,22 +47,15 @@
                 placement="bottom-start"
                 :show="avatarDropdownShow === msg.id"
                 :options="avatarMenuOptions"
-                @select="(key) => handleAvatarMenuSelect(key, msg)"
+                @select="key => handleAvatarMenuSelect(key, msg)"
                 @clickoutside="avatarDropdownShow = null"
               >
-                <div 
-                  class="message-avatar"
-                  @contextmenu.prevent="(e) => showAvatarDropdown(e, msg)"
-                >
-                  <n-avatar
-                    v-if="msg.avatar"
-                    :size="40"
-                    :src="msg.avatar"
-                  />
+                <div class="message-avatar" @contextmenu.prevent="e => showAvatarDropdown(e, msg)">
+                  <n-avatar v-if="msg.avatar" :size="40" :src="msg.avatar" />
                   <n-avatar
                     v-else
                     :size="40"
-                    :style="{ 
+                    :style="{
                       backgroundColor: getAvatarColor(msg.username),
                       color: 'white',
                       fontWeight: 'bold'
@@ -70,15 +66,11 @@
                 </div>
               </n-dropdown>
               <div v-else class="message-avatar">
-                <n-avatar
-                  v-if="msg.avatar"
-                  :size="40"
-                  :src="msg.avatar"
-                />
+                <n-avatar v-if="msg.avatar" :size="40" :src="msg.avatar" />
                 <n-avatar
                   v-else
                   :size="40"
-                  :style="{ 
+                  :style="{
                     backgroundColor: getAvatarColor(msg.username),
                     color: 'white',
                     fontWeight: 'bold'
@@ -95,12 +87,12 @@
                 placement="bottom-start"
                 :show="messageDropdownShow === msg.id"
                 :options="messageMenuOptions"
-                @select="(key) => handleMessageMenuSelect(key, msg)"
+                @select="key => handleMessageMenuSelect(key, msg)"
                 @clickoutside="messageDropdownShow = null"
               >
-                <div 
+                <div
                   class="message-content"
-                  @contextmenu.prevent="(e) => showMessageDropdown(e, msg)"
+                  @contextmenu.prevent="e => showMessageDropdown(e, msg)"
                 >
                   <div class="message-header">
                     <span class="message-username">{{ msg.username }}</span>
@@ -127,7 +119,9 @@
               <n-input
                 v-model:value="messageInput"
                 type="textarea"
-                :placeholder="isChatMutedForUser ? '已开启全员禁言，只有管理员可发言' : '输入消息...'"
+                :placeholder="
+                  isChatMutedForUser ? '已开启全员禁言，只有管理员可发言' : '输入消息...'
+                "
                 :disabled="isChatMutedForUser"
                 :autosize="{ minRows: 2, maxRows: 4 }"
                 @keydown.enter.prevent="handleSendMessage"
@@ -138,10 +132,16 @@
                     <template #icon>
                       <n-icon :size="28">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-                          <path fill="currentColor" d="M256 48C141.1 48 48 141.1 48 256s93.1 208 208 208 208-93.1 208-208S370.9 48 256 48zm0 374c-91.4 0-166-74.6-166-166S164.6 90 256 90s166 74.6 166 166-74.6 166-166 166z"/>
-                          <circle cx="192" cy="208" r="24" fill="currentColor"/>
-                          <circle cx="320" cy="208" r="24" fill="currentColor"/>
-                          <path fill="currentColor" d="M256 304c-33.1 0-62.6 17.5-79.2 43.8-3.5 5.6-.9 12.9 5.3 15.1 2 .7 4.1.9 6.1.9 4.4 0 8.6-2.3 10.9-6.3 12.3-19.6 33.6-31.3 57-31.3s44.7 11.7 57 31.3c3.5 5.6 10.9 7.3 16.5 3.8s7.3-10.9 3.8-16.5C318.6 321.5 289.1 304 256 304z"/>
+                          <path
+                            fill="currentColor"
+                            d="M256 48C141.1 48 48 141.1 48 256s93.1 208 208 208 208-93.1 208-208S370.9 48 256 48zm0 374c-91.4 0-166-74.6-166-166S164.6 90 256 90s166 74.6 166 166-74.6 166-166 166z"
+                          />
+                          <circle cx="192" cy="208" r="24" fill="currentColor" />
+                          <circle cx="320" cy="208" r="24" fill="currentColor" />
+                          <path
+                            fill="currentColor"
+                            d="M256 304c-33.1 0-62.6 17.5-79.2 43.8-3.5 5.6-.9 12.9 5.3 15.1 2 .7 4.1.9 6.1.9 4.4 0 8.6-2.3 10.9-6.3 12.3-19.6 33.6-31.3 57-31.3s44.7 11.7 57 31.3c3.5 5.6 10.9 7.3 16.5 3.8s7.3-10.9 3.8-16.5C318.6 321.5 289.1 304 256 304z"
+                          />
                         </svg>
                       </n-icon>
                     </template>
@@ -162,7 +162,9 @@
             <n-space justify="space-between">
               <n-text depth="3" style="font-size: 12px">
                 按 Enter 发送，Shift + Enter 换行
-                <span v-if="isChatMutedForUser" style="color: #f59e0b; margin-left: 8px;">已开启全员禁言</span>
+                <span v-if="isChatMutedForUser" style="color: #f59e0b; margin-left: 8px"
+                  >已开启全员禁言</span
+                >
               </n-text>
               <n-button
                 type="primary"
@@ -179,26 +181,15 @@
 
     <!-- 用户设置对话框 -->
     <n-modal v-model:show="showUserSetup" :mask-closable="false">
-      <n-card
-        title="设置用户信息"
-        :bordered="false"
-        size="large"
-        style="max-width: 500px"
-      >
+      <n-card title="设置用户信息" :bordered="false" size="large" style="max-width: 500px">
         <n-form>
           <n-form-item label="昵称">
-            <n-input
-              v-model:value="userSetup.username"
-              placeholder="请输入昵称"
-              maxlength="20"
-            />
+            <n-input v-model:value="userSetup.username" placeholder="请输入昵称" maxlength="20" />
           </n-form-item>
         </n-form>
         <template #footer>
           <n-space justify="end">
-            <n-button type="primary" @click="confirmUserSetup">
-              确定
-            </n-button>
+            <n-button type="primary" @click="confirmUserSetup"> 确定 </n-button>
           </n-space>
         </template>
       </n-card>
@@ -246,7 +237,7 @@ const cardThemeOverrides = computed(() => {
     colorEmbedded: '#1a2332',
     borderColor: '#243447',
     titleTextColor: '#e2e8f0',
-    textColor: '#e5e7eb',
+    textColor: '#e5e7eb'
   }
 })
 
@@ -261,7 +252,9 @@ const onlineCount = ref(0)
 const onlineUsers = ref<OnlineUser[]>([])
 type ChatSettingState = { chat_mute_all: string }
 const chatSettings = ref<ChatSettingState>({ chat_mute_all: '0' })
-const isChatMutedForUser = computed(() => chatSettings.value.chat_mute_all === '1' && !authStore.isAdmin)
+const isChatMutedForUser = computed(
+  () => chatSettings.value.chat_mute_all === '1' && !authStore.isAdmin
+)
 
 // 用户设置
 const showUserSetup = ref(false)
@@ -281,17 +274,23 @@ const messageMenuOptions = [
   {
     label: '删除消息',
     key: 'delete',
-    icon: () => h(NIcon, null, {
-      default: () => h('svg', {
-        xmlns: 'http://www.w3.org/2000/svg',
-        viewBox: '0 0 24 24'
-      }, [
-        h('path', {
-          fill: 'currentColor',
-          d: 'M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z'
-        })
-      ])
-    })
+    icon: () =>
+      h(NIcon, null, {
+        default: () =>
+          h(
+            'svg',
+            {
+              xmlns: 'http://www.w3.org/2000/svg',
+              viewBox: '0 0 24 24'
+            },
+            [
+              h('path', {
+                fill: 'currentColor',
+                d: 'M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z'
+              })
+            ]
+          )
+      })
   }
 ]
 
@@ -300,42 +299,188 @@ const avatarMenuOptions = [
   {
     label: '踢出用户',
     key: 'kick',
-    icon: () => h(NIcon, null, {
-      default: () => h('svg', {
-        xmlns: 'http://www.w3.org/2000/svg',
-        viewBox: '0 0 24 24'
-      }, [
-        h('path', {
-          fill: 'currentColor',
-          d: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 11c-.55 0-1-.45-1-1V8c0-.55.45-1 1-1s1 .45 1 1v4c0 .55-.45 1-1 1zm1 4h-2v-2h2v2z'
-        })
-      ])
-    })
+    icon: () =>
+      h(NIcon, null, {
+        default: () =>
+          h(
+            'svg',
+            {
+              xmlns: 'http://www.w3.org/2000/svg',
+              viewBox: '0 0 24 24'
+            },
+            [
+              h('path', {
+                fill: 'currentColor',
+                d: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 11c-.55 0-1-.45-1-1V8c0-.55.45-1 1-1s1 .45 1 1v4c0 .55-.45 1-1 1zm1 4h-2v-2h2v2z'
+              })
+            ]
+          )
+      })
   }
 ]
 
 // 常用表情列表
 const emojis = [
-  '😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😂',
-  '🙂', '🙃', '😉', '😊', '😇', '🥰', '😍', '🤩',
-  '😘', '😗', '😚', '😙', '😋', '😛', '😜', '🤪',
-  '😝', '🤑', '🤗', '🤭', '🤫', '🤔', '🤐', '🤨',
-  '😐', '😑', '😶', '😏', '😒', '🙄', '😬', '🤥',
-  '😌', '😔', '😪', '🤤', '😴', '😷', '🤒', '🤕',
-  '🤢', '🤮', '🤧', '🥵', '🥶', '😶‍🌫️', '😵', '🤯',
-  '🤠', '🥳', '😎', '🤓', '🧐', '😕', '😟', '🙁',
-  '☹️', '😮', '😯', '😲', '😳', '🥺', '😦', '😧',
-  '😨', '😰', '😥', '😢', '😭', '😱', '😖', '😣',
-  '😞', '😓', '😩', '😫', '🥱', '😤', '😡', '😠',
-  '🤬', '😈', '👿', '💀', '☠️', '💩', '🤡', '👹',
-  '👺', '👻', '👽', '👾', '🤖', '😺', '😸', '😹',
-  '👍', '👎', '👌', '✌️', '🤞', '🤟', '🤘', '🤙',
-  '👋', '🤚', '🖐️', '✋', '🖖', '👏', '🙌', '👐',
-  '🤝', '🙏', '✍️', '💪', '🦾', '🦿', '🦵', '🦶',
-  '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍',
-  '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘',
-  '💝', '💟', '☮️', '✝️', '☪️', '🕉️', '☸️', '✡️',
-  '🔯', '🕎', '☯️', '☦️', '🛐', '⛎', '♈', '♉'
+  '😀',
+  '😃',
+  '😄',
+  '😁',
+  '😆',
+  '😅',
+  '🤣',
+  '😂',
+  '🙂',
+  '🙃',
+  '😉',
+  '😊',
+  '😇',
+  '🥰',
+  '😍',
+  '🤩',
+  '😘',
+  '😗',
+  '😚',
+  '😙',
+  '😋',
+  '😛',
+  '😜',
+  '🤪',
+  '😝',
+  '🤑',
+  '🤗',
+  '🤭',
+  '🤫',
+  '🤔',
+  '🤐',
+  '🤨',
+  '😐',
+  '😑',
+  '😶',
+  '😏',
+  '😒',
+  '🙄',
+  '😬',
+  '🤥',
+  '😌',
+  '😔',
+  '😪',
+  '🤤',
+  '😴',
+  '😷',
+  '🤒',
+  '🤕',
+  '🤢',
+  '🤮',
+  '🤧',
+  '🥵',
+  '🥶',
+  '😶‍🌫️',
+  '😵',
+  '🤯',
+  '🤠',
+  '🥳',
+  '😎',
+  '🤓',
+  '🧐',
+  '😕',
+  '😟',
+  '🙁',
+  '☹️',
+  '😮',
+  '😯',
+  '😲',
+  '😳',
+  '🥺',
+  '😦',
+  '😧',
+  '😨',
+  '😰',
+  '😥',
+  '😢',
+  '😭',
+  '😱',
+  '😖',
+  '😣',
+  '😞',
+  '😓',
+  '😩',
+  '😫',
+  '🥱',
+  '😤',
+  '😡',
+  '😠',
+  '🤬',
+  '😈',
+  '👿',
+  '💀',
+  '☠️',
+  '💩',
+  '🤡',
+  '👹',
+  '👺',
+  '👻',
+  '👽',
+  '👾',
+  '🤖',
+  '😺',
+  '😸',
+  '😹',
+  '👍',
+  '👎',
+  '👌',
+  '✌️',
+  '🤞',
+  '🤟',
+  '🤘',
+  '🤙',
+  '👋',
+  '🤚',
+  '🖐️',
+  '✋',
+  '🖖',
+  '👏',
+  '🙌',
+  '👐',
+  '🤝',
+  '🙏',
+  '✍️',
+  '💪',
+  '🦾',
+  '🦿',
+  '🦵',
+  '🦶',
+  '❤️',
+  '🧡',
+  '💛',
+  '💚',
+  '💙',
+  '💜',
+  '🖤',
+  '🤍',
+  '💔',
+  '❣️',
+  '💕',
+  '💞',
+  '💓',
+  '💗',
+  '💖',
+  '💘',
+  '💝',
+  '💟',
+  '☮️',
+  '✝️',
+  '☪️',
+  '🕉️',
+  '☸️',
+  '✡️',
+  '🔯',
+  '🕎',
+  '☯️',
+  '☦️',
+  '🛐',
+  '⛎',
+  '♈',
+  '♉'
 ]
 
 // 获取头像文字（用户名首字母）
@@ -360,16 +505,16 @@ const getAvatarColor = (username: string) => {
     '#B8B8D1', // 淡紫
     '#6CB4EE', // 天蓝
     '#98D8C8', // 薄荷绿
-    '#F4B4A5'  // 珊瑚色
+    '#F4B4A5' // 珊瑚色
   ]
-  
+
   // 使用用户名生成一个稳定的哈希值
   let hash = 0
   for (let i = 0; i < username.length; i++) {
     hash = username.charCodeAt(i) + ((hash << 5) - hash)
     hash = hash & hash // Convert to 32bit integer
   }
-  
+
   return colors[Math.abs(hash) % colors.length]
 }
 
@@ -377,7 +522,11 @@ const getAvatarColor = (username: string) => {
 const isOwnMessage = (msg: ChatMessage) => {
   // 已登录用户只用 user_id 比较，避免同名用户误判
   if (authStore.isLoggedIn && authStore.user?.id) {
-    return msg.user_id !== null && msg.user_id !== undefined && Number(msg.user_id) === Number(authStore.user.id)
+    return (
+      msg.user_id !== null &&
+      msg.user_id !== undefined &&
+      Number(msg.user_id) === Number(authStore.user.id)
+    )
   }
   // 匿名用户比较用户名
   if (userSetup.value.username) {
@@ -412,14 +561,10 @@ const fetchChatSettingsData = async () => {
 
 // 连接WebSocket
 const connectWebSocket = () => {
-  const username = authStore.isLoggedIn 
-    ? authStore.user?.username 
-    : userSetup.value.username
-  
-  const avatar = authStore.isLoggedIn 
-    ? authStore.user?.avatar 
-    : undefined
-  
+  const username = authStore.isLoggedIn ? authStore.user?.username : userSetup.value.username
+
+  const avatar = authStore.isLoggedIn ? authStore.user?.avatar : undefined
+
   // 如果用户已登录，传递token
   const token = authStore.isLoggedIn && authStore.token ? authStore.token : undefined
 
@@ -522,7 +667,7 @@ const showAvatarDropdown = (e: MouseEvent, msg: ChatMessage) => {
 // 处理消息菜单选择
 const handleMessageMenuSelect = async (key: string, msg: ChatMessage) => {
   messageDropdownShow.value = null
-  
+
   if (key === 'delete') {
     dialog.warning({
       title: '删除消息',
@@ -549,7 +694,7 @@ const handleMessageMenuSelect = async (key: string, msg: ChatMessage) => {
 // 处理头像菜单选择
 const handleAvatarMenuSelect = async (key: string, msg: ChatMessage) => {
   avatarDropdownShow.value = null
-  
+
   if (key === 'kick' && msg.client_id) {
     dialog.warning({
       title: '踢出用户',
@@ -659,7 +804,8 @@ onUnmounted(() => {
 /* n-card__content 内部可能还有 .n-scrollbar 包裹层 */
 .chat-container :deep(.n-card__content > .n-scrollbar),
 .chat-container :deep(.n-card__content > .n-scrollbar > .n-scrollbar-container),
-.chat-container :deep(.n-card__content > .n-scrollbar > .n-scrollbar-container > .n-scrollbar-content) {
+.chat-container
+  :deep(.n-card__content > .n-scrollbar > .n-scrollbar-container > .n-scrollbar-content) {
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -1084,4 +1230,3 @@ html.dark .input-wrapper :deep(.n-input__textarea-el::placeholder) {
   }
 }
 </style>
-

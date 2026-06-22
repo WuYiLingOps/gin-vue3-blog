@@ -13,241 +13,262 @@
       <!-- 文章主体 -->
       <div class="post-main">
         <n-card v-if="post">
-        <!-- 文章头部 -->
-        <div class="post-header">
-          <h1 class="post-title">{{ post.title }}</h1>
-          <div class="post-meta">
-            <n-space align="center">
-              <!-- 第一作者 -->
-              <n-avatar :src="post.user.avatar" round />
-              <span>{{ post.user.nickname }}</span>
-              
-              <!-- 协作者（如果有） -->
-              <template v-if="post.collaborators && post.collaborators.length > 0">
+          <!-- 文章头部 -->
+          <div class="post-header">
+            <h1 class="post-title">{{ post.title }}</h1>
+            <div class="post-meta">
+              <n-space align="center">
+                <!-- 第一作者 -->
+                <n-avatar :src="post.user.avatar" round />
+                <span>{{ post.user.nickname }}</span>
+
+                <!-- 协作者（如果有） -->
+                <template v-if="post.collaborators && post.collaborators.length > 0">
+                  <n-divider vertical />
+                  <span class="collab-label">协作</span>
+                  <n-avatar :src="post.collaborators[0].avatar" round :size="28" />
+                  <span>{{ post.collaborators[0].nickname }}</span>
+                </template>
+
                 <n-divider vertical />
-                <span class="collab-label">协作</span>
-                <n-avatar :src="post.collaborators[0].avatar" round :size="28" />
-                <span>{{ post.collaborators[0].nickname }}</span>
-              </template>
-              
-              <n-divider vertical />
-              <span>创建时间：{{ formatDate(post.created_at, 'YYYY-MM-DD HH:mm') }}</span>
-              <n-divider vertical />
-              <span>更新时间：{{ formatDate(post.updated_at || post.created_at, 'YYYY-MM-DD HH:mm') }}</span>
-              <n-divider vertical />
-              <span>
-                <n-icon :component="EyeOutline" />
-                {{ post.view_count }}
-              </span>
-              <n-divider vertical />
-              <span>
-                <n-icon :component="HeartOutline" />
-                {{ post.like_count }}
-              </span>
-            </n-space>
-          </div>
-          <div class="post-tags">
-            <n-space>
-              <n-tag :bordered="false" type="info">{{ post.category.name }}</n-tag>
-              <n-tag v-for="tag in post.tags" :key="tag.id" :bordered="false">
-                {{ tag.name }}
-              </n-tag>
-            </n-space>
-          </div>
-        </div>
-
-        <n-divider />
-
-        <!-- 温馨提示 -->
-        <div v-if="post" class="update-tip">
-          <div class="tip-content">
-            <n-icon :component="WarningOutline" size="18" class="tip-icon" />
-            <span class="tip-text">
-              「温馨提示」距离上次本文更新已经
-              <strong class="tip-days">{{ getDaysSinceUpdate(post.updated_at || post.created_at) }}</strong>
-              天，若内容或图片失效，请留言反馈。
-            </span>
-          </div>
-        </div>
-
-        <n-divider />
-
-        <!-- 文章内容 -->
-        <div class="post-content">
-          <markdown-preview :content="post.content" />
-        </div>
-
-        <n-divider />
-
-        <!-- 文章操作 -->
-        <div class="post-actions">
-          <n-space justify="center">
-            <n-button :type="liked ? 'primary' : 'default'" @click="handleLike">
-              <template #icon>
-                <n-icon :component="liked ? Heart : HeartOutline" />
-              </template>
-              {{ post.like_count }}
-            </n-button>
-            <n-button v-if="canEdit" @click="handleEdit">
-              <template #icon>
-                <n-icon :component="CreateOutline" />
-              </template>
-              编辑
-            </n-button>
-          </n-space>
-        </div>
-
-        <n-divider />
-
-        <!-- 文章底部信息 -->
-        <div v-if="post" class="post-footer">
-          <div class="footer-info">
-            <div class="info-item">
-              <span class="info-label">文章作者</span>
-              <span class="info-value">{{ post.user.nickname }}</span>
+                <span>创建时间：{{ formatDate(post.created_at, 'YYYY-MM-DD HH:mm') }}</span>
+                <n-divider vertical />
+                <span
+                  >更新时间：{{
+                    formatDate(post.updated_at || post.created_at, 'YYYY-MM-DD HH:mm')
+                  }}</span
+                >
+                <n-divider vertical />
+                <span>
+                  <n-icon :component="EyeOutline" />
+                  {{ post.view_count }}
+                </span>
+                <n-divider vertical />
+                <span>
+                  <n-icon :component="HeartOutline" />
+                  {{ post.like_count }}
+                </span>
+              </n-space>
             </div>
-            <div class="info-item">
-              <span class="info-label">文章链接</span>
-              <span class="info-value link-value" @click="copyPostLink">
-                {{ postUrl }}
-              </span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">版权声明</span>
-              <span class="info-value">本博客所有文章除特别声明外，均采用 CC BY-NC-SA 4.0 许可协议。转载请注明来源！</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">技术内容</span>
-              <span class="info-value">若存在错误或不当之处，还望兄台不吝赐教，期待与您交流！</span>
-            </div>
-          </div>
-        </div>
-
-        <n-divider />
-
-        <!-- 评论区 -->
-        <div class="comments-section">
-          <n-card class="comments-card">
-            <h2 class="section-title">评论区 ({{ comments.length }})</h2>
-
-            <!-- 评论表单 -->
-            <n-card v-if="authStore.isLoggedIn" class="comment-form">
-            <!-- 回复提示 -->
-            <n-alert
-              v-if="replyToComment"
-              type="info"
-              closable
-              style="margin-bottom: 12px"
-              @close="replyToComment = null; replyToUser = null; commentContent = ''"
-            >
-              正在回复 <strong>@{{ (replyToUser || replyToComment).user.nickname }}</strong> 的评论
-            </n-alert>
-            
-            <CommentMarkdownEditor
-              v-model="commentContent"
-              height="250px"
-              :max-length="5000"
-            />
-            <div style="margin-top: 12px; text-align: right">
-              <n-button type="primary" :loading="submitting" @click="handleSubmitComment">
-                {{ replyToComment ? '发表回复' : '发表评论' }}
-              </n-button>
-            </div>
-          </n-card>
-
-          <n-alert v-else type="info" style="margin-bottom: 16px">
-            请 <n-button text type="primary" @click="router.push('/auth/login')">登录</n-button> 后发表评论
-          </n-alert>
-
-            <!-- 评论列表 -->
-            <div class="comments-list">
-              <div v-if="comments.length === 0" class="empty-comments">
-                <n-empty description="暂无评论，快来抢沙发吧~" size="small" />
-              </div>
-              <div v-for="comment in comments" :key="comment.id" class="comment-item">
-              <n-space align="start">
-                <n-avatar :src="comment.user.avatar" round />
-                <div class="comment-content">
-                  <div class="comment-header">
-                    <strong>{{ comment.user.nickname }}</strong>
-                    <span class="comment-time">{{ formatDate(comment.created_at, 'YYYY年MM月DD日 HH:mm') }}</span>
-                  </div>
-                  <CommentContent :content="comment.content" />
-                  <div class="comment-actions">
-                    <n-button
-                      v-if="authStore.isLoggedIn"
-                      text
-                      size="small"
-                      @click="handleReply(comment)"
-                    >
-                      回复
-                    </n-button>
-                    <n-button 
-                      v-if="comment.children && comment.children.length > 0"
-                      text 
-                      size="small" 
-                      @click="toggleExpand(comment.id)"
-                    >
-                      {{ expandedComments.has(comment.id) ? '收起' : `展开 ${comment.children.length} 条回复` }}
-                    </n-button>
-                    <n-popconfirm
-                      v-if="canDeleteComment(comment)"
-                      @positive-click="handleDeleteComment(comment.id)"
-                    >
-                      <template #trigger>
-                        <n-button text size="small" type="error">删除</n-button>
-                      </template>
-                      确定要删除这条评论吗？
-                    </n-popconfirm>
-                  </div>
-
-                  <!-- 子评论 -->
-                  <div v-if="comment.children && comment.children.length > 0 && expandedComments.has(comment.id)" class="reply-list">
-                    <div
-                      v-for="reply in comment.children"
-                      :key="reply.id"
-                      class="reply-item"
-                    >
-                      <n-space align="start">
-                        <n-avatar :src="reply.user.avatar" round size="small" />
-                        <div class="reply-content">
-                          <div class="reply-header">
-                            <strong>{{ reply.user.nickname }}</strong>
-                            <span class="reply-to">回复 @{{ getReplyTargetName(reply, comment) }}</span>
-                            <span class="comment-time">{{
-                              formatDate(reply.created_at, 'YYYY年MM月DD日 HH:mm')
-                            }}</span>
-                          </div>
-                          <CommentContent :content="removeAtMention(reply.content)" />
-                          <div class="comment-actions">
-                            <n-button
-                              v-if="authStore.isLoggedIn"
-                              text
-                              size="small"
-                              @click="handleReply(comment, reply)"
-                            >
-                              回复
-                            </n-button>
-                            <n-popconfirm
-                              v-if="canDeleteComment(reply)"
-                              @positive-click="handleDeleteComment(reply.id)"
-                            >
-                              <template #trigger>
-                                <n-button text size="small" type="error">删除</n-button>
-                              </template>
-                              确定要删除这条回复吗？
-                            </n-popconfirm>
-                          </div>
-                        </div>
-                      </n-space>
-                    </div>
-                  </div>
-                </div>
+            <div class="post-tags">
+              <n-space>
+                <n-tag :bordered="false" type="info">{{ post.category.name }}</n-tag>
+                <n-tag v-for="tag in post.tags" :key="tag.id" :bordered="false">
+                  {{ tag.name }}
+                </n-tag>
               </n-space>
             </div>
           </div>
-          </n-card>
-        </div>
+
+          <n-divider />
+
+          <!-- 温馨提示 -->
+          <div v-if="post" class="update-tip">
+            <div class="tip-content">
+              <n-icon :component="WarningOutline" size="18" class="tip-icon" />
+              <span class="tip-text">
+                「温馨提示」距离上次本文更新已经
+                <strong class="tip-days">{{
+                  getDaysSinceUpdate(post.updated_at || post.created_at)
+                }}</strong>
+                天，若内容或图片失效，请留言反馈。
+              </span>
+            </div>
+          </div>
+
+          <n-divider />
+
+          <!-- 文章内容 -->
+          <div class="post-content">
+            <markdown-preview :content="post.content" />
+          </div>
+
+          <n-divider />
+
+          <!-- 文章操作 -->
+          <div class="post-actions">
+            <n-space justify="center">
+              <n-button :type="liked ? 'primary' : 'default'" @click="handleLike">
+                <template #icon>
+                  <n-icon :component="liked ? Heart : HeartOutline" />
+                </template>
+                {{ post.like_count }}
+              </n-button>
+              <n-button v-if="canEdit" @click="handleEdit">
+                <template #icon>
+                  <n-icon :component="CreateOutline" />
+                </template>
+                编辑
+              </n-button>
+            </n-space>
+          </div>
+
+          <n-divider />
+
+          <!-- 文章底部信息 -->
+          <div v-if="post" class="post-footer">
+            <div class="footer-info">
+              <div class="info-item">
+                <span class="info-label">文章作者</span>
+                <span class="info-value">{{ post.user.nickname }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">文章链接</span>
+                <span class="info-value link-value" @click="copyPostLink">
+                  {{ postUrl }}
+                </span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">版权声明</span>
+                <span class="info-value"
+                  >本博客所有文章除特别声明外，均采用 CC BY-NC-SA 4.0
+                  许可协议。转载请注明来源！</span
+                >
+              </div>
+              <div class="info-item">
+                <span class="info-label">技术内容</span>
+                <span class="info-value"
+                  >若存在错误或不当之处，还望兄台不吝赐教，期待与您交流！</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <n-divider />
+
+          <!-- 评论区 -->
+          <div class="comments-section">
+            <n-card class="comments-card">
+              <h2 class="section-title">评论区 ({{ comments.length }})</h2>
+
+              <!-- 评论表单 -->
+              <n-card v-if="authStore.isLoggedIn" class="comment-form">
+                <!-- 回复提示 -->
+                <n-alert
+                  v-if="replyToComment"
+                  type="info"
+                  closable
+                  style="margin-bottom: 12px"
+                  @close="replyToComment = null; replyToUser = null; commentContent = ''"
+                >
+                  正在回复
+                  <strong>@{{ (replyToUser || replyToComment).user.nickname }}</strong> 的评论
+                </n-alert>
+
+                <CommentMarkdownEditor v-model="commentContent" height="250px" :max-length="5000" />
+                <div style="margin-top: 12px; text-align: right">
+                  <n-button type="primary" :loading="submitting" @click="handleSubmitComment">
+                    {{ replyToComment ? '发表回复' : '发表评论' }}
+                  </n-button>
+                </div>
+              </n-card>
+
+              <n-alert v-else type="info" style="margin-bottom: 16px">
+                请
+                <n-button text type="primary" @click="router.push('/auth/login')">登录</n-button>
+                后发表评论
+              </n-alert>
+
+              <!-- 评论列表 -->
+              <div class="comments-list">
+                <div v-if="comments.length === 0" class="empty-comments">
+                  <n-empty description="暂无评论，快来抢沙发吧~" size="small" />
+                </div>
+                <div v-for="comment in comments" :key="comment.id" class="comment-item">
+                  <n-space align="start">
+                    <n-avatar :src="comment.user.avatar" round />
+                    <div class="comment-content">
+                      <div class="comment-header">
+                        <strong>{{ comment.user.nickname }}</strong>
+                        <span class="comment-time">{{
+                          formatDate(comment.created_at, 'YYYY年MM月DD日 HH:mm')
+                        }}</span>
+                      </div>
+                      <CommentContent :content="comment.content" />
+                      <div class="comment-actions">
+                        <n-button
+                          v-if="authStore.isLoggedIn"
+                          text
+                          size="small"
+                          @click="handleReply(comment)"
+                        >
+                          回复
+                        </n-button>
+                        <n-button
+                          v-if="comment.children && comment.children.length > 0"
+                          text
+                          size="small"
+                          @click="toggleExpand(comment.id)"
+                        >
+                          {{
+                            expandedComments.has(comment.id)
+                              ? '收起'
+                              : `展开 ${comment.children.length} 条回复`
+                          }}
+                        </n-button>
+                        <n-popconfirm
+                          v-if="canDeleteComment(comment)"
+                          @positive-click="handleDeleteComment(comment.id)"
+                        >
+                          <template #trigger>
+                            <n-button text size="small" type="error">删除</n-button>
+                          </template>
+                          确定要删除这条评论吗？
+                        </n-popconfirm>
+                      </div>
+
+                      <!-- 子评论 -->
+                      <div
+                        v-if="
+                          comment.children &&
+                          comment.children.length > 0 &&
+                          expandedComments.has(comment.id)
+                        "
+                        class="reply-list"
+                      >
+                        <div v-for="reply in comment.children" :key="reply.id" class="reply-item">
+                          <n-space align="start">
+                            <n-avatar :src="reply.user.avatar" round size="small" />
+                            <div class="reply-content">
+                              <div class="reply-header">
+                                <strong>{{ reply.user.nickname }}</strong>
+                                <span class="reply-to"
+                                  >回复 @{{ getReplyTargetName(reply, comment) }}</span
+                                >
+                                <span class="comment-time">{{
+                                  formatDate(reply.created_at, 'YYYY年MM月DD日 HH:mm')
+                                }}</span>
+                              </div>
+                              <CommentContent :content="removeAtMention(reply.content)" />
+                              <div class="comment-actions">
+                                <n-button
+                                  v-if="authStore.isLoggedIn"
+                                  text
+                                  size="small"
+                                  @click="handleReply(comment, reply)"
+                                >
+                                  回复
+                                </n-button>
+                                <n-popconfirm
+                                  v-if="canDeleteComment(reply)"
+                                  @positive-click="handleDeleteComment(reply.id)"
+                                >
+                                  <template #trigger>
+                                    <n-button text size="small" type="error">删除</n-button>
+                                  </template>
+                                  确定要删除这条回复吗？
+                                </n-popconfirm>
+                              </div>
+                            </div>
+                          </n-space>
+                        </div>
+                      </div>
+                    </div>
+                  </n-space>
+                </div>
+              </div>
+            </n-card>
+          </div>
         </n-card>
       </div>
     </n-spin>
@@ -280,7 +301,13 @@
     </div>
 
     <!-- 返回顶部按钮 -->
-    <n-back-top v-if="scrollContainer" :right="40" :bottom="80" :listen-to="scrollContainer" class="back-to-top">
+    <n-back-top
+      v-if="scrollContainer"
+      :right="40"
+      :bottom="80"
+      :listen-to="scrollContainer"
+      class="back-to-top"
+    >
       <div class="back-top-button">
         <n-icon size="24" :component="ArrowUpOutline" />
       </div>
@@ -368,19 +395,19 @@ async function fetchSiteSettings() {
 // 处理复制事件
 function handleCopy(e: ClipboardEvent) {
   if (!post.value) return
-  
+
   const selection = window.getSelection()
   if (!selection || selection.rangeCount === 0) return
-  
+
   const selectedText = selection.toString().trim()
-  
+
   // 检查复制内容长度是否超过500字符
   if (selectedText.length < 500) return
-  
+
   // 检查是否在文章内容区域内
   const postContentElement = document.querySelector('.post-content')
   if (!postContentElement) return
-  
+
   const range = selection.getRangeAt(0)
   // 获取包含选中内容的元素节点
   let container: Node | null = range.commonAncestorContainer
@@ -390,30 +417,33 @@ function handleCopy(e: ClipboardEvent) {
   }
   // 检查是否在文章内容区域内
   if (!container || !postContentElement.contains(container)) return
-  
+
   // 阻止默认复制行为
   e.preventDefault()
-  
+
   // 构建版权信息
   const author = post.value.user.nickname || post.value.user.username || '作者'
   const link = postUrl.value
   const siteName = siteSettings.value.site_name || '网站'
-  
+
   const copyrightInfo = `\n\n作者: ${author}\n链接: ${link}\n来源: ${siteName}\n著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。`
-  
+
   const textWithCopyright = selectedText + copyrightInfo
-  
+
   // 设置剪贴板内容
   if (e.clipboardData) {
     e.clipboardData.setData('text/plain', textWithCopyright)
     message.success('已自动添加版权信息')
   } else {
     // 降级方案：使用 Clipboard API
-    navigator.clipboard.writeText(textWithCopyright).then(() => {
-      message.success('已自动添加版权信息')
-    }).catch(() => {
-      message.error('复制失败')
-    })
+    navigator.clipboard
+      .writeText(textWithCopyright)
+      .then(() => {
+        message.success('已自动添加版权信息')
+      })
+      .catch(() => {
+        message.error('复制失败')
+      })
   }
 }
 
@@ -430,10 +460,10 @@ async function copyPostLink() {
 onMounted(() => {
   fetchPost()
   fetchSiteSettings()
-  
+
   // 监听复制事件
   document.addEventListener('copy', handleCopy)
-  
+
   // 监听滚动 - 需要监听 n-layout-content 的滚动
   nextTick(() => {
     // 尝试多个可能的滚动容器
@@ -444,9 +474,9 @@ onMounted(() => {
     if (!container) {
       container = document.querySelector('.n-layout-scroll-container') as HTMLElement
     }
-    
+
     scrollContainer.value = container
-    
+
     if (container) {
       container.addEventListener('scroll', handleScroll)
     }
@@ -456,7 +486,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   // 移除复制事件监听
   document.removeEventListener('copy', handleCopy)
-  
+
   if (scrollContainer.value) {
     scrollContainer.value.removeEventListener('scroll', handleScroll)
   }
@@ -537,12 +567,12 @@ async function handleSubmitComment() {
       content: commentContent.value,
       post_id: post.value.id
     }
-    
+
     // 如果是回复评论，添加 parent_id
     if (replyToComment.value) {
       commentData.parent_id = replyToComment.value.id
     }
-    
+
     await createComment(commentData)
     message.success(replyToComment.value ? '回复成功' : '评论成功')
     commentContent.value = ''
@@ -565,7 +595,7 @@ function handleReply(parentComment: Comment, targetUser?: Comment) {
   nextTick(() => {
     const commentForm = document.querySelector('.comment-form textarea')
     if (commentForm) {
-      (commentForm as HTMLElement).focus()
+      ;(commentForm as HTMLElement).focus()
     }
   })
 }
@@ -637,10 +667,10 @@ function generateToc() {
     const level = parseInt(heading.tagName.substring(1))
     const text = heading.textContent || ''
     const id = `heading-${index}`
-    
+
     // 给标题添加 id
     heading.id = id
-    
+
     items.push({ id, text, level })
   })
 
@@ -651,25 +681,27 @@ function generateToc() {
 function scrollToHeading(id: string) {
   const element = document.getElementById(id)
   if (!element) return
-  
+
   // 尝试多个可能的滚动容器
-  let scrollContainer = document.querySelector('.main-content .n-scrollbar-container') as HTMLElement
+  let scrollContainer = document.querySelector(
+    '.main-content .n-scrollbar-container'
+  ) as HTMLElement
   if (!scrollContainer) {
     scrollContainer = document.querySelector('.main-content') as HTMLElement
   }
   if (!scrollContainer) {
     scrollContainer = document.querySelector('.n-layout-scroll-container') as HTMLElement
   }
-  
+
   if (scrollContainer) {
     // 获取元素相对于滚动容器的位置
     const containerRect = scrollContainer.getBoundingClientRect()
     const elementRect = element.getBoundingClientRect()
     const currentScroll = scrollContainer.scrollTop
-    
+
     // 计算目标滚动位置
     const targetScroll = currentScroll + (elementRect.top - containerRect.top) - 100
-    
+
     // 平滑滚动
     scrollContainer.scrollTo({ top: targetScroll, behavior: 'smooth' })
     activeHeading.value = id
@@ -678,44 +710,48 @@ function scrollToHeading(id: string) {
 
 // 监听滚动，高亮当前标题
 function handleScroll() {
-  let scrollContainer = document.querySelector('.main-content .n-scrollbar-container') as HTMLElement
+  let scrollContainer = document.querySelector(
+    '.main-content .n-scrollbar-container'
+  ) as HTMLElement
   if (!scrollContainer) {
     scrollContainer = document.querySelector('.main-content') as HTMLElement
   }
   if (!scrollContainer) {
     scrollContainer = document.querySelector('.n-layout-scroll-container') as HTMLElement
   }
-  
+
   if (!scrollContainer) return
-  
+
   // 计算阅读进度
   const scrollTop = scrollContainer.scrollTop
   const scrollHeight = scrollContainer.scrollHeight
   const clientHeight = scrollContainer.clientHeight
   const maxScroll = scrollHeight - clientHeight
-  
+
   if (maxScroll > 0) {
     const progress = Math.round((scrollTop / maxScroll) * 100)
     readingProgress.value = Math.min(100, Math.max(0, progress))
   } else {
     readingProgress.value = 100
   }
-  
+
   const containerRect = scrollContainer.getBoundingClientRect()
-  
-  const headings = tocItems.value.map(item => {
-    const element = document.getElementById(item.id)
-    if (element) {
-      const elementRect = element.getBoundingClientRect()
-      // 相对于容器顶部的位置
-      const relativeTop = elementRect.top - containerRect.top
-      return {
-        id: item.id,
-        top: relativeTop
+
+  const headings = tocItems.value
+    .map(item => {
+      const element = document.getElementById(item.id)
+      if (element) {
+        const elementRect = element.getBoundingClientRect()
+        // 相对于容器顶部的位置
+        const relativeTop = elementRect.top - containerRect.top
+        return {
+          id: item.id,
+          top: relativeTop
+        }
       }
-    }
-    return null
-  }).filter(Boolean)
+      return null
+    })
+    .filter(Boolean)
 
   // 找到最接近容器顶部的标题（在可视区域内）
   const current = headings.find(h => h && h.top > 0 && h.top < 200)
@@ -729,7 +765,6 @@ function handleScroll() {
     }
   }
 }
-
 </script>
 
 <style scoped>
@@ -749,7 +784,6 @@ function handleScroll() {
   max-width: 820px;
   margin: 0 auto;
 }
-
 
 .post-main {
   width: 100%;
@@ -821,11 +855,11 @@ html.dark .post-toc::-webkit-scrollbar-thumb:hover {
   .post-toc {
     display: none;
   }
-  
+
   .post-detail-container {
     padding: 0 16px;
   }
-  
+
   .post-detail-page {
     max-width: 100%;
   }
@@ -840,7 +874,7 @@ html.dark .post-toc::-webkit-scrollbar-thumb:hover {
     max-width: 100% !important;
     box-sizing: border-box !important;
   }
-  
+
   .post-main {
     overflow-x: visible;
     width: 100% !important;
@@ -848,7 +882,7 @@ html.dark .post-toc::-webkit-scrollbar-thumb:hover {
     padding: 0 !important;
     margin: 0 !important;
   }
-  
+
   .post-content {
     font-size: 14px;
     /* 超小屏幕允许代码块滚动 */
@@ -865,17 +899,17 @@ html.dark .post-toc::-webkit-scrollbar-thumb:hover {
     margin-left: 0 !important;
     margin-right: 0 !important;
   }
-  
+
   /* 减小卡片内边距，最大化代码块可用空间 */
   .post-detail-page :deep(.n-card) {
     margin: 0 !important;
     padding: 0 !important;
   }
-  
+
   .post-detail-page :deep(.n-card .n-card__content) {
     padding: 10px 4px !important;
   }
-  
+
   /* 确保代码块容器有最大可用空间 */
   .post-content :deep(.markdown-preview) {
     padding: 0 !important;
@@ -885,7 +919,7 @@ html.dark .post-toc::-webkit-scrollbar-thumb:hover {
     overflow-x: visible;
     box-sizing: border-box !important;
   }
-  
+
   /* 确保代码块在超小屏幕有足够空间并居中 */
   .post-content :deep(.markdown-preview .vuepress-markdown-body) {
     padding-left: 0 !important;
@@ -895,7 +929,7 @@ html.dark .post-toc::-webkit-scrollbar-thumb:hover {
     overflow-x: visible;
     box-sizing: border-box !important;
   }
-  
+
   /* 确保代码块本身在超小屏幕居中显示 */
   .post-content :deep(.markdown-preview pre) {
     width: 96% !important;
@@ -914,26 +948,26 @@ html.dark .post-toc::-webkit-scrollbar-thumb:hover {
     width: 100% !important;
     max-width: 100% !important;
   }
-  
+
   .post-main {
     overflow-x: visible;
     width: 100% !important;
     max-width: 100% !important;
   }
-  
+
   .post-title {
     font-size: 24px;
   }
-  
+
   .post-meta {
     font-size: 13px;
   }
-  
+
   .post-meta :deep(.n-space) {
     flex-wrap: wrap;
     row-gap: 8px;
   }
-  
+
   .post-content {
     font-size: 15px;
     /* 移动端允许内容水平滚动（针对代码块） */
@@ -946,20 +980,20 @@ html.dark .post-toc::-webkit-scrollbar-thumb:hover {
     padding-left: 0 !important;
     padding-right: 0 !important;
   }
-  
+
   .comments-section h3 {
     font-size: 18px;
   }
-  
+
   .comment-item {
     padding: 12px 0;
   }
-  
+
   .reply-list {
     margin-left: 24px;
     padding-left: 12px;
   }
-  
+
   /* 减小卡片内边距，增加内容区域 */
   .post-detail-page :deep(.n-card .n-card__content) {
     padding: 16px 12px !important;
@@ -971,7 +1005,7 @@ html.dark .post-toc::-webkit-scrollbar-thumb:hover {
   .post-detail-container {
     padding: 0 6px;
   }
-  
+
   .post-detail-page :deep(.n-card .n-card__content) {
     padding: 14px 10px !important;
   }
@@ -1281,14 +1315,14 @@ html.dark .reply-content p {
     width: 100%;
     max-width: 100%;
   }
-  
+
   .comment-content {
     padding: 0 8px;
     overflow-x: auto;
     width: 100%;
     max-width: 100%;
   }
-  
+
   .reply-item {
     padding: 8px 0;
     margin: 0;
@@ -1296,7 +1330,7 @@ html.dark .reply-content p {
     width: 100%;
     max-width: 100%;
   }
-  
+
   .reply-content {
     padding: 0 6px;
     overflow-x: auto;
@@ -1593,4 +1627,3 @@ html.dark .collab-count {
   }
 }
 </style>
-

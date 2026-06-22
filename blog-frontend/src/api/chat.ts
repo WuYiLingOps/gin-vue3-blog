@@ -16,45 +16,45 @@ import type { PaginationParams, PaginationResult } from '@/types/common'
  * 聊天消息接口
  */
 export interface ChatMessage {
-  id: number                                    // 消息ID
-  content: string                               // 消息内容
-  user_id?: number                              // 用户ID（可选）
-  username: string                              // 用户名
-  avatar?: string                               // 用户头像（可选）
-  ip?: string                                   // IP地址（可选）
-  client_id?: string                            // WebSocket客户端ID，用于踢出用户
-  priority?: number                             // 优先级
-  is_broadcast?: boolean                        // 是否为广播消息
-  target?: 'announcement' | 'chat' | 'both'     // 目标位置：公告栏、聊天室或两者
-  status: number                                // 消息状态
-  created_at: string                            // 创建时间
-  updated_at: string                            // 更新时间
+  id: number // 消息ID
+  content: string // 消息内容
+  user_id?: number // 用户ID（可选）
+  username: string // 用户名
+  avatar?: string // 用户头像（可选）
+  ip?: string // IP地址（可选）
+  client_id?: string // WebSocket客户端ID，用于踢出用户
+  priority?: number // 优先级
+  is_broadcast?: boolean // 是否为广播消息
+  target?: 'announcement' | 'chat' | 'both' // 目标位置：公告栏、聊天室或两者
+  status: number // 消息状态
+  created_at: string // 创建时间
+  updated_at: string // 更新时间
 }
 
 /**
  * 在线用户信息接口
  */
 export interface OnlineUser {
-  id: string            // 用户ID（WebSocket客户端ID）
-  username: string      // 用户名
-  avatar?: string       // 用户头像（可选）
+  id: string // 用户ID（WebSocket客户端ID）
+  username: string // 用户名
+  avatar?: string // 用户头像（可选）
 }
 
 /**
  * 在线信息接口
  */
 export interface OnlineInfo {
-  online_count: number        // 在线用户数量
-  online_users: OnlineUser[]  // 在线用户列表
+  online_count: number // 在线用户数量
+  online_users: OnlineUser[] // 在线用户列表
 }
 
 /**
  * WebSocket消息接口
  */
 export interface WebSocketMessage {
-  type: 'message' | 'history' | 'user_join' | 'user_leave' | 'user_list' | 'system'  // 消息类型
-  data: any                                                                          // 消息数据
-  timestamp: number                                                                  // 时间戳
+  type: 'message' | 'history' | 'user_join' | 'user_leave' | 'user_list' | 'system' // 消息类型
+  data: any // 消息数据
+  timestamp: number // 时间戳
 }
 
 /**
@@ -99,7 +99,11 @@ export function adminDeleteMessage(id: number) {
  * @param target 目标位置，默认为'both'（公告栏和聊天室）
  * @returns 返回发送结果
  */
-export function adminBroadcastMessage(content: string, priority = 0, target: 'announcement' | 'chat' | 'both' = 'both') {
+export function adminBroadcastMessage(
+  content: string,
+  priority = 0,
+  target: 'announcement' | 'chat' | 'both' = 'both'
+) {
   return request.post('/admin/chat/broadcast', { content, priority, target })
 }
 
@@ -128,7 +132,7 @@ export function adminBanIP(client_id: string, reason?: string, duration?: number
  * 聊天室配置接口
  */
 export interface ChatSettings {
-  chat_mute_all: string  // 是否全员禁言，'0'表示否，'1'表示是
+  chat_mute_all: string // 是否全员禁言，'0'表示否，'1'表示是
 }
 
 /**

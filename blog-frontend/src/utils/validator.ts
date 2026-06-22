@@ -29,8 +29,7 @@ export function validatePassword(password: string): boolean {
 
 // 验证 URL
 export function validateUrl(url: string): boolean {
-  const reg =
-    /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/
+  const reg = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/
   return reg.test(url)
 }
 
@@ -39,4 +38,3 @@ export function validatePhone(phone: string): boolean {
   const reg = /^1[3-9]\d{9}$/
   return reg.test(phone)
 }
-

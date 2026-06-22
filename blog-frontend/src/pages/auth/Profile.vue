@@ -34,14 +34,14 @@
             <n-form-item label="邮箱">
               <n-input v-model:value="authStore.user!.email" disabled>
                 <template #suffix>
-                  <n-button text type="primary" @click="showEmailModal = true">
-                    修改
-                  </n-button>
+                  <n-button text type="primary" @click="showEmailModal = true"> 修改 </n-button>
                 </template>
               </n-input>
               <template #feedback>
                 <span v-if="emailChangeInfo" style="font-size: 12px; color: #999">
-                  今年已修改{{ emailChangeInfo.change_count }}次，还可修改{{ emailChangeInfo.remaining_times }}次
+                  今年已修改{{ emailChangeInfo.change_count }}次，还可修改{{
+                    emailChangeInfo.remaining_times
+                  }}次
                 </span>
               </template>
             </n-form-item>
@@ -83,10 +83,7 @@
           <n-input :value="authStore.user?.email" disabled />
         </n-form-item>
         <n-form-item label="新邮箱" required>
-          <n-input
-            v-model:value="newEmail"
-            placeholder="请输入新邮箱地址"
-          />
+          <n-input v-model:value="newEmail" placeholder="请输入新邮箱地址" />
         </n-form-item>
         <n-alert type="info" style="margin-top: 12px">
           <template #icon>
@@ -134,7 +131,7 @@ onMounted(async () => {
     profileForm.avatar = authStore.user.avatar
     profileForm.bio = authStore.user.bio
   }
-  
+
   // 获取邮箱修改信息
   await fetchEmailChangeInfo()
 })
@@ -152,7 +149,7 @@ async function fetchEmailChangeInfo() {
 
 async function handleAvatarSuccess(url: string) {
   profileForm.avatar = url
-  
+
   // 上传头像后自动保存到用户资料
   await updateProfile({ avatar: url })
   await authStore.fetchUserInfo()
@@ -165,14 +162,14 @@ async function handleUpdateProfile() {
 
   await updateProfile(profileForm)
   await authStore.fetchUserInfo()
-  
+
   // 重新加载表单数据（确保显示最新的头像）
   if (authStore.user) {
     profileForm.nickname = authStore.user.nickname
     profileForm.avatar = authStore.user.avatar
     profileForm.bio = authStore.user.bio
   }
-  
+
   updating.value = false
   message.success('个人信息更新成功')
 }
@@ -182,25 +179,25 @@ async function handleUpdateEmail() {
     message.error('今年的邮箱修改次数已达到上限')
     return false
   }
-  
+
   if (!newEmail.value) {
     message.error('请输入新邮箱')
     return false
   }
-  
+
   // 验证邮箱格式
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   if (!emailRegex.test(newEmail.value)) {
     message.error('邮箱格式不正确')
     return false
   }
-  
+
   try {
     emailUpdating.value = true
     await updateEmail({ new_email: newEmail.value })
     await authStore.fetchUserInfo()
     await fetchEmailChangeInfo()
-    
+
     message.success('邮箱修改成功')
     showEmailModal.value = false
     newEmail.value = ''
@@ -220,4 +217,3 @@ async function handleUpdateEmail() {
   margin: 0 auto;
 }
 </style>
-

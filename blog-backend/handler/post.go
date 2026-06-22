@@ -32,9 +32,11 @@ type PostHandler struct {
 }
 
 // NewPostHandler 创建文章处理器实例
-func NewPostHandler(subscriberService *service.SubscriberService) *PostHandler {
+func NewPostHandler(subscriberService *service.SubscriberService, notificationService *service.NotificationService) *PostHandler {
+	postService := service.NewPostService(subscriberService)
+	postService.SetNotificationService(notificationService)
 	return &PostHandler{
-		service: service.NewPostService(subscriberService),
+		service: postService,
 	}
 }
 

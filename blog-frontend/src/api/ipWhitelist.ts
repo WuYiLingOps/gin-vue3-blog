@@ -16,20 +16,20 @@ import type { PageData } from '@/types/common'
  * IP白名单接口
  */
 export interface IPWhitelist {
-  id: number                // 记录ID
-  ip: string                // IP地址
-  reason: string            // 添加原因
-  expire_at: string | null  // 过期时间，null表示永久有效
-  created_at: string        // 创建时间
-  updated_at: string        // 更新时间
+  id: number // 记录ID
+  ip: string // IP地址
+  reason: string // 添加原因
+  expire_at: string | null // 过期时间，null表示永久有效
+  created_at: string // 创建时间
+  updated_at: string // 更新时间
 }
 
 /**
  * IP白名单检查结果接口
  */
 export interface IPWhitelistCheckResult {
-  whitelisted: boolean       // 是否在白名单中
-  info?: IPWhitelist         // 白名单信息（如果在白名单中）
+  whitelisted: boolean // 是否在白名单中
+  info?: IPWhitelist // 白名单信息（如果在白名单中）
 }
 
 /**
@@ -84,6 +84,3 @@ export function checkIPWhitelistStatus(ip: string) {
 export function cleanExpiredIPWhitelist() {
   return request.post<{ deleted_count: number }>('/admin/ip-whitelist/clean-expired')
 }
-
-
-

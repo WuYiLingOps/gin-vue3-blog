@@ -12,92 +12,92 @@
   <n-card class="author-card" :bordered="false">
     <n-spin :show="loading">
       <div class="author-content">
-      <!-- 头像 -->
-      <div class="avatar-wrapper" @click="goToAbout" title="点击查看关于我">
-        <n-avatar
-          :src="authorProfile?.author.avatar || ''"
-          :size="104"
-          round
-          :fallback-src="defaultAvatar"
-        >
-          <template v-if="!authorProfile?.author.avatar">
-            {{ (authorProfile?.author.nickname || authorProfile?.author.username || '博主').charAt(0).toUpperCase() }}
+        <!-- 头像 -->
+        <div class="avatar-wrapper" @click="goToAbout" title="点击查看关于我">
+          <n-avatar
+            :src="authorProfile?.author.avatar || ''"
+            :size="104"
+            round
+            :fallback-src="defaultAvatar"
+          >
+            <template v-if="!authorProfile?.author.avatar">
+              {{
+                (authorProfile?.author.nickname || authorProfile?.author.username || '博主')
+                  .charAt(0)
+                  .toUpperCase()
+              }}
+            </template>
+          </n-avatar>
+        </div>
+
+        <!-- 用户名 -->
+        <h3 class="author-name">
+          {{ authorProfile?.author.nickname || authorProfile?.author.username }}
+        </h3>
+
+        <!-- 座右铭 -->
+        <p v-if="authorProfile?.author.bio" class="author-bio">
+          {{ authorProfile.author.bio }}
+        </p>
+
+        <!-- 统计数据 -->
+        <div class="stats-section">
+          <div class="stat-item" @click="goToPosts" title="查看所有文章">
+            <div class="stat-label">文章</div>
+            <div class="stat-value">{{ authorProfile?.stats.posts || 0 }}</div>
+          </div>
+          <div class="stat-item" @click="goToTags" title="查看所有标签">
+            <div class="stat-label">标签</div>
+            <div class="stat-value">{{ authorProfile?.stats.tags || 0 }}</div>
+          </div>
+          <div class="stat-item" @click="goToCategories" title="查看所有分类">
+            <div class="stat-label">分类</div>
+            <div class="stat-value">{{ authorProfile?.stats.categories || 0 }}</div>
+          </div>
+        </div>
+
+        <!-- 订阅本站按钮 -->
+        <n-button type="primary" block size="large" class="subscribe-button" @click="goToSubscribe">
+          <template #icon>
+            <n-icon :component="MailOutline" />
           </template>
-        </n-avatar>
-      </div>
+          订阅本站
+        </n-button>
 
-      <!-- 用户名 -->
-      <h3 class="author-name">{{ authorProfile?.author.nickname || authorProfile?.author.username }}</h3>
-
-      <!-- 座右铭 -->
-      <p v-if="authorProfile?.author.bio" class="author-bio">
-        {{ authorProfile.author.bio }}
-      </p>
-
-      <!-- 统计数据 -->
-      <div class="stats-section">
-        <div class="stat-item" @click="goToPosts" title="查看所有文章">
-          <div class="stat-label">文章</div>
-          <div class="stat-value">{{ authorProfile?.stats.posts || 0 }}</div>
+        <!-- 社交链接（最多展示 5 个） -->
+        <div v-if="visibleSocialLinks.length" class="social-links">
+          <template v-for="link in visibleSocialLinks" :key="link.type">
+            <a
+              v-if="link.type !== 'wechat' && link.type !== 'qq'"
+              :href="link.href"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="social-icon"
+              :class="link.type"
+              :title="link.title"
+            >
+              <SocialIcons :type="link.type" />
+            </a>
+            <a
+              v-else-if="link.type === 'wechat'"
+              href="javascript:void(0)"
+              class="social-icon wechat"
+              :title="link.title"
+              @click="showWechatQR = true"
+            >
+              <SocialIcons type="wechat" />
+            </a>
+            <a
+              v-else-if="link.type === 'qq'"
+              href="javascript:void(0)"
+              class="social-icon qq"
+              :title="link.title"
+              @click="showQQQR = true"
+            >
+              <SocialIcons type="qq" />
+            </a>
+          </template>
         </div>
-        <div class="stat-item" @click="goToTags" title="查看所有标签">
-          <div class="stat-label">标签</div>
-          <div class="stat-value">{{ authorProfile?.stats.tags || 0 }}</div>
-        </div>
-        <div class="stat-item" @click="goToCategories" title="查看所有分类">
-          <div class="stat-label">分类</div>
-          <div class="stat-value">{{ authorProfile?.stats.categories || 0 }}</div>
-        </div>
-      </div>
-
-      <!-- 订阅本站按钮 -->
-      <n-button
-        type="primary"
-        block
-        size="large"
-        class="subscribe-button"
-        @click="goToSubscribe"
-      >
-        <template #icon>
-          <n-icon :component="MailOutline" />
-        </template>
-        订阅本站
-      </n-button>
-
-      <!-- 社交链接（最多展示 5 个） -->
-      <div v-if="visibleSocialLinks.length" class="social-links">
-        <template v-for="link in visibleSocialLinks" :key="link.type">
-          <a
-            v-if="link.type !== 'wechat' && link.type !== 'qq'"
-            :href="link.href"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="social-icon"
-            :class="link.type"
-            :title="link.title"
-          >
-            <SocialIcons :type="link.type" />
-          </a>
-          <a
-            v-else-if="link.type === 'wechat'"
-            href="javascript:void(0)"
-            class="social-icon wechat"
-            :title="link.title"
-            @click="showWechatQR = true"
-          >
-            <SocialIcons type="wechat" />
-          </a>
-          <a
-            v-else-if="link.type === 'qq'"
-            href="javascript:void(0)"
-            class="social-icon qq"
-            :title="link.title"
-            @click="showQQQR = true"
-          >
-            <SocialIcons type="qq" />
-          </a>
-        </template>
-      </div>
       </div>
     </n-spin>
 
@@ -184,10 +184,10 @@ const router = useRouter()
 
 // 社交链接映射配置
 const socialLinkMap: Record<string, { href?: (val: string) => string; title: string }> = {
-  github: { href: (val) => val, title: 'GitHub' },
-  gitee: { href: (val) => val, title: 'Gitee' },
-  email: { href: (val) => `mailto:${val}`, title: 'Email' },
-  csdn: { href: (val) => val, title: 'CSDN' },
+  github: { href: val => val, title: 'GitHub' },
+  gitee: { href: val => val, title: 'Gitee' },
+  email: { href: val => `mailto:${val}`, title: 'Email' },
+  csdn: { href: val => val, title: 'CSDN' },
   qq: { title: 'QQ' },
   wechat: { title: '微信' }
 }
@@ -198,29 +198,37 @@ const visibleSocialLinks = computed<SocialLink[]>(() => {
   const data = socialLinks.value
 
   // 确定排序顺序：优先使用保存的顺序，否则使用默认顺序
-  const order = socialLinkOrder.value.length > 0
-    ? socialLinkOrder.value
-    : ['github', 'gitee', 'email', 'csdn', 'qq', 'wechat']
-  
+  const order =
+    socialLinkOrder.value.length > 0
+      ? socialLinkOrder.value
+      : ['github', 'gitee', 'email', 'csdn', 'qq', 'wechat']
+
   // 按照排序顺序添加链接
   for (const type of order) {
     const value = data[type as keyof typeof data]?.trim()
     if (!value) continue
-    
+
     const config = socialLinkMap[type]
     if (!config) continue
-    
+
     const link: SocialLink = {
       type: type as SocialLinkType,
       title: config.title
     }
-    
-    if (config.href && (type === 'github' || type === 'gitee' || type === 'email' || type === 'rss' || type === 'csdn')) {
+
+    if (
+      config.href &&
+      (type === 'github' ||
+        type === 'gitee' ||
+        type === 'email' ||
+        type === 'rss' ||
+        type === 'csdn')
+    ) {
       link.href = config.href(value)
-  }
+    }
 
     links.push(link)
-    
+
     // 最多显示 5 个
     if (links.length >= MAX_SOCIAL_LINKS) break
   }
@@ -298,12 +306,11 @@ async function fetchSettings() {
         qq: (res.data.social_qq || '').trim(),
         wechat: (res.data.social_wechat || '').trim()
       }
-      
+
       // 获取社交链接排序顺序
       if (res.data.social_link_order) {
         socialLinkOrder.value = res.data.social_link_order.split(',').filter(Boolean)
       }
-      
     }
   } catch (error: any) {
     console.error('获取网站设置失败:', error)
@@ -381,7 +388,10 @@ html.dark .author-card:hover {
   background: radial-gradient(circle, rgba(8, 145, 178, 0.18) 0%, transparent 60%);
   opacity: 0;
   transform: scale(0.9);
-  transition: opacity 0.35s ease, transform 0.35s ease, filter 0.35s ease;
+  transition:
+    opacity 0.35s ease,
+    transform 0.35s ease,
+    filter 0.35s ease;
   filter: blur(2px);
   z-index: 0;
 }
@@ -554,7 +564,7 @@ html.dark .social-icon.disabled {
 }
 
 .social-icon.csdn {
-  background: #FC5531;
+  background: #fc5531;
 }
 
 .subscribe-button {
@@ -617,7 +627,8 @@ html.dark .social-icon.disabled {
 }
 
 @keyframes mailBounce {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0) rotate(0deg);
   }
   25% {
@@ -655,4 +666,3 @@ html.dark .subscribe-button:hover {
   }
 }
 </style>
-

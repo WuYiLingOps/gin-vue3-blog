@@ -37,8 +37,12 @@
                 <span class="tag-name">{{ t.name }}</span>
               </div>
             </div>
-            
-            <n-empty v-if="!loading && tags.length === 0" description="暂无标签" style="margin-top: 48px" />
+
+            <n-empty
+              v-if="!loading && tags.length === 0"
+              description="暂无标签"
+              style="margin-top: 48px"
+            />
           </div>
         </div>
       </div>
@@ -70,8 +74,8 @@
           >
             <div class="post-item-header">
               <h2 class="post-item-title">{{ post.title }}</h2>
-              <n-tag 
-                :color="{ color: post.category.color || '#2196F3', textColor: '#fff' }" 
+              <n-tag
+                :color="{ color: post.category.color || '#2196F3', textColor: '#fff' }"
                 size="small"
                 class="post-category-tag"
               >
@@ -94,9 +98,9 @@
             </div>
           </div>
 
-          <n-empty 
-            v-if="!loading && posts.length === 0" 
-            description="该标签下暂无文章" 
+          <n-empty
+            v-if="!loading && posts.length === 0"
+            description="该标签下暂无文章"
             style="margin: 80px 0"
           />
 
@@ -135,7 +139,7 @@ const total = ref(0)
 const currentPage = ref(1)
 const pageSize = 10
 
-const tagId = computed(() => route.params.id ? Number(route.params.id) : null)
+const tagId = computed(() => (route.params.id ? Number(route.params.id) : null))
 const totalPages = computed(() => Math.ceil(total.value / pageSize))
 
 // 根据文章数量返回标签大小类名（如果标签有自定义大小则不使用）
@@ -150,17 +154,17 @@ function getTagStyle(tag: Tag) {
   const baseColor = tag.color || '#2196F3' // 使用后台设置的背景颜色，如果没有则使用默认蓝色
   const textColor = tag.text_color || '#fff' // 使用后台设置的文字颜色，如果没有则使用白色
   const fontSize = tag.font_size // 使用后台设置的文字大小
-  
+
   const style: any = {
     backgroundColor: baseColor, // 使用纯色背景，不用渐变
     '--tag-text-color': textColor // 自定义CSS变量
   }
-  
+
   // 如果有自定义文字大小，则覆盖默认大小
   if (fontSize) {
     style.fontSize = `${fontSize}px`
   }
-  
+
   return style
 }
 
@@ -169,12 +173,12 @@ function getTagPosition(index: number) {
   // 使用随机种子算法确保每次刷新位置一致
   const seed2 = (index * 4253 + 17389) % 233280
   const randomY = seed2 / 233280
-  
+
   // 创建随机的垂直偏移，让每行高度不同（减小幅度避免重叠）
   const rowOffset = Math.sin(index * 1.5) * 20 // 减小波浪幅度
   const randomOffset = (randomY - 0.5) * 30 // 减小随机偏移范围
   const totalOffsetY = rowOffset + randomOffset
-  
+
   return {
     // 使用 margin 来定位，不使用 transform，这样不会和动画冲突
     marginTop: `${totalOffsetY}px`,
@@ -185,20 +189,24 @@ function getTagPosition(index: number) {
 }
 
 // 监听路由变化
-watch(() => route.params.id, (newId) => {
-  // 重置状态
-  tag.value = null
-  posts.value = []
-  total.value = 0
-  currentPage.value = 1
-  
-  if (newId) {
-    fetchTag()
-    fetchPosts()
-  } else {
-    fetchTags()
-  }
-}, { immediate: true })
+watch(
+  () => route.params.id,
+  newId => {
+    // 重置状态
+    tag.value = null
+    posts.value = []
+    total.value = 0
+    currentPage.value = 1
+
+    if (newId) {
+      fetchTag()
+      fetchPosts()
+    } else {
+      fetchTags()
+    }
+  },
+  { immediate: true }
+)
 
 onMounted(() => {
   if (tagId.value) {
@@ -275,7 +283,7 @@ function handlePageChange() {
   left: 0;
   right: 0;
   bottom: 0;
-  background: 
+  background:
     radial-gradient(circle at 20% 30%, rgba(8, 145, 178, 0.08) 0%, transparent 50%),
     radial-gradient(circle at 80% 70%, rgba(5, 150, 105, 0.08) 0%, transparent 50%),
     radial-gradient(circle at 50% 50%, rgba(56, 189, 248, 0.05) 0%, transparent 70%);
@@ -294,7 +302,7 @@ function handlePageChange() {
 .outer-card {
   background: white;
   border-radius: 16px;
-  box-shadow: 
+  box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.08),
     0 2px 8px rgba(0, 0, 0, 0.04);
   padding: 48px 40px;
@@ -304,7 +312,7 @@ function handlePageChange() {
 
 html.dark .outer-card {
   background: #1a1a1a;
-  box-shadow: 
+  box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.4),
     0 2px 8px rgba(0, 0, 0, 0.2);
 }
@@ -315,14 +323,14 @@ html.dark .outer-card {
   border-radius: 12px;
   padding: 60px 40px 80px;
   margin-top: 32px;
-  box-shadow: 
+  box-shadow:
     inset 0 2px 8px rgba(0, 0, 0, 0.05),
     0 2px 4px rgba(0, 0, 0, 0.02);
 }
 
 html.dark .inner-card {
   background: #2a2a2a;
-  box-shadow: 
+  box-shadow:
     inset 0 2px 8px rgba(0, 0, 0, 0.3),
     0 2px 4px rgba(0, 0, 0, 0.1);
 }
@@ -350,7 +358,8 @@ html.dark .header-icon {
 }
 
 @keyframes float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0px) rotate(0deg);
   }
   50% {
@@ -409,7 +418,8 @@ html.dark .stats-text {
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
   }
   50% {
@@ -452,32 +462,116 @@ html.dark .stats-number {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   position: relative;
   overflow: hidden;
-  animation: fadeInUp 0.4s ease-out, floatTag 6s ease-in-out infinite;
+  animation:
+    fadeInUp 0.4s ease-out,
+    floatTag 6s ease-in-out infinite;
   will-change: transform;
 }
 
 /* 每个标签不同的动画延迟，让它们不同步 */
-.tag-bubble:nth-child(1) { animation-delay: 0s, 0s; }
-.tag-bubble:nth-child(2) { animation-delay: 0s, -1s; }
-.tag-bubble:nth-child(3) { animation-delay: 0s, -2s; }
-.tag-bubble:nth-child(4) { animation-delay: 0s, -3s; }
-.tag-bubble:nth-child(5) { animation-delay: 0s, -4s; }
-.tag-bubble:nth-child(6) { animation-delay: 0s, -5s; }
-.tag-bubble:nth-child(7) { animation-delay: 0s, -0.5s; }
-.tag-bubble:nth-child(8) { animation-delay: 0s, -1.5s; }
-.tag-bubble:nth-child(9) { animation-delay: 0s, -2.5s; }
-.tag-bubble:nth-child(10) { animation-delay: 0s, -3.5s; }
-.tag-bubble:nth-child(11) { animation-delay: 0s, -4.5s; }
-.tag-bubble:nth-child(12) { animation-delay: 0s, -5.5s; }
-.tag-bubble:nth-child(13) { animation-delay: 0s, -1.2s; }
-.tag-bubble:nth-child(14) { animation-delay: 0s, -2.4s; }
-.tag-bubble:nth-child(15) { animation-delay: 0s, -3.6s; }
-.tag-bubble:nth-child(16) { animation-delay: 0s, -4.8s; }
-.tag-bubble:nth-child(17) { animation-delay: 0s, -0.8s; }
-.tag-bubble:nth-child(18) { animation-delay: 0s, -1.8s; }
-.tag-bubble:nth-child(19) { animation-delay: 0s, -2.8s; }
-.tag-bubble:nth-child(20) { animation-delay: 0s, -3.8s; }
-.tag-bubble:nth-child(n+21) { animation-delay: 0s, -2.2s; }
+.tag-bubble:nth-child(1) {
+  animation-delay: 0s, 0s;
+}
+.tag-bubble:nth-child(2) {
+  animation-delay:
+    0s,
+    -1s;
+}
+.tag-bubble:nth-child(3) {
+  animation-delay:
+    0s,
+    -2s;
+}
+.tag-bubble:nth-child(4) {
+  animation-delay:
+    0s,
+    -3s;
+}
+.tag-bubble:nth-child(5) {
+  animation-delay:
+    0s,
+    -4s;
+}
+.tag-bubble:nth-child(6) {
+  animation-delay:
+    0s,
+    -5s;
+}
+.tag-bubble:nth-child(7) {
+  animation-delay:
+    0s,
+    -0.5s;
+}
+.tag-bubble:nth-child(8) {
+  animation-delay:
+    0s,
+    -1.5s;
+}
+.tag-bubble:nth-child(9) {
+  animation-delay:
+    0s,
+    -2.5s;
+}
+.tag-bubble:nth-child(10) {
+  animation-delay:
+    0s,
+    -3.5s;
+}
+.tag-bubble:nth-child(11) {
+  animation-delay:
+    0s,
+    -4.5s;
+}
+.tag-bubble:nth-child(12) {
+  animation-delay:
+    0s,
+    -5.5s;
+}
+.tag-bubble:nth-child(13) {
+  animation-delay:
+    0s,
+    -1.2s;
+}
+.tag-bubble:nth-child(14) {
+  animation-delay:
+    0s,
+    -2.4s;
+}
+.tag-bubble:nth-child(15) {
+  animation-delay:
+    0s,
+    -3.6s;
+}
+.tag-bubble:nth-child(16) {
+  animation-delay:
+    0s,
+    -4.8s;
+}
+.tag-bubble:nth-child(17) {
+  animation-delay:
+    0s,
+    -0.8s;
+}
+.tag-bubble:nth-child(18) {
+  animation-delay:
+    0s,
+    -1.8s;
+}
+.tag-bubble:nth-child(19) {
+  animation-delay:
+    0s,
+    -2.8s;
+}
+.tag-bubble:nth-child(20) {
+  animation-delay:
+    0s,
+    -3.8s;
+}
+.tag-bubble:nth-child(n + 21) {
+  animation-delay:
+    0s,
+    -2.2s;
+}
 
 /* 入场动画 - 更快更流畅 */
 @keyframes fadeInUp {
@@ -578,7 +672,7 @@ html.dark .stats-number {
   border-radius: 20px;
   padding: 40px;
   text-align: center;
-  box-shadow: 
+  box-shadow:
     0 10px 40px rgba(0, 0, 0, 0.08),
     0 2px 8px rgba(0, 0, 0, 0.04);
   position: relative;
@@ -588,7 +682,7 @@ html.dark .stats-number {
 
 html.dark .tag-info-card {
   background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-  box-shadow: 
+  box-shadow:
     0 10px 40px rgba(0, 0, 0, 0.4),
     0 2px 8px rgba(0, 0, 0, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -632,7 +726,7 @@ html.dark .tag-info-card::after {
   align-items: center;
   padding: 14px 32px;
   border-radius: 50px;
-  box-shadow: 
+  box-shadow:
     0 8px 24px rgba(0, 0, 0, 0.15),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
   margin-bottom: 32px;
@@ -642,15 +736,16 @@ html.dark .tag-info-card::after {
 }
 
 @keyframes badgePulse {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
-    box-shadow: 
+    box-shadow:
       0 8px 24px rgba(0, 0, 0, 0.15),
       inset 0 1px 0 rgba(255, 255, 255, 0.2);
   }
   50% {
     transform: scale(1.05);
-    box-shadow: 
+    box-shadow:
       0 12px 32px rgba(0, 0, 0, 0.2),
       inset 0 1px 0 rgba(255, 255, 255, 0.3);
   }
@@ -742,7 +837,7 @@ html.dark .stat-desc {
   padding: 24px;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 
+  box-shadow:
     0 2px 8px rgba(0, 0, 0, 0.05),
     0 1px 4px rgba(0, 0, 0, 0.03);
   border: 1px solid rgba(0, 0, 0, 0.05);
@@ -750,7 +845,7 @@ html.dark .stat-desc {
 
 html.dark .post-item {
   background: #1a1a1a;
-  box-shadow: 
+  box-shadow:
     0 2px 8px rgba(0, 0, 0, 0.3),
     0 1px 4px rgba(0, 0, 0, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.05);
@@ -758,14 +853,14 @@ html.dark .post-item {
 
 .post-item:hover {
   transform: translateY(-4px);
-  box-shadow: 
+  box-shadow:
     0 12px 32px rgba(0, 0, 0, 0.12),
     0 4px 12px rgba(0, 0, 0, 0.08);
   border-color: rgba(8, 145, 178, 0.3);
 }
 
 html.dark .post-item:hover {
-  box-shadow: 
+  box-shadow:
     0 12px 32px rgba(0, 0, 0, 0.5),
     0 4px 12px rgba(0, 0, 0, 0.3);
   border-color: rgba(56, 189, 248, 0.3);
@@ -878,112 +973,111 @@ html.dark .post-action-item {
   .tag-page {
     padding: 16px;
   }
-  
+
   .outer-card {
     padding: 32px 24px;
     border-radius: 12px;
   }
-  
+
   .inner-card {
     padding: 40px 24px 60px;
     border-radius: 8px;
     margin-top: 24px;
   }
-  
+
   .page-header {
     margin-bottom: 0;
   }
-  
+
   .header-icon {
     font-size: 36px !important;
   }
-  
+
   .page-title {
     font-size: 32px;
     margin-bottom: 12px;
   }
-  
+
   .stats-text {
     font-size: 16px;
   }
-  
+
   .stats-number {
     font-size: 24px;
   }
-  
+
   .tags-cloud {
     padding: 32px 16px;
     gap: 12px;
     min-height: 200px;
   }
-  
+
   .tag-bubble {
     font-size: 13px !important;
     padding: 8px 16px !important;
   }
-  
+
   .tag-small {
     font-size: 12px !important;
     padding: 8px 14px !important;
   }
-  
+
   .tag-medium {
     font-size: 13px !important;
     padding: 9px 18px !important;
   }
-  
+
   .tag-large {
     font-size: 15px !important;
     padding: 10px 20px !important;
   }
-  
+
   /* 标签详情页响应式 */
   .tag-info-card {
     padding: 32px 20px;
   }
-  
+
   .tag-badge {
     padding: 12px 24px;
     margin-bottom: 24px;
   }
-  
+
   .tag-badge-text {
     font-size: 22px;
   }
-  
+
   .stat-box {
     padding: 16px 28px;
   }
-  
+
   .stat-value {
     font-size: 28px;
   }
-  
+
   .stat-desc {
     font-size: 13px;
   }
-  
+
   .post-item {
     padding: 20px;
   }
-  
+
   .post-item-title {
     font-size: 18px;
   }
-  
+
   .post-item-summary {
     font-size: 14px;
   }
-  
+
   .post-item-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
   }
-  
+
   .post-category-tag {
     align-self: flex-start;
   }
 }
 </style>
-

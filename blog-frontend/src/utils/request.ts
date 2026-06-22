@@ -25,7 +25,7 @@ const service: AxiosInstance = axios.create({
 
 // 请求拦截器
 service.interceptors.request.use(
-  (config) => {
+  config => {
     // 添加 Token
     const authStore = useAuthStore()
     if (authStore.token) {
@@ -33,7 +33,7 @@ service.interceptors.request.use(
     }
     return config
   },
-  (error) => {
+  error => {
     console.error('Request error:', error)
     return Promise.reject(error)
   }
@@ -68,7 +68,7 @@ service.interceptors.response.use(
 
     if (error.response) {
       const { status, data } = error.response
-      
+
       switch (status) {
         case 400:
           // 参数错误，使用后端返回的具体错误信息
@@ -135,23 +135,22 @@ export const request = {
  */
 export function getFileUrl(path: string): string {
   if (!path) return ''
-  
+
   // 如果已经是完整 URL，直接返回
   if (path.startsWith('http://') || path.startsWith('https://')) {
     return path
   }
-  
+
   // 如果是 /uploads/ 开头的路径，使用当前页面的域名（因为Nginx会代理到后端）
   // 这样可以避免路径被错误地拼接为 /api/uploads/...
   if (path.startsWith('/uploads/')) {
     // 使用当前页面的协议和域名
     return `${window.location.protocol}//${window.location.host}${path}`
   }
-  
+
   // 其他路径（如API路径），使用配置的基础 URL
   const baseURL = import.meta.env.VITE_API_BASE_URL || ''
   return baseURL + path
 }
 
 export default service
-

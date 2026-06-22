@@ -15,27 +15,27 @@ import { request } from '@/utils/request'
  * RSS 配置接口
  */
 export interface RSSConfig {
-  enabled?: boolean           // 是否启用 RSS
-  title?: string             // RSS 标题
-  description?: string       // RSS 描述
-  link?: string              // 网站链接
-  author_name?: string       // 作者名称
-  author_email?: string      // 作者邮箱
-  language?: string          // 语言（如 zh-CN）
-  copyright?: string         // 版权信息
-  item_limit?: number        // 每个 Feed 的文章数量限制
-  cache_duration?: number    // 缓存时长（分钟）
+  enabled?: boolean // 是否启用 RSS
+  title?: string // RSS 标题
+  description?: string // RSS 描述
+  link?: string // 网站链接
+  author_name?: string // 作者名称
+  author_email?: string // 作者邮箱
+  language?: string // 语言（如 zh-CN）
+  copyright?: string // 版权信息
+  item_limit?: number // 每个 Feed 的文章数量限制
+  cache_duration?: number // 缓存时长（分钟）
 }
 
 /**
  * RSS 统计信息接口
  */
 export interface RSSStats {
-  posts_count?: number       // 文章数量
-  moments_count?: number     // 说说数量
-  categories_count?: number  // 分类数量
-  tags_count?: number        // 标签数量
-  last_update?: string       // 最后更新时间
+  posts_count?: number // 文章数量
+  moments_count?: number // 说说数量
+  categories_count?: number // 分类数量
+  tags_count?: number // 标签数量
+  last_update?: string // 最后更新时间
 }
 
 /**

@@ -21,10 +21,10 @@ export function highlightKeyword(text: string, keyword: string): string {
 
   // 转义特殊字符，防止正则表达式错误
   const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-  
+
   // 创建全局不区分大小写的正则表达式
   const regex = new RegExp(`(${escapedKeyword})`, 'gi')
-  
+
   // 替换匹配的关键词为带有mark标签的文本
   return text.replace(regex, '<mark class="search-highlight">$1</mark>')
 }
@@ -36,38 +36,40 @@ export function highlightKeyword(text: string, keyword: string): string {
  */
 export function stripMarkdown(text: string): string {
   if (!text) return ''
-  
-  return text
-    // 提取代码块内容（保留代码内容，只移除```标记）
-    .replace(/```[a-z]*\n?([\s\S]*?)```/g, ' $1 ')
-    // 提取行内代码内容（保留代码内容，只移除`标记）
-    .replace(/`([^`]+)`/g, ' $1 ')
-    // 移除标题标记
-    .replace(/#{1,6}\s+/g, '')
-    // 移除粗体和斜体
-    .replace(/\*\*\*(.+?)\*\*\*/g, '$1')
-    .replace(/\*\*(.+?)\*\*/g, '$1')
-    .replace(/\*(.+?)\*/g, '$1')
-    .replace(/___(.+?)___/g, '$1')
-    .replace(/__(.+?)__/g, '$1')
-    .replace(/_(.+?)_/g, '$1')
-    // 移除删除线
-    .replace(/~~(.+?)~~/g, '$1')
-    // 移除链接，保留文本
-    .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1')
-    // 移除图片
-    .replace(/!\[([^\]]*)\]\([^\)]+\)/g, '')
-    // 移除引用标记
-    .replace(/^\s*>\s+/gm, '')
-    // 移除列表标记
-    .replace(/^\s*[-*+]\s+/gm, '')
-    .replace(/^\s*\d+\.\s+/gm, '')
-    // 移除水平线
-    .replace(/^\s*[-*_]{3,}\s*$/gm, '')
-    // 移除多余的空白字符
-    .replace(/\n{2,}/g, ' ')
-    .replace(/\s{2,}/g, ' ')
-    .trim()
+
+  return (
+    text
+      // 提取代码块内容（保留代码内容，只移除```标记）
+      .replace(/```[a-z]*\n?([\s\S]*?)```/g, ' $1 ')
+      // 提取行内代码内容（保留代码内容，只移除`标记）
+      .replace(/`([^`]+)`/g, ' $1 ')
+      // 移除标题标记
+      .replace(/#{1,6}\s+/g, '')
+      // 移除粗体和斜体
+      .replace(/\*\*\*(.+?)\*\*\*/g, '$1')
+      .replace(/\*\*(.+?)\*\*/g, '$1')
+      .replace(/\*(.+?)\*/g, '$1')
+      .replace(/___(.+?)___/g, '$1')
+      .replace(/__(.+?)__/g, '$1')
+      .replace(/_(.+?)_/g, '$1')
+      // 移除删除线
+      .replace(/~~(.+?)~~/g, '$1')
+      // 移除链接，保留文本
+      .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1')
+      // 移除图片
+      .replace(/!\[([^\]]*)\]\([^\)]+\)/g, '')
+      // 移除引用标记
+      .replace(/^\s*>\s+/gm, '')
+      // 移除列表标记
+      .replace(/^\s*[-*+]\s+/gm, '')
+      .replace(/^\s*\d+\.\s+/gm, '')
+      // 移除水平线
+      .replace(/^\s*[-*_]{3,}\s*$/gm, '')
+      // 移除多余的空白字符
+      .replace(/\n{2,}/g, ' ')
+      .replace(/\s{2,}/g, ' ')
+      .trim()
+  )
 }
 
 /**
@@ -77,14 +79,18 @@ export function stripMarkdown(text: string): string {
  * @param maxLength 最大长度
  * @returns 截取后的文本
  */
-export function extractHighlightSnippet(text: string, keyword: string, maxLength: number = 150): string {
+export function extractHighlightSnippet(
+  text: string,
+  keyword: string,
+  maxLength: number = 150
+): string {
   if (!text || !keyword) {
     return text?.slice(0, maxLength) || ''
   }
 
   // 先清理 Markdown 语法
   const cleanText = stripMarkdown(text)
-  
+
   const lowerText = cleanText.toLowerCase()
   const lowerKeyword = keyword.toLowerCase()
   const index = lowerText.indexOf(lowerKeyword)
@@ -111,4 +117,3 @@ export function extractHighlightSnippet(text: string, keyword: string, maxLength
 
   return snippet
 }
-

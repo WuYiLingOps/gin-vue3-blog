@@ -24,7 +24,9 @@
                 <div class="moment-header">
                   <div class="user-info">
                     <span class="username">{{ moment.user.nickname || moment.user.username }}</span>
-                    <span class="time">{{ formatDate(moment.created_at, 'YYYY-MM-DD HH:mm') }}</span>
+                    <span class="time">{{
+                      formatDate(moment.created_at, 'YYYY-MM-DD HH:mm')
+                    }}</span>
                   </div>
                 </div>
 
@@ -49,24 +51,42 @@
                 <div class="moment-footer">
                   <n-space :size="16">
                     <span class="stat-item like-button" @click="handleLike(moment)">
-                      <n-icon :component="moment.liked ? Heart : HeartOutline" :class="{ liked: moment.liked }" />
-                      <span v-if="moment.like_count > 0" class="like-text">{{ moment.like_count }}</span>
+                      <n-icon
+                        :component="moment.liked ? Heart : HeartOutline"
+                        :class="{ liked: moment.liked }"
+                      />
+                      <span v-if="moment.like_count > 0" class="like-text">{{
+                        moment.like_count
+                      }}</span>
                     </span>
                     <span class="stat-item comment-button" @click="toggleCommentInput(moment.id)">
                       <n-icon :component="ChatbubbleOutline" />
-                      <span v-if="getCommentCount(moment.id) > 0" class="comment-text">{{ getCommentCount(moment.id) }}</span>
+                      <span v-if="getCommentCount(moment.id) > 0" class="comment-text">{{
+                        getCommentCount(moment.id)
+                      }}</span>
                     </span>
                   </n-space>
                 </div>
 
                 <!-- 评论区域 -->
-                <div v-if="momentComments[moment.id] && momentComments[moment.id].length > 0" class="comments-section">
-                  <div v-for="comment in momentComments[moment.id]" :key="comment.id" class="comment-item">
+                <div
+                  v-if="momentComments[moment.id] && momentComments[moment.id].length > 0"
+                  class="comments-section"
+                >
+                  <div
+                    v-for="comment in momentComments[moment.id]"
+                    :key="comment.id"
+                    class="comment-item"
+                  >
                     <div class="comment-content">
-                      <span class="comment-author">{{ comment.user.nickname || comment.user.username }}</span>
+                      <span class="comment-author">{{
+                        comment.user.nickname || comment.user.username
+                      }}</span>
                       <template v-if="comment.parent">
                         <span class="comment-reply-to">回复</span>
-                        <span class="comment-reply-target">{{ comment.parent.user.nickname || comment.parent.user.username }}</span>
+                        <span class="comment-reply-target">{{
+                          comment.parent.user.nickname || comment.parent.user.username
+                        }}</span>
                       </template>
                       <span class="comment-colon">:</span>
                       <span class="comment-text">{{ comment.content }}</span>
@@ -94,13 +114,19 @@
                     <!-- 子评论 -->
                     <div v-if="comment.children && comment.children.length > 0" class="reply-list">
                       <div v-for="reply in comment.children" :key="reply.id" class="reply-item">
-                        <span class="comment-author">{{ reply.user.nickname || reply.user.username }}</span>
+                        <span class="comment-author">{{
+                          reply.user.nickname || reply.user.username
+                        }}</span>
                         <span class="comment-reply-to">回复</span>
-                        <span class="comment-reply-target">{{ comment.user.nickname || comment.user.username }}</span>
+                        <span class="comment-reply-target">{{
+                          comment.user.nickname || comment.user.username
+                        }}</span>
                         <span class="comment-colon">：</span>
                         <span class="comment-text">{{ reply.content }}</span>
                         <div class="comment-actions">
-                          <span class="comment-time">{{ formatRelativeTime(reply.created_at) }}</span>
+                          <span class="comment-time">{{
+                            formatRelativeTime(reply.created_at)
+                          }}</span>
                           <n-button
                             v-if="authStore.isLoggedIn"
                             text
@@ -133,7 +159,11 @@
                   <n-input
                     v-model:value="commentInputs[moment.id]"
                     type="textarea"
-                    :placeholder="replyToComment[moment.id] ? `回复 ${getReplyTargetName(moment.id)}...` : '写评论...'"
+                    :placeholder="
+                      replyToComment[moment.id]
+                        ? `回复 ${getReplyTargetName(moment.id)}...`
+                        : '写评论...'
+                    "
                     :rows="2"
                     :maxlength="500"
                     show-count
@@ -246,12 +276,12 @@ async function fetchMoments() {
       params.status = 1
     }
 
-    const res = await getMoments(params) as any
+    const res = (await getMoments(params)) as any
 
     if (res && res.data) {
       moments.value = res.data.list || []
       total.value = res.data.total || 0
-      
+
       // 获取每个说说的评论
       for (const moment of moments.value) {
         await fetchComments(moment.id)
@@ -295,7 +325,7 @@ function toggleCommentInput(momentId: number) {
     message.warning('请先登录')
     return
   }
-  
+
   if (activeCommentInput.value === momentId) {
     activeCommentInput.value = null
     commentInputs[momentId] = ''
@@ -339,16 +369,18 @@ function handleReply(momentId: number, parent: Comment, target?: Comment) {
     message.warning('请先登录')
     return
   }
-  
+
   activeCommentInput.value = momentId
   replyToComment[momentId] = { parent, target }
   if (!commentInputs[momentId]) {
     commentInputs[momentId] = ''
   }
-  
+
   // 聚焦输入框
   setTimeout(() => {
-    const textarea = document.querySelector(`textarea[placeholder="写评论..."]`) as HTMLTextAreaElement
+    const textarea = document.querySelector(
+      `textarea[placeholder="写评论..."]`
+    ) as HTMLTextAreaElement
     if (textarea) {
       textarea.focus()
     }
@@ -375,19 +407,19 @@ async function handleSubmitComment(momentId: number) {
       comment_type: MOMENT_COMMENT_TYPE,
       target_id: momentId
     }
-    
+
     // 如果是回复评论，添加 parent_id
     const replyInfo = replyToComment[momentId]
     if (replyInfo && replyInfo.parent) {
       commentData.parent_id = replyInfo.parent.id
     }
-    
+
     await createComment(commentData)
     message.success(replyInfo ? '回复成功' : '评论成功')
     commentInputs[momentId] = ''
     replyToComment[momentId] = null
     activeCommentInput.value = null
-    
+
     // 重新获取评论列表
     await fetchComments(momentId)
   } catch (error: any) {
@@ -438,7 +470,7 @@ function handlePageSizeChange(size: number) {
 // 点赞/取消点赞说说
 async function handleLike(moment: Moment) {
   const wasLiked = moment.liked
-  
+
   try {
     // 乐观更新 UI
     if (wasLiked) {
@@ -450,7 +482,7 @@ async function handleLike(moment: Moment) {
       moment.like_count++
       moment.liked = true
     }
-    
+
     // 调用后端 API
     await likeMoment(moment.id)
   } catch (error) {
@@ -965,4 +997,3 @@ html.dark .like-button:hover {
   }
 }
 </style>
-

@@ -20,4 +20,4 @@ export * from './chat'
 export * from './ipBlacklist'
 export * from './ipWhitelist'
 export * from './blog'
-
+export * from './notification'

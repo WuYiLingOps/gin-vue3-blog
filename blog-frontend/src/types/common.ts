@@ -66,4 +66,3 @@ export interface FormRule {
   pattern?: RegExp
   validator?: (rule: any, value: any) => Promise<void> | boolean
 }
-

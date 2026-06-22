@@ -15,27 +15,27 @@ import { request } from '@/utils/request'
  * 仪表盘统计数据接口
  */
 export interface DashboardStats {
-  posts: number        // 文章总数
-  users: number        // 用户总数
-  comments: number     // 评论总数
-  views: number        // 访问量总数
+  posts: number // 文章总数
+  users: number // 用户总数
+  comments: number // 评论总数
+  views: number // 访问量总数
 }
 
 /**
  * 分类统计数据接口
  */
 export interface CategoryStat {
-  name: string        // 分类名称
-  value: number       // 该分类下的文章数量
-  color: string       // 图表显示颜色
+  name: string // 分类名称
+  value: number // 该分类下的文章数量
+  color: string // 图表显示颜色
 }
 
 /**
  * 访问量统计数据接口
  */
 export interface VisitStat {
-  date: string        // 日期
-  count: number       // 该日期的访问量
+  date: string // 日期
+  count: number // 该日期的访问量
 }
 
 /**
@@ -64,4 +64,3 @@ export function getVisitStats(days = 7) {
     params: { days }
   })
 }
-

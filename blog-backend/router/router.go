@@ -15,6 +15,7 @@ import (
 	"blog-backend/constant"
 	"blog-backend/handler"
 	"blog-backend/middleware"
+	"blog-backend/pkg/email"
 	"blog-backend/service"
 	"path/filepath"
 
@@ -31,7 +32,8 @@ import (
 //
 // 返回:
 //   - *gin.Engine: 配置好的Gin路由引擎
-func SetupRouter() *gin.Engine {
+//   - *service.NotificationService: 通知服务实例（供定时任务使用）
+func SetupRouter() (*gin.Engine, *service.NotificationService) {
 	r := gin.New()
 
 	// 使用中间件（按顺序执行）
@@ -50,17 +52,27 @@ func SetupRouter() *gin.Engine {
 	chatHub := service.NewHub()
 	go chatHub.Run() // 启动Hub，在后台goroutine中运行
 
+	// 初始化通知WebSocket Hub（用于实时通知推送）
+	notificationHub := service.NewNotificationHub()
+	go notificationHub.Run() // 启动通知Hub，在后台goroutine中运行
+
+	// 初始化邮件客户端
+	emailClient := email.Initialize(config.Cfg)
+
 	// 初始化订阅服务（需要先初始化，因为postHandler依赖它）
 	subscriberService := service.NewSubscriberService(config.Cfg)
 
+	// 初始化通知服务
+	notificationService := service.NewNotificationService(notificationHub, emailClient)
+
 	// 初始化所有业务处理器
 	authHandler := handler.NewAuthHandler()
-	postHandler := handler.NewPostHandler(subscriberService)
-	postRevisionHandler := handler.NewPostRevisionHandler()
+	postHandler := handler.NewPostHandler(subscriberService, notificationService)
+	postRevisionHandler := handler.NewPostRevisionHandler(notificationService)
 	postCollaboratorHandler := handler.NewPostCollaboratorHandler()
 	categoryHandler := handler.NewCategoryHandler()
 	tagHandler := handler.NewTagHandler()
-	commentHandler := handler.NewCommentHandler()
+	commentHandler := handler.NewCommentHandler(notificationService)
 	userHandler := handler.NewUserHandler()
 	uploadHandler := handler.NewUploadHandler()
 	settingHandler := handler.NewSettingHandler()
@@ -72,13 +84,14 @@ func SetupRouter() *gin.Engine {
 	chatHandler := handler.NewChatHandler(chatHub)
 	blogHandler := handler.NewBlogHandler()
 	announcementHandler := handler.NewAnnouncementHandler()
-	friendLinkHandler := handler.NewFriendLinkHandler()
+	friendLinkHandler := handler.NewFriendLinkHandler(notificationService)
 	friendLinkCategoryHandler := handler.NewFriendLinkCategoryHandler()
 	calendarHandler := handler.NewCalendarHandler()
 	albumHandler := handler.NewAlbumHandler()
 	operationLogHandler := handler.NewOperationLogHandler()
 	subscriberHandler := handler.NewSubscriberHandler(config.Cfg)
 	rssHandler := handler.NewRSSHandler(config.Cfg)
+	notificationHandler := handler.NewNotificationHandler(notificationHub, notificationService)
 
 	// 健康检查接口（用于服务监控和负载均衡器健康检查）
 	r.GET("/health", func(c *gin.Context) {
@@ -103,10 +116,11 @@ func SetupRouter() *gin.Engine {
 		setupChatRoutes(api, chatHandler)                                                                                                                                                                                                 // 聊天室路由
 		setupSubscriberRoutes(api, subscriberHandler)                                                                                                                                                                                     // 邮件订阅路由
 		setupRSSRoutes(api, rssHandler)                                                                                                                                                                                                   // RSS 订阅路由
-		setupAdminRoutes(api, userHandler, postHandler, postRevisionHandler, commentHandler, dashboardHandler, momentHandler, ipBlacklistHandler, ipWhitelistHandler, chatHandler, friendLinkHandler, friendLinkCategoryHandler, settingHandler, albumHandler, operationLogHandler, subscriberHandler, rssHandler) // 管理后台路由
+		setupNotificationRoutes(api, notificationHandler)                                                                                                                                                                                 // 通知路由
+		setupAdminRoutes(api, userHandler, postHandler, postRevisionHandler, commentHandler, dashboardHandler, momentHandler, ipBlacklistHandler, ipWhitelistHandler, chatHandler, friendLinkHandler, friendLinkCategoryHandler, settingHandler, albumHandler, operationLogHandler, subscriberHandler, rssHandler, notificationHandler) // 管理后台路由
 	}
 
-	return r
+	return r, notificationService
 }
 
 // setupAuthRoutes 配置认证相关路由
@@ -410,7 +424,8 @@ func setupChatRoutes(api *gin.RouterGroup, h *handler.ChatHandler) {
 //   - operationLogHandler: 操作日志处理器实例
 //   - subscriberHandler: 订阅者处理器实例
 //   - rssHandler: RSS 处理器实例
-func setupAdminRoutes(api *gin.RouterGroup, userHandler *handler.UserHandler, postHandler *handler.PostHandler, postRevisionHandler *handler.PostRevisionHandler, commentHandler *handler.CommentHandler, dashboardHandler *handler.DashboardHandler, momentHandler *handler.MomentHandler, ipBlacklistHandler *handler.IPBlacklistHandler, ipWhitelistHandler *handler.IPWhitelistHandler, chatHandler *handler.ChatHandler, friendLinkHandler *handler.FriendLinkHandler, friendLinkCategoryHandler *handler.FriendLinkCategoryHandler, settingHandler *handler.SettingHandler, albumHandler *handler.AlbumHandler, operationLogHandler *handler.OperationLogHandler, subscriberHandler *handler.SubscriberHandler, rssHandler *handler.RSSHandler) {
+//   - notificationHandler: 通知处理器实例
+func setupAdminRoutes(api *gin.RouterGroup, userHandler *handler.UserHandler, postHandler *handler.PostHandler, postRevisionHandler *handler.PostRevisionHandler, commentHandler *handler.CommentHandler, dashboardHandler *handler.DashboardHandler, momentHandler *handler.MomentHandler, ipBlacklistHandler *handler.IPBlacklistHandler, ipWhitelistHandler *handler.IPWhitelistHandler, chatHandler *handler.ChatHandler, friendLinkHandler *handler.FriendLinkHandler, friendLinkCategoryHandler *handler.FriendLinkCategoryHandler, settingHandler *handler.SettingHandler, albumHandler *handler.AlbumHandler, operationLogHandler *handler.OperationLogHandler, subscriberHandler *handler.SubscriberHandler, rssHandler *handler.RSSHandler, notificationHandler *handler.NotificationHandler) {
 	admin := api.Group("/admin")
 	// admin 路由基础权限：admin 或 super_admin
 	admin.Use(middleware.AuthMiddleware(), middleware.AdminMiddleware())
@@ -441,6 +456,7 @@ func setupAdminRoutes(api *gin.RouterGroup, userHandler *handler.UserHandler, po
 			super.POST("/friend-links", friendLinkHandler.Create)
 			super.PUT("/friend-links/:id", friendLinkHandler.Update)
 			super.DELETE("/friend-links/:id", friendLinkHandler.Delete)
+			super.POST("/friend-links/check", friendLinkHandler.CheckLinks) // 手动触发检测
 
 			// 友链分类管理（仅超级管理员）
 			super.GET("/friend-link-categories", friendLinkCategoryHandler.List)
@@ -556,6 +572,26 @@ func setupSubscriberRoutes(api *gin.RouterGroup, h *handler.SubscriberHandler) {
 		subscribe.POST("", h.Subscribe)              // 订阅
 		subscribe.GET("/unsubscribe", h.Unsubscribe) // 退订
 		subscribe.GET("/stats", h.GetStats)          // 获取订阅统计信息（公开接口）
+	}
+}
+
+// setupNotificationRoutes 配置通知路由
+func setupNotificationRoutes(api *gin.RouterGroup, h *handler.NotificationHandler) {
+	notifications := api.Group("/notifications")
+	notifications.Use(middleware.AuthMiddleware())
+	{
+		notifications.GET("", h.GetNotifications)
+		notifications.GET("/unread-count", h.GetUnreadCount)
+		notifications.PUT("/:id/read", h.MarkAsRead)
+		notifications.PUT("/read-all", h.MarkAllAsRead)
+		notifications.DELETE("/:id", h.DeleteNotification)
+	}
+
+	// WebSocket 单独处理，使用 OptionalAuthMiddleware（支持 query 参数传 token）
+	ws := api.Group("/notifications/ws")
+	ws.Use(middleware.OptionalAuthMiddleware())
+	{
+		ws.GET("", h.HandleWebSocket)
 	}
 }
 

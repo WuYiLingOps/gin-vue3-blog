@@ -15,44 +15,44 @@ import { request } from '@/utils/request'
  * 网站设置接口
  */
 export interface SiteSettings {
-  site_name?: string           // 网站名称
-  site_icp?: string            // ICP备案号
-  site_police?: string         // 公安备案号
+  site_name?: string // 网站名称
+  site_icp?: string // ICP备案号
+  site_police?: string // 公安备案号
   // 社交链接
-  social_github?: string        // GitHub链接
-  social_gitee?: string        // Gitee链接
-  social_email?: string        // 邮箱
-  social_qq?: string           // QQ号
-  social_wechat?: string       // 微信号
-  social_csdn?: string         // CSDN链接
-  social_link_order?: string   // 社交链接排序顺序，逗号分隔的类型列表，如 "github,gitee,email,csdn,qq,wechat"
-  reward_wechat?: string       // 微信收款码图片URL
-  reward_alipay?: string       // 支付宝收款码图片URL
+  social_github?: string // GitHub链接
+  social_gitee?: string // Gitee链接
+  social_email?: string // 邮箱
+  social_qq?: string // QQ号
+  social_wechat?: string // 微信号
+  social_csdn?: string // CSDN链接
+  social_link_order?: string // 社交链接排序顺序，逗号分隔的类型列表，如 "github,gitee,email,csdn,qq,wechat"
+  reward_wechat?: string // 微信收款码图片URL
+  reward_alipay?: string // 支付宝收款码图片URL
   // 封面设置
-  cover_subtitle?: string      // 封面副标题（多条用换行分隔，打字机效果轮播）
-  cover_bg_image?: string      // 封面背景图URL（已废弃，保留用于兼容）
-  cover_bg_images?: string     // 封面背景图URL数组（JSON字符串格式，最多3张）
+  cover_subtitle?: string // 封面副标题（多条用换行分隔，打字机效果轮播）
+  cover_bg_image?: string // 封面背景图URL（已废弃，保留用于兼容）
+  cover_bg_images?: string // 封面背景图URL数组（JSON字符串格式，最多3张）
   // 网站运行时间
-  site_start_date?: string     // 网站成立时间（用于计算运行时长）
+  site_start_date?: string // 网站成立时间（用于计算运行时长）
 }
 
 /**
  * 上传设置接口
  */
 export interface UploadSettings {
-  storage_type?: string        // 存储类型：'local' | 'oss'
-  oss_endpoint?: string        // OSS端点地址
-  oss_access_key_id?: string   // OSS访问密钥ID
-  oss_access_key_secret?: string  // OSS访问密钥Secret
-  oss_bucket_name?: string     // OSS存储桶名称
-  oss_domain?: string          // OSS自定义域名
+  storage_type?: string // 存储类型：'local' | 'oss'
+  oss_endpoint?: string // OSS端点地址
+  oss_access_key_id?: string // OSS访问密钥ID
+  oss_access_key_secret?: string // OSS访问密钥Secret
+  oss_bucket_name?: string // OSS存储桶名称
+  oss_domain?: string // OSS自定义域名
 }
 
 /**
  * 通知设置接口
  */
 export interface NotificationSettings {
-  notify_admin_on_comment?: string  // 评论时通知管理员：'0'表示否，'1'表示是
+  notify_admin_on_comment?: string // 评论时通知管理员：'0'表示否，'1'表示是
 }
 
 /**
@@ -101,17 +101,17 @@ export function updateUploadSettings(data: Record<string, string>) {
  * 友链信息接口
  */
 export interface FriendLinkInfo {
-  name?: string        // 网站名称
-  desc?: string        // 网站描述
-  url?: string         // 网站URL
-  avatar?: string      // 网站头像
-  screenshot?: string  // 网站截图
-  rss?: string         // RSS订阅地址
+  name?: string // 网站名称
+  desc?: string // 网站描述
+  url?: string // 网站URL
+  avatar?: string // 网站头像
+  screenshot?: string // 网站截图
+  rss?: string // RSS订阅地址
 }
 
 /**
  * 获取我的友链信息（公开接口）
- * @returns 返回友链申请信息
+ * @returns 返回博主的友链信息
  */
 export function getFriendLinkInfo() {
   return request.get<FriendLinkInfo>('/settings/friendlink-info')
@@ -172,8 +172,8 @@ export function getPublicAboutInfo() {
  * 显示设置接口
  */
 export interface DisplaySettings {
-  home_page_size?: string      // 首页文章列表每页数量
-  recent_posts_limit?: string  // 最新发布文章卡片显示数量
+  home_page_size?: string // 首页文章列表每页数量
+  recent_posts_limit?: string // 最新发布文章卡片显示数量
 }
 
 /**

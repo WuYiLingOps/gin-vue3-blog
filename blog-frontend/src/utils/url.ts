@@ -20,7 +20,7 @@
  */
 export function normalizeImageUrl(url: string): string {
   if (!url) return ''
-  
+
   // 如果已经是完整 URL，检查是否需要转换
   if (url.startsWith('http://') || url.startsWith('https://')) {
     // 如果是当前页面的域名，直接返回
@@ -37,12 +37,12 @@ export function normalizeImageUrl(url: string): string {
       return url
     }
   }
-  
+
   // 如果是 /uploads/ 开头的相对路径，使用当前页面的域名
   if (url.startsWith('/uploads/')) {
     return `${window.location.protocol}//${window.location.host}${url}`
   }
-  
+
   // 其他相对路径，使用配置的基础 URL（通常是API路径）
   const currentBaseUrl = import.meta.env.VITE_API_BASE_URL || ''
   return currentBaseUrl + url
@@ -55,7 +55,7 @@ export function normalizeImageUrl(url: string): string {
  */
 export function normalizeImageUrls(urls: string | string[]): string[] {
   if (!urls) return []
-  
+
   // 如果是 JSON 字符串，先解析
   let urlArray: string[] = []
   if (typeof urls === 'string') {
@@ -67,7 +67,6 @@ export function normalizeImageUrls(urls: string | string[]): string[] {
   } else {
     urlArray = urls
   }
-  
+
   return urlArray.map(normalizeImageUrl)
 }
-

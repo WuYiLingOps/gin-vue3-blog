@@ -20,12 +20,7 @@ export default defineConfig(({ mode }) => {
           'vue-router',
           'pinia',
           {
-            'naive-ui': [
-              'useDialog',
-              'useMessage',
-              'useNotification',
-              'useLoadingBar'
-            ]
+            'naive-ui': ['useDialog', 'useMessage', 'useNotification', 'useLoadingBar']
           }
         ],
         dts: 'src/types/auto-imports.d.ts'
@@ -69,4 +64,3 @@ export default defineConfig(({ mode }) => {
     }
   }
 })
-

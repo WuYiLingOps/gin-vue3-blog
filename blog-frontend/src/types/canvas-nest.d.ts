@@ -22,4 +22,3 @@ declare module 'canvas-nest.js' {
     destroy(): void
   }
 }
-

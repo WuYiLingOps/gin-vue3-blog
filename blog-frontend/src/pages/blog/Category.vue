@@ -36,8 +36,15 @@
                       <span>{{ cat.post_count }} 篇文章</span>
                     </div>
                     <div class="category-arrow">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                      <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      >
+                        <path d="M5 12h14M12 5l7 7-7 7" />
                       </svg>
                     </div>
                   </div>
@@ -46,7 +53,11 @@
             </div>
           </n-grid-item>
         </n-grid>
-        <n-empty v-if="!loading && categories.length === 0" description="暂无分类" style="margin-top: 48px" />
+        <n-empty
+          v-if="!loading && categories.length === 0"
+          description="暂无分类"
+          style="margin-top: 48px"
+        />
       </div>
 
       <!-- 分类详情视图 -->
@@ -117,7 +128,7 @@ const total = ref(0)
 const currentPage = ref(1)
 const pageSize = 10
 
-const categoryId = computed(() => route.params.id ? Number(route.params.id) : null)
+const categoryId = computed(() => (route.params.id ? Number(route.params.id) : null))
 const totalPages = computed(() => Math.ceil(total.value / pageSize))
 
 // 响应式列数
@@ -130,20 +141,24 @@ const responsive = computed(() => {
 })
 
 // 监听路由变化
-watch(() => route.params.id, (newId) => {
-  // 重置状态
-  category.value = null
-  posts.value = []
-  total.value = 0
-  currentPage.value = 1
-  
-  if (newId) {
-    fetchCategory()
-    fetchPosts()
-  } else {
-    fetchCategories()
-  }
-}, { immediate: true })
+watch(
+  () => route.params.id,
+  newId => {
+    // 重置状态
+    category.value = null
+    posts.value = []
+    total.value = 0
+    currentPage.value = 1
+
+    if (newId) {
+      fetchCategory()
+      fetchPosts()
+    } else {
+      fetchCategories()
+    }
+  },
+  { immediate: true }
+)
 
 onMounted(() => {
   if (categoryId.value) {
@@ -261,7 +276,11 @@ html.dark .category-card:hover {
   left: 0;
   right: 0;
   height: 120px;
-  background: linear-gradient(135deg, var(--category-color) 0%, color-mix(in srgb, var(--category-color) 80%, transparent) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--category-color) 0%,
+    color-mix(in srgb, var(--category-color) 80%, transparent) 100%
+  );
   opacity: 0.1;
   transition: opacity 0.4s ease;
 }
@@ -439,11 +458,10 @@ html.dark .post-summary {
   .category-page {
     padding: 16px;
   }
-  
+
   .page-title {
     font-size: 24px;
     margin-bottom: 32px;
   }
 }
 </style>
-

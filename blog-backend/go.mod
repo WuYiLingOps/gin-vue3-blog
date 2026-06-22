@@ -12,6 +12,7 @@ require (
 	github.com/mojocn/base64Captcha v1.3.8
 	github.com/mozillazg/go-pinyin v0.21.0
 	github.com/redis/go-redis/v9 v9.16.0
+	github.com/robfig/cron/v3 v3.0.1
 	github.com/spf13/viper v1.21.0
 	github.com/subosito/gotenv v1.6.0
 	github.com/tencentyun/cos-go-sdk-v5 v0.7.71

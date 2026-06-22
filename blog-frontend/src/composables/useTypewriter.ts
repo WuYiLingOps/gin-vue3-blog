@@ -29,16 +29,8 @@ interface TypewriterOptions {
  * @param options 速度和延迟配置
  * @returns displayedText — 当前显示的文本（响应式 ref）
  */
-export function useTypewriter(
-  source: string[] | Ref<string[]>,
-  options: TypewriterOptions = {}
-) {
-  const {
-    typeSpeed = 120,
-    deleteSpeed = 60,
-    pauseTime = 2000,
-    startDelay = 500
-  } = options
+export function useTypewriter(source: string[] | Ref<string[]>, options: TypewriterOptions = {}) {
+  const { typeSpeed = 120, deleteSpeed = 60, pauseTime = 2000, startDelay = 500 } = options
 
   const displayedText = ref('')
   let currentIndex = 0
@@ -106,11 +98,15 @@ export function useTypewriter(
 
   // 监听数据源变化，重新开始打字
   if (isRef(source)) {
-    watch(source, (newVal) => {
-      if (newVal.length > 0) {
-        start()
-      }
-    }, { immediate: true })
+    watch(
+      source,
+      newVal => {
+        if (newVal.length > 0) {
+          start()
+        }
+      },
+      { immediate: true }
+    )
   } else if (source.length > 0) {
     // 静态数组，直接启动
     start()

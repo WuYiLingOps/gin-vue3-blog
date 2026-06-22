@@ -400,8 +400,6 @@ JWT_SECRET=your_jwt_secret
 .....
 ```
 
-```
-
 ## 4.2 构建镜像（可选）
 
 如果不想使用阿里云镜像仓库的镜像，可直接在本地手动构建（默认使用阿里云镜像仓库地址）：
@@ -430,7 +428,7 @@ docker compose up -d
 编辑 `deploy/docker-compose.yml`：
 
 1. 注释掉 `postgres` 和 `redis` 服务块
-2. 注释掉 `blog.depends_on` 块
+2. 注释掉 `blog.depends_on` 块（含 `condition: service_healthy`）
 3. 取消注释 `blog.environment` 中的 `DB_HOST` / `REDIS_HOST` 并填入已有容器地址
 
 ```bash
@@ -700,6 +698,18 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
+    # WebSocket（通知推送：/api/notifications/ws），需保持连接与协议升级
+    location /api/notifications/ws {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
     # 后端 API 反向代理（其余 /api/* 请求）
     location /api/ {
         proxy_pass http://127.0.0.1:8080;
@@ -764,6 +774,18 @@ server {
 
     # WebSocket（聊天室连接：/api/chat/ws）
     location /api/chat/ws {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # WebSocket（通知推送：/api/notifications/ws）
+    location /api/notifications/ws {
         proxy_pass http://127.0.0.1:8080;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
@@ -1004,6 +1026,12 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
 - **打赏功能** - 导航栏打赏按钮，点击弹出微信/支付宝收款码，未配置时提示暂未开放
 - **邮件订阅** - 支持用户订阅博客更新，文章发布时自动推送邮件通知，管理后台可管理订阅者
 - **RSS 订阅** - 提供标准 RSS Feed，支持文章订阅、说说订阅和全站订阅，管理后台可一键开启/关闭
+- **通知中心** - 应用内实时通知系统，支持 WebSocket 推送和邮件通知
+  - 评论回复通知：用户收到评论回复时实时通知
+  - 新评论通知：管理员收到新评论时实时通知
+  - 文章发布通知：订阅者收到新文章发布通知
+  - 文章修订审批通知：管理员提交修订时通知超级管理员，审批通过/拒绝时通知编辑者
+  - 友链异常通知：友链连续失败≥3次时自动通知管理员
 
 ### 7.1.2 技术特性
 
@@ -1115,6 +1143,11 @@ myBlog/
 - **独立评论系统** - 友链页面拥有独立的评论功能，支持嵌套回复
 - 我的友链信息配置（名称、描述、URL、头像、站点图片、RSS订阅等）
 - YAML 格式友链信息导出
+- **友链状态检测** - 自动检测友链可访问性
+  - 定时任务：每周三凌晨2点自动检测所有友链
+  - 手动检测：管理员可在后台手动触发检测（连续检测3次）
+  - 状态显示：前台友链页面显示链接状态标签（正常/访问异常/已失效）
+  - 异常通知：友链连续失败≥3次时自动通知管理员
 
 ### 7.2.5 用户中心
 
@@ -1392,6 +1425,7 @@ myBlog/
 - `POST /api/admin/friend-links` - 创建友链（管理员）
 - `PUT /api/admin/friend-links/:id` - 更新友链（管理员）
 - `DELETE /api/admin/friend-links/:id` - 删除友链（管理员）
+- `POST /api/admin/friend-links/check` - 手动触发友链检测（管理员）
 - `GET /api/settings/friendlink-info` - 获取我的友链信息（公开）
 - `PUT /api/admin/settings/friendlink-info` - 更新我的友链信息（管理员）
 
@@ -1458,7 +1492,16 @@ myBlog/
 - `POST /api/admin/rss/clear-cache` - 清除 RSS 缓存（管理员）
 - `GET /api/admin/rss/stats` - 获取 RSS 统计信息（管理员）
 
-## 9.15 管理后台相关
+## 9.15 通知相关
+
+- `GET /api/notifications` - 获取当前用户的通知列表（需认证）
+- `GET /api/notifications/unread-count` - 获取未读通知数量（需认证）
+- `PUT /api/notifications/:id/read` - 标记单条通知为已读（需认证）
+- `PUT /api/notifications/read-all` - 标记所有通知为已读（需认证）
+- `DELETE /api/notifications/:id` - 删除通知（需认证）
+- `WS /api/notifications/ws` - WebSocket 连接，接收实时通知推送（需认证）
+
+## 9.16 管理后台相关
 
 - `GET /api/admin/dashboard/stats` - 仪表盘统计
 - `GET /api/admin/dashboard/category-stats` - 分类统计
@@ -1468,7 +1511,7 @@ myBlog/
 - `PUT /api/admin/users/:id/role` - 更新用户角色（仅超级管理员）
 - `DELETE /api/admin/users/:id` - 删除用户（仅超级管理员）
 
-## 9.16 操作日志相关（仅超级管理员）
+## 9.17 操作日志相关（仅超级管理员）
 
 - `GET /api/admin/operation-logs` - 获取操作日志列表（支持分页和筛选）
   - 查询参数：`page`、`page_size`、`module`、`action`、`username`
@@ -1512,6 +1555,21 @@ myBlog/
 
 
 # 十一、更新日志
+
+## 2026-06-22
+
+- 通知系统增强
+  - 新增文章修订审批通知：管理员提交修订时通知超级管理员，审批通过/拒绝时通知编辑者
+  - 新增友链异常通知：友链连续失败≥3次时自动通知管理员
+  - 修复通知服务注入问题，确保各模块正确触发通知
+  - 前端通知组件支持新通知类型图标和路由跳转
+- 友链检测功能优化
+  - 新增手动检测按钮，支持管理员手动触发友链检测
+  - 前台友链页面显示链接状态标签（正常/访问异常/已失效）
+  - 手动检测时连续检测3次，确保能触发异常通知
+  - 修复友链状态变更后缓存未清除的问题
+- 其他修复
+  - 修复 Naive UI Code 组件 hljs 未配置的警告
 
 ## 2026-04-18
 

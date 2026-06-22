@@ -61,6 +61,8 @@
             </n-breadcrumb>
 
             <div class="header-actions">
+              <NotificationBell />
+
               <n-button v-if="!isMobile" text @click="router.push('/')">
                 <template #icon>
                   <n-icon :component="HomeOutline" />
@@ -129,10 +131,15 @@ import {
   ImagesOutline,
   ListOutline,
   MailOutline,
-  CheckmarkDoneOutline
+  CheckmarkDoneOutline,
+  PulseOutline,
+  TimeOutline,
+  BuildOutline,
+  LibraryOutline
 } from '@vicons/ionicons5'
 import { useAuthStore } from '@/stores'
 import { NIcon, useLoadingBar } from 'naive-ui'
+import NotificationBell from '@/components/NotificationBell.vue'
 
 // LoadingBar 处理组件
 const LoadingBarHandler = defineComponent({
@@ -192,7 +199,7 @@ const renderIcon = (icon: any) => {
   return () => h(NIcon, null, { default: () => h(icon) })
 }
 
-// 菜单选项（基础定义）
+// 菜单选项（可折叠分组）
 const baseMenuOptions = [
   {
     label: '仪表盘',
@@ -200,101 +207,151 @@ const baseMenuOptions = [
     icon: renderIcon(GridOutline)
   },
   {
-    label: '文章管理',
-    key: 'PostManage',
-    icon: renderIcon(DocumentTextOutline)
+    label: '内容管理',
+    key: 'content',
+    icon: renderIcon(LibraryOutline),
+    children: [
+      {
+        label: '文章管理',
+        key: 'PostManage',
+        icon: renderIcon(DocumentTextOutline)
+      },
+      {
+        label: '分类管理',
+        key: 'CategoryManage',
+        icon: renderIcon(FolderOutline)
+      },
+      {
+        label: '标签管理',
+        key: 'TagManage',
+        icon: renderIcon(PricetagsOutline)
+      },
+      {
+        label: '说说管理',
+        key: 'MomentManage',
+        icon: renderIcon(ChatboxEllipsesOutline)
+      }
+    ]
   },
   {
-    label: '说说管理',
-    key: 'MomentManage',
-    icon: renderIcon(ChatboxEllipsesOutline)
+    label: '互动管理',
+    key: 'social',
+    icon: renderIcon(PulseOutline),
+    children: [
+      {
+        label: '聊天室管理',
+        key: 'ChatManage',
+        icon: renderIcon(ChatbubbleEllipsesOutline)
+      },
+      {
+        label: '评论管理',
+        key: 'CommentManage',
+        icon: renderIcon(ChatbubblesOutline)
+      },
+      {
+        label: '友链管理',
+        key: 'FriendLinkManage',
+        icon: renderIcon(LinkOutline)
+      },
+      {
+        label: '订阅管理',
+        key: 'SubscriberManage',
+        icon: renderIcon(MailOutline)
+      }
+    ]
   },
   {
-    label: '聊天室管理',
-    key: 'ChatManage',
-    icon: renderIcon(ChatbubbleEllipsesOutline)
+    label: '审核与日志',
+    key: 'review',
+    icon: renderIcon(TimeOutline),
+    children: [
+      {
+        label: '审批管理',
+        key: 'PostRevisionManage',
+        icon: renderIcon(CheckmarkDoneOutline)
+      },
+      {
+        label: '编辑记录',
+        key: 'MyRevisions',
+        icon: renderIcon(DocumentTextOutline)
+      },
+      {
+        label: '操作日志',
+        key: 'OperationLogManage',
+        icon: renderIcon(ListOutline)
+      }
+    ]
   },
   {
-    label: '分类管理',
-    key: 'CategoryManage',
-    icon: renderIcon(FolderOutline)
-  },
-  {
-    label: '标签管理',
-    key: 'TagManage',
-    icon: renderIcon(PricetagsOutline)
-  },
-  {
-    label: '评论管理',
-    key: 'CommentManage',
-    icon: renderIcon(ChatbubblesOutline)
-  },
-  {
-    label: '用户管理',
-    key: 'UserManage',
-    icon: renderIcon(PeopleOutline)
-  },
-  {
-    label: '订阅管理',
-    key: 'SubscriberManage',
-    icon: renderIcon(MailOutline)
-  },
-  {
-    label: '审批管理',
-    key: 'PostRevisionManage',
-    icon: renderIcon(CheckmarkDoneOutline)
-  },
-  {
-    label: '编辑记录',
-    key: 'MyRevisions',
-    icon: renderIcon(DocumentTextOutline)
-  },
-  {
-    label: 'IP访问控制',
-    key: 'IPAccessControl',
-    icon: renderIcon(ShieldCheckmarkOutline)
-  },
-  {
-    label: '友链管理',
-    key: 'FriendLinkManage',
-    icon: renderIcon(LinkOutline)
-  },
-  {
-    label: '我的相册',
-    key: 'AlbumManage',
-    icon: renderIcon(ImagesOutline)
-  },
-  {
-    label: '关于我管理',
-    key: 'AboutManage',
-    icon: renderIcon(PersonOutline)
-  },
-  {
-    label: '操作日志',
-    key: 'OperationLogManage',
-    icon: renderIcon(ListOutline)
-  },
-  {
-    label: '网站设置',
-    key: 'SiteSettings',
-    icon: renderIcon(SettingsOutline)
+    label: '系统管理',
+    key: 'system',
+    icon: renderIcon(BuildOutline),
+    children: [
+      {
+        label: '网站设置',
+        key: 'SiteSettings',
+        icon: renderIcon(SettingsOutline)
+      },
+      {
+        label: '用户管理',
+        key: 'UserManage',
+        icon: renderIcon(PeopleOutline)
+      },
+      {
+        label: 'IP访问控制',
+        key: 'IPAccessControl',
+        icon: renderIcon(ShieldCheckmarkOutline)
+      },
+      {
+        label: '关于我管理',
+        key: 'AboutManage',
+        icon: renderIcon(PersonOutline)
+      },
+      {
+        label: '我的相册',
+        key: 'AlbumManage',
+        icon: renderIcon(ImagesOutline)
+      }
+    ]
   }
 ]
 
 // 根据角色过滤菜单（super_admin 才能看到系统级配置入口）
 const menuOptions = computed(() => {
   // 仅系统拥有者可见
-  const superOnlyKeys = new Set(['UserManage', 'SiteSettings', 'AboutManage', 'FriendLinkManage', 'AlbumManage', 'OperationLogManage', 'SubscriberManage', 'PostRevisionManage'])
+  const superOnlyKeys = new Set([
+    'UserManage',
+    'SiteSettings',
+    'AboutManage',
+    'FriendLinkManage',
+    'AlbumManage',
+    'OperationLogManage',
+    'SubscriberManage',
+    'PostRevisionManage'
+  ])
   // 仅普通管理员可见
   const adminOnlyKeys = new Set(['MyRevisions'])
 
-  if (authStore.isSuperAdmin) {
-    // 超级管理员：显示超管菜单，隐藏普通管理员菜单
-    return baseMenuOptions.filter((item: any) => !adminOnlyKeys.has(item.key))
-  } else {
-    // 普通管理员：显示普通管理员菜单，隐藏超管菜单
-    return baseMenuOptions.filter((item: any) => !superOnlyKeys.has(item.key))
+  const filterMenu = (items: any[]): any[] => {
+    return items
+      .map((item: any) => {
+        // 有子菜单的父级项（可折叠分组）
+        if (item.children) {
+          const filteredChildren = filterMenu(item.children)
+          if (filteredChildren.length === 0) return null
+          return { ...item, children: filteredChildren }
+        }
+        // 叶子菜单项
+        if (authStore.isSuperAdmin) {
+          return adminOnlyKeys.has(item.key) ? null : item
+        } else {
+          return superOnlyKeys.has(item.key) ? null : item
+        }
+      })
+      .filter(Boolean)
   }
+
+  return filterMenu(baseMenuOptions)
 })
 
 // 用户菜单选项
@@ -444,7 +501,7 @@ html.dark .admin-header {
   .header-actions {
     gap: 8px;
   }
-  
+
   .breadcrumb-wrapper {
     font-size: 14px;
   }
@@ -483,5 +540,9 @@ html.dark .admin-header {
 .mobile-menu {
   height: 100%;
 }
-</style>
 
+/* 可折叠子菜单样式优化 */
+.admin-layout :deep(.n-menu-item-content) {
+  transition: all 0.2s ease;
+}
+</style>

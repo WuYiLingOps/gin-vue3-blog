@@ -26,7 +26,7 @@ async function ensureSiteName() {
     return
   }
   siteNameLoading = getPublicSettings()
-    .then((res) => {
+    .then(res => {
       if (res.data?.site_name) {
         cachedSiteName = res.data.site_name
       }
@@ -91,4 +91,3 @@ export function setupRouterGuards(router: Router) {
     // 可以在这里添加页面加载完成后的逻辑
   })
 }
-

@@ -13,42 +13,20 @@
     <!-- 自定义工具栏 -->
     <div class="custom-toolbar" v-if="showCustomToolbar">
       <n-space size="small" align="center">
-        <n-button 
-          size="small" 
-          quaternary 
-          @click="insertMarkdown('bold')"
-          title="粗体"
-        >
+        <n-button size="small" quaternary @click="insertMarkdown('bold')" title="粗体">
           <strong>B</strong>
         </n-button>
-        <n-button 
-          size="small" 
-          quaternary 
-          @click="insertMarkdown('italic')"
-          title="斜体"
-        >
+        <n-button size="small" quaternary @click="insertMarkdown('italic')" title="斜体">
           <em>I</em>
         </n-button>
         <n-divider vertical />
-        <n-button 
-          size="small" 
-          quaternary 
-          @click="insertMarkdown('link')"
-          title="链接"
-        >
+        <n-button size="small" quaternary @click="insertMarkdown('link')" title="链接">
           🔗
         </n-button>
-        <n-button 
-          size="small" 
-          quaternary 
-          @click="triggerImageUpload"
-          title="图片"
-        >
-          🖼️
-        </n-button>
+        <n-button size="small" quaternary @click="triggerImageUpload" title="图片"> 🖼️ </n-button>
       </n-space>
     </div>
-    
+
     <v-md-editor
       v-model="content"
       :height="height"
@@ -119,7 +97,7 @@ const disabledMenus = computed(() => [
 
 watch(
   () => props.modelValue,
-  (newValue) => {
+  newValue => {
     content.value = newValue
   }
 )
@@ -127,14 +105,14 @@ watch(
 // 插入Markdown语法
 function insertMarkdown(type: 'bold' | 'italic' | 'link') {
   if (!editorRef.value) return
-  
+
   const textarea = editorRef.value.querySelector('textarea') as HTMLTextAreaElement
   if (!textarea) return
-  
+
   const start = textarea.selectionStart
   const end = textarea.selectionEnd
   const selectedText = content.value.substring(start, end)
-  
+
   let insertText = ''
   switch (type) {
     case 'bold':
@@ -147,22 +125,20 @@ function insertMarkdown(type: 'bold' | 'italic' | 'link') {
       insertText = selectedText ? `[${selectedText}](url)` : '[链接文本](url)'
       break
   }
-  
-  const newContent = 
-    content.value.substring(0, start) + 
-    insertText + 
-    content.value.substring(end)
-  
+
+  const newContent = content.value.substring(0, start) + insertText + content.value.substring(end)
+
   content.value = newContent
   emit('update:modelValue', newContent)
   emit('change', newContent)
-  
+
   // 恢复焦点和光标位置
   nextTick(() => {
     textarea.focus()
-    const newPosition = type === 'link' && !selectedText 
-      ? start + insertText.indexOf('url')
-      : start + insertText.length - (type === 'bold' && !selectedText ? 2 : 0)
+    const newPosition =
+      type === 'link' && !selectedText
+        ? start + insertText.indexOf('url')
+        : start + insertText.length - (type === 'bold' && !selectedText ? 2 : 0)
     textarea.setSelectionRange(newPosition, newPosition)
   })
 }
@@ -170,43 +146,41 @@ function insertMarkdown(type: 'bold' | 'italic' | 'link') {
 // 触发图片上传
 function triggerImageUpload() {
   if (!editorRef.value) return
-  
+
   const input = document.createElement('input')
   input.type = 'file'
   input.accept = 'image/*'
-  input.onchange = async (e) => {
+  input.onchange = async e => {
     const file = (e.target as HTMLInputElement).files?.[0]
     if (!file) return
-    
+
     try {
       const res = await uploadImage(file)
       const imageUrl = res.data?.url || ''
-      
+
       if (!imageUrl) {
         message.error('图片上传失败')
         return
       }
-      
+
       // 插入图片Markdown语法
       const textarea = editorRef.value?.querySelector('textarea') as HTMLTextAreaElement
       if (textarea) {
         const start = textarea.selectionStart
         const insertText = `![${file.name}](${imageUrl})`
-        const newContent = 
-          content.value.substring(0, start) + 
-          insertText + 
-          content.value.substring(start)
-        
+        const newContent =
+          content.value.substring(0, start) + insertText + content.value.substring(start)
+
         content.value = newContent
         emit('update:modelValue', newContent)
         emit('change', newContent)
-        
+
         nextTick(() => {
           textarea.focus()
           textarea.setSelectionRange(start + insertText.length, start + insertText.length)
         })
       }
-      
+
       message.success('图片上传成功')
     } catch (error: any) {
       message.error(error.message || '图片上传失败')
@@ -234,7 +208,7 @@ function handleChange(text: string) {
     content.value = text.substring(0, props.maxLength)
     return
   }
-  
+
   emit('update:modelValue', text)
   emit('change', text)
 }
@@ -295,7 +269,10 @@ async function handleUploadImage(
   background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(10px);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
-  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 html.dark .comment-markdown-editor :deep(.v-md-editor) {
@@ -311,7 +288,9 @@ html.dark .comment-markdown-editor :deep(.v-md-editor) {
 
 .comment-markdown-editor :deep(.v-md-editor:focus-within) {
   border-color: #22c55e;
-  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  box-shadow:
+    0 0 0 2px rgba(34, 197, 94, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 /* 隐藏编辑器自带的工具栏 */
@@ -436,16 +415,16 @@ html.dark .comment-markdown-editor :deep(.v-md-textarea-editor pre) {
   .comment-markdown-editor {
     font-size: 16px; /* 移动端防止自动缩放 */
   }
-  
+
   .comment-markdown-editor :deep(.v-md-editor) {
     font-size: 14px;
     min-height: 150px;
   }
-  
+
   .custom-toolbar {
     padding: 6px 8px;
   }
-  
+
   .comment-markdown-editor :deep(.v-md-editor__left-area textarea) {
     font-size: 16px; /* 移动端防止自动缩放 */
     padding: 10px;
@@ -453,4 +432,3 @@ html.dark .comment-markdown-editor :deep(.v-md-textarea-editor pre) {
   }
 }
 </style>
-

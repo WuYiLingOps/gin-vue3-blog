@@ -9,10 +9,7 @@
   功能描述：公告栏组件，用于展示系统公告列表，支持置顶公告、公告详情查看等功能。
 -->
 <template>
-  <n-card
-    class="announcement-card"
-    :bordered="false"
-  >
+  <n-card class="announcement-card" :bordered="false">
     <template #header>
       <div class="card-title">
         <span>📢</span>
@@ -29,13 +26,7 @@
         >
           <div class="item-header">
             <div class="item-title">
-              <n-tag
-                v-if="item.priority === 1"
-                type="error"
-                size="small"
-                round
-                class="pin-tag"
-              >
+              <n-tag v-if="item.priority === 1" type="error" size="small" round class="pin-tag">
                 置顶
               </n-tag>
               <span class="title-text">
@@ -96,7 +87,9 @@ const showDetail = ref(false)
 const selected = ref<Announcement | null>(null)
 const message = useMessage()
 
-const selectedTime = computed(() => (selected.value ? new Date(selected.value.created_at) : new Date()))
+const selectedTime = computed(() =>
+  selected.value ? new Date(selected.value.created_at) : new Date()
+)
 
 function stripHTML(html: string) {
   const div = document.createElement('div')
@@ -109,7 +102,11 @@ function getTitle(item: Announcement) {
   const text = stripHTML(item.content)
   // 取第一行作为标题，如果没有换行则取前30个字符
   const firstLine = text.split('\n')[0] || text
-  return firstLine ? (firstLine.length > 30 ? `${firstLine.slice(0, 30)}...` : firstLine) : '系统公告'
+  return firstLine
+    ? firstLine.length > 30
+      ? `${firstLine.slice(0, 30)}...`
+      : firstLine
+    : '系统公告'
 }
 
 async function fetchAnnouncements() {
@@ -221,7 +218,6 @@ onMounted(fetchAnnouncements)
   margin-top: 6px;
 }
 
-
 .detail-header {
   display: flex;
   align-items: center;
@@ -284,4 +280,3 @@ html.dark .detail-content {
   color: #e2e8f0;
 }
 </style>
-

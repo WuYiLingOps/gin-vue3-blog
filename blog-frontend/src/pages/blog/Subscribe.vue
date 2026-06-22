@@ -20,7 +20,11 @@
 
           <!-- 退订成功状态 -->
           <n-card v-if="unsubscribeSuccess" class="result-card">
-            <n-result status="success" title="退订成功" description="您已成功取消订阅，不会再收到新文章推送邮件">
+            <n-result
+              status="success"
+              title="退订成功"
+              description="您已成功取消订阅，不会再收到新文章推送邮件"
+            >
               <template #footer>
                 <n-button type="primary" @click="resetForm">返回</n-button>
               </template>
@@ -61,15 +65,17 @@
                     <div class="method-icon">📡</div>
                     <h3 class="method-title">RSS 订阅</h3>
                     <p class="method-desc">
-                      {{ rssEnabled ? '通过 RSS 阅读器订阅，随时随地获取更新' : 'RSS 订阅功能暂未开放' }}
+                      {{
+                        rssEnabled
+                          ? '通过 RSS 阅读器订阅，随时随地获取更新'
+                          : 'RSS 订阅功能暂未开放'
+                      }}
                     </p>
                     <div class="method-features" v-if="rssEnabled">
                       <div class="feature-tag">✓ 无需邮箱</div>
                       <div class="feature-tag">✓ 隐私保护</div>
                     </div>
-                    <div v-else class="method-disabled-tag">
-                      🔒 暂未开放
-                    </div>
+                    <div v-else class="method-disabled-tag">🔒 暂未开放</div>
                   </div>
                 </div>
               </div>
@@ -154,84 +160,84 @@
                   <p class="rss-intro">通过 RSS 阅读器订阅本站，随时随地获取更新，无需提供邮箱</p>
 
                   <div class="rss-links">
-                  <div class="rss-link-item">
-                    <div class="link-info">
-                      <div class="link-icon">🌐</div>
-                      <div class="link-text">
-                        <div class="link-title">全站订阅</div>
-                        <div class="link-desc">订阅所有文章和说说</div>
+                    <div class="rss-link-item">
+                      <div class="link-info">
+                        <div class="link-icon">🌐</div>
+                        <div class="link-text">
+                          <div class="link-title">全站订阅</div>
+                          <div class="link-desc">订阅所有文章和说说</div>
+                        </div>
                       </div>
+                      <n-button
+                        text
+                        type="primary"
+                        tag="a"
+                        :href="`${baseUrl}/api/feed.xml`"
+                        target="_blank"
+                        class="rss-button"
+                      >
+                        <template #icon>
+                          <n-icon :component="LinkOutline" />
+                        </template>
+                        订阅
+                      </n-button>
                     </div>
-                    <n-button
-                      text
-                      type="primary"
-                      tag="a"
-                      :href="`${baseUrl}/api/feed.xml`"
-                      target="_blank"
-                      class="rss-button"
-                    >
-                      <template #icon>
-                        <n-icon :component="LinkOutline" />
-                      </template>
-                      订阅
-                    </n-button>
+
+                    <div class="rss-link-item">
+                      <div class="link-info">
+                        <div class="link-icon">📝</div>
+                        <div class="link-text">
+                          <div class="link-title">文章订阅</div>
+                          <div class="link-desc">仅订阅博客文章</div>
+                        </div>
+                      </div>
+                      <n-button
+                        text
+                        type="primary"
+                        tag="a"
+                        :href="`${baseUrl}/api/rss/posts.xml`"
+                        target="_blank"
+                        class="rss-button"
+                      >
+                        <template #icon>
+                          <n-icon :component="LinkOutline" />
+                        </template>
+                        订阅
+                      </n-button>
+                    </div>
+
+                    <div class="rss-link-item">
+                      <div class="link-info">
+                        <div class="link-icon">💭</div>
+                        <div class="link-text">
+                          <div class="link-title">说说订阅</div>
+                          <div class="link-desc">仅订阅动态说说</div>
+                        </div>
+                      </div>
+                      <n-button
+                        text
+                        type="primary"
+                        tag="a"
+                        :href="`${baseUrl}/api/rss/moments.xml`"
+                        target="_blank"
+                        class="rss-button"
+                      >
+                        <template #icon>
+                          <n-icon :component="LinkOutline" />
+                        </template>
+                        订阅
+                      </n-button>
+                    </div>
                   </div>
 
-                  <div class="rss-link-item">
-                    <div class="link-info">
-                      <div class="link-icon">📝</div>
-                      <div class="link-text">
-                        <div class="link-title">文章订阅</div>
-                        <div class="link-desc">仅订阅博客文章</div>
-                      </div>
-                    </div>
-                    <n-button
-                      text
-                      type="primary"
-                      tag="a"
-                      :href="`${baseUrl}/api/rss/posts.xml`"
-                      target="_blank"
-                      class="rss-button"
-                    >
+                  <div class="tips-section">
+                    <n-alert type="info" :bordered="false">
                       <template #icon>
-                        <n-icon :component="LinkOutline" />
+                        <n-icon :component="InformationCircleOutline" />
                       </template>
-                      订阅
-                    </n-button>
+                      推荐使用 Feedly、Inoreader、NetNewsWire 等 RSS 阅读器订阅本站
+                    </n-alert>
                   </div>
-
-                  <div class="rss-link-item">
-                    <div class="link-info">
-                      <div class="link-icon">💭</div>
-                      <div class="link-text">
-                        <div class="link-title">说说订阅</div>
-                        <div class="link-desc">仅订阅动态说说</div>
-                      </div>
-                    </div>
-                    <n-button
-                      text
-                      type="primary"
-                      tag="a"
-                      :href="`${baseUrl}/api/rss/moments.xml`"
-                      target="_blank"
-                      class="rss-button"
-                    >
-                      <template #icon>
-                        <n-icon :component="LinkOutline" />
-                      </template>
-                      订阅
-                    </n-button>
-                  </div>
-                </div>
-
-                <div class="tips-section">
-                  <n-alert type="info" :bordered="false">
-                    <template #icon>
-                      <n-icon :component="InformationCircleOutline" />
-                    </template>
-                    推荐使用 Feedly、Inoreader、NetNewsWire 等 RSS 阅读器订阅本站
-                  </n-alert>
-                </div>
                 </template>
               </template>
             </n-card>
@@ -306,7 +312,7 @@ const rules = {
 }
 
 // 订阅邮件
-const subscribeEmail = async (email) => {
+const subscribeEmail = async email => {
   return request({
     url: '/subscribe',
     method: 'post',
@@ -315,7 +321,7 @@ const subscribeEmail = async (email) => {
 }
 
 // 退订邮件
-const unsubscribeEmail = async (token) => {
+const unsubscribeEmail = async token => {
   return request({
     url: '/subscribe/unsubscribe',
     method: 'get',
@@ -392,7 +398,7 @@ const handleSubscribe = async () => {
 }
 
 // 处理退订
-const handleUnsubscribe = async (token) => {
+const handleUnsubscribe = async token => {
   try {
     loading.value = true
     await unsubscribeEmail(token)

@@ -108,23 +108,12 @@ import { useMessage } from 'naive-ui'
 // echarts 按需导入
 import * as echarts from 'echarts/core'
 import { PieChart, LineChart } from 'echarts/charts'
-import {
-  TooltipComponent,
-  LegendComponent,
-  GridComponent
-} from 'echarts/components'
+import { TooltipComponent, LegendComponent, GridComponent } from 'echarts/components'
 import { CanvasRenderer } from 'echarts/renderers'
 import type { ECharts } from 'echarts/core'
 
 // 注册必需的组件
-echarts.use([
-  PieChart,
-  LineChart,
-  TooltipComponent,
-  LegendComponent,
-  GridComponent,
-  CanvasRenderer
-])
+echarts.use([PieChart, LineChart, TooltipComponent, LegendComponent, GridComponent, CanvasRenderer])
 import {
   DocumentTextOutline,
   PeopleOutline,
@@ -226,7 +215,7 @@ async function fetchVisitStats() {
 onMounted(async () => {
   // 检测移动设备
   checkMobile()
-  
+
   // 获取统计数据
   await fetchStats()
   await fetchCategoryStats()
@@ -260,13 +249,22 @@ function initCategoryChart() {
   }
 
   // 默认颜色方案
-  const defaultColors = ['#5470c6', '#91cc75', '#fac858', '#ee6666', '#73c0de', '#3ba272', '#fc8452', '#9a60b4']
+  const defaultColors = [
+    '#5470c6',
+    '#91cc75',
+    '#fac858',
+    '#ee6666',
+    '#73c0de',
+    '#3ba272',
+    '#fc8452',
+    '#9a60b4'
+  ]
 
   // 转换数据格式
   const chartData = categoryStats.value.map((item, index) => ({
     value: item.value,
     name: item.name,
-    itemStyle: { 
+    itemStyle: {
       color: item.color || defaultColors[index % defaultColors.length]
     }
   }))
@@ -350,8 +348,8 @@ function initVisitChart() {
     visitChart = echarts.init(visitChartRef.value)
   }
 
-  const dates = visitStats.value.map((item) => item.date.slice(5)) // 显示 MM-DD
-  const counts = visitStats.value.map((item) => item.count)
+  const dates = visitStats.value.map(item => item.date.slice(5)) // 显示 MM-DD
+  const counts = visitStats.value.map(item => item.count)
 
   const isDark = appStore.theme === 'dark'
 
@@ -519,4 +517,3 @@ html.dark .dashboard-page :deep(.n-descriptions-item-label) {
   color: #94a3b8;
 }
 </style>
-

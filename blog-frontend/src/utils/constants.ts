@@ -73,4 +73,3 @@ export const DEFAULT_COLORS = [
   '#FFEB3B',
   '#795548'
 ]
-

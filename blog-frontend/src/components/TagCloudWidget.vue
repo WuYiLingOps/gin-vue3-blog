@@ -114,7 +114,9 @@ onMounted(() => {
   cursor: pointer;
   padding: 8px 12px;
   border-radius: 14px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
   line-height: 1.1;
 }
@@ -160,4 +162,3 @@ onMounted(() => {
   }
 }
 </style>
-

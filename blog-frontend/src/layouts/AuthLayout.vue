@@ -22,7 +22,16 @@
               <div class="logo-icon">
                 <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                   <!-- 代码符号 </> -->
-                  <text x="50" y="65" font-size="48" font-weight="bold" text-anchor="middle" fill="currentColor">&lt;/&gt;</text>
+                  <text
+                    x="50"
+                    y="65"
+                    font-size="48"
+                    font-weight="bold"
+                    text-anchor="middle"
+                    fill="currentColor"
+                  >
+                    &lt;/&gt;
+                  </text>
                 </svg>
               </div>
             </div>
@@ -218,8 +227,14 @@ onMounted(async () => {
 }
 
 @keyframes blink {
-  0%, 50% { opacity: 1; }
-  51%, 100% { opacity: 0; }
+  0%,
+  50% {
+    opacity: 1;
+  }
+  51%,
+  100% {
+    opacity: 0;
+  }
 }
 
 /* 装饰圆圈 */
@@ -264,8 +279,13 @@ onMounted(async () => {
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0) scale(1); }
-  50% { transform: translateY(-20px) scale(1.05); }
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-20px) scale(1.05);
+  }
 }
 
 /* 功能图标 */
@@ -374,6 +394,4 @@ html.dark .auth-content {
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
-
 </style>
-

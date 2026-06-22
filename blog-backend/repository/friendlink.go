@@ -36,17 +36,40 @@ func (r *FriendLinkRepository) GetByID(id uint) (*model.FriendLink, error) {
 }
 
 // List 获取友链列表（管理员用，包含所有状态）
-func (r *FriendLinkRepository) List(page, pageSize int) ([]model.FriendLink, int64, error) {
+func (r *FriendLinkRepository) List(page, pageSize int, keyword, status, accessible string) ([]model.FriendLink, int64, error) {
 	var friendLinks []model.FriendLink
 	var total int64
 
 	offset := (page - 1) * pageSize
 
-	if err := db.DB.Model(&model.FriendLink{}).Count(&total).Error; err != nil {
+	// 构建查询
+	query := db.DB.Model(&model.FriendLink{})
+
+	// 关键词筛选
+	if keyword != "" {
+		query = query.Where("name LIKE ?", "%"+keyword+"%")
+	}
+
+	// 状态筛选
+	if status != "" {
+		query = query.Where("status = ?", status)
+	}
+
+	// 链接状态筛选
+	switch accessible {
+	case "0": // 正常
+		query = query.Where("accessible = 0 AND is_invalid = false")
+	case "1": // 异常
+		query = query.Where("accessible > 0")
+	case "2": // 已失效
+		query = query.Where("is_invalid = true")
+	}
+
+	if err := query.Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
 
-	err := db.DB.Preload("Category").
+	err := query.Preload("Category").
 		Order("category_id ASC, sort_order DESC, id DESC").
 		Offset(offset).Limit(pageSize).
 		Find(&friendLinks).Error
@@ -84,4 +107,26 @@ func (r *FriendLinkRepository) Update(friendLink *model.FriendLink) error {
 // Delete 删除友链
 func (r *FriendLinkRepository) Delete(id uint) error {
 	return db.DB.Delete(&model.FriendLink{}, id).Error
+}
+
+// GetAllForCheck 获取所有需要检测的友链（排除忽略检查的）
+func (r *FriendLinkRepository) GetAllForCheck() ([]model.FriendLink, error) {
+	var friendLinks []model.FriendLink
+	err := db.DB.Where("status = ? AND accessible != ?", 1, -1).
+		Find(&friendLinks).Error
+	return friendLinks, err
+}
+
+// UpdateCheckStatus 更新友链检测状态
+func (r *FriendLinkRepository) UpdateCheckStatus(id uint, accessible int) error {
+	return db.DB.Model(&model.FriendLink{}).
+		Where("id = ?", id).
+		Update("accessible", accessible).Error
+}
+
+// UpdateInvalidStatus 更新失效状态
+func (r *FriendLinkRepository) UpdateInvalidStatus(id uint, isInvalid bool) error {
+	return db.DB.Model(&model.FriendLink{}).
+		Where("id = ?", id).
+		Update("is_invalid", isInvalid).Error
 }

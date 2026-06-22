@@ -16,13 +16,7 @@
     @mouseleave="handleMouseLeave"
   >
     <div v-if="imageUrl" class="image-preview">
-      <n-image
-        :src="imageUrl"
-        :width="width"
-        :height="height"
-        object-fit="cover"
-        :alt="alt"
-      />
+      <n-image :src="imageUrl" :width="width" :height="height" object-fit="cover" :alt="alt" />
       <div class="image-actions">
         <n-space>
           <n-button size="small" @click="handlePreview">
@@ -63,16 +57,26 @@
           @paste="handlePaste"
         >
           <n-icon size="48" :component="CloudUploadOutline" />
-          <n-text style="margin-top: 12px; display: block">
-            点击或拖拽图片上传
-          </n-text>
-          <n-text v-if="!compact" depth="3" style="font-size: 12px; margin-top: 8px; display: block">
+          <n-text style="margin-top: 12px; display: block"> 点击或拖拽图片上传 </n-text>
+          <n-text
+            v-if="!compact"
+            depth="3"
+            style="font-size: 12px; margin-top: 8px; display: block"
+          >
             支持 jpg、png、gif 格式，文件大小不超过 {{ maxSizeMB }}MB
           </n-text>
-          <n-text v-if="!compact" depth="3" style="font-size: 12px; margin-top: 6px; display: block">
+          <n-text
+            v-if="!compact"
+            depth="3"
+            style="font-size: 12px; margin-top: 6px; display: block"
+          >
             悬停此区域可 Ctrl+V 粘贴上传（支持截图/复制图片）
           </n-text>
-          <n-text v-if="!compact && !isVisible" depth="3" style="font-size: 12px; margin-top: 6px; display: block">
+          <n-text
+            v-if="!compact && !isVisible"
+            depth="3"
+            style="font-size: 12px; margin-top: 6px; display: block"
+          >
             组件不在可视区域时不响应粘贴
           </n-text>
         </div>
@@ -81,9 +85,7 @@
 
     <!-- 图片预览弹窗 -->
     <n-modal v-model:show="showPreview" preset="card" style="width: 90%; max-width: 1000px">
-      <template #header>
-        图片预览
-      </template>
+      <template #header> 图片预览 </template>
       <div style="text-align: center">
         <img :src="imageUrl" style="max-width: 100%; height: auto" :alt="alt" />
       </div>
@@ -138,18 +140,21 @@ const isVisible = ref(true)
 let io: IntersectionObserver | null = null
 
 // 监听外部传入的值变化
-watch(() => props.modelValue, (newVal) => {
-  imageUrl.value = newVal
-})
+watch(
+  () => props.modelValue,
+  newVal => {
+    imageUrl.value = newVal
+  }
+)
 
 function handleBeforeUpload(data: { file: UploadFileInfo }) {
   const file = data.file.file
-  
+
   if (!file) {
     message.error('文件读取失败')
     return false
   }
-  
+
   // 检查文件类型
   if (!file.type.startsWith('image/')) {
     message.error('只能上传图片文件')
@@ -223,7 +228,7 @@ async function handlePaste(event: ClipboardEvent) {
   if (!items || items.length === 0) return
 
   // 仅处理剪贴板中的图片（如截图、复制图片）
-  const imageItem = Array.from(items).find((it) => it.type?.startsWith('image/'))
+  const imageItem = Array.from(items).find(it => it.type?.startsWith('image/'))
   if (!imageItem) return
 
   const file = imageItem.getAsFile()
@@ -252,7 +257,7 @@ onMounted(() => {
   }
 
   io = new IntersectionObserver(
-    (entries) => {
+    entries => {
       const entry = entries[0]
       // intersectionRatio 有些浏览器/场景会抖动，这里用 isIntersecting + ratio 双判断更稳
       isVisible.value = !!entry && (entry.isIntersecting || entry.intersectionRatio > 0)
@@ -379,4 +384,3 @@ html.dark .upload-area:hover {
   width: 100%;
 }
 </style>
-

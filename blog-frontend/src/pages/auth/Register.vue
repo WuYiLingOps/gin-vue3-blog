@@ -83,9 +83,7 @@
 
     <div class="footer-links">
       <span>已有账号？</span>
-      <n-button text type="primary" @click="router.push('/auth/login')">
-        立即登录
-      </n-button>
+      <n-button text type="primary" @click="router.push('/auth/login')"> 立即登录 </n-button>
     </div>
   </div>
 </template>
@@ -134,7 +132,11 @@ const rules: FormRules = {
   ],
   email: [
     { required: true, message: '请输入邮箱', trigger: 'blur' },
-    { validator: (_rule, value) => validateEmail(value), message: '邮箱格式不正确', trigger: 'blur' }
+    {
+      validator: (_rule, value) => validateEmail(value),
+      message: '邮箱格式不正确',
+      trigger: 'blur'
+    }
   ],
   code: [
     { required: true, message: '请输入邮箱验证码', trigger: 'blur' },
@@ -183,7 +185,7 @@ async function handleSendCode() {
     sendingCode.value = true
     await sendRegisterCode({ email: formData.email, username: formData.username })
     message.success('验证码已发送，请查收邮箱')
-    
+
     // 开始倒计时
     countdown.value = VERIFICATION_CODE_RESEND_SECONDS
     timer = setInterval(() => {
@@ -308,4 +310,3 @@ html.dark h2 {
   }
 }
 </style>
-

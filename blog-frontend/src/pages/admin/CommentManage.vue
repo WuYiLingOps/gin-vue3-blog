@@ -31,11 +31,19 @@
     <!-- 内容区域 -->
     <div class="content-area">
       <div v-if="isMobile || viewMode === 'card'" class="card-list">
-        <n-card v-for="comment in comments" :key="comment.id" class="list-card" :size="isMobile ? 'small' : 'medium'">
+        <n-card
+          v-for="comment in comments"
+          :key="comment.id"
+          class="list-card"
+          :size="isMobile ? 'small' : 'medium'"
+        >
           <template #header>
             <div class="card-header-content">
               <span class="user-name">{{ comment.user.nickname }}</span>
-              <n-tag :type="comment.status === 1 ? 'success' : 'default'" :size="isMobile ? 'tiny' : 'small'">
+              <n-tag
+                :type="comment.status === 1 ? 'success' : 'default'"
+                :size="isMobile ? 'tiny' : 'small'"
+              >
                 {{ comment.status === 1 ? '正常' : '隐藏' }}
               </n-tag>
             </div>
@@ -56,7 +64,11 @@
               <n-button :size="isMobile ? 'tiny' : 'small'" @click="handleToggleStatus(comment)">
                 {{ comment.status === 1 ? '隐藏' : '显示' }}
               </n-button>
-              <n-button :size="isMobile ? 'tiny' : 'small'" type="error" @click="handleDelete(comment.id)">
+              <n-button
+                :size="isMobile ? 'tiny' : 'small'"
+                type="error"
+                @click="handleDelete(comment.id)"
+              >
                 删除
               </n-button>
             </n-space>
@@ -71,7 +83,7 @@
         :loading="loading"
         :single-line="false"
       />
-      
+
       <!-- 分页 - 位于表格右下角 -->
       <div class="pagination-wrapper">
         <n-pagination
@@ -90,7 +102,16 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, h, watch } from 'vue'
-import { useMessage, useDialog, NButton, NButtonGroup, NIcon, NTag, NSpace, NEllipsis } from 'naive-ui'
+import {
+  useMessage,
+  useDialog,
+  NButton,
+  NButtonGroup,
+  NIcon,
+  NTag,
+  NSpace,
+  NEllipsis
+} from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
 import { GridOutline, AppsOutline } from '@vicons/ionicons5'
 import { getAllComments, updateCommentStatus, deleteComment } from '@/api/comment'
@@ -117,9 +138,9 @@ function checkMobile() {
 const totalPages = computed(() => Math.ceil(total.value / pageSize))
 
 const columns: DataTableColumns<Comment> = [
-  { 
-    title: 'ID', 
-    key: 'id', 
+  {
+    title: 'ID',
+    key: 'id',
     width: 60,
     render: (_row, index) => {
       return (currentPage.value - 1) * pageSize + index + 1
@@ -210,7 +231,7 @@ onUnmounted(() => {
 })
 
 // 监听视图模式变化，保存到 localStorage
-watch(viewMode, (newMode) => {
+watch(viewMode, newMode => {
   localStorage.setItem('comment-manage-view-mode', newMode)
 })
 
@@ -258,7 +279,7 @@ function handleDelete(id: number) {
   const comment = comments.value.find(c => c.id === id)
   const userName = comment?.user.nickname || '该用户'
   const contentPreview = comment?.content.substring(0, 20) || ''
-  
+
   dialog.warning({
     title: '确认删除',
     content: `确定要删除 ${userName} 的评论吗？\n"${contentPreview}${comment && comment.content.length > 20 ? '...' : ''}"\n删除后无法恢复！`,
@@ -321,11 +342,11 @@ function handleDelete(id: number) {
   .page-title {
     font-size: 20px;
   }
-  
+
   .comment-manage-page :deep(.n-data-table) {
     font-size: 13px;
   }
-  
+
   .pagination-wrapper {
     position: relative;
     margin-top: 20px;
@@ -406,4 +427,3 @@ function handleDelete(id: number) {
   flex: 1;
 }
 </style>
-

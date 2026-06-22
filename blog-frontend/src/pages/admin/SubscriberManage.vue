@@ -20,13 +20,19 @@
         <div class="tab-header">
           <!-- 视图切换按钮（仅桌面端显示） -->
           <n-button-group v-if="!isMobile" size="small" class="view-toggle-group">
-            <n-button :type="viewMode === 'table' ? 'primary' : 'default'" @click="viewMode = 'table'">
+            <n-button
+              :type="viewMode === 'table' ? 'primary' : 'default'"
+              @click="viewMode = 'table'"
+            >
               <template #icon>
                 <n-icon :component="GridOutline" />
               </template>
               表格
             </n-button>
-            <n-button :type="viewMode === 'card' ? 'primary' : 'default'" @click="viewMode = 'card'">
+            <n-button
+              :type="viewMode === 'card' ? 'primary' : 'default'"
+              @click="viewMode = 'card'"
+            >
               <template #icon>
                 <n-icon :component="AppsOutline" />
               </template>
@@ -37,56 +43,72 @@
 
         <!-- 订阅者列表内容区域 -->
         <div class="content-area">
-      <div v-if="isMobile || viewMode === 'card'" class="card-list">
-        <n-card v-for="subscriber in subscribers" :key="subscriber.id" class="list-card" :size="isMobile ? 'small' : 'medium'">
-          <template #header>
-            <div class="card-header-content">
-              <span class="email">{{ subscriber.email }}</span>
-              <n-tag :type="subscriber.is_active ? 'success' : 'default'" :size="isMobile ? 'tiny' : 'small'">
-                {{ subscriber.is_active ? '活跃' : '已退订' }}
-              </n-tag>
-            </div>
-          </template>
-          <div class="card-content">
-            <div class="info-item">
-              <span class="label">订阅时间：</span>
-              <span class="value">{{ formatDate(subscriber.subscribed_at, 'YYYY-MM-DD HH:mm') }}</span>
-            </div>
-            <div v-if="!subscriber.is_active && subscriber.unsubscribed_at" class="info-item">
-              <span class="label">退订时间：</span>
-              <span class="value">{{ formatDate(subscriber.unsubscribed_at, 'YYYY-MM-DD HH:mm') }}</span>
-            </div>
+          <div v-if="isMobile || viewMode === 'card'" class="card-list">
+            <n-card
+              v-for="subscriber in subscribers"
+              :key="subscriber.id"
+              class="list-card"
+              :size="isMobile ? 'small' : 'medium'"
+            >
+              <template #header>
+                <div class="card-header-content">
+                  <span class="email">{{ subscriber.email }}</span>
+                  <n-tag
+                    :type="subscriber.is_active ? 'success' : 'default'"
+                    :size="isMobile ? 'tiny' : 'small'"
+                  >
+                    {{ subscriber.is_active ? '活跃' : '已退订' }}
+                  </n-tag>
+                </div>
+              </template>
+              <div class="card-content">
+                <div class="info-item">
+                  <span class="label">订阅时间：</span>
+                  <span class="value">{{
+                    formatDate(subscriber.subscribed_at, 'YYYY-MM-DD HH:mm')
+                  }}</span>
+                </div>
+                <div v-if="!subscriber.is_active && subscriber.unsubscribed_at" class="info-item">
+                  <span class="label">退订时间：</span>
+                  <span class="value">{{
+                    formatDate(subscriber.unsubscribed_at, 'YYYY-MM-DD HH:mm')
+                  }}</span>
+                </div>
+              </div>
+              <template #footer>
+                <n-space justify="end" :size="isMobile ? 'small' : 'medium'">
+                  <n-button
+                    :size="isMobile ? 'tiny' : 'small'"
+                    type="error"
+                    @click="handleDelete(subscriber.id)"
+                  >
+                    删除
+                  </n-button>
+                </n-space>
+              </template>
+            </n-card>
           </div>
-          <template #footer>
-            <n-space justify="end" :size="isMobile ? 'small' : 'medium'">
-              <n-button :size="isMobile ? 'tiny' : 'small'" type="error" @click="handleDelete(subscriber.id)">
-                删除
-              </n-button>
-            </n-space>
-          </template>
-        </n-card>
-      </div>
 
-      <n-data-table
-        v-else-if="viewMode === 'table'"
-        :columns="columns"
-        :data="subscribers"
-        :loading="loading"
-        :single-line="false"
-      />
+          <n-data-table
+            v-else-if="viewMode === 'table'"
+            :columns="columns"
+            :data="subscribers"
+            :loading="loading"
+            :single-line="false"
+          />
 
-      <!-- 分页 - 位于表格右下角 -->
-      <div class="pagination-wrapper">
-        <n-pagination
-          v-if="total > 0"
-          v-model:page="currentPage"
-          :page-count="totalPages"
-          :page-size="pageSize"
-          :page-slot="isMobile ? 3 : 7"
-          :simple="isMobile"
-          @update:page="handlePageChange"
-        />
-      </div>
+          <!-- 分页 - 位于表格右下角 -->
+          <div class="pagination-wrapper">
+            <n-pagination
+              v-if="total > 0"
+              v-model:page="currentPage"
+              :page-count="totalPages"
+              :page-size="pageSize"
+              :page-slot="isMobile ? 3 : 7"
+              :simple="isMobile"
+              @update:page="handlePageChange"
+            />
+          </div>
         </div>
       </n-tab-pane>
 
@@ -110,7 +132,7 @@
               <n-form-item label="启用 RSS" path="enabled">
                 <n-switch v-model:value="rssFormData.enabled" />
                 <template #feedback>
-                  <span style="font-size: 12px; color: #999;">
+                  <span style="font-size: 12px; color: #999">
                     关闭后，所有 RSS Feed 接口将返回"功能未启用"错误
                   </span>
                 </template>
@@ -164,9 +186,7 @@
                   clearable
                 />
                 <template #feedback>
-                  <span style="font-size: 12px; color: #999;">
-                    RSS Feed 中的网站主页链接
-                  </span>
+                  <span style="font-size: 12px; color: #999"> RSS Feed 中的网站主页链接 </span>
                 </template>
               </n-form-item>
 
@@ -178,7 +198,7 @@
                   clearable
                 />
                 <template #feedback>
-                  <span style="font-size: 12px; color: #999;">
+                  <span style="font-size: 12px; color: #999">
                     RSS Feed 语言代码，如 zh-CN（简体中文）、en-US（英语）
                   </span>
                 </template>
@@ -203,7 +223,7 @@
                   <template #suffix>篇</template>
                 </n-input-number>
                 <template #feedback>
-                  <span style="font-size: 12px; color: #999;">
+                  <span style="font-size: 12px; color: #999">
                     每个 RSS Feed 包含的最大文章数量，建议 10-30 篇
                   </span>
                 </template>
@@ -219,7 +239,7 @@
                   <template #suffix>分钟</template>
                 </n-input-number>
                 <template #feedback>
-                  <span style="font-size: 12px; color: #999;">
+                  <span style="font-size: 12px; color: #999">
                     RSS Feed 缓存时长，建议 30-60 分钟
                   </span>
                 </template>
@@ -230,19 +250,17 @@
                   <n-button type="primary" @click="handleRSSSubmit" :loading="rssLoading">
                     保存配置
                   </n-button>
-                  <n-button @click="handleRSSReset">
-                    重置
-                  </n-button>
+                  <n-button @click="handleRSSReset"> 重置 </n-button>
                 </n-space>
               </n-form-item>
             </n-form>
           </n-card>
 
           <!-- RSS 订阅地址 -->
-          <n-card title="RSS 订阅地址" class="config-card" style="margin-top: 16px;">
+          <n-card title="RSS 订阅地址" class="config-card" style="margin-top: 16px">
             <n-alert type="success">
               <template #header>公开订阅地址</template>
-              <ul style="margin: 8px 0; padding-left: 20px; line-height: 1.8;">
+              <ul style="margin: 8px 0; padding-left: 20px; line-height: 1.8">
                 <li><strong>全站 RSS：</strong> {{ baseUrl }}/api/feed.xml</li>
                 <li><strong>文章 RSS：</strong> {{ baseUrl }}/api/rss/posts.xml</li>
                 <li><strong>说说 RSS：</strong> {{ baseUrl }}/api/rss/moments.xml</li>
@@ -251,13 +269,11 @@
               </ul>
             </n-alert>
 
-            <n-space style="margin-top: 16px;">
+            <n-space style="margin-top: 16px">
               <n-button @click="copyFeedUrl(`${baseUrl}/api/feed.xml`)">
                 复制全站 RSS 地址
               </n-button>
-              <n-button @click="openFeedUrl(`${baseUrl}/api/feed.xml`)">
-                在新窗口打开
-              </n-button>
+              <n-button @click="openFeedUrl(`${baseUrl}/api/feed.xml`)"> 在新窗口打开 </n-button>
               <n-button @click="handleClearRSSCache" :loading="clearCacheLoading">
                 清除 RSS 缓存
               </n-button>
@@ -443,11 +459,14 @@ const handleClearRSSCache = async () => {
 }
 
 const copyFeedUrl = (url: string) => {
-  navigator.clipboard.writeText(url).then(() => {
-    message.success('RSS 地址已复制到剪贴板')
-  }).catch(() => {
-    message.error('复制失败，请手动复制')
-  })
+  navigator.clipboard
+    .writeText(url)
+    .then(() => {
+      message.success('RSS 地址已复制到剪贴板')
+    })
+    .catch(() => {
+      message.error('复制失败，请手动复制')
+    })
 }
 
 const openFeedUrl = (url: string) => {
@@ -491,7 +510,8 @@ const columns = computed<DataTableColumns>(() => [
     title: '退订时间',
     key: 'unsubscribed_at',
     width: 180,
-    render: (row: any) => row.unsubscribed_at ? formatDate(row.unsubscribed_at, 'YYYY-MM-DD HH:mm') : '-'
+    render: (row: any) =>
+      row.unsubscribed_at ? formatDate(row.unsubscribed_at, 'YYYY-MM-DD HH:mm') : '-'
   },
   {
     title: '操作',
@@ -520,12 +540,12 @@ const columns = computed<DataTableColumns>(() => [
 ])
 
 // 监听视图模式变化，保存到本地存储
-watch(viewMode, (newMode) => {
+watch(viewMode, newMode => {
   localStorage.setItem('subscriber-view-mode', newMode)
 })
 
 // 监听 Tab 切换，加载对应数据
-watch(activeTab, (newTab) => {
+watch(activeTab, newTab => {
   if (newTab === 'rss') {
     fetchRSSConfig()
   }

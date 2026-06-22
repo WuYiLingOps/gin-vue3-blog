@@ -31,4 +31,3 @@ const router = useRouter()
   min-height: 60vh;
 }
 </style>
-

@@ -50,11 +50,7 @@
         <n-divider />
 
         <div v-if="currentDiff.changes && currentDiff.changes.length > 0">
-          <div
-            v-for="(change, index) in currentDiff.changes"
-            :key="index"
-            class="change-item"
-          >
+          <div v-for="(change, index) in currentDiff.changes" :key="index" class="change-item">
             <h4>{{ getFieldLabel(change.field) }}</h4>
             <DiffViewer
               :old-value="formatValue(change.old, change.field)"
@@ -119,18 +115,18 @@ const columns: DataTableColumns<PostRevision> = [
   {
     title: '文章标题',
     key: 'post.title',
-    render: (row) => row.post?.title || '未知文章'
+    render: row => row.post?.title || '未知文章'
   },
   {
     title: '修改说明',
     key: 'editor_comment',
-    render: (row) => row.editor_comment || '无'
+    render: row => row.editor_comment || '无'
   },
   {
     title: '状态',
     key: 'status',
     width: 100,
-    render: (row) => {
+    render: row => {
       return h(
         NTag,
         { type: getStatusType(row.status) },
@@ -142,20 +138,20 @@ const columns: DataTableColumns<PostRevision> = [
     title: '提交时间',
     key: 'created_at',
     width: 180,
-    render: (row) => formatDate(row.created_at)
+    render: row => formatDate(row.created_at)
   },
   {
     title: '审批人',
     key: 'reviewer',
     width: 120,
-    render: (row) => row.reviewer?.username || '-'
+    render: row => row.reviewer?.username || '-'
   },
   {
     title: '操作',
     key: 'actions',
     width: 200,
     fixed: 'right',
-    render: (row) => {
+    render: row => {
       return h(
         NSpace,
         {},

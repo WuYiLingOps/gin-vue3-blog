@@ -25,7 +25,17 @@
 
     <!-- 层级3：下拉箭头 -->
     <div class="cover-arrow" @click="scrollToContent">
-      <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="36"
+        height="36"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
         <polyline points="6 9 12 15 18 9"></polyline>
       </svg>
     </div>
@@ -48,7 +58,10 @@ const siteName = ref('菱风叙')
 const subtitleRaw = ref('')
 const subtitles = computed(() => {
   if (!subtitleRaw.value) return []
-  return subtitleRaw.value.split('\n').map(s => s.trim()).filter(Boolean)
+  return subtitleRaw.value
+    .split('\n')
+    .map(s => s.trim())
+    .filter(Boolean)
 })
 
 // 打字机效果（传入 computed ref，数据加载后自动启动）
@@ -177,31 +190,69 @@ html.dark .cover-overlay {
 
 /* 动画定义 */
 @keyframes coverFadeInUp {
-  from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 @keyframes cursorBlink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
 }
 @keyframes coverBounce {
-  0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); }
-  40% { transform: translateX(-50%) translateY(-12px); }
-  60% { transform: translateX(-50%) translateY(-6px); }
+  0%,
+  20%,
+  50%,
+  80%,
+  100% {
+    transform: translateX(-50%) translateY(0);
+  }
+  40% {
+    transform: translateX(-50%) translateY(-12px);
+  }
+  60% {
+    transform: translateX(-50%) translateY(-6px);
+  }
 }
 
 /* 响应式：平板 */
 @media (max-width: 768px) {
-  .cover-title { font-size: 32px; }
-  .cover-subtitle { font-size: 16px; min-height: 26px; }
-  .cover-social-icon { width: 36px; height: 36px; }
-  .cover-arrow { bottom: 24px; }
+  .cover-title {
+    font-size: 32px;
+  }
+  .cover-subtitle {
+    font-size: 16px;
+    min-height: 26px;
+  }
+  .cover-social-icon {
+    width: 36px;
+    height: 36px;
+  }
+  .cover-arrow {
+    bottom: 24px;
+  }
 }
 
 /* 响应式：手机 */
 @media (max-width: 480px) {
-  .cover-title { font-size: 26px; }
-  .cover-subtitle { font-size: 14px; min-height: 22px; }
-  .cover-social { gap: 12px; }
+  .cover-title {
+    font-size: 26px;
+  }
+  .cover-subtitle {
+    font-size: 14px;
+    min-height: 22px;
+  }
+  .cover-social {
+    gap: 12px;
+  }
 }
 </style>

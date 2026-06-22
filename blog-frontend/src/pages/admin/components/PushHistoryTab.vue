@@ -10,7 +10,7 @@
 <template>
   <div class="push-history-tab">
     <!-- 统计卡片 -->
-    <n-grid :cols="isMobile ? 2 : 4" :x-gap="16" :y-gap="16" style="margin-bottom: 16px;">
+    <n-grid :cols="isMobile ? 2 : 4" :x-gap="16" :y-gap="16" style="margin-bottom: 16px">
       <n-gi>
         <n-statistic label="总推送次数" :value="stats.total_count">
           <template #prefix>
@@ -47,7 +47,10 @@
       <template #header-extra>
         <!-- 视图切换按钮（仅桌面端显示） -->
         <n-button-group v-if="!isMobile" size="small" class="view-toggle-group">
-          <n-button :type="viewMode === 'table' ? 'primary' : 'default'" @click="viewMode = 'table'">
+          <n-button
+            :type="viewMode === 'table' ? 'primary' : 'default'"
+            @click="viewMode = 'table'"
+          >
             <template #icon>
               <n-icon :component="GridOutline" />
             </template>
@@ -64,7 +67,12 @@
 
       <!-- 卡片视图 -->
       <div v-if="isMobile || viewMode === 'card'" class="card-list">
-        <n-card v-for="history in histories" :key="history.id" class="list-card" :size="isMobile ? 'small' : 'medium'">
+        <n-card
+          v-for="history in histories"
+          :key="history.id"
+          class="list-card"
+          :size="isMobile ? 'small' : 'medium'"
+        >
           <template #header>
             <div class="card-header-content">
               <span class="post-title">{{ history.post_title }}</span>
@@ -77,9 +85,9 @@
             <div class="info-item">
               <span class="label">推送统计：</span>
               <span class="value">
-                成功 <n-text type="success">{{ history.success_count }}</n-text> /
-                失败 <n-text type="error">{{ history.failed_count }}</n-text> /
-                总计 {{ history.total_count }}
+                成功 <n-text type="success">{{ history.success_count }}</n-text> / 失败
+                <n-text type="error">{{ history.failed_count }}</n-text> / 总计
+                {{ history.total_count }}
               </span>
             </div>
             <div class="info-item">
@@ -96,7 +104,11 @@
               <n-button :size="isMobile ? 'tiny' : 'small'" @click="handleViewDetail(history)">
                 查看详情
               </n-button>
-              <n-button :size="isMobile ? 'tiny' : 'small'" type="error" @click="handleDelete(history.id)">
+              <n-button
+                :size="isMobile ? 'tiny' : 'small'"
+                type="error"
+                @click="handleDelete(history.id)"
+              >
                 删除
               </n-button>
             </n-space>
@@ -117,7 +129,12 @@
     </n-card>
 
     <!-- 推送详情抽屉 -->
-    <n-drawer v-model:show="showDetail" :width="isMobile ? '100%' : 600" placement="right" :closable="true">
+    <n-drawer
+      v-model:show="showDetail"
+      :width="isMobile ? '100%' : 600"
+      placement="right"
+      :closable="true"
+    >
       <n-drawer-content :title="`推送详情 - ${currentHistory?.post_title}`" :closable="true">
         <div v-if="currentHistory" class="detail-content">
           <!-- 推送概览 -->
@@ -131,13 +148,18 @@
               </n-tag>
             </n-descriptions-item>
             <n-descriptions-item label="推送统计">
-              成功 {{ currentHistory.success_count }} / 失败 {{ currentHistory.failed_count }} / 总计 {{ currentHistory.total_count }}
+              成功 {{ currentHistory.success_count }} / 失败 {{ currentHistory.failed_count }} /
+              总计 {{ currentHistory.total_count }}
             </n-descriptions-item>
             <n-descriptions-item label="开始时间">
               {{ formatDate(currentHistory.started_at, 'YYYY-MM-DD HH:mm:ss') }}
             </n-descriptions-item>
             <n-descriptions-item label="完成时间">
-              {{ currentHistory.completed_at ? formatDate(currentHistory.completed_at, 'YYYY-MM-DD HH:mm:ss') : '进行中' }}
+              {{
+                currentHistory.completed_at
+                  ? formatDate(currentHistory.completed_at, 'YYYY-MM-DD HH:mm:ss')
+                  : '进行中'
+              }}
             </n-descriptions-item>
           </n-descriptions>
 
@@ -162,9 +184,23 @@
 import { ref, reactive, onMounted, onUnmounted, h, watch } from 'vue'
 import { useMessage, useDialog, NButton, NButtonGroup, NTag, NIcon } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
-import { SendOutline, CheckmarkCircleOutline, CloseCircleOutline, TimeOutline, EyeOutline, TrashOutline, GridOutline, AppsOutline } from '@vicons/ionicons5'
+import {
+  SendOutline,
+  CheckmarkCircleOutline,
+  CloseCircleOutline,
+  TimeOutline,
+  EyeOutline,
+  TrashOutline,
+  GridOutline,
+  AppsOutline
+} from '@vicons/ionicons5'
 import { formatDate } from '@/utils/format'
-import { getPushHistories, getPushHistoryDetail, deletePushHistory, getPushStats } from '@/api/subscribe'
+import {
+  getPushHistories,
+  getPushHistoryDetail,
+  deletePushHistory,
+  getPushStats
+} from '@/api/subscribe'
 import type { PushHistory, PushDetail, PushStats } from '@/api/subscribe'
 
 const message = useMessage()
@@ -213,35 +249,45 @@ const columns: DataTableColumns<PushHistory> = [
     title: '推送状态',
     key: 'status',
     width: 100,
-    render: (row) => h(NTag, { type: getStatusType(row.status) }, { default: () => getStatusText(row.status) })
+    render: row =>
+      h(NTag, { type: getStatusType(row.status) }, { default: () => getStatusText(row.status) })
   },
   {
     title: '推送统计',
     key: 'stats',
     width: 150,
-    render: (row) => `${row.success_count}/${row.failed_count}/${row.total_count}`
+    render: row => `${row.success_count}/${row.failed_count}/${row.total_count}`
   },
   {
     title: '开始时间',
     key: 'started_at',
     width: 160,
-    render: (row) => formatDate(row.started_at, 'YYYY-MM-DD HH:mm')
+    render: row => formatDate(row.started_at, 'YYYY-MM-DD HH:mm')
   },
   {
     title: '操作',
     key: 'actions',
     width: 150,
-    render: (row) => h('div', { style: 'display: flex; gap: 8px;' }, [
-      h(NButton, {
-        size: 'small',
-        onClick: () => handleViewDetail(row)
-      }, { default: () => '查看详情', icon: () => h(NIcon, { component: EyeOutline }) }),
-      h(NButton, {
-        size: 'small',
-        type: 'error',
-        onClick: () => handleDelete(row.id)
-      }, { icon: () => h(NIcon, { component: TrashOutline }) })
-    ])
+    render: row =>
+      h('div', { style: 'display: flex; gap: 8px;' }, [
+        h(
+          NButton,
+          {
+            size: 'small',
+            onClick: () => handleViewDetail(row)
+          },
+          { default: () => '查看详情', icon: () => h(NIcon, { component: EyeOutline }) }
+        ),
+        h(
+          NButton,
+          {
+            size: 'small',
+            type: 'error',
+            onClick: () => handleDelete(row.id)
+          },
+          { icon: () => h(NIcon, { component: TrashOutline }) }
+        )
+      ])
   }
 ]
 
@@ -256,22 +302,27 @@ const detailColumns: DataTableColumns<PushDetail> = [
     title: '状态',
     key: 'status',
     width: 80,
-    render: (row) => h(NTag, {
-      type: row.status === 1 ? 'success' : row.status === 2 ? 'error' : 'default',
-      size: 'small'
-    }, { default: () => row.status === 1 ? '成功' : row.status === 2 ? '失败' : '待发送' })
+    render: row =>
+      h(
+        NTag,
+        {
+          type: row.status === 1 ? 'success' : row.status === 2 ? 'error' : 'default',
+          size: 'small'
+        },
+        { default: () => (row.status === 1 ? '成功' : row.status === 2 ? '失败' : '待发送') }
+      )
   },
   {
     title: '发送时间',
     key: 'sent_at',
     width: 140,
-    render: (row) => row.sent_at ? formatDate(row.sent_at, 'MM-DD HH:mm:ss') : '-'
+    render: row => (row.sent_at ? formatDate(row.sent_at, 'MM-DD HH:mm:ss') : '-')
   },
   {
     title: '错误信息',
     key: 'error_message',
     ellipsis: { tooltip: true },
-    render: (row) => row.error_message || '-'
+    render: row => row.error_message || '-'
   }
 ]
 
@@ -323,7 +374,11 @@ const fetchDetails = async () => {
 
   try {
     detailLoading.value = true
-    const res = await getPushHistoryDetail(currentHistory.value.id, detailPagination.page, detailPagination.pageSize)
+    const res = await getPushHistoryDetail(
+      currentHistory.value.id,
+      detailPagination.page,
+      detailPagination.pageSize
+    )
     details.value = res.data?.details || []
     detailPagination.pageCount = Math.ceil((res.data?.total || 0) / detailPagination.pageSize)
   } catch (error: any) {
@@ -371,7 +426,7 @@ const checkMobile = () => {
 }
 
 // 监听视图模式变化，保存到 localStorage
-watch(viewMode, (newMode) => {
+watch(viewMode, newMode => {
   localStorage.setItem('push-history-view-mode', newMode)
 })
 

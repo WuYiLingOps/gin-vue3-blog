@@ -14,27 +14,34 @@
         <n-space>
           <!-- 视图切换按钮（仅桌面端显示） -->
           <n-button-group v-if="!isMobile" size="small">
-            <n-button :type="viewMode === 'table' ? 'primary' : 'default'" @click="viewMode = 'table'">
+            <n-button
+              :type="viewMode === 'table' ? 'primary' : 'default'"
+              @click="viewMode = 'table'"
+            >
               <template #icon>
                 <n-icon :component="GridOutline" />
               </template>
               表格
             </n-button>
-            <n-button :type="viewMode === 'card' ? 'primary' : 'default'" @click="viewMode = 'card'">
+            <n-button
+              :type="viewMode === 'card' ? 'primary' : 'default'"
+              @click="viewMode = 'card'"
+            >
               <template #icon>
                 <n-icon :component="AppsOutline" />
               </template>
               卡片
             </n-button>
           </n-button-group>
-          <n-button type="primary" @click="showBroadcastModal = true">
-            发送系统广播
-          </n-button>
+          <n-button type="primary" @click="showBroadcastModal = true"> 发送系统广播 </n-button>
           <n-button @click="fetchMessages">
             <template #icon>
               <n-icon>
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                  <path fill="currentColor" d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+                  <path
+                    fill="currentColor"
+                    d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"
+                  />
                 </svg>
               </n-icon>
             </template>
@@ -47,7 +54,7 @@
       <n-card size="small" style="margin-bottom: 16px">
         <n-space align="center" justify="space-between">
           <div>
-            <div style="font-weight: 600;">全员禁言</div>
+            <div style="font-weight: 600">全员禁言</div>
             <n-text depth="3">开启后仅管理员可发言，防止刷屏攻击</n-text>
           </div>
           <n-switch
@@ -64,7 +71,10 @@
           <template #prefix>
             <n-icon>
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                <path fill="currentColor" d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+                <path
+                  fill="currentColor"
+                  d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"
+                />
               </svg>
             </n-icon>
           </template>
@@ -73,7 +83,10 @@
           <template #prefix>
             <n-icon>
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                <path fill="currentColor" d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/>
+                <path
+                  fill="currentColor"
+                  d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"
+                />
               </svg>
             </n-icon>
           </template>
@@ -97,20 +110,8 @@
               <n-text>{{ user.username }}</n-text>
             </n-space>
             <n-space>
-              <n-button
-                size="small"
-                type="warning"
-                @click="handleKickUser(user)"
-              >
-                踢出
-              </n-button>
-              <n-button
-                size="small"
-                type="error"
-                @click="handleBanUser(user)"
-              >
-                封禁
-              </n-button>
+              <n-button size="small" type="warning" @click="handleKickUser(user)"> 踢出 </n-button>
+              <n-button size="small" type="error" @click="handleBanUser(user)"> 封禁 </n-button>
             </n-space>
           </n-space>
         </n-space>
@@ -124,9 +125,7 @@
         <n-button type="error" @click="handleBatchDelete">
           批量删除 ({{ selectedRowKeys.length }})
         </n-button>
-        <n-button @click="selectedRowKeys = []">
-          取消选择
-        </n-button>
+        <n-button @click="selectedRowKeys = []"> 取消选择 </n-button>
       </n-space>
 
       <!-- 消息列表 -->
@@ -136,16 +135,20 @@
             <template #header>
               <div class="card-header-content">
                 <div class="header-left">
-                  <n-checkbox 
+                  <n-checkbox
                     :checked="selectedRowKeys.includes(msg.id)"
-                    @update:checked="(checked) => handleCardSelect(msg.id, checked)"
+                    @update:checked="checked => handleCardSelect(msg.id, checked)"
                   />
                   <n-space align="center" size="small">
                     <n-tag v-if="msg.is_broadcast" type="error" size="tiny">系统</n-tag>
                     <span class="user-name">{{ msg.username }}</span>
                   </n-space>
                 </div>
-                <n-tag v-if="msg.is_broadcast" :type="getBroadcastTargetType(msg.target)" size="tiny">
+                <n-tag
+                  v-if="msg.is_broadcast"
+                  :type="getBroadcastTargetType(msg.target)"
+                  size="tiny"
+                >
                   {{ getBroadcastTargetLabel(msg.target) }}
                 </n-tag>
                 <n-tag v-else size="tiny" :bordered="false" style="color: #999">普通消息</n-tag>
@@ -184,7 +187,7 @@
           v-model:checked-row-keys="selectedRowKeys"
           @update:checked-row-keys="handleCheckedRowKeysChange"
         />
-        
+
         <!-- 分页 - 位于表格右下角 -->
         <div class="pagination-wrapper">
           <n-pagination
@@ -282,10 +285,10 @@ import {
   type DataTableColumns
 } from 'naive-ui'
 import { GridOutline, AppsOutline } from '@vicons/ionicons5'
-import { 
-  adminGetMessages, 
-  adminDeleteMessage, 
-  adminBroadcastMessage, 
+import {
+  adminGetMessages,
+  adminDeleteMessage,
+  adminBroadcastMessage,
   getOnlineInfo,
   adminKickUser,
   adminBanIP,
@@ -316,19 +319,21 @@ function checkMobile() {
 // 辅助函数：获取广播目标标签
 function getBroadcastTargetLabel(target?: string) {
   const targetMap: Record<string, string> = {
-    'announcement': '公告栏',
-    'chat': '聊天室',
-    'both': '同时'
+    announcement: '公告栏',
+    chat: '聊天室',
+    both: '同时'
   }
   return targetMap[target || 'announcement'] || '未知'
 }
 
 // 辅助函数：获取广播目标标签类型
-function getBroadcastTargetType(target?: string): 'info' | 'success' | 'warning' | 'error' | 'default' {
+function getBroadcastTargetType(
+  target?: string
+): 'info' | 'success' | 'warning' | 'error' | 'default' {
   const targetMap: Record<string, 'info' | 'success' | 'warning' | 'error' | 'default'> = {
-    'announcement': 'info',
-    'chat': 'success',
-    'both': 'warning'
+    announcement: 'info',
+    chat: 'success',
+    both: 'warning'
   }
   return targetMap[target || 'announcement'] || 'default'
 }
@@ -383,14 +388,18 @@ const columns: DataTableColumns<ChatMessage> = [
     title: '用户名',
     key: 'username',
     width: 150,
-    render: (row) => {
+    render: row => {
       if (row.is_broadcast) {
-        return h(NSpace, { align: 'center', size: 'small' }, {
-          default: () => [
-            h(NTag, { type: 'error', size: 'small' }, { default: () => '系统' }),
-            h('span', row.username)
-          ]
-        })
+        return h(
+          NSpace,
+          { align: 'center', size: 'small' },
+          {
+            default: () => [
+              h(NTag, { type: 'error', size: 'small' }, { default: () => '系统' }),
+              h('span', row.username)
+            ]
+          }
+        )
       }
       return row.username
     }
@@ -406,14 +415,17 @@ const columns: DataTableColumns<ChatMessage> = [
     title: '投递目标',
     key: 'target',
     width: 140,
-    render: (row) => {
+    render: row => {
       if (!row.is_broadcast) {
         return h('span', { style: { color: '#999' } }, '普通消息')
       }
-      const targetMap: Record<string, { label: string; type: 'default' | 'info' | 'success' | 'warning' | 'error' }> = {
-        'announcement': { label: '公告栏', type: 'info' },
-        'chat': { label: '聊天室', type: 'success' },
-        'both': { label: '同时', type: 'warning' }
+      const targetMap: Record<
+        string,
+        { label: string; type: 'default' | 'info' | 'success' | 'warning' | 'error' }
+      > = {
+        announcement: { label: '公告栏', type: 'info' },
+        chat: { label: '聊天室', type: 'success' },
+        both: { label: '同时', type: 'warning' }
       }
       const target = row.target || 'announcement'
       const config = targetMap[target] || { label: '未知', type: 'default' }
@@ -429,13 +441,13 @@ const columns: DataTableColumns<ChatMessage> = [
     title: '发送时间',
     key: 'created_at',
     width: 180,
-    render: (row) => h(NTime, { time: new Date(row.created_at) })
+    render: row => h(NTime, { time: new Date(row.created_at) })
   },
   {
     title: '操作',
     key: 'actions',
     width: 120,
-    render: (row) => {
+    render: row => {
       return h(
         NPopconfirm,
         {
@@ -609,7 +621,11 @@ const handleBroadcast = async () => {
 
   broadcasting.value = true
   try {
-    await adminBroadcastMessage(broadcastContent.value.trim(), broadcastPriority.value, broadcastTarget.value)
+    await adminBroadcastMessage(
+      broadcastContent.value.trim(),
+      broadcastPriority.value,
+      broadcastTarget.value
+    )
     message.success('广播发送成功')
     showBroadcastModal.value = false
     broadcastContent.value = ''
@@ -657,7 +673,7 @@ onMounted(() => {
 })
 
 // 监听视图模式变化，保存到 localStorage
-watch(viewMode, (newMode) => {
+watch(viewMode, newMode => {
   localStorage.setItem('chat-manage-view-mode', newMode)
 })
 
@@ -807,4 +823,3 @@ onBeforeUnmount(() => {
   flex: 1;
 }
 </style>
-
