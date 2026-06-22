@@ -942,6 +942,44 @@ SET content_tsv = to_tsvector('english', content)
 WHERE content_tsv IS NULL;
 
 -- =============================================================================
+-- 邮件订阅者系统
+-- =============================================================================
+
+-- 创建邮件订阅者表
+CREATE TABLE IF NOT EXISTS subscribers (
+    id SERIAL PRIMARY KEY,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    token VARCHAR(64) UNIQUE,
+    source VARCHAR(100) DEFAULT 'subscribe',
+    source_url VARCHAR(500),
+    ip VARCHAR(50),
+    user_agent VARCHAR(500),
+    is_active BOOLEAN DEFAULT TRUE,
+    subscribed_at TIMESTAMP,
+    unsubscribed_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 订阅者表索引
+CREATE INDEX IF NOT EXISTS idx_subscribers_email ON subscribers(email);
+CREATE INDEX IF NOT EXISTS idx_subscribers_token ON subscribers(token);
+CREATE INDEX IF NOT EXISTS idx_subscribers_is_active ON subscribers(is_active);
+CREATE INDEX IF NOT EXISTS idx_subscribers_source ON subscribers(source);
+
+-- 订阅者表注释
+COMMENT ON TABLE subscribers IS '邮件订阅者表';
+COMMENT ON COLUMN subscribers.email IS '订阅者邮箱';
+COMMENT ON COLUMN subscribers.token IS '退订令牌';
+COMMENT ON COLUMN subscribers.source IS '订阅来源';
+COMMENT ON COLUMN subscribers.source_url IS '来源URL';
+COMMENT ON COLUMN subscribers.ip IS '订阅IP';
+COMMENT ON COLUMN subscribers.user_agent IS '用户代理';
+COMMENT ON COLUMN subscribers.is_active IS '是否有效：true-已订阅，false-已退订';
+COMMENT ON COLUMN subscribers.subscribed_at IS '订阅时间';
+COMMENT ON COLUMN subscribers.unsubscribed_at IS '退订时间';
+
+-- =============================================================================
 -- 18. 通知消息系统
 -- =============================================================================
 
