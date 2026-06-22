@@ -111,7 +111,7 @@ export interface FriendLinkInfo {
 
 /**
  * 获取我的友链信息（公开接口）
- * @returns 返回友链申请信息
+ * @returns 返回博主的友链信息
  */
 export function getFriendLinkInfo() {
   return request.get<FriendLinkInfo>('/settings/friendlink-info')
