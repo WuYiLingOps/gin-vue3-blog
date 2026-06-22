@@ -32,7 +32,8 @@ import (
 //
 // 返回:
 //   - *gin.Engine: 配置好的Gin路由引擎
-func SetupRouter() *gin.Engine {
+//   - *service.NotificationService: 通知服务实例（供定时任务使用）
+func SetupRouter() (*gin.Engine, *service.NotificationService) {
 	r := gin.New()
 
 	// 使用中间件（按顺序执行）
@@ -67,7 +68,7 @@ func SetupRouter() *gin.Engine {
 	// 初始化所有业务处理器
 	authHandler := handler.NewAuthHandler()
 	postHandler := handler.NewPostHandler(subscriberService, notificationService)
-	postRevisionHandler := handler.NewPostRevisionHandler()
+	postRevisionHandler := handler.NewPostRevisionHandler(notificationService)
 	postCollaboratorHandler := handler.NewPostCollaboratorHandler()
 	categoryHandler := handler.NewCategoryHandler()
 	tagHandler := handler.NewTagHandler()
@@ -119,7 +120,7 @@ func SetupRouter() *gin.Engine {
 		setupAdminRoutes(api, userHandler, postHandler, postRevisionHandler, commentHandler, dashboardHandler, momentHandler, ipBlacklistHandler, ipWhitelistHandler, chatHandler, friendLinkHandler, friendLinkCategoryHandler, settingHandler, albumHandler, operationLogHandler, subscriberHandler, rssHandler, notificationHandler) // 管理后台路由
 	}
 
-	return r
+	return r, notificationService
 }
 
 // setupAuthRoutes 配置认证相关路由
@@ -455,6 +456,7 @@ func setupAdminRoutes(api *gin.RouterGroup, userHandler *handler.UserHandler, po
 			super.POST("/friend-links", friendLinkHandler.Create)
 			super.PUT("/friend-links/:id", friendLinkHandler.Update)
 			super.DELETE("/friend-links/:id", friendLinkHandler.Delete)
+			super.POST("/friend-links/check", friendLinkHandler.CheckLinks) // 手动触发检测
 
 			// 友链分类管理（仅超级管理员）
 			super.GET("/friend-link-categories", friendLinkCategoryHandler.List)
