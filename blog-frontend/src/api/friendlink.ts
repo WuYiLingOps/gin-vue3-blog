@@ -37,7 +37,10 @@ export interface FriendLink {
   category_id: number // 所属分类ID
   category?: FriendLinkCategory // 所属分类信息（可选）
   sort_order: number // 排序顺序
-  status: number // 状态（0:待审核 1:已通过 2:已拒绝）
+  status: number // 状态：1-启用，0-禁用
+  is_pending: boolean // 是否待审核
+  is_invalid: boolean // 是否失效
+  accessible: number // 可访问性状态：0-正常，-1-忽略检查，>0-连续失败次数
   created_at: string // 创建时间
   updated_at: string // 更新时间
 }
@@ -78,17 +81,29 @@ export function getFriendLinks() {
  * 管理员：获取友链列表
  * @param page 页码，默认为1
  * @param pageSize 每页数量，默认为10
+ * @param keyword 关键词筛选
+ * @param status 状态筛选
+ * @param accessible 链接状态筛选
  * @returns 返回分页的友链列表数据
  */
-export function getFriendLinksAdmin(page = 1, pageSize = 10) {
+export function getFriendLinksAdmin(
+  page = 1,
+  pageSize = 10,
+  keyword?: string,
+  status?: number | null,
+  accessible?: number | null
+) {
+  const params: Record<string, any> = { page, page_size: pageSize }
+  if (keyword) params.keyword = keyword
+  if (status !== null && status !== undefined) params.status = status
+  if (accessible !== null && accessible !== undefined) params.accessible = accessible
+
   return request.get<{
     list: FriendLink[]
     total: number
     page: number
     page_size: number
-  }>('/admin/friend-links', {
-    params: { page, page_size: pageSize }
-  })
+  }>('/admin/friend-links', { params })
 }
 
 /**
@@ -126,6 +141,14 @@ export function updateFriendLink(id: number, data: Partial<FriendLinkForm>) {
  */
 export function deleteFriendLink(id: number) {
   return request.delete(`/admin/friend-links/${id}`)
+}
+
+/**
+ * 管理员：手动触发友链检测
+ * @returns 返回操作结果
+ */
+export function checkFriendLinks() {
+  return request.post('/admin/friend-links/check')
 }
 
 // =============================================================================
