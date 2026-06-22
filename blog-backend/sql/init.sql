@@ -549,6 +549,9 @@ CREATE TABLE IF NOT EXISTS friend_links (
     category_id INT NOT NULL,
     sort_order INT DEFAULT 0,
     status INT DEFAULT 1,
+    is_pending BOOLEAN DEFAULT FALSE,
+    is_invalid BOOLEAN DEFAULT FALSE,
+    accessible INT DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (category_id) REFERENCES friend_link_categories(id) ON DELETE RESTRICT
@@ -558,6 +561,8 @@ CREATE TABLE IF NOT EXISTS friend_links (
 CREATE INDEX IF NOT EXISTS idx_friend_links_status ON friend_links(status);
 CREATE INDEX IF NOT EXISTS idx_friend_links_category_id ON friend_links(category_id);
 CREATE INDEX IF NOT EXISTS idx_friend_links_sort ON friend_links(category_id, sort_order DESC, id DESC);
+CREATE INDEX IF NOT EXISTS idx_friend_links_is_pending ON friend_links(is_pending);
+CREATE INDEX IF NOT EXISTS idx_friend_links_is_invalid ON friend_links(is_invalid);
 
 -- 友链表注释
 COMMENT ON TABLE friend_links IS '友链表';
@@ -570,6 +575,9 @@ COMMENT ON COLUMN friend_links.atom_url IS 'RSS/Atom订阅地址（可选）';
 COMMENT ON COLUMN friend_links.category_id IS '分类ID（必选）';
 COMMENT ON COLUMN friend_links.sort_order IS '排序顺序（数字越大越靠前）';
 COMMENT ON COLUMN friend_links.status IS '状态：1-启用，0-禁用';
+COMMENT ON COLUMN friend_links.is_pending IS '是否待审核：true-待审核，false-已审核';
+COMMENT ON COLUMN friend_links.is_invalid IS '是否失效：true-失效，false-正常';
+COMMENT ON COLUMN friend_links.accessible IS '可访问性状态：0-正常，-1-忽略检查，>0-连续失败次数';
 
 -- 插入网站配置
 INSERT INTO settings (key, value, type, "group", label, created_at, updated_at)
@@ -859,7 +867,7 @@ COMMENT ON COLUMN post_collaborators.created_at IS '添加时间';
 -- 创建通知事件表
 CREATE TABLE IF NOT EXISTS notifications (
     id SERIAL PRIMARY KEY,
-    type VARCHAR(30) NOT NULL,        -- comment_reply, comment_new, article_push, friend_apply
+    type VARCHAR(30) NOT NULL,        -- comment_reply, comment_new, article_push, friend_abnormal
     title VARCHAR(255) NOT NULL,
     content TEXT NOT NULL,
     sender_id INTEGER,
@@ -882,7 +890,7 @@ CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON notifications(created
 
 -- 通知事件表注释
 COMMENT ON TABLE notifications IS '通知事件表';
-COMMENT ON COLUMN notifications.type IS '通知类型：comment_reply-评论回复，comment_new-新评论，article_push-文章推送，friend_apply-友链申请';
+COMMENT ON COLUMN notifications.type IS '通知类型：comment_reply-评论回复，comment_new-新评论，article_push-文章推送，friend_abnormal-友链异常';
 COMMENT ON COLUMN notifications.title IS '通知标题';
 COMMENT ON COLUMN notifications.content IS '通知内容';
 COMMENT ON COLUMN notifications.sender_id IS '发送者用户ID';
@@ -963,7 +971,7 @@ CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON notifications(created
 
 -- 通知事件表注释
 COMMENT ON TABLE notifications IS '通知事件表';
-COMMENT ON COLUMN notifications.type IS '通知类型：comment_reply-评论回复，comment_new-新评论，article_push-文章推送，friend_apply-友链申请';
+COMMENT ON COLUMN notifications.type IS '通知类型：comment_reply-评论回复，comment_new-新评论，article_push-文章推送，friend_abnormal-友链异常';
 COMMENT ON COLUMN notifications.title IS '通知标题';
 COMMENT ON COLUMN notifications.content IS '通知内容';
 COMMENT ON COLUMN notifications.sender_id IS '发送者用户ID';
