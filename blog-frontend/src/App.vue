@@ -8,7 +8,7 @@
  * @Description: 应用根组件，提供全局配置和主题管理
  -->
 <template>
-  <n-config-provider :theme="theme" :locale="zhCN" :date-locale="dateZhCN">
+  <n-config-provider :theme="theme" :locale="zhCN" :date-locale="dateZhCN" :hljs="hljs">
     <n-loading-bar-provider>
       <n-message-provider>
         <n-notification-provider>
@@ -60,6 +60,7 @@
 <script setup lang="ts">
 import { computed, watch, onMounted } from 'vue'
 import { darkTheme, zhCN, dateZhCN } from 'naive-ui'
+import hljs from 'highlight.js'
 import { useAppStore } from '@/stores'
 
 const appStore = useAppStore()
