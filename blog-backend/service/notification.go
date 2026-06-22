@@ -14,6 +14,7 @@ import (
 	"blog-backend/model"
 	"blog-backend/pkg/email"
 	"blog-backend/repository"
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -188,18 +189,20 @@ func (s *NotificationService) NotifyArticlePush(articleID uint, articleTitle str
 	}()
 }
 
-// NotifyFriendApply 友链申请通知（管理员）
-func (s *NotificationService) NotifyFriendApply(applicantID uint, applicantName string, friendLinkName string) {
-	// 获取所有管理员
-	admins, err := s.userRepo.GetAdmins()
+// NotifyRevisionSubmitted 文章修订提交通知（超级管理员）
+func (s *NotificationService) NotifyRevisionSubmitted(editor *model.User, postTitle string, postID uint, revisionID uint) {
+	editorID := editor.ID
+
+	// 获取所有超级管理员
+	superAdmins, err := s.userRepo.GetSuperAdmins(context.Background())
 	if err != nil {
 		return
 	}
 
-	// 过滤掉申请人自己
+	// 过滤掉编辑者自己
 	var recipientIDs []uint
-	for _, admin := range admins {
-		if admin.ID != applicantID {
+	for _, admin := range superAdmins {
+		if admin.ID != editorID {
 			recipientIDs = append(recipientIDs, admin.ID)
 		}
 	}
@@ -211,23 +214,145 @@ func (s *NotificationService) NotifyFriendApply(applicantID uint, applicantName 
 	// 先推送WebSocket（即时反馈）
 	for _, adminID := range recipientIDs {
 		s.hub.SendNotificationToUser(adminID, map[string]interface{}{
-			"type":       "friend_apply",
-			"title":      fmt.Sprintf("收到新的友链申请：%s", friendLinkName),
-			"content":    fmt.Sprintf("%s 申请了友链：%s", applicantName, friendLinkName),
+			"type":       "revision_submitted",
+			"title":      fmt.Sprintf("新修订待审批：%s", postTitle),
+			"content":    fmt.Sprintf("%s 提交了文章《%s》的修订，请前往审批", editor.Nickname, postTitle),
+			"sender":     editor,
 			"created_at": time.Now(),
 		})
 	}
 
-	// 再异步写库
+	// 再异步写库（不阻塞推送）
 	go func() {
 		notification := &model.Notification{
-			Type:       "friend_apply",
-			Title:      fmt.Sprintf("收到新的友链申请：%s", friendLinkName),
-			Content:    fmt.Sprintf("%s 申请了友链：%s", applicantName, friendLinkName),
-			SenderID:   &applicantID,
-			TargetType: "friend_link",
+			Type:       "revision_submitted",
+			Title:      fmt.Sprintf("新修订待审批：%s", postTitle),
+			Content:    fmt.Sprintf("%s 提交了文章《%s》的修订，请前往审批", editor.Nickname, postTitle),
+			SenderID:   &editorID,
+			TargetType: "post_revision",
+			TargetID:   &revisionID,
 		}
-		extra := map[string]interface{}{"applicant_name": applicantName, "friend_link_name": friendLinkName}
+		extra := map[string]interface{}{"post_id": postID, "post_title": postTitle, "revision_id": revisionID}
+		extraJSON, _ := json.Marshal(extra)
+		notification.Extra = stringPtr(string(extraJSON))
+
+		if err := s.repo.CreateNotification(notification, recipientIDs); err != nil {
+			log.Printf("创建修订提交通知失败: %v", err)
+		}
+	}()
+}
+
+// NotifyRevisionApproved 文章修订通过通知（编辑者）
+func (s *NotificationService) NotifyRevisionApproved(reviewer *model.User, editorID uint, postTitle string, postID uint, revisionID uint) {
+	// 不通知自己
+	if reviewer.ID == editorID {
+		return
+	}
+
+	// 先推送WebSocket（即时反馈）
+	s.hub.SendNotificationToUser(editorID, map[string]interface{}{
+		"type":       "revision_approved",
+		"title":      fmt.Sprintf("修订已通过：%s", postTitle),
+		"content":    fmt.Sprintf("您提交的文章《%s》修订已被 %s 通过", postTitle, reviewer.Nickname),
+		"sender":     reviewer,
+		"created_at": time.Now(),
+	})
+
+	// 再异步写库（不阻塞推送）
+	go func() {
+		reviewerID := reviewer.ID
+		notification := &model.Notification{
+			Type:       "revision_approved",
+			Title:      fmt.Sprintf("修订已通过：%s", postTitle),
+			Content:    fmt.Sprintf("您提交的文章《%s》修订已被 %s 通过", postTitle, reviewer.Nickname),
+			SenderID:   &reviewerID,
+			TargetType: "post_revision",
+			TargetID:   &revisionID,
+		}
+		extra := map[string]interface{}{"post_id": postID, "post_title": postTitle, "revision_id": revisionID}
+		extraJSON, _ := json.Marshal(extra)
+		notification.Extra = stringPtr(string(extraJSON))
+
+		if err := s.repo.CreateNotification(notification, []uint{editorID}); err != nil {
+			log.Printf("创建修订通过通知失败: %v", err)
+		}
+	}()
+}
+
+// NotifyRevisionRejected 文章修订拒绝通知（编辑者）
+func (s *NotificationService) NotifyRevisionRejected(reviewer *model.User, editorID uint, postTitle string, postID uint, revisionID uint, reason string) {
+	// 不通知自己
+	if reviewer.ID == editorID {
+		return
+	}
+
+	// 先推送WebSocket（即时反馈）
+	s.hub.SendNotificationToUser(editorID, map[string]interface{}{
+		"type":       "revision_rejected",
+		"title":      fmt.Sprintf("修订被拒绝：%s", postTitle),
+		"content":    fmt.Sprintf("您提交的文章《%s》修订已被 %s 拒绝，原因：%s", postTitle, reviewer.Nickname, reason),
+		"sender":     reviewer,
+		"created_at": time.Now(),
+	})
+
+	// 再异步写库（不阻塞推送）
+	go func() {
+		reviewerID := reviewer.ID
+		notification := &model.Notification{
+			Type:       "revision_rejected",
+			Title:      fmt.Sprintf("修订被拒绝：%s", postTitle),
+			Content:    fmt.Sprintf("您提交的文章《%s》修订已被 %s 拒绝，原因：%s", postTitle, reviewer.Nickname, reason),
+			SenderID:   &reviewerID,
+			TargetType: "post_revision",
+			TargetID:   &revisionID,
+		}
+		extra := map[string]interface{}{"post_id": postID, "post_title": postTitle, "revision_id": revisionID, "reason": reason}
+		extraJSON, _ := json.Marshal(extra)
+		notification.Extra = stringPtr(string(extraJSON))
+
+		if err := s.repo.CreateNotification(notification, []uint{editorID}); err != nil {
+			log.Printf("创建修订拒绝通知失败: %v", err)
+		}
+	}()
+}
+
+// NotifyFriendLinkApply 友链申请通知（管理员）
+func (s *NotificationService) NotifyFriendLinkApply(applicantName string, siteName string, siteURL string, friendLinkID uint) {
+	// 获取所有管理员
+	admins, err := s.userRepo.GetAdmins()
+	if err != nil {
+		return
+	}
+
+	var recipientIDs []uint
+	for _, admin := range admins {
+		recipientIDs = append(recipientIDs, admin.ID)
+	}
+
+	if len(recipientIDs) == 0 {
+		return
+	}
+
+	// 先推送WebSocket（即时反馈）
+	for _, adminID := range recipientIDs {
+		s.hub.SendNotificationToUser(adminID, map[string]interface{}{
+			"type":       "friend_link_apply",
+			"title":      fmt.Sprintf("新友链申请：%s", siteName),
+			"content":    fmt.Sprintf("%s 申请了友情链接：%s (%s)", applicantName, siteName, siteURL),
+			"created_at": time.Now(),
+		})
+	}
+
+	// 再异步写库（不阻塞推送）
+	go func() {
+		notification := &model.Notification{
+			Type:       "friend_link_apply",
+			Title:      fmt.Sprintf("新友链申请：%s", siteName),
+			Content:    fmt.Sprintf("%s 申请了友情链接：%s (%s)", applicantName, siteName, siteURL),
+			TargetType: "friend_link",
+			TargetID:   &friendLinkID,
+		}
+		extra := map[string]interface{}{"friend_link_id": friendLinkID, "site_name": siteName, "site_url": siteURL}
 		extraJSON, _ := json.Marshal(extra)
 		notification.Extra = stringPtr(string(extraJSON))
 
@@ -235,11 +360,55 @@ func (s *NotificationService) NotifyFriendApply(applicantID uint, applicantName 
 			log.Printf("创建友链申请通知失败: %v", err)
 		}
 	}()
+}
 
-	// 异步发送邮件给所有管理员
+// NotifyFriendAbnormal 友链异常通知（管理员）
+func (s *NotificationService) NotifyFriendAbnormal(friendLinkID uint, friendLinkName string, friendLinkURL string, failCount int) {
+	// 获取所有管理员
+	admins, err := s.userRepo.GetAdmins()
+	if err != nil {
+		return
+	}
+
+	var recipientIDs []uint
+	for _, admin := range admins {
+		recipientIDs = append(recipientIDs, admin.ID)
+	}
+
+	if len(recipientIDs) == 0 {
+		return
+	}
+
+	// 先推送WebSocket（即时反馈）
+	for _, adminID := range recipientIDs {
+		s.hub.SendNotificationToUser(adminID, map[string]interface{}{
+			"type":       "friend_abnormal",
+			"title":      fmt.Sprintf("友链异常：%s", friendLinkName),
+			"content":    fmt.Sprintf("友链 %s (%s) 连续访问失败 %d 次", friendLinkName, friendLinkURL, failCount),
+			"created_at": time.Now(),
+		})
+	}
+
+	// 再异步写库
 	go func() {
-		for _, adminID := range recipientIDs {
-			s.sendFriendApplyEmail(adminID, applicantName, friendLinkName)
+		notification := &model.Notification{
+			Type:       "friend_abnormal",
+			Title:      fmt.Sprintf("友链异常：%s", friendLinkName),
+			Content:    fmt.Sprintf("友链 %s (%s) 连续访问失败 %d 次", friendLinkName, friendLinkURL, failCount),
+			TargetType: "friend_link",
+			TargetID:   &friendLinkID,
+		}
+		extra := map[string]interface{}{
+			"friend_link_id":   friendLinkID,
+			"friend_link_name": friendLinkName,
+			"friend_link_url":  friendLinkURL,
+			"fail_count":       failCount,
+		}
+		extraJSON, _ := json.Marshal(extra)
+		notification.Extra = stringPtr(string(extraJSON))
+
+		if err := s.repo.CreateNotification(notification, recipientIDs); err != nil {
+			log.Printf("创建友链异常通知失败: %v", err)
 		}
 	}()
 }
@@ -306,26 +475,6 @@ func (s *NotificationService) sendCommentNewEmail(adminID uint, commenterName, p
 
 	if err := s.emailClient.SendCommentNewNotification(admin.Email, siteName, commenterName, postTitle, content, articleURL); err != nil {
 		log.Printf("发送新评论邮件失败: %v", err)
-	}
-}
-
-// sendFriendApplyEmail 发送友链申请邮件
-func (s *NotificationService) sendFriendApplyEmail(adminID uint, applicantName, friendLinkName string) {
-	if s.emailClient == nil {
-		return
-	}
-
-	admin, err := s.userRepo.GetByID(adminID)
-	if err != nil {
-		log.Printf("获取管理员信息失败: %v", err)
-		return
-	}
-
-	siteName := s.getSiteName()
-	friendLinkURL := fmt.Sprintf("%s/admin/friendlinks", s.getSiteURL())
-
-	if err := s.emailClient.SendFriendApplyNotification(admin.Email, siteName, applicantName, friendLinkName, friendLinkURL); err != nil {
-		log.Printf("发送友链申请邮件失败: %v", err)
 	}
 }
 
