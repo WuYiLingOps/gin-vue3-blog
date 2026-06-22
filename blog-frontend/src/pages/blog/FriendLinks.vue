@@ -62,7 +62,17 @@
                         </div>
                       </div>
                       <div class="link-info">
-                        <h3 class="link-name">{{ link.name }}</h3>
+                        <h3 class="link-name">
+                          {{ link.name }}
+                          <n-tag
+                            v-if="link.is_invalid || link.accessible > 0"
+                            :type="getLinkStatusType(link)"
+                            size="small"
+                            style="margin-left: 8px"
+                          >
+                            {{ getLinkStatusText(link) }}
+                          </n-tag>
+                        </h3>
                         <p v-if="link.description" class="link-description">
                           {{ link.description }}
                         </p>
@@ -602,6 +612,20 @@ async function handleDeleteComment(commentId: number) {
   } catch (error: any) {
     message.error(error.message || '删除失败')
   }
+}
+
+// 获取友链状态类型
+function getLinkStatusType(link: FriendLink) {
+  if (link.is_invalid) return 'error'
+  if (link.accessible > 0) return 'warning'
+  return 'success'
+}
+
+// 获取友链状态文本
+function getLinkStatusText(link: FriendLink) {
+  if (link.is_invalid) return '已失效'
+  if (link.accessible > 0) return '访问异常'
+  return ''
 }
 
 onMounted(() => {
