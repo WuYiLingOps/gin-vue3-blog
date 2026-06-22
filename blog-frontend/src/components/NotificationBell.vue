@@ -13,7 +13,13 @@
     <div class="notification-panel">
       <div class="notification-header">
         <span class="notification-title">通知中心</span>
-        <n-button text size="small" type="primary" @click="handleMarkAllRead" :disabled="notificationStore.unreadCount === 0">
+        <n-button
+          text
+          size="small"
+          type="primary"
+          @click="handleMarkAllRead"
+          :disabled="notificationStore.unreadCount === 0"
+        >
           全部已读
         </n-button>
       </div>
@@ -34,7 +40,11 @@
             @click="handleRead(item)"
           >
             <div class="notification-item-icon">
-              <n-icon :component="getIcon(item.notification.type)" :color="getColor(item.notification.type)" size="20" />
+              <n-icon
+                :component="getIcon(item.notification.type)"
+                :color="getColor(item.notification.type)"
+                size="20"
+              />
             </div>
             <div class="notification-item-content">
               <div class="notification-item-title">{{ item.notification.title }}</div>
@@ -45,9 +55,7 @@
           <div v-if="hasMore" class="notification-load-more">
             <n-button text size="small" @click="loadMore">加载更多</n-button>
           </div>
-          <div v-else-if="notifications.length > 0" class="notification-end">
-            暂无更多通知
-          </div>
+          <div v-else-if="notifications.length > 0" class="notification-end">暂无更多通知</div>
         </div>
       </n-scrollbar>
     </div>
@@ -63,7 +71,10 @@ import {
   ChatbubbleEllipsesOutline,
   DocumentTextOutline,
   MegaphoneOutline,
-  LinkOutline
+  LinkOutline,
+  GitPullRequestOutline,
+  CheckmarkCircleOutline,
+  CloseCircleOutline
 } from '@vicons/ionicons5'
 import { useNotificationStore } from '@/stores/notification'
 import { useAuthStore } from '@/stores/auth'
@@ -83,21 +94,47 @@ let pollTimer: ReturnType<typeof setInterval> | null = null
 
 function getIcon(type: string) {
   switch (type) {
-    case 'comment_reply': return ChatbubbleEllipsesOutline
-    case 'comment_new': return DocumentTextOutline
-    case 'article_push': return MegaphoneOutline
-    case 'friend_apply': return LinkOutline
-    default: return NotificationsOutline
+    case 'comment_reply':
+      return ChatbubbleEllipsesOutline
+    case 'comment_new':
+      return DocumentTextOutline
+    case 'article_push':
+      return MegaphoneOutline
+    case 'friend_abnormal':
+      return LinkOutline
+    case 'revision_submitted':
+      return GitPullRequestOutline
+    case 'revision_approved':
+      return CheckmarkCircleOutline
+    case 'revision_rejected':
+      return CloseCircleOutline
+    case 'friend_link_apply':
+      return LinkOutline
+    default:
+      return NotificationsOutline
   }
 }
 
 function getColor(type: string) {
   switch (type) {
-    case 'comment_reply': return '#3b82f6'
-    case 'comment_new': return '#22c55e'
-    case 'article_push': return '#f97316'
-    case 'friend_apply': return '#a855f7'
-    default: return '#6b7280'
+    case 'comment_reply':
+      return '#3b82f6'
+    case 'comment_new':
+      return '#22c55e'
+    case 'article_push':
+      return '#f97316'
+    case 'friend_abnormal':
+      return '#ef4444'
+    case 'revision_submitted':
+      return '#8b5cf6'
+    case 'revision_approved':
+      return '#22c55e'
+    case 'revision_rejected':
+      return '#ef4444'
+    case 'friend_link_apply':
+      return '#06b6d4'
+    default:
+      return '#6b7280'
   }
 }
 
@@ -108,7 +145,14 @@ function getRoute(type: string): string {
       return '/admin/comments'
     case 'article_push':
       return '/admin/posts'
-    case 'friend_apply':
+    case 'friend_abnormal':
+      return '/admin/friend-links'
+    case 'revision_submitted':
+      return '/admin/post-revisions'
+    case 'revision_approved':
+    case 'revision_rejected':
+      return '/admin/my-revisions'
+    case 'friend_link_apply':
       return '/admin/friend-links'
     default:
       return '/admin/dashboard'
@@ -175,7 +219,9 @@ async function handleRead(item: Notification) {
 
 async function handleMarkAllRead() {
   await markAllAsRead()
-  notifications.value.forEach(n => { n.is_read = true })
+  notifications.value.forEach(n => {
+    n.is_read = true
+  })
   notificationStore.setUnreadCount(0)
 }
 
@@ -192,7 +238,7 @@ function connectWebSocket() {
       notificationStore.setConnected(true)
     }
 
-    ws.onmessage = (event) => {
+    ws.onmessage = event => {
       try {
         const msg = JSON.parse(event.data)
         if (msg.type === 'notification') {
