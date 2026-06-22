@@ -815,6 +815,15 @@ func (s *PostService) createRevisionForApproval(post *model.Post, editorID uint,
 		}
 	}()
 
+	// 发送应用内通知
+	if s.notificationService != nil {
+		userRepo := repository.NewUserRepository()
+		editor, err := userRepo.GetByID(editorID)
+		if err == nil {
+			go s.notificationService.NotifyRevisionSubmitted(editor, post.Title, post.ID, revision.ID)
+		}
+	}
+
 	// 返回原文章（未修改），并附带提示信息
 	post.Title = "修改已提交审批,等待超级管理员审核"
 	return post, nil
