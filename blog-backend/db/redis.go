@@ -43,6 +43,7 @@ func InitRedis() error {
 		DB:                    cfg.DB,                                   // Redis数据库编号（默认0）
 		DisableIndentity:      true,                                     // 禁用客户端身份标识
 		IdentitySuffix:        "",                                       // 清空身份后缀
+		Protocol:              2,                                        // 强制 RESP2，兼容 Redis 7.x
 	})
 
 	// 测试连接是否正常
