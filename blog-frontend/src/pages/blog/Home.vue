@@ -35,7 +35,7 @@
 
       <div class="home-layout">
         <!-- 左侧：文章列表 -->
-        <div class="posts-section">
+        <div class="posts-section" :class="{ 'no-posts': !loading && posts.length === 0 }">
           <n-space vertical :size="24">
             <!-- 文章列表 -->
             <n-spin :show="loading">
@@ -385,7 +385,7 @@ function getHighlightedSummary(post: Post): string {
 
 /* 桌面端：向上移动文章列表，缩小与热力图的间隙 */
 @media (min-width: 1025px) {
-  .posts-section {
+  .posts-section:not(.no-posts) {
     margin-top: -95px;
   }
 }
