@@ -25,9 +25,11 @@ type PostRevisionHandler struct {
 }
 
 // NewPostRevisionHandler 创建文章修订版本处理器实例
-func NewPostRevisionHandler() *PostRevisionHandler {
+func NewPostRevisionHandler(notificationService *service.NotificationService) *PostRevisionHandler {
+	revisionService := service.NewPostRevisionService()
+	revisionService.SetNotificationService(notificationService)
 	return &PostRevisionHandler{
-		service: service.NewPostRevisionService(),
+		service: revisionService,
 	}
 }
 
