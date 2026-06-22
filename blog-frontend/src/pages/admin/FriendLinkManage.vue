@@ -37,6 +37,13 @@
           <span v-if="!isMobile">我的友链信息</span>
           <span v-else>我的信息</span>
         </n-button>
+        <n-button :size="isMobile ? 'small' : 'medium'" :loading="checking" @click="handleCheckLinks">
+          <template #icon>
+            <n-icon :component="SearchOutline" />
+          </template>
+          <span v-if="!isMobile">检测友链</span>
+          <span v-else>检测</span>
+        </n-button>
         <n-button type="primary" :size="isMobile ? 'small' : 'medium'" @click="handleCreate">
           <template #icon>
             <n-icon :component="AddOutline" />
@@ -61,6 +68,32 @@
 
     <n-tabs v-model:value="activeTab" type="line" animated>
       <n-tab-pane name="links" tab="友链管理">
+        <!-- 筛选栏 -->
+        <div class="filter-bar">
+          <n-input
+            v-model:value="filterKeyword"
+            placeholder="搜索网站名称"
+            clearable
+            style="width: 200px"
+            @update:value="handleFilterChange"
+          />
+          <n-select
+            v-model:value="filterStatus"
+            :options="statusOptions"
+            placeholder="审核状态"
+            clearable
+            style="width: 150px"
+            @update:value="handleFilterChange"
+          />
+          <n-select
+            v-model:value="filterAccessible"
+            :options="accessibleOptions"
+            placeholder="链接状态"
+            clearable
+            style="width: 150px"
+            @update:value="handleFilterChange"
+          />
+        </div>
         <div v-if="isMobile || viewMode === 'card'" class="card-list">
           <n-card
             v-for="link in friendLinks"
@@ -105,6 +138,12 @@
                   :size="isMobile ? 'small' : 'medium'"
                 >
                   {{ link.status === 1 ? '启用' : '禁用' }}
+                </n-tag>
+              </div>
+              <div class="info-item">
+                <span class="label">链接状态：</span>
+                <n-tag :type="getLinkStatusType(link)" :size="isMobile ? 'small' : 'medium'">
+                  {{ getLinkStatusText(link) }}
                 </n-tag>
               </div>
             </div>
@@ -392,12 +431,13 @@
 import { ref, reactive, computed, onMounted, onUnmounted, h, watch } from 'vue'
 import { useMessage, useDialog, NButton, NButtonGroup, NIcon, NTag, NSpace, NImage } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
-import { AddOutline, PersonOutline, GridOutline, AppsOutline } from '@vicons/ionicons5'
+import { AddOutline, PersonOutline, GridOutline, AppsOutline, SearchOutline } from '@vicons/ionicons5'
 import {
   getFriendLinksAdmin,
   createFriendLink,
   updateFriendLink,
   deleteFriendLink,
+  checkFriendLinks,
   getFriendLinkCategoriesAdmin,
   createFriendLinkCategory,
   updateFriendLinkCategory,
@@ -433,6 +473,7 @@ const dialog = useDialog()
 const activeTab = ref<'links' | 'categories'>('links')
 const loading = ref(false)
 const submitting = ref(false)
+const checking = ref(false)
 const showModal = ref(false)
 const friendLinks = ref<FriendLink[]>([])
 const categories = ref<FriendLinkCategory[]>([])
@@ -442,6 +483,20 @@ const viewMode = ref<'table' | 'card'>('table')
 const total = ref(0)
 const currentPage = ref(1)
 const pageSize = ref(10)
+
+// 筛选相关
+const filterKeyword = ref('')
+const filterStatus = ref<number | null>(null)
+const filterAccessible = ref<number | null>(null)
+const statusOptions = [
+  { label: '启用', value: 1 },
+  { label: '禁用', value: 0 }
+]
+const accessibleOptions = [
+  { label: '正常', value: 0 },
+  { label: '异常', value: 1 },
+  { label: '已失效', value: 2 }
+]
 
 // 分类管理相关
 const categoryLoading = ref(false)
@@ -584,6 +639,13 @@ const columns: DataTableColumns<FriendLink> = [
       )
   },
   {
+    title: '链接状态',
+    key: 'accessible',
+    width: 100,
+    render: row =>
+      h(NTag, { type: getLinkStatusType(row) }, { default: () => getLinkStatusText(row) })
+  },
+  {
     title: '操作',
     key: 'actions',
     width: 150,
@@ -666,6 +728,21 @@ async function fetchCategories() {
   } catch (e: any) {
     console.error('获取分类列表失败:', e)
   }
+}
+
+// 获取链接状态类型
+function getLinkStatusType(link: FriendLink) {
+  if (link.is_invalid) return 'error'
+  if (link.accessible > 0) return 'warning'
+  return 'success'
+}
+
+// 获取链接状态文本
+function getLinkStatusText(link: FriendLink) {
+  if (link.is_invalid) return '已失效'
+  if (link.accessible > 0) return `异常(${link.accessible}次)`
+  if (link.accessible === -1) return '忽略检查'
+  return '正常'
 }
 
 onMounted(() => {
@@ -809,6 +886,34 @@ watch(viewMode, newMode => {
   localStorage.setItem('friendlink-manage-view-mode', newMode)
 })
 
+// 监听 Tab 切换，刷新对应数据
+watch(activeTab, newTab => {
+  if (newTab === 'links') {
+    fetchFriendLinks()
+  } else if (newTab === 'categories') {
+    fetchCategories()
+  }
+})
+
+// 筛选变化处理
+function handleFilterChange() {
+  currentPage.value = 1
+  fetchFriendLinks()
+}
+
+// 手动触发友链检测
+async function handleCheckLinks() {
+  try {
+    checking.value = true
+    await checkFriendLinks()
+    message.success('友链检测已开始，请稍后刷新查看结果')
+  } catch (error: any) {
+    message.error(error.message || '操作失败')
+  } finally {
+    checking.value = false
+  }
+}
+
 function handlePageChange(page: number) {
   currentPage.value = page
   fetchFriendLinks()
@@ -823,7 +928,13 @@ function handlePageSizeChange(size: number) {
 async function fetchFriendLinks() {
   try {
     loading.value = true
-    const res = await getFriendLinksAdmin(currentPage.value, pageSize.value)
+    const res = await getFriendLinksAdmin(
+      currentPage.value,
+      pageSize.value,
+      filterKeyword.value,
+      filterStatus.value,
+      filterAccessible.value
+    )
     if (res.data) {
       friendLinks.value = res.data.list
       total.value = res.data.total
@@ -940,6 +1051,13 @@ const categoryFormRef = ref()
 .header h1 {
   margin: 0;
   font-size: 24px;
+}
+
+.filter-bar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
 }
 
 /* 移动端样式 (断点调整为 1100px) */
