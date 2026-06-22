@@ -71,8 +71,11 @@ func (h *FriendLinkHandler) GetByID(c *gin.Context) {
 func (h *FriendLinkHandler) List(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "10"))
+	keyword := c.Query("keyword")
+	status := c.Query("status")
+	accessible := c.Query("accessible")
 
-	friendLinks, total, err := h.service.List(page, pageSize)
+	friendLinks, total, err := h.service.List(page, pageSize, keyword, status, accessible)
 	if err != nil {
 		util.ServerError(c, "获取友链列表失败")
 		return
@@ -135,4 +138,10 @@ func (h *FriendLinkHandler) Delete(c *gin.Context) {
 	}
 
 	util.SuccessWithMessage(c, "友链删除成功", nil)
+}
+
+// CheckLinks 手动触发友链检测
+func (h *FriendLinkHandler) CheckLinks(c *gin.Context) {
+	go h.service.CheckAllFriendsManual()
+	util.SuccessWithMessage(c, "友链检测已开始，请稍后查看结果", nil)
 }
