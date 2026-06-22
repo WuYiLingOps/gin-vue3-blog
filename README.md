@@ -400,8 +400,6 @@ JWT_SECRET=your_jwt_secret
 .....
 ```
 
-```
-
 ## 4.2 构建镜像（可选）
 
 如果不想使用阿里云镜像仓库的镜像，可直接在本地手动构建（默认使用阿里云镜像仓库地址）：
@@ -430,7 +428,7 @@ docker compose up -d
 编辑 `deploy/docker-compose.yml`：
 
 1. 注释掉 `postgres` 和 `redis` 服务块
-2. 注释掉 `blog.depends_on` 块
+2. 注释掉 `blog.depends_on` 块（含 `condition: service_healthy`）
 3. 取消注释 `blog.environment` 中的 `DB_HOST` / `REDIS_HOST` 并填入已有容器地址
 
 ```bash
@@ -700,6 +698,18 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
+    # WebSocket（通知推送：/api/notifications/ws），需保持连接与协议升级
+    location /api/notifications/ws {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
     # 后端 API 反向代理（其余 /api/* 请求）
     location /api/ {
         proxy_pass http://127.0.0.1:8080;
@@ -764,6 +774,18 @@ server {
 
     # WebSocket（聊天室连接：/api/chat/ws）
     location /api/chat/ws {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # WebSocket（通知推送：/api/notifications/ws）
+    location /api/notifications/ws {
         proxy_pass http://127.0.0.1:8080;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
