@@ -18,6 +18,7 @@ import (
 	"strings"
 	"time"
 
+	"blog-backend/config"
 	"blog-backend/constant"
 	"blog-backend/model"
 	"blog-backend/service"
@@ -317,6 +318,9 @@ func (h *PostHandler) Export(c *gin.Context) {
 		buf.WriteString(fmt.Sprintf("date: %s\n", post.CreatedAt.Format(time.RFC3339)))
 	}
 	buf.WriteString(fmt.Sprintf("status: %d\n", post.Status))
+	buf.WriteString(fmt.Sprintf("slug: \"%s/post/%s\"\n", config.Cfg.App.BlogURL, post.Slug))
+	buf.WriteString(fmt.Sprintf("view_count: %d\n", post.ViewCount))
+	buf.WriteString(fmt.Sprintf("cover: \"%s\"\n", escapeYAML(post.Cover)))
 	buf.WriteString(fmt.Sprintf("category: \"%s\"\n", escapeYAML(post.Category.Name)))
 
 	if len(post.Tags) > 0 {
