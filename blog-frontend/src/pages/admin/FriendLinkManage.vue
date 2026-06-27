@@ -37,7 +37,11 @@
           <span v-if="!isMobile">我的友链信息</span>
           <span v-else>我的信息</span>
         </n-button>
-        <n-button :size="isMobile ? 'small' : 'medium'" :loading="checking" @click="handleCheckLinks">
+        <n-button
+          :size="isMobile ? 'small' : 'medium'"
+          :loading="checking"
+          @click="handleCheckLinks"
+        >
           <template #icon>
             <n-icon :component="SearchOutline" />
           </template>
@@ -431,7 +435,13 @@
 import { ref, reactive, computed, onMounted, onUnmounted, h, watch } from 'vue'
 import { useMessage, useDialog, NButton, NButtonGroup, NIcon, NTag, NSpace, NImage } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
-import { AddOutline, PersonOutline, GridOutline, AppsOutline, SearchOutline } from '@vicons/ionicons5'
+import {
+  AddOutline,
+  PersonOutline,
+  GridOutline,
+  AppsOutline,
+  SearchOutline
+} from '@vicons/ionicons5'
 import {
   getFriendLinksAdmin,
   createFriendLink,
