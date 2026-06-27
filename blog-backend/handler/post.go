@@ -17,6 +17,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
 
 	"blog-backend/config"
 	"blog-backend/constant"
@@ -335,13 +336,21 @@ func (h *PostHandler) Export(c *gin.Context) {
 	buf.WriteString("---\n\n")
 	buf.WriteString(post.Content)
 
-	filename := sanitizeFilename(post.Title)
+	filename := util.SanitizeExportFilename(post.Title)
 	if filename == "" {
 		filename = fmt.Sprintf("post-%d", post.ID)
 	}
 
 	c.Header("Content-Type", "text/markdown; charset=utf-8")
-	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s.md\"", filename))
+	mdFilename := filename + ".md"
+	asciiFallback := strings.Map(func(r rune) rune {
+		if r < 128 {
+			return r
+		}
+		return '_'
+	}, mdFilename)
+	encodedMdFilename := rfc5987Encode(mdFilename)
+	c.Header("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"; filename*=UTF-8''%s`, asciiFallback, encodedMdFilename))
 	c.String(200, buf.String())
 }
 
@@ -362,4 +371,50 @@ func sanitizeFilename(s string) string {
 	s = re.ReplaceAllString(s, "-")
 	s = strings.Trim(s, "-")
 	return s
+}
+
+// ExportZip 导出文章为 ZIP 包（含图片）
+func (h *PostHandler) ExportZip(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		util.BadRequest(c, "无效的文章ID")
+		return
+	}
+
+	zipData, filename, err := h.service.DownloadZip(uint(id))
+	if err != nil {
+		util.Error(c, 500, err.Error())
+		return
+	}
+
+	c.Header("Content-Type", "application/zip")
+	asciiFallback := strings.Map(func(r rune) rune {
+		if r < 128 {
+			return r
+		}
+		return '_'
+	}, filename)
+	encodedFilename := rfc5987Encode(filename)
+	c.Header("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"; filename*=UTF-8''%s`, asciiFallback, encodedFilename))
+	c.Data(200, "application/zip", zipData)
+}
+
+// rfc5987Encode 对文件名进行 RFC 5987 编码（用于 Content-Disposition 的 filename* 参数）
+func rfc5987Encode(s string) string {
+	var buf bytes.Buffer
+	for _, r := range s {
+		if r <= 127 && isAttrChar(r) {
+			buf.WriteRune(r)
+		} else {
+			for _, b := range []byte(string(r)) {
+				fmt.Fprintf(&buf, "%%%02X", b)
+			}
+		}
+	}
+	return buf.String()
+}
+
+// isAttrChar 判断是否为 RFC 5987 attr-char 允许的字符
+func isAttrChar(r rune) bool {
+	return unicode.IsLetter(r) || unicode.IsDigit(r) || r == '!' || r == '#' || r == '$' || r == '&' || r == '+' || r == '-' || r == '.' || r == '^' || r == '_' || r == '`' || r == '|' || r == '~'
 }
