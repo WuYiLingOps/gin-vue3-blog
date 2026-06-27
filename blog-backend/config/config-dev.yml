@@ -51,6 +51,10 @@ cos:
   # domain: "https://static.example.com" # 可选，自定义访问域名
 
 
+# 图片代理配置（用于导出ZIP时代理GitHub图片）
+image_proxy:
+  url: "https://gh-proxy.com/"  # GitHub图片代理地址
+
 # 安全配置
 security:
   # 管理员IP白名单（这些IP将跳过频率限制和黑名单检查）
