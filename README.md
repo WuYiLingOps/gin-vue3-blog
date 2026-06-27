@@ -1006,7 +1006,7 @@ docker exec -i pg-prod pg_restore -U postgres -d blogdb --clean --if-exists < ba
 
 ### 7.1.1 核心功能
 
-- **文章管理** - Markdown 编辑器，支持代码高亮、图片上传、Markdown 文件上传解析、HTML 图片标签自动转换、最后更新时间显示、更新提示、修订版本管理
+- **文章管理** - Markdown 编辑器，支持代码高亮、图片上传、Markdown 文件上传解析、HTML 图片标签自动转换、最后更新时间显示、更新提示、修订版本管理、文章导出（Markdown / ZIP含图片）
 - **文章修订版本管理** - 编辑超级管理员文章时自动创建修订版本，支持查看修改历史、对比差异、填写修改说明，采用类似 Git diff 的行内高亮展示
 - **文章协作者** - 当管理员编辑他人文章时自动成为该文章的协作者，文章详情页和列表页均展示协作者头像与昵称
 - **SEO友好URL** - 文章URL自动使用拼音slug（如 `/post/windows-huan-jing-xia-an-zhuang-hadoop3-1-2-quan-guo-cheng`），支持中英文混合标题，提升SEO和可读性
@@ -1114,6 +1114,9 @@ myBlog/
 - 文章分类和标签
 - 文章置顶和草稿
 - 点赞和浏览统计
+- **文章导出** - 支持两种导出格式：
+  - **Markdown 导出** - 导出带 YAML Front Matter 的 `.md` 文件
+  - **ZIP 导出（含图片）** - 将文章和引用的图片打包为 ZIP，支持 10 并发下载图片，GitHub 图片自动走代理（gh-proxy.com）
 
 ### 7.2.2 评论系统
 
@@ -1350,6 +1353,8 @@ myBlog/
 - `PUT /api/posts/:id` - 更新文章（需认证）
 - `DELETE /api/posts/:id` - 删除文章（需认证）
 - `POST /api/posts/:id/like` - 点赞文章
+- `GET /api/admin/posts/:id/export` - 导出文章为 Markdown（需认证）
+- `GET /api/admin/posts/:id/export/zip` - 导出文章为 ZIP 包含图片（需认证）
 - `GET /api/posts/:id/revisions` - 获取文章修订历史（需认证）
 - `GET /api/posts/:id/collaborators` - 获取文章协作者列表（需认证）
 - `POST /api/posts/:id/collaborators` - 添加文章协作者（需认证，自动触发无需手动调用）
@@ -1555,6 +1560,21 @@ myBlog/
 
 
 # 十一、更新日志
+
+## 2026-06-27
+
+- 新增文章 ZIP 导出功能
+  - 支持将文章及引用的图片打包为 ZIP 下载
+  - 图片并发下载（10 并发），提升导出速度
+  - GitHub 图片自动走代理（gh-proxy.com），确保国内可访问
+  - 文件名冲突自动加序号处理
+  - 优化导出文件名显示（支持中文标题）
+- 优化文章 Markdown 导出
+  - 导出文件名统一使用 RFC 5987 编码，修复中文文件名乱码问题
+  - 导出文件名与 ZIP 导出保持一致（保留原始中文标题）
+- 新增图片代理配置
+  - 支持在 `config.yml` 中配置 `image_proxy.url` 参数
+  - 默认使用 `https://gh-proxy.com/` 代理 GitHub 图片
 
 ## 2026-06-22
 
