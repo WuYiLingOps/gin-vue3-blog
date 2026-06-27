@@ -95,6 +95,11 @@ type Config struct {
 	Security struct {
 		AdminIPWhitelist []string `mapstructure:"admin_ip_whitelist"` // 管理员IP白名单列表
 	} `mapstructure:"security"`
+
+	// ImageProxy 图片代理配置
+	ImageProxy struct {
+		URL string `mapstructure:"url"` // 图片代理地址
+	} `mapstructure:"image_proxy"`
 }
 
 // Cfg 全局配置实例
