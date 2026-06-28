@@ -11,11 +11,17 @@
 package service
 
 import (
+	"archive/zip"
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"net/http"
+	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"blog-backend/config"
@@ -26,6 +32,7 @@ import (
 	"blog-backend/util"
 
 	"gorm.io/gorm"
+	"go.uber.org/zap"
 )
 
 // PostService 文章业务逻辑层结构体
@@ -827,5 +834,181 @@ func (s *PostService) createRevisionForApproval(post *model.Post, editorID uint,
 	// 返回原文章（未修改），并附带提示信息
 	post.Title = "修改已提交审批,等待超级管理员审核"
 	return post, nil
+}
+
+// DownloadZip 导出文章为 ZIP 包（含图片）
+func (s *PostService) DownloadZip(id uint) ([]byte, string, error) {
+	post, err := s.postRepo.GetByID(id)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, "", errors.New("文章不存在")
+		}
+		return nil, "", errors.New("获取文章失败")
+	}
+
+	imageURLs := util.ExtractImageURLs(post.Content)
+
+	proxy := ""
+	if config.Cfg != nil && config.Cfg.ImageProxy.URL != "" {
+		proxy = config.Cfg.ImageProxy.URL
+	}
+
+	type imageResult struct {
+		OriginalURL string
+		LocalPath   string
+		Data        []byte
+		Err         error
+	}
+
+	var mu sync.Mutex
+	results := make([]imageResult, 0, len(imageURLs))
+	sem := make(chan struct{}, 10)
+
+	var wg sync.WaitGroup
+	for _, imgURL := range imageURLs {
+		wg.Add(1)
+		go func(url string) {
+			defer wg.Done()
+			sem <- struct{}{}
+			defer func() { <-sem }()
+
+			resolvedURL := util.ResolveExportImageURL(url, proxy)
+			client := &http.Client{Timeout: 5 * time.Minute}
+			req, _ := http.NewRequest("GET", resolvedURL, nil)
+			req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+
+			resp, err := client.Do(req)
+			if err != nil {
+				mu.Lock()
+				results = append(results, imageResult{OriginalURL: url, Err: err})
+				mu.Unlock()
+				return
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != http.StatusOK {
+				mu.Lock()
+				results = append(results, imageResult{OriginalURL: url, Err: fmt.Errorf("HTTP %d", resp.StatusCode)})
+				mu.Unlock()
+				return
+			}
+
+			data, err := io.ReadAll(resp.Body)
+			if err != nil {
+				mu.Lock()
+				results = append(results, imageResult{OriginalURL: url, Err: err})
+				mu.Unlock()
+				return
+			}
+
+			ext := filepath.Ext(url)
+			if ext == "" {
+				ext = ".jpg"
+			}
+			baseName := filepath.Base(url)
+			if idx := strings.Index(baseName, "?"); idx != -1 {
+				baseName = baseName[:idx]
+			}
+			localPath := "assets/" + baseName
+
+			mu.Lock()
+			results = append(results, imageResult{
+				OriginalURL: url,
+				LocalPath:   localPath,
+				Data:        data,
+			})
+			mu.Unlock()
+		}(imgURL)
+	}
+	wg.Wait()
+
+	content := post.Content
+	nameCount := make(map[string]int)
+	for _, r := range results {
+		if r.Err != nil {
+			if config.Cfg != nil {
+				zap.L().Warn("图片下载失败，跳过", zap.String("url", r.OriginalURL), zap.Error(r.Err))
+			}
+			continue
+		}
+
+		finalPath := r.LocalPath
+		ext := filepath.Ext(finalPath)
+		base := strings.TrimSuffix(finalPath, ext)
+		if count, exists := nameCount[finalPath]; exists {
+			nameCount[finalPath] = count + 1
+			finalPath = fmt.Sprintf("%s_%d%s", base, count+1, ext)
+		} else {
+			nameCount[finalPath] = 1
+		}
+
+		content = strings.ReplaceAll(content, r.OriginalURL, finalPath)
+	}
+
+	var mdBuf bytes.Buffer
+	mdBuf.WriteString("---\n")
+	mdBuf.WriteString(fmt.Sprintf("title: \"%s\"\n", escapeYAML(post.Title)))
+	if post.PublishedAt != nil {
+		mdBuf.WriteString(fmt.Sprintf("date: %s\n", post.PublishedAt.Format(time.RFC3339)))
+	} else {
+		mdBuf.WriteString(fmt.Sprintf("date: %s\n", post.CreatedAt.Format(time.RFC3339)))
+	}
+	mdBuf.WriteString(fmt.Sprintf("status: %d\n", post.Status))
+	mdBuf.WriteString(fmt.Sprintf("slug: \"%s/post/%s\"\n", config.Cfg.App.BlogURL, post.Slug))
+	mdBuf.WriteString(fmt.Sprintf("view_count: %d\n", post.ViewCount))
+	mdBuf.WriteString(fmt.Sprintf("cover: \"%s\"\n", escapeYAML(post.Cover)))
+	mdBuf.WriteString(fmt.Sprintf("category: \"%s\"\n", escapeYAML(post.Category.Name)))
+
+	if len(post.Tags) > 0 {
+		mdBuf.WriteString("tags:\n")
+		for _, t := range post.Tags {
+			mdBuf.WriteString(fmt.Sprintf("  - \"%s\"\n", escapeYAML(t.Name)))
+		}
+	} else {
+		mdBuf.WriteString("tags: []\n")
+	}
+
+	mdBuf.WriteString("---\n\n")
+	mdBuf.WriteString(content)
+
+	var zipBuf bytes.Buffer
+	zipWriter := zip.NewWriter(&zipBuf)
+
+	filename := util.SanitizeExportFilename(post.Title)
+	if filename == "" {
+		filename = fmt.Sprintf("post-%d", post.ID)
+	}
+
+	mdFile, err := zipWriter.Create(filename + ".md")
+	if err != nil {
+		return nil, "", errors.New("创建ZIP文件失败")
+	}
+	if _, err := mdFile.Write(mdBuf.Bytes()); err != nil {
+		return nil, "", errors.New("写入Markdown文件失败")
+	}
+
+	for _, r := range results {
+		if r.Err != nil {
+			continue
+		}
+		imgFile, err := zipWriter.Create(r.LocalPath)
+		if err != nil {
+			continue
+		}
+		if _, err := imgFile.Write(r.Data); err != nil {
+			continue
+		}
+	}
+
+	if err := zipWriter.Close(); err != nil {
+		return nil, "", errors.New("关闭ZIP文件失败")
+	}
+
+	return zipBuf.Bytes(), filename + ".zip", nil
+}
+
+// escapeYAML 简单转义引号
+func escapeYAML(s string) string {
+	return strings.ReplaceAll(s, "\"", "\\\"")
 }
 

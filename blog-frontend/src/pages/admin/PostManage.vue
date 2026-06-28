@@ -147,14 +147,17 @@
                   >
                     删除
                   </n-button>
-                  <n-button
-                    :size="isMobile ? 'tiny' : 'small'"
-                    type="primary"
-                    ghost
-                    @click="handleExport(post.id, post.title)"
+                  <n-dropdown
+                    :options="exportOptions"
+                    @select="(key: string) => handleExportSelect(key, post.id, post.title)"
                   >
-                    导出
-                  </n-button>
+                    <n-button :size="isMobile ? 'tiny' : 'small'" type="primary" ghost>
+                      导出
+                      <template #icon>
+                        <n-icon :component="ChevronDownOutline" />
+                      </template>
+                    </n-button>
+                  </n-dropdown>
                 </n-space>
               </div>
             </div>
@@ -338,10 +341,16 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, onUnmounted, h } from 'vue'
 import { useRouter } from 'vue-router'
-import { useMessage, useDialog, NButton, NTag, NSpace } from 'naive-ui'
+import { useMessage, useDialog, NButton, NTag, NSpace, NDropdown, NIcon } from 'naive-ui'
 import type { DataTableColumns, FormInst, UploadFileInfo } from 'naive-ui'
-import { AddOutline, DocumentOutline, GridOutline, AppsOutline } from '@vicons/ionicons5'
-import { getPosts, createPost, deletePost, exportPost } from '@/api/post'
+import {
+  AddOutline,
+  DocumentOutline,
+  GridOutline,
+  AppsOutline,
+  ChevronDownOutline
+} from '@vicons/ionicons5'
+import { getPosts, createPost, deletePost, exportPost, exportPostZip } from '@/api/post'
 import { useBlogStore, useAuthStore } from '@/stores'
 import { formatDate } from '@/utils/format'
 import type { Post, PostForm } from '@/types/blog'
@@ -534,14 +543,26 @@ const desktopColumns: DataTableColumns<Post> = [
             { default: () => '删除' }
           ),
           h(
-            NButton,
+            NDropdown,
             {
-              size: 'small',
-              type: 'primary',
-              ghost: true,
-              onClick: () => handleExport(row.id, row.title)
+              options: exportOptions,
+              onSelect: (key: string) => handleExportSelect(key, row.id, row.title)
             },
-            { default: () => '导出MD' }
+            {
+              default: () =>
+                h(
+                  NButton,
+                  {
+                    size: 'small',
+                    type: 'primary',
+                    ghost: true
+                  },
+                  {
+                    default: () => '导出',
+                    icon: () => h(NIcon, { component: ChevronDownOutline })
+                  }
+                )
+            }
           )
         ]
       })
@@ -900,6 +921,31 @@ function handleDelete(id: number) {
   })
 }
 
+// 导出选项配置
+const exportOptions = [
+  { label: '导出 Markdown', key: 'md' },
+  { label: '导出 ZIP（含图片）', key: 'zip' }
+]
+
+// 处理导出选项选择
+function handleExportSelect(key: string, id: number, title: string) {
+  if (key === 'md') {
+    handleExport(id, title)
+  } else if (key === 'zip') {
+    handleExportZip(id, title)
+  }
+}
+
+// 通用 Blob 下载工具函数
+function downloadBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
 // 导出 Markdown
 function safeFileName(name: string | null | undefined, fallback: string) {
   // 去掉首尾引号，避免被当成内容字符
@@ -910,8 +956,7 @@ function safeFileName(name: string | null | undefined, fallback: string) {
 
 function parseFilenameFromHeader(disposition?: string): string | null {
   if (!disposition) return null
-  // 兼容 filename* 和 filename
-  const utf8Match = disposition.match(/filename\\*=(?:UTF-8'')?([^;]+)/i)
+  const utf8Match = disposition.match(/filename\*=(?:UTF-8'')?([^;\s]+)/i)
   if (utf8Match && utf8Match[1]) {
     try {
       return decodeURIComponent(utf8Match[1])
@@ -938,6 +983,28 @@ async function handleExport(id: number, title: string) {
     message.success('导出成功')
   } catch (error: any) {
     message.error(error?.response?.data?.message || error?.message || '导出失败')
+  }
+}
+
+// 导出 ZIP（含图片）
+async function handleExportZip(id: number, title: string) {
+  const loadingMessage = message.loading('正在导出，请稍候...', { duration: 0 })
+  const timer = setTimeout(() => {
+    message.info('文件较大，请耐心等待...')
+  }, 10000)
+
+  try {
+    const res = await exportPostZip(id)
+    const blob = new Blob([res.data], { type: 'application/zip' })
+    const headerName = parseFilenameFromHeader(res.headers['content-disposition'])
+    const filename = safeFileName(headerName || `${title || `post-${id}`}.zip`, `post-${id}.zip`)
+    downloadBlob(blob, filename)
+    message.success('导出成功')
+  } catch (error: any) {
+    message.error(error?.response?.data?.message || error?.message || '导出失败')
+  } finally {
+    clearTimeout(timer)
+    loadingMessage.destroy()
   }
 }
 

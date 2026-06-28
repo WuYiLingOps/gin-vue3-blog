@@ -83,6 +83,18 @@ export function exportPost(id: number, format: 'md' = 'md'): Promise<AxiosRespon
 }
 
 /**
+ * 导出文章为ZIP包（含图片）
+ * @param id 文章ID
+ * @returns 返回ZIP文件下载响应
+ */
+export function exportPostZip(id: number): Promise<AxiosResponse<Blob>> {
+  return service.get<Blob>(`/admin/posts/${id}/export/zip`, {
+    responseType: 'blob',
+    timeout: 600000
+  })
+}
+
+/**
  * 点赞文章
  * @param id 文章ID
  * @returns 返回点赞结果

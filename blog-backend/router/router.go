@@ -493,6 +493,7 @@ func setupAdminRoutes(api *gin.RouterGroup, userHandler *handler.UserHandler, po
 		// 文章管理
 		admin.GET("/posts", postHandler.List)
 		admin.GET("/posts/:id/export", postHandler.Export)
+		admin.GET("/posts/:id/export/zip", postHandler.ExportZip)
 
 		// 评论管理
 		admin.GET("/comments", commentHandler.List)
