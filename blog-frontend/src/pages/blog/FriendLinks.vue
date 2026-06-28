@@ -230,8 +230,8 @@
                 closable
                 style="margin-bottom: 12px"
                 @close="
-                  replyToComment = null
-                  replyToUser = null
+                  replyToComment = null;
+                  replyToUser = null;
                   commentContent = ''
                 "
               >
