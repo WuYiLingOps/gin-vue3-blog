@@ -271,41 +271,66 @@ function initCategoryChart() {
 
   // 获取容器实际宽度
   const containerWidth = categoryChartRef.value.clientWidth
-  // 判断是否为窄屏模式
+  // 判断屏幕模式：超小屏 < 380, 窮屏 < 500, 正常
+  const isExtraSmall = containerWidth < 380
   const isNarrow = containerWidth < 500
+
+  // 超小屏：图例在底部水平排列；窄屏：图例在右侧垂直排列；正常：同窄屏
+  const legendConfig = isExtraSmall
+    ? {
+        type: 'scroll',
+        orient: 'horizontal',
+        bottom: 0,
+        left: 'center',
+        padding: [8, 0, 0, 0],
+        textStyle: {
+          color: appStore.theme === 'dark' ? '#fff' : '#333',
+          fontSize: 11,
+          overflow: 'truncate',
+          width: 80
+        },
+        pageIconColor: appStore.theme === 'dark' ? '#fff' : '#333',
+        pageTextStyle: {
+          color: appStore.theme === 'dark' ? '#fff' : '#333'
+        },
+        tooltip: {
+          show: true
+        }
+      }
+    : {
+        type: 'scroll',
+        orient: 'vertical',
+        right: '2%',
+        top: 'middle',
+        padding: [5, 10],
+        textStyle: {
+          color: appStore.theme === 'dark' ? '#fff' : '#333',
+          fontSize: 12,
+          overflow: 'truncate',
+          width: isNarrow ? 100 : 160
+        },
+        pageIconColor: appStore.theme === 'dark' ? '#fff' : '#333',
+        pageTextStyle: {
+          color: appStore.theme === 'dark' ? '#fff' : '#333'
+        },
+        tooltip: {
+          show: true
+        }
+      }
 
   const option = {
     tooltip: {
       trigger: 'item',
       formatter: '{a} <br/>{b}: {c} ({d}%)'
     },
-    legend: {
-      type: 'scroll',
-      orient: 'vertical',
-      right: '2%',
-      top: 'middle',
-      padding: [5, 10],
-      textStyle: {
-        color: appStore.theme === 'dark' ? '#fff' : '#333',
-        fontSize: 12,
-        overflow: 'truncate',
-        width: isNarrow ? 100 : 160
-      },
-      pageIconColor: appStore.theme === 'dark' ? '#fff' : '#333',
-      pageTextStyle: {
-        color: appStore.theme === 'dark' ? '#fff' : '#333'
-      },
-      tooltip: {
-        show: true
-      }
-    },
+    legend: legendConfig,
     series: [
       {
         name: '文章分类',
         type: 'pie',
-        // 饼图偏左，给右侧图例留空间
-        radius: isNarrow ? ['25%', '45%'] : ['30%', '55%'],
-        center: isNarrow ? ['38%', '50%'] : ['32%', '50%'],
+        // 超小屏：更小的饼图居中；窄屏：偏左；正常：同窄屏
+        radius: isExtraSmall ? ['20%', '38%'] : isNarrow ? ['25%', '45%'] : ['30%', '55%'],
+        center: isExtraSmall ? ['50%', '40%'] : isNarrow ? ['38%', '50%'] : ['32%', '50%'],
         avoidLabelOverlap: true,
         itemStyle: {
           borderRadius: 8,
@@ -313,7 +338,7 @@ function initCategoryChart() {
           borderWidth: 2
         },
         label: {
-          show: !isNarrow,
+          show: false,
           position: 'outside',
           formatter: '{b}',
           fontSize: 12,
@@ -322,13 +347,13 @@ function initCategoryChart() {
         },
         emphasis: {
           label: {
-            show: !isNarrow,
+            show: false,
             fontSize: 14,
             fontWeight: 'bold'
           }
         },
         labelLine: {
-          show: !isNarrow,
+          show: false,
           length: 8,
           length2: 5
         },
