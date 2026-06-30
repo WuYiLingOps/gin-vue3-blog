@@ -243,6 +243,7 @@ CREATE INDEX IF NOT EXISTS idx_post_views_user_id ON post_views(user_id);
 CREATE INDEX IF NOT EXISTS idx_post_views_ip ON post_views(ip);
 CREATE INDEX IF NOT EXISTS idx_post_views_post_user ON post_views(post_id, user_id);
 CREATE INDEX IF NOT EXISTS idx_post_views_post_ip ON post_views(post_id, ip);
+CREATE INDEX IF NOT EXISTS idx_post_views_post_date ON post_views(post_id, DATE(created_at));
 
 -- 文章阅读记录表注释
 COMMENT ON TABLE post_views IS '文章阅读记录表（用于去重统计）';
@@ -250,6 +251,31 @@ COMMENT ON COLUMN post_views.post_id IS '文章ID';
 COMMENT ON COLUMN post_views.user_id IS '用户ID（匿名用户为NULL）';
 COMMENT ON COLUMN post_views.ip IS '访客IP地址';
 COMMENT ON COLUMN post_views.created_at IS '阅读时间';
+
+-- 创建全站页面访问记录表
+CREATE TABLE IF NOT EXISTS page_views (
+    id SERIAL PRIMARY KEY,
+    path VARCHAR(500) NOT NULL,
+    user_id INT,
+    ip VARCHAR(45) NOT NULL,
+    user_agent VARCHAR(500),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 全站页面访问记录表索引
+CREATE INDEX IF NOT EXISTS idx_page_views_path ON page_views(path);
+CREATE INDEX IF NOT EXISTS idx_page_views_ip ON page_views(ip);
+CREATE INDEX IF NOT EXISTS idx_page_views_user_id ON page_views(user_id);
+CREATE INDEX IF NOT EXISTS idx_page_views_created_at ON page_views(created_at);
+CREATE INDEX IF NOT EXISTS idx_page_views_path_ip_date ON page_views(path, ip, DATE(created_at));
+
+-- 全站页面访问记录表注释
+COMMENT ON TABLE page_views IS '全站页面访问记录表（用于统计全站PV）';
+COMMENT ON COLUMN page_views.path IS '访问路径';
+COMMENT ON COLUMN page_views.user_id IS '用户ID（匿名用户为NULL）';
+COMMENT ON COLUMN page_views.ip IS '访客IP地址';
+COMMENT ON COLUMN page_views.user_agent IS '浏览器User-Agent';
+COMMENT ON COLUMN page_views.created_at IS '访问时间';
 
 -- =============================================================================
 -- 7. 系统配置

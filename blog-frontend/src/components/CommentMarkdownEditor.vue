@@ -431,4 +431,129 @@ html.dark .comment-markdown-editor :deep(.v-md-textarea-editor pre) {
     line-height: 1.6;
   }
 }
+
+/* GitHub 风格提示块样式 */
+.comment-markdown-editor :deep(.markdown-alert) {
+  padding: 0.75rem 1rem;
+  margin: 1rem 0;
+  border-left: 0.25rem solid;
+  border-radius: 0.375rem;
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.comment-markdown-editor :deep(.markdown-alert-title) {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.comment-markdown-editor :deep(.markdown-alert p) {
+  margin: 0.5rem 0 0 0;
+}
+
+.comment-markdown-editor :deep(.markdown-alert p:first-child) {
+  margin-top: 0;
+}
+
+/* NOTE 提示块 */
+.comment-markdown-editor :deep(.markdown-alert-note) {
+  border-left-color: #0969da;
+  background-color: rgba(9, 105, 218, 0.06);
+}
+
+.comment-markdown-editor :deep(.markdown-alert-note .markdown-alert-title) {
+  color: #0969da;
+}
+
+/* TIP 提示块 */
+.comment-markdown-editor :deep(.markdown-alert-tip) {
+  border-left-color: #1a7f37;
+  background-color: rgba(26, 127, 55, 0.06);
+}
+
+.comment-markdown-editor :deep(.markdown-alert-tip .markdown-alert-title) {
+  color: #1a7f37;
+}
+
+/* IMPORTANT 提示块 */
+.comment-markdown-editor :deep(.markdown-alert-important) {
+  border-left-color: #8250df;
+  background-color: rgba(130, 80, 223, 0.06);
+}
+
+.comment-markdown-editor :deep(.markdown-alert-important .markdown-alert-title) {
+  color: #8250df;
+}
+
+/* WARNING 提示块 */
+.comment-markdown-editor :deep(.markdown-alert-warning) {
+  border-left-color: #9a6700;
+  background-color: rgba(154, 103, 0, 0.06);
+}
+
+.comment-markdown-editor :deep(.markdown-alert-warning .markdown-alert-title) {
+  color: #9a6700;
+}
+
+/* CAUTION 提示块 */
+.comment-markdown-editor :deep(.markdown-alert-caution) {
+  border-left-color: #cf222e;
+  background-color: rgba(207, 34, 46, 0.06);
+}
+
+.comment-markdown-editor :deep(.markdown-alert-caution .markdown-alert-title) {
+  color: #cf222e;
+}
+
+/* DANGER 提示块 */
+.comment-markdown-editor :deep(.markdown-alert-danger) {
+  border-left-color: #cf222e;
+  background-color: #ffeef0;
+}
+
+.comment-markdown-editor :deep(.markdown-alert-danger .markdown-alert-title) {
+  color: #cf222e;
+}
+
+/* INFO 提示块 */
+.comment-markdown-editor :deep(.markdown-alert-info) {
+  border-left-color: #0969da;
+  background-color: #ddf4ff;
+}
+
+.comment-markdown-editor :deep(.markdown-alert-info .markdown-alert-title) {
+  color: #0969da;
+}
+
+/* EXAMPLE 提示块 */
+.comment-markdown-editor :deep(.markdown-alert-example) {
+  border-left-color: #8250df;
+  background-color: #fbefff;
+}
+
+.comment-markdown-editor :deep(.markdown-alert-example .markdown-alert-title) {
+  color: #8250df;
+}
+
+/* QUESTION 提示块 */
+.comment-markdown-editor :deep(.markdown-alert-question) {
+  border-left-color: #9a6700;
+  background-color: #fff8c5;
+}
+
+.comment-markdown-editor :deep(.markdown-alert-question .markdown-alert-title) {
+  color: #9a6700;
+}
+
+/* QUOTE 提示块 */
+.comment-markdown-editor :deep(.markdown-alert-quote) {
+  border-left-color: #656d76;
+  background-color: #f6f8fa;
+}
+
+.comment-markdown-editor :deep(.markdown-alert-quote .markdown-alert-title) {
+  color: #656d76;
+}
 </style>

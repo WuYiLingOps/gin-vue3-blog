@@ -72,6 +72,7 @@
               v-model="formData.content"
               :height="isMobile ? '400px' : '600px'"
               :subfield="!isMobile"
+              :mode="isMobile ? 'edit' : 'editable'"
             />
           </n-form-item>
 

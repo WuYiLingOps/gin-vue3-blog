@@ -95,7 +95,7 @@
     </n-layout>
 
     <!-- 移动端抽屉菜单 -->
-    <n-drawer v-model:show="mobileMenuVisible" :width="240" placement="left">
+    <n-drawer v-model:show="mobileMenuVisible" :width="240" placement="left" @after-leave="handleDrawerClose">
       <n-drawer-content title="管理后台" :native-scrollbar="false">
         <div class="mobile-menu">
           <n-menu
@@ -379,6 +379,11 @@ function handleMobileMenuSelect(key: string) {
   activeKey.value = key
   mobileMenuVisible.value = false
   router.push({ name: key })
+}
+
+// 抽屉关闭后将焦点移出，避免 aria-hidden 警告
+function handleDrawerClose() {
+  document.body.focus()
 }
 
 // 处理用户菜单

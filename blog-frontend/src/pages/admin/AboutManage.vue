@@ -17,7 +17,7 @@
               v-model="formData.content"
               :height="isMobile ? '500px' : '700px'"
               :subfield="!isMobile"
-              :mode="isSmallScreen ? 'edit' : 'editable'"
+              :mode="isMobile ? 'edit' : 'editable'"
             />
             <template #feedback>
               <n-text depth="3" style="font-size: 12px; margin-top: 8px; display: block">

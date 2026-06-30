@@ -152,7 +152,7 @@
                   @close="
                     replyToComment = null;
                     replyToUser = null;
-                    commentContent = ''
+                    commentContent = '';
                   "
                 >
                   正在回复

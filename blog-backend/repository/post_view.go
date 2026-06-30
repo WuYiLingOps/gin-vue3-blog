@@ -27,11 +27,12 @@ func NewPostViewRepository() *PostViewRepository {
 	return &PostViewRepository{}
 }
 
-// HasViewed 检查是否已经阅读过
-// 优先检查用户ID，如果没有则检查IP
+// HasViewed 检查今天是否已经阅读过
+// 按天去重：同IP/用户对同一篇文章每天只计1次
 func (r *PostViewRepository) HasViewed(postID uint, userID *uint, ip string) (bool, error) {
 	var count int64
-	query := db.DB.Model(&model.PostView{}).Where("post_id = ?", postID)
+	today := time.Now().Format("2006-01-02")
+	query := db.DB.Model(&model.PostView{}).Where("post_id = ? AND DATE(created_at) = ?", postID, today)
 
 	// 如果是登录用户，按用户ID查询
 	if userID != nil && *userID > 0 {
