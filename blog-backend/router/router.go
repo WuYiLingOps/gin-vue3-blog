@@ -42,6 +42,7 @@ func SetupRouter() (*gin.Engine, *service.NotificationService) {
 	r.Use(middleware.Logger())                // HTTP请求日志中间件
 	r.Use(middleware.CORS())                  // 跨域资源共享中间件
 	r.Use(middleware.IPBlacklistMiddleware()) // IP黑名单和频率限制中间件
+	r.Use(middleware.PageView())              // 全站PV统计中间件
 
 	// 静态文件服务（用于访问上传的文件）
 	// 使用绝对路径，确保无论从哪个目录运行都能找到 uploads 目录
