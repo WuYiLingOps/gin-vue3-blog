@@ -28,6 +28,54 @@ const props = defineProps<Props>()
 const message = useMessage()
 const previewRef = ref<HTMLElement>()
 
+const ALERT_MAP: Record<string, { title: string; icon: string }> = {
+  note: { title: '注意', icon: '📝' },
+  tip: { title: '技巧提示', icon: '💡' },
+  important: { title: '重要', icon: '❗' },
+  warning: { title: '注意事项', icon: '⚠️' },
+  caution: { title: '危险', icon: '🚨' },
+  danger: { title: '严重警告', icon: '⛔' },
+  info: { title: '补充说明', icon: 'ℹ️' },
+  example: { title: '示例说明', icon: '📋' },
+  question: { title: '提出问题', icon: '❓' },
+  quote: { title: '引用内容', icon: '💬' }
+}
+
+const ALERT_PATTERN = /^\[!(note|tip|important|warning|caution|danger|info|example|question|quote)\]\s*/i
+
+function processAlerts() {
+  if (!previewRef.value) return
+
+  const blockquotes = previewRef.value.querySelectorAll('blockquote')
+  blockquotes.forEach(blockquote => {
+    if ((blockquote as HTMLElement).classList.contains('markdown-alert')) return
+
+    const firstP = blockquote.querySelector('p')
+    if (!firstP) return
+
+    const text = firstP.textContent || ''
+    const match = text.match(ALERT_PATTERN)
+    if (!match) return
+
+    const type = match[1].toLowerCase()
+    const alertInfo = ALERT_MAP[type]
+    if (!alertInfo) return
+
+    blockquote.classList.add('markdown-alert', `markdown-alert-${type}`)
+
+    const titleEl = document.createElement('p')
+    titleEl.className = 'markdown-alert-title'
+    titleEl.setAttribute('dir', 'auto')
+    titleEl.textContent = `${alertInfo.icon} ${alertInfo.title}`
+    blockquote.insertBefore(titleEl, firstP)
+
+    firstP.textContent = text.replace(ALERT_PATTERN, '').trim()
+    if (!firstP.textContent) {
+      blockquote.removeChild(firstP)
+    }
+  })
+}
+
 // 添加复制按钮到代码块
 function addCopyButtons() {
   if (!previewRef.value) return
@@ -170,6 +218,7 @@ function handleImageClick() {
 onMounted(() => {
   nextTick(() => {
     addCopyButtons()
+    processAlerts()
     handleImageClick()
     fixCodeBlockSpacing()
 
@@ -199,6 +248,7 @@ watch(
   () => {
     nextTick(() => {
       addCopyButtons()
+      processAlerts()
       handleImageClick()
       // 延迟执行，确保 Prism.js 完成渲染
       setTimeout(() => {
@@ -525,6 +575,132 @@ watch(
   }
 }
 
+/* GitHub 风格提示块样式 */
+.comment-content :deep(blockquote.markdown-alert) {
+  padding: 0.75rem 1rem !important;
+  margin: 1rem 0 !important;
+  border-left: 0.25rem solid !important;
+  border-radius: 0.375rem !important;
+  background-color: rgba(0, 0, 0, 0.02) !important;
+  color: inherit !important;
+}
+
+.comment-content :deep(.markdown-alert-title) {
+  font-weight: 600 !important;
+  margin-bottom: 0.5rem !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+}
+
+.comment-content :deep(.markdown-alert p) {
+  margin: 0.5rem 0 0 0 !important;
+}
+
+.comment-content :deep(.markdown-alert p:first-child) {
+  margin-top: 0 !important;
+}
+
+/* NOTE 提示块 */
+.comment-content :deep(blockquote.markdown-alert-note) {
+  border-left-color: #0969da !important;
+  background-color: #ddf4ff !important;
+}
+
+.comment-content :deep(.markdown-alert-note .markdown-alert-title) {
+  color: #0969da !important;
+}
+
+/* TIP 提示块 */
+.comment-content :deep(blockquote.markdown-alert-tip) {
+  border-left-color: #1a7f37 !important;
+  background-color: #dafbe1 !important;
+}
+
+.comment-content :deep(.markdown-alert-tip .markdown-alert-title) {
+  color: #1a7f37 !important;
+}
+
+/* IMPORTANT 提示块 */
+.comment-content :deep(blockquote.markdown-alert-important) {
+  border-left-color: #8250df !important;
+  background-color: #fbefff !important;
+}
+
+.comment-content :deep(.markdown-alert-important .markdown-alert-title) {
+  color: #8250df !important;
+}
+
+/* WARNING 提示块 */
+.comment-content :deep(blockquote.markdown-alert-warning) {
+  border-left-color: #9a6700 !important;
+  background-color: #fff8c5 !important;
+}
+
+.comment-content :deep(.markdown-alert-warning .markdown-alert-title) {
+  color: #9a6700 !important;
+}
+
+/* CAUTION 提示块 */
+.comment-content :deep(blockquote.markdown-alert-caution) {
+  border-left-color: #cf222e !important;
+  background-color: #ffeef0 !important;
+}
+
+.comment-content :deep(.markdown-alert-caution .markdown-alert-title) {
+  color: #cf222e !important;
+}
+
+/* DANGER 提示块 */
+.comment-content :deep(blockquote.markdown-alert-danger) {
+  border-left-color: #cf222e !important;
+  background-color: #ffeef0 !important;
+}
+
+.comment-content :deep(.markdown-alert-danger .markdown-alert-title) {
+  color: #cf222e !important;
+}
+
+/* INFO 提示块 */
+.comment-content :deep(blockquote.markdown-alert-info) {
+  border-left-color: #0550ae !important;
+  background-color: #e6f0ff !important;
+}
+
+.comment-content :deep(.markdown-alert-info .markdown-alert-title) {
+  color: #0969da !important;
+}
+
+/* EXAMPLE 提示块 */
+.comment-content :deep(blockquote.markdown-alert-example) {
+  border-left-color: #8250df !important;
+  background-color: #fbefff !important;
+}
+
+.comment-content :deep(.markdown-alert-example .markdown-alert-title) {
+  color: #8250df !important;
+}
+
+/* QUESTION 提示块 */
+.comment-content :deep(blockquote.markdown-alert-question) {
+  border-left-color: #9a6700 !important;
+  background-color: #fff8c5 !important;
+}
+
+.comment-content :deep(.markdown-alert-question .markdown-alert-title) {
+  color: #9a6700 !important;
+}
+
+/* QUOTE 提示块 */
+.comment-content :deep(blockquote.markdown-alert-quote) {
+  border-left-color: #656d76 !important;
+  background-color: #f6f8fa !important;
+}
+
+.comment-content :deep(.markdown-alert-quote .markdown-alert-title) {
+  color: #656d76 !important;
+}
+
 /* 暗色模式支持 */
 html.dark .comment-content :deep(.vuepress-markdown-body) {
   color: #d1d5db !important;
@@ -569,5 +745,100 @@ html.dark .comment-content :deep(.copy-code-btn:hover) {
   background: rgba(51, 65, 85, 0.95) !important;
   border-color: #38bdf8 !important;
   color: #38bdf8 !important;
+}
+
+/* 暗黑模式下的提示块样式 */
+html.dark .comment-content :deep(blockquote.markdown-alert) {
+  background-color: rgba(255, 255, 255, 0.04) !important;
+}
+
+html.dark .comment-content :deep(blockquote.markdown-alert-note) {
+  border-left-color: #4493f8 !important;
+  background-color: rgba(68, 147, 248, 0.15) !important;
+}
+
+html.dark .comment-content :deep(.markdown-alert-note .markdown-alert-title) {
+  color: #4493f8 !important;
+}
+
+html.dark .comment-content :deep(blockquote.markdown-alert-tip) {
+  border-left-color: #3fb950 !important;
+  background-color: rgba(63, 185, 80, 0.15) !important;
+}
+
+html.dark .comment-content :deep(.markdown-alert-tip .markdown-alert-title) {
+  color: #3fb950 !important;
+}
+
+html.dark .comment-content :deep(blockquote.markdown-alert-important) {
+  border-left-color: #a371f7 !important;
+  background-color: rgba(163, 113, 247, 0.15) !important;
+}
+
+html.dark .comment-content :deep(.markdown-alert-important .markdown-alert-title) {
+  color: #a371f7 !important;
+}
+
+html.dark .comment-content :deep(blockquote.markdown-alert-warning) {
+  border-left-color: #d29922 !important;
+  background-color: rgba(210, 153, 34, 0.15) !important;
+}
+
+html.dark .comment-content :deep(.markdown-alert-warning .markdown-alert-title) {
+  color: #d29922 !important;
+}
+
+html.dark .comment-content :deep(blockquote.markdown-alert-caution) {
+  border-left-color: #f85149 !important;
+  background-color: rgba(248, 81, 73, 0.15) !important;
+}
+
+html.dark .comment-content :deep(.markdown-alert-caution .markdown-alert-title) {
+  color: #f85149 !important;
+}
+
+html.dark .comment-content :deep(blockquote.markdown-alert-danger) {
+  border-left-color: #f85149 !important;
+  background-color: rgba(248, 81, 73, 0.15) !important;
+}
+
+html.dark .comment-content :deep(.markdown-alert-danger .markdown-alert-title) {
+  color: #f85149 !important;
+}
+
+html.dark .comment-content :deep(blockquote.markdown-alert-info) {
+  border-left-color: #58a6ff !important;
+  background-color: rgba(88, 166, 255, 0.15) !important;
+}
+
+html.dark .comment-content :deep(.markdown-alert-info .markdown-alert-title) {
+  color: #4493f8 !important;
+}
+
+html.dark .comment-content :deep(blockquote.markdown-alert-example) {
+  border-left-color: #a371f7 !important;
+  background-color: rgba(163, 113, 247, 0.15) !important;
+}
+
+html.dark .comment-content :deep(.markdown-alert-example .markdown-alert-title) {
+  color: #a371f7 !important;
+}
+
+html.dark .comment-content :deep(blockquote.markdown-alert-question) {
+  border-left-color: #d29922 !important;
+  background-color: rgba(210, 153, 34, 0.15) !important;
+}
+
+html.dark .comment-content :deep(.markdown-alert-question .markdown-alert-title) {
+  color: #d29922 !important;
+}
+
+html.dark .comment-content :deep(blockquote.markdown-alert-quote) {
+  border-left-color: #8b949e !important;
+  background-color: rgba(139, 148, 158, 0.15) !important;
+}
+
+html.dark .comment-content :deep(.markdown-alert-quote .markdown-alert-title) {
+  color: #8b949e !important;
 }
 </style>
