@@ -134,6 +134,7 @@
       :width="isMobile ? '100%' : 600"
       placement="right"
       :closable="true"
+      @after-leave="handleDrawerClose"
     >
       <n-drawer-content :title="`推送详情 - ${currentHistory?.post_title}`" :closable="true">
         <div v-if="currentHistory" class="detail-content">
@@ -334,6 +335,11 @@ const getStatusType = (status: number) => {
 // 获取状态文本
 const getStatusText = (status: number) => {
   return status === 1 ? '已完成' : status === 2 ? '部分失败' : '进行中'
+}
+
+// 抽屉关闭后将焦点移出，避免 aria-hidden 警告
+function handleDrawerClose() {
+  document.body.focus()
 }
 
 // 获取统计数据

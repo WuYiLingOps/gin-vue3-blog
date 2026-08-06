@@ -21,11 +21,12 @@ import (
 
 // DashboardService 仪表盘业务逻辑层结构体
 type DashboardService struct {
-	postRepo     *repository.PostRepository
-	userRepo     *repository.UserRepository
-	commentRepo  *repository.CommentRepository
-	categoryRepo *repository.CategoryRepository
-	postViewRepo *repository.PostViewRepository
+	postRepo      *repository.PostRepository
+	userRepo      *repository.UserRepository
+	commentRepo   *repository.CommentRepository
+	categoryRepo  *repository.CategoryRepository
+	postViewRepo  *repository.PostViewRepository
+	pageViewRepo  *repository.PageViewRepository
 }
 
 // NewDashboardService 创建仪表盘业务逻辑层实例
@@ -36,6 +37,7 @@ func NewDashboardService() *DashboardService {
 		commentRepo:  repository.NewCommentRepository(),
 		categoryRepo: repository.NewCategoryRepository(),
 		postViewRepo: repository.NewPostViewRepository(),
+		pageViewRepo: repository.NewPageViewRepository(),
 	}
 }
 
@@ -97,8 +99,8 @@ func (s *DashboardService) GetStats() (*DashboardStats, error) {
 	}
 	stats.Comments = commentsCount
 
-	// 获取总浏览量
-	totalViews, err := s.postRepo.GetTotalViews()
+	// 获取总浏览量（全站PV）
+	totalViews, err := s.pageViewRepo.GetTotalPV()
 	if err != nil {
 		return nil, err
 	}
@@ -157,8 +159,9 @@ func (s *DashboardService) GetCategoryStats() ([]CategoryStats, error) {
 	return stats, nil
 }
 
-// GetVisitStats 获取最近 N 天访问量统计（按天聚合）
+// GetVisitStats 获取最近 N 天全站访问量统计（按天聚合）
 // days 最大限制为 30 天，默认 7 天
+// 统计全站PV（不限于文章详情页）
 func (s *DashboardService) GetVisitStats(days int) ([]VisitStat, error) {
 	if days <= 0 || days > 30 {
 		days = 7
@@ -183,7 +186,8 @@ func (s *DashboardService) GetVisitStats(days int) ([]VisitStat, error) {
 	end := today.AddDate(0, 0, 1)
 	start := end.AddDate(0, 0, -days)
 
-	rawStats, err := s.postViewRepo.GetVisitStats(start, end)
+	// 使用全站PV统计（page_views表）
+	rawStats, err := s.pageViewRepo.GetVisitStats(start, end)
 	if err != nil {
 		return nil, err
 	}

@@ -130,7 +130,7 @@
     </n-layout>
 
     <!-- 移动端侧边抽屉菜单 -->
-    <n-drawer v-model:show="showMobileMenu" :width="280" placement="left">
+    <n-drawer v-model:show="showMobileMenu" :width="280" placement="left" @after-leave="handleDrawerClose">
       <n-drawer-content title="菜单" closable>
         <n-menu
           v-model:value="activeKey"
@@ -607,6 +607,11 @@ function handleMobileMenuSelect(key: string) {
 function handleMobileUserAction(action: string) {
   showMobileMenu.value = false
   handleUserMenu(action)
+}
+
+// 抽屉关闭后将焦点移出，避免 aria-hidden 警告
+function handleDrawerClose() {
+  document.body.focus()
 }
 
 // 处理移动端登录

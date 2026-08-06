@@ -51,6 +51,13 @@ export default defineConfig(({ mode }) => {
         }
       }
     },
+    css: {
+      preprocessorOptions: {
+        scss: {
+          api: 'modern-compiler'  // 使用新版 Sass API，消除 legacy-js-api 弃用警告
+        }
+      }
+    },
     build: {
       rollupOptions: {
         output: {

@@ -289,7 +289,7 @@
         </n-form-item>
 
         <n-form-item label="内容" path="content">
-          <markdown-editor v-model="formData.content" height="400px" :subfield="!isMobile" />
+          <markdown-editor v-model="formData.content" height="400px" :subfield="!isMobile" :mode="isMobile ? 'edit' : 'editable'" />
         </n-form-item>
 
         <n-form-item label="分类" path="category_id">

@@ -531,3 +531,19 @@ type UserNotification struct {
 func (UserNotification) TableName() string {
 	return "user_notifications"
 }
+
+// PageView 全站页面访问记录模型
+// 功能说明：记录所有页面访问，用于统计全站PV
+type PageView struct {
+	ID        uint      `json:"id" gorm:"primaryKey"`
+	Path      string    `json:"path" gorm:"size:500;index;not null"` // 访问路径
+	UserID    *uint     `json:"user_id" gorm:"index"`               // 已登录用户ID，可为空
+	IP        string    `json:"ip" gorm:"size:45;index"`            // 访客IP地址
+	UserAgent string    `json:"user_agent" gorm:"size:500"`         // 浏览器UA
+	CreatedAt time.Time `json:"created_at" gorm:"index"`
+}
+
+// TableName 指定PageView模型的数据库表名
+func (PageView) TableName() string {
+	return "page_views"
+}
