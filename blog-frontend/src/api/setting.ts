@@ -34,6 +34,15 @@ export interface SiteSettings {
   cover_bg_images?: string // 封面背景图URL数组（JSON字符串格式，最多3张）
   // 网站运行时间
   site_start_date?: string // 网站成立时间（用于计算运行时长）
+  // 关于页卡片配置（JSON字符串格式，类型见 @/types/about.ts）
+  about_site_tips?: string // 打字词轮播配置
+  about_skills?: string // 技能配置（头像浮动标签 + 技能卡）
+  about_careers?: string // 职业生涯时间线配置
+  about_maxim?: string // 座右铭配置
+  about_map?: string // 地理位置配置（JSON字符串，类型见 @/types/about.ts）
+  about_intro?: string // 作者介绍卡配置（JSON字符串，类型见 @/types/about.ts）
+  about_self_info?: string // 个人信息卡配置（JSON字符串，类型见 @/types/about.ts）
+  about_personality?: string // MBTI 性格卡配置（JSON字符串，类型见 @/types/about.ts）
 }
 
 /**
