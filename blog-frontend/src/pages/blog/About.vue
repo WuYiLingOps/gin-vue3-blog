@@ -56,7 +56,6 @@
       <AboutCard
         v-if="personalIntroMarkdown"
         tips="关于博主"
-        title="自我介绍"
         class="block-card"
       >
         <div class="markdown-body-wrap">

@@ -26,7 +26,7 @@
             />
             <template #feedback>
               <n-text depth="3" style="font-size: 12px; margin-top: 8px; display: block">
-                提示：支持 Markdown 语法，内容将显示在"关于我"页面的"自我介绍"卡片中
+                提示：支持 Markdown 语法，内容将显示在"关于我"页面的"关于博主"卡片中
               </n-text>
             </template>
           </n-form-item>
