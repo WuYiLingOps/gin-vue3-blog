@@ -10,6 +10,7 @@
  */
 
 import { request } from '@/utils/request'
+import type { ApiResponse } from '@/types/common'
 
 /**
  * 网站设置接口
@@ -34,6 +35,15 @@ export interface SiteSettings {
   cover_bg_images?: string // 封面背景图URL数组（JSON字符串格式，最多3张）
   // 网站运行时间
   site_start_date?: string // 网站成立时间（用于计算运行时长）
+  // 关于页卡片配置（JSON字符串格式，类型见 @/types/about.ts）
+  about_site_tips?: string // 打字词轮播配置
+  about_skills?: string // 技能配置（头像浮动标签 + 技能卡）
+  about_careers?: string // 职业生涯时间线配置
+  about_maxim?: string // 座右铭配置
+  about_map?: string // 地理位置配置（JSON字符串，类型见 @/types/about.ts）
+  about_intro?: string // 作者介绍卡配置（JSON字符串，类型见 @/types/about.ts）
+  about_self_info?: string // 个人信息卡配置（JSON字符串，类型见 @/types/about.ts）
+  about_personality?: string // MBTI 性格卡配置（JSON字符串，类型见 @/types/about.ts）
 }
 
 /**
@@ -57,10 +67,25 @@ export interface NotificationSettings {
 
 /**
  * 获取公开的网站配置
- * @returns 返回公开的网站配置信息
+ * 首屏多个组件会并发请求同一份配置，这里做 3 秒内的请求合并与短缓存，
+ * 调用 updateSiteSettings 后自动失效
  */
-export function getPublicSettings() {
-  return request.get<SiteSettings>('/settings/public')
+let publicSettingsCache: Promise<ApiResponse<SiteSettings>> | null = null
+let publicSettingsCachedAt = 0
+
+export function getPublicSettings(): Promise<ApiResponse<SiteSettings>> {
+  let p = publicSettingsCache
+  const now = Date.now()
+  if (!p || now - publicSettingsCachedAt > 3000) {
+    publicSettingsCachedAt = now
+    p = request.get<SiteSettings>('/settings/public').catch(err => {
+      // 请求失败时清除缓存，允许下次重试
+      if (publicSettingsCache === p) publicSettingsCache = null
+      throw err
+    })
+    publicSettingsCache = p
+  }
+  return p
 }
 
 /**
@@ -77,6 +102,9 @@ export function getSiteSettings() {
  * @returns 返回更新结果
  */
 export function updateSiteSettings(data: Record<string, string>) {
+  // 配置变更后使公开配置的短缓存失效，前台下次请求拉取最新值
+  publicSettingsCache = null
+  publicSettingsCachedAt = 0
   return request.put('/settings/site', data)
 }
 

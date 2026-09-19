@@ -298,11 +298,11 @@ html.dark .comment-markdown-editor :deep(.v-md-editor) {
   display: none !important;
 }
 
-/* 自定义工具栏样式 */
+/* 自定义工具栏样式（--n-color 来自包裹的 n-card，未包裹时回退白色） */
 .custom-toolbar {
   padding: 8px 12px;
-  border-bottom: 1px solid var(--n-border-color);
-  background: var(--n-color);
+  border-bottom: 1px solid var(--n-border-color, rgba(227, 232, 247, 1));
+  background: var(--n-color, #fff);
   border-radius: 6px 6px 0 0;
 }
 

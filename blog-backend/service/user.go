@@ -14,6 +14,7 @@ import (
 	"errors"
 
 	"blog-backend/constant"
+	"blog-backend/db"
 	"blog-backend/model"
 	"blog-backend/repository"
 
@@ -110,5 +111,43 @@ func (s *UserService) Delete(id uint) error {
 		return errors.New("禁止删除超级管理员账号")
 	}
 
-	return s.repo.Delete(id)
+	// 目标：删除前把该用户的全部文章转移给超级管理员，内容不随账号消失
+	// （找不到可用的超级管理员时跳过转移，文章随外键级联删除）
+	superAdmin, err := s.repo.GetSuperAdmin()
+	if err != nil {
+		superAdmin = nil
+	}
+
+	// 事务内清理关联数据后删除用户，保证删除行为一致：
+	// 1. 文章归属先转移给超级管理员（保留已发布文章与草稿）
+	// 2. post_revisions 的 editor_id/reviewer_id 外键无级联规则，需显式删除其提交的修订记录
+	// 3. moments/moment_likes/password_reset_tokens 无外键保护，随用户删除避免孤儿数据
+	// 4. page_views/post_views 为统计数据，置空用户标识保留记录
+	// 5. 其余关联表（comments/likes/operation_logs 等）由外键级联清理
+	return db.DB.Transaction(func(tx *gorm.DB) error {
+		if superAdmin != nil && superAdmin.ID != id {
+			if err := tx.Model(&model.Post{}).Where("user_id = ?", id).Update("user_id", superAdmin.ID).Error; err != nil {
+				return err
+			}
+		}
+		if err := tx.Where("editor_id = ?", id).Delete(&model.PostRevision{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Where("user_id = ?", id).Delete(&model.Moment{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Where("user_id = ?", id).Delete(&model.MomentLike{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Where("user_id = ?", id).Delete(&model.PasswordResetToken{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Model(&model.PageView{}).Where("user_id = ?", id).Update("user_id", nil).Error; err != nil {
+			return err
+		}
+		if err := tx.Model(&model.PostView{}).Where("user_id = ?", id).Update("user_id", nil).Error; err != nil {
+			return err
+		}
+		return tx.Delete(&model.User{}, id).Error
+	})
 }

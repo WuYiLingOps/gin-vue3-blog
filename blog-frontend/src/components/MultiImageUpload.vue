@@ -45,7 +45,7 @@
     </n-space>
 
     <n-text depth="3" style="font-size: 12px; margin-top: 8px; display: block">
-      支持 jpg、png、gif 格式，单张图片不超过 5MB，最多上传 {{ maxCount }} 张
+      {{ hint || `支持 jpg、png、webp、gif 格式，单张图片不超过 5MB，最多上传 ${maxCount} 张` }}
     </n-text>
   </div>
 </template>
@@ -62,6 +62,8 @@ interface Props {
   maxCount?: number
   /** 自定义上传函数，不传则使用默认的 uploadImage */
   uploadFn?: (file: File) => Promise<any>
+  /** 自定义格式提示文案，不传则使用默认提示 */
+  hint?: string
 }
 
 interface Emits {
@@ -72,7 +74,8 @@ interface Emits {
 const props = withDefaults(defineProps<Props>(), {
   modelValue: '',
   maxCount: 9,
-  uploadFn: undefined
+  uploadFn: undefined,
+  hint: ''
 })
 
 const emit = defineEmits<Emits>()
@@ -105,9 +108,9 @@ function handleBeforeUpload(data: { file: UploadFileInfo }): boolean {
   if (!file) return false
 
   // 验证文件类型
-  const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif']
+  const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
   if (!validTypes.includes(file.type)) {
-    message.error('只支持 jpg、png、gif 格式的图片')
+    message.error('只支持 jpg、png、webp、gif 格式的图片')
     return false
   }
 

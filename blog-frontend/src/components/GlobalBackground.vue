@@ -12,15 +12,8 @@
 -->
 <template>
   <div class="global-bg">
-    <!-- 背景图片层：优先后台配置，未配置时使用默认背景图 -->
-    <img
-      :src="bgSrc"
-      alt=""
-      class="global-bg-img"
-      :class="{ loaded: imgLoaded }"
-      @load="imgLoaded = true"
-      @error="handleImgError"
-    />
+    <!-- 背景图片层：预加载完成后切换，优先后台配置，未配置时使用默认背景图 -->
+    <img :src="bgSrc" alt="" class="global-bg-img" :class="{ loaded: imgLoaded }" />
     <!-- 半透明遮罩层：保证内容可读 -->
     <div class="global-bg-overlay"></div>
   </div>
@@ -30,34 +23,42 @@
 import { ref, computed, watch } from 'vue'
 import { useAppStore } from '@/stores'
 
-const DEFAULT_BG = '/default_background.png'
+const DEFAULT_BG = '/default_background.webp'
 
 const appStore = useAppStore()
+const currentSrc = ref('') // 已确认加载完成的背景图 URL
 const imgLoaded = ref(false)
 
-// 从 store 中获取背景图数组，随机选择一张
-const bgSrc = computed(() => {
-  const bgImages = appStore.bgImages
-  if (bgImages && bgImages.length > 0) {
-    // 每次刷新时随机选择一张
-    const randomIndex = Math.floor(Math.random() * bgImages.length)
-    return bgImages[randomIndex]
-  }
-  return DEFAULT_BG
-})
+// 展示源：优先后台选定的壁纸，未就绪时回落到本地默认图
+const bgSrc = computed(() => appStore.pickedBgUrl || DEFAULT_BG)
 
-// 图片 URL 变化时重置加载状态
-watch(bgSrc, () => {
-  imgLoaded.value = false
-})
-
-// 后台图片加载失败时回退到默认图
-function handleImgError() {
-  imgLoaded.value = false
-  if (appStore.bgImages.length > 0) {
-    appStore.setBgImages([])
+// 预加载完成后再切换显示源，避免切换期间出现灰色窗口期
+function preloadAndApply(url: string) {
+  const img = new Image()
+  img.onload = () => {
+    currentSrc.value = url
+    imgLoaded.value = true
   }
+  img.onerror = () => {
+    // 后台配置的图加载失败：清空列表回退默认图（保持原有行为）
+    if (appStore.bgImages.length > 0) {
+      appStore.setBgImages([])
+    } else if (url !== DEFAULT_BG) {
+      preloadAndApply(DEFAULT_BG)
+    }
+    // 默认图也失败时保持灰色兜底（body 渐变），不再重试避免死循环
+  }
+  img.src = url
 }
+
+// 展示源变化时触发预加载
+watch(
+  bgSrc,
+  url => {
+    if (url !== currentSrc.value) preloadAndApply(url)
+  },
+  { immediate: true }
+)
 </script>
 
 <style scoped>

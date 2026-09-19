@@ -5,6 +5,22 @@
     <link rel="icon" type="image/svg+xml" href="/logo.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>菱风叙</title>
+    <!-- 首访兜底：预加载本地默认壁纸 -->
+    <link rel="preload" as="image" href="/default_background.webp" />
+    <script>
+      // 回访用户：在 JS 加载前预加载缓存的壁纸（缓存结构见 stores/app.ts 的 blog-bg-cache）
+      try {
+        var bgCache = JSON.parse(localStorage.getItem('blog-bg-cache') || 'null');
+        var bgUrl = (bgCache && bgCache.picked) || (bgCache && bgCache.urls && bgCache.urls[0]);
+        if (bgUrl) {
+          var l = document.createElement('link');
+          l.rel = 'preload';
+          l.as = 'image';
+          l.href = bgUrl;
+          document.head.appendChild(l);
+        }
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="app"></div>

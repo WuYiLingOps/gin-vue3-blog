@@ -636,8 +636,21 @@ ON CONFLICT (key) DO NOTHING;
 
 -- 插入关于我信息默认配置
 INSERT INTO settings (key, value, type, "group", label, created_at, updated_at)
-VALUES 
+VALUES
 ('about_content', '', 'text', 'about', '关于我内容', NOW(), NOW())
+ON CONFLICT (key) DO NOTHING;
+
+-- 插入关于页卡片配置默认值（关于我页面重构后的结构化配置，JSON 字符串存储）
+INSERT INTO settings (key, value, type, "group", label, created_at, updated_at)
+VALUES
+('about_site_tips', '{"tips":"一个热爱技术与分享的博主","title1":"当前状态","title2":"专注方向","word":["后端开发","云原生运维","开源爱好者","持续学习中"]}', 'text', 'site', '关于页-打字词轮播', NOW(), NOW()),
+('about_intro', '{"tips":"你好，很高兴认识你 👋","namePrefix":"我叫","descPrefix":"是一名","roles":["学生","后端开发","运维折腾爱好者","技术博主"]}', 'text', 'site', '关于页-作者介绍卡', NOW(), NOW()),
+('about_self_info', '{"item1":{"tips":"毕业时间","value":"2026"},"item2":{"tips":"桂林电子科技大学","value":"大数据管理与应用"},"item3":{"tips":"现在职业","value":"运维工程师"}}', 'text', 'site', '关于页-个人信息卡', NOW(), NOW()),
+('about_personality', '{"tips":"性格","type":"执政官 ESFJ-A","color":"#ac899c","img":"https://npm.elemecdn.com/anzhiyu-blog@2.0.8/img/svg/ESFJ-A.svg"}', 'text', 'site', '关于页-MBTI性格卡', NOW(), NOW()),
+('about_skills', '{"tips":"技能","title":"开启创造力","left":["Java","Go","Vue3","TypeScript"],"right":["Docker","Kubernetes","Linux","PostgreSQL"],"list":[{"name":"Java","icon":"java","color":"#f89820"},{"name":"JavaScript","icon":"javascript"},{"name":"TypeScript","icon":"typescript"},{"name":"Vue3","icon":"vue"},{"name":"Python","icon":"python"},{"name":"Go","icon":"go"},{"name":"Spring Boot","icon":"springboot"},{"name":"Docker","icon":"docker"},{"name":"Kubernetes","icon":"kubernetes"},{"name":"Linux","icon":"linux"},{"name":"MySQL","icon":"mysql"},{"name":"Redis","icon":"redis"},{"name":"Nginx","icon":"nginx"},{"name":"PostgreSQL","icon":"postgresql"},{"name":"Git","icon":"git"},{"name":"Jenkins","icon":"jenkins"}]}', 'text', 'site', '关于页-技能配置', NOW(), NOW()),
+('about_careers', '{"tips":"一路走来的足迹","title":"成长轨迹","list":[{"time":"2022","title":"初识代码","desc":"接触编程与 Linux，从双系统到云服务器，折腾之路开始","color":"#0891b2"},{"time":"2024","title":"沉迷云原生","desc":"Kubernetes、CI/CD、监控告警越折腾越上头，确定运维方向","color":"#059669"},{"time":"2026","title":"踏入职场","desc":"成为一名运维工程师，把折腾变成热爱的事业，继续前行","color":"#9a60b4"}]}', 'text', 'site', '关于页-成长轨迹', NOW(), NOW()),
+('about_maxim', '{"tips":"追求","top":"源于\n热爱而去 感受","bottom":"程序","word":["学习","生活","程序","体验"]}', 'text', 'site', '关于页-追求卡', NOW(), NOW()),
+('about_map', '{"title":"我现在住在","location":"中国，桂林市","lat":25.274,"lng":110.29,"zoom":10}', 'text', 'site', '关于页-地理位置', NOW(), NOW())
 ON CONFLICT (key) DO NOTHING;
 
 -- 插入 RSS 订阅配置
