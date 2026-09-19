@@ -376,7 +376,7 @@ function handleDelete(user: User) {
 
   dialog.error({
     title: '确认删除',
-    content: `确定要删除用户"${user.nickname || user.username}"吗？此操作不可恢复！`,
+    content: `确定要删除用户"${user.nickname || user.username}"吗？其名下文章将转移给超级管理员，说说等内容将被删除，此操作不可恢复！`,
     positiveText: '确定',
     negativeText: '取消',
     onPositiveClick: async () => {
