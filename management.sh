@@ -1,16 +1,13 @@
 #!/bin/bash
 #
 #********************************************************************
-# 项目名称：go-vue3-blog
-# 文件名称：management.sh
-# 创建时间：2026-02-15 13:12:45
-#
-# 系统用户：Administrator
-# 作　　者：無以菱
-# 联系邮箱：huangjing510@126.com
-# 功能描述：博客项目部署管理脚本，支持 build（构建并部署）、start（启动服务）、
-#          stop（停止服务）、status（查看状态）四种操作模式。
-#          Gitee 贡献热力图爬取逻辑已内置于后端，无需管理独立服务
+#Author:           YiLing Wu (hj)
+#email:            huangjing510@126.com
+#Date:             2026-02-15 13:12:45
+#FileName:         management.sh 
+#URL:              https://script.huangjingblog.cn
+#Description:      博客项目部署管理脚本，支持 build（构建并部署）、start（启动服务）、stop（停止服务）、status（查看状态）、docker（构建生产镜像）五种操作模式。 
+#Copyright (C):    2026 All rights reserved
 #********************************************************************
 
 # ==================== 颜色定义 ====================
@@ -25,12 +22,14 @@ BOLD='\033[1m'
 RESET='\033[0m'
 
 # ==================== 配置定义 ====================
-PROJECT_ROOT="/web/gin-vue3-blog"
+# 自动识别脚本所在目录作为项目根目录（脚本需放置在项目根目录下）
+PROJECT_ROOT="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)"
 BACKEND_PORT=8080
 BACKEND_DIR="blog-backend"
 FRONTEND_DIR="blog-frontend"
 BACKEND_BIN="blog-backend"
 FRONTEND_MAX_MEMORY=1024  # 前端构建最大内存限制（MB）
+IMAGE_NAME="registry.cn-hangzhou.aliyuncs.com/wylhub/gin-vue3-blog:latest"  # 生产镜像地址
 
 # ==================== 日志函数 ====================
 # 输出信息日志
@@ -123,6 +122,7 @@ show_usage() {
     echo -e "  ${GREEN}build${RESET}            - 重新构建并部署项目（编译后端 + 构建前端）"
     echo -e "  ${GREEN}build-backend${RESET}    - 单独重新编译并重启后端服务"
     echo -e "  ${GREEN}build-frontend${RESET}   - 单独重新构建前端静态资源"
+    echo -e "  ${GREEN}docker${RESET}           - 构建生产环境 Docker 镜像（输出推送指令）"
     echo -e "  ${GREEN}start${RESET}            - 启动服务（仅启动后端服务，不构建前端）"
     echo -e "  ${GREEN}stop${RESET}             - 停止所有服务"
     echo -e "  ${GREEN}status${RESET}           - 查看服务运行状态"
@@ -131,13 +131,14 @@ show_usage() {
     echo "  $0 build            # 完整构建并部署"
     echo "  $0 build-backend    # 单独重新编译并重启后端"
     echo "  $0 build-frontend   # 单独重新构建前端"
+    echo "  $0 docker           # 构建生产环境 Docker 镜像"
     echo "  $0 start            # 启动服务"
     echo "  $0 stop             # 停止服务"
     echo "  $0 status           # 查看状态"
     echo ""
     echo -e "${YELLOW}${BOLD}注意:${RESET}"
-    echo -e "  使用前请先修改脚本中的 ${CYAN}PROJECT_ROOT${RESET} 变量为实际的项目路径"
-    echo -e "  当前配置: ${CYAN}$PROJECT_ROOT${RESET}"
+    echo -e "  项目根目录自动识别为脚本所在目录（当前: ${CYAN}$PROJECT_ROOT${RESET}），"
+    echo -e "  请将脚本放置在项目根目录下运行"
     echo ""
 }
 
@@ -238,6 +239,38 @@ build_frontend() {
 }
 
 # ==================== 命令实现 ====================
+# docker 命令：构建生产环境 Docker 镜像
+cmd_docker() {
+    log_step "构建生产环境 Docker 镜像..."
+    echo ""
+
+    cd "$PROJECT_ROOT" || {
+        log_error "无法进入项目目录: $PROJECT_ROOT"
+        exit 1
+    }
+
+    if [ ! -f "deploy/Dockerfile" ]; then
+        log_error "未找到 deploy/Dockerfile，请确认项目目录结构"
+        exit 1
+    fi
+
+    log_info "构建参数: --network=host --provenance=false --sbom=false"
+    log_info "镜像地址: $IMAGE_NAME"
+    log_info "关闭 OCI 新介质类型，不产生空 manifest，兼容阿里云镜像仓库"
+    echo ""
+
+    if sudo docker build --network=host --provenance=false --sbom=false \
+        -t "$IMAGE_NAME" \
+        -f deploy/Dockerfile .; then
+        echo ""
+        log_success "Docker 镜像构建成功！"
+        log_info "推送镜像: sudo docker push $IMAGE_NAME"
+    else
+        log_error "Docker 镜像构建失败"
+        exit 1
+    fi
+}
+
 # build-backend 命令：单独重新编译并重启后端服务
 cmd_build_backend() {
     log_step "开始单独重新构建后端..."
@@ -384,6 +417,9 @@ main() {
             ;;
         build-frontend)
             cmd_build_frontend
+            ;;
+        docker)
+            cmd_docker
             ;;
         start)
             cmd_start
