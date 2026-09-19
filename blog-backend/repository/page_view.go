@@ -79,3 +79,4 @@ func (r *PageViewRepository) GetTotalPV() (int64, error) {
 	err := db.DB.Model(&model.PageView{}).Count(&count).Error
 	return count, err
 }
+
