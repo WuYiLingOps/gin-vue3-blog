@@ -390,6 +390,9 @@ const appStore = useAppStore()
 const message = useMessage()
 const dialog = useDialog()
 
+// 启动即读取缓存的壁纸列表：壁纸下载与配置请求并行，消除串行等待
+appStore.loadCachedBgImages()
+
 const activeKey = ref(route.name as string)
 const isDark = computed(() => appStore.theme === 'dark')
 const siteSettings = ref<SiteSettings>({})
@@ -632,6 +635,7 @@ async function fetchSiteSettings() {
     if (res.data) {
       siteSettings.value = res.data
       // 将封面背景图数组存入全局 store，供 GlobalBackground 使用
+      // keepPick: 保持当前已选中的壁纸，避免回访用户重复下载新图
       let bgImages: string[] = []
       if (res.data.cover_bg_images) {
         try {
@@ -641,7 +645,7 @@ async function fetchSiteSettings() {
           bgImages = []
         }
       }
-      appStore.setBgImages(bgImages)
+      appStore.setBgImages(bgImages, { keepPick: true })
       // 获取配置后更新页面标题
       updatePageTitle()
     }
