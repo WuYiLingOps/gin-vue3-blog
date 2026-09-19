@@ -153,6 +153,11 @@ export BLOG_URL="https://your-domain.com"
 - ✅ IP 黑名单管理 API（查看、添加、删除、检查、清理过期）
 - ✅ 管理员 IP 豁免（角色豁免 + IP 白名单）
 - ✅ 数据统计
+- ✅ **关于页结构化配置**
+  - `settings` 表 `site` 分组新增 `about_*` 系列配置键（about_site_tips / about_skills / about_careers / about_maxim / about_map / about_intro / about_self_info / about_personality）
+  - 结构化内容以 JSON 字符串存储，覆盖前台"关于我"页面全部卡片板块（打字词轮播、技能、成长轨迹、追求卡、地理位置、作者介绍、个人信息、MBTI 性格）
+  - `sql/init.sql` 内置默认值（`ON CONFLICT DO NOTHING` 幂等），新增键无需改动 Go 业务代码
+  - 经 `GET /api/settings/public` 公开下发、`PUT /api/settings/site` 管理端更新，写入后自动刷新 Redis 缓存
 - ✅ **邮件订阅系统**
   - 用户邮箱订阅功能
   - 文章发布时自动推送邮件通知
@@ -829,6 +834,7 @@ curl -I http://localhost:8080/uploads/avatars/文件名.jpg
 
 ### 最新更新
 
+- ✅ **关于页结构化配置键**（site 分组 `about_*` 系列：打字词轮播 / 技能 / 成长轨迹 / 追求卡 / 地理位置 / 作者介绍 / 个人信息 / MBTI 性格，`init.sql` 内置幂等默认值，支撑前台关于页卡片流全部内容后台可视化配置）
 - ✅ **邮件订阅系统**（用户订阅、自动推送、订阅者管理、退订功能）
 - ✅ 文章URL优化（自动生成拼音slug，支持中英文混合标题）
 - ✅ IP 黑名单管理 API（查看、添加、删除、检查、清理过期）
@@ -857,5 +863,5 @@ curl -I http://localhost:8080/uploads/avatars/文件名.jpg
 
 ---
 
-**最后更新**：2026-01-11
+**最后更新**：2026-09-19
 
