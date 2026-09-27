@@ -35,17 +35,37 @@ jobs:
             echo "🚀 正式版本: v${VERSION} (打 latest 标签)"
           fi
 
-      - name: 构建并推送 Docker 镜像
+      - name: 构建 Docker 镜像
         uses: docker/build-push-action@v7
         with:
           context: .
           file: ./deploy/Dockerfile
-          push: true
+          load: true
           tags: ${{ steps.tags.outputs.tags }}
           platforms: linux/amd64
           provenance: false
           build-args: |
             GOPROXY=https://proxy.golang.org,direct
+
+      - name: 推送镜像到阿里云
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          IMAGE="registry.cn-hangzhou.aliyuncs.com/wylhub/gin-vue3-blog"
+          docker push ${IMAGE}:${VERSION}
+          if [[ ! "$VERSION" =~ (alpha|beta|rc|pre) ]]; then
+            docker push ${IMAGE}:latest
+          fi
+
+      - name: 导出镜像文件（作为 Release 附件）
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          IMAGE="registry.cn-hangzhou.aliyuncs.com/wylhub/gin-vue3-blog"
+          IMAGES="${IMAGE}:${VERSION}"
+          if [[ ! "$VERSION" =~ (alpha|beta|rc|pre) ]]; then
+            IMAGES="${IMAGES} ${IMAGE}:latest"
+          fi
+          docker save ${IMAGES} | gzip > gin-vue3-blog_${VERSION}_docker_amd64.tar.gz
+          ls -lh gin-vue3-blog_${VERSION}_docker_amd64.tar.gz
 
       - name: 生成 Changelog
         id: changelog
@@ -80,6 +100,12 @@ jobs:
           \`\`\`bash
           docker pull registry.cn-hangzhou.aliyuncs.com/wylhub/gin-vue3-blog:${VERSION}
           \`\`\`
+
+          ### 📦 镜像文件（离线加载）
+          - \`gin-vue3-blog_${VERSION}_docker_amd64.tar.gz\`
+          \`\`\`bash
+          docker load -i gin-vue3-blog_${VERSION}_docker_amd64.tar.gz
+          \`\`\`
           EOF
 
           echo "is_prerelease=${IS_PRERELEASE}" >> $GITHUB_OUTPUT
@@ -91,3 +117,5 @@ jobs:
           draft: false
           prerelease: ${{ steps.changelog.outputs.is_prerelease == 'true' }}
           generate_release_notes: false
+          files: |
+            gin-vue3-blog_*_docker_amd64.tar.gz
