@@ -22,14 +22,6 @@ jobs:
           username: ${{ secrets.ALIYUN_REGISTRY_USERNAME }}
           password: ${{ secrets.ALIYUN_REGISTRY_PASSWORD }}
 
-      - name: 设置 QEMU
-        uses: docker/setup-qemu-action@v3
-        with:
-          platforms: arm64
-
-      - name: 设置 Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
       - name: 生成标签
         id: tags
         run: |
@@ -50,7 +42,7 @@ jobs:
           file: ./deploy/Dockerfile
           push: true
           tags: ${{ steps.tags.outputs.tags }}
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           provenance: false
           build-args: |
             GOPROXY=https://proxy.golang.org,direct
