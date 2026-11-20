@@ -12,6 +12,8 @@ package model
 
 import (
 	"time"
+
+	"gorm.io/datatypes"
 )
 
 // User 用户模型
@@ -546,4 +548,29 @@ type PageView struct {
 // TableName 指定PageView模型的数据库表名
 func (PageView) TableName() string {
 	return "page_views"
+}
+
+// ImageMigrateLog 图片迁移日志模型
+// 功能说明：记录每次图床迁移任务的汇总信息与逐图映射，供图片管理页面查询历史
+type ImageMigrateLog struct {
+	ID            uint           `json:"id" gorm:"primaryKey"`
+	OperatorID    *uint          `json:"operator_id" gorm:"comment:操作用户ID"`
+	OperatorName  string         `json:"operator_name" gorm:"size:50;comment:操作用户名"`
+	TargetStorage string         `json:"target_storage" gorm:"size:20;not null;comment:目标存储类型"`
+	DeleteSource  bool           `json:"delete_source" gorm:"default:false;comment:是否删除了源文件"`
+	TotalCount    int            `json:"total_count" gorm:"default:0;comment:迁移图片总数"`
+	SuccessCount  int            `json:"success_count" gorm:"default:0;comment:成功数"`
+	FailedCount   int            `json:"failed_count" gorm:"default:0;comment:失败数"`
+	UpdatedRows   int            `json:"updated_rows" gorm:"default:0;comment:数据库替换更新的记录行数"`
+	DeletedFiles  int            `json:"deleted_files" gorm:"default:0;comment:实际删除的源文件数"`
+	Mappings      datatypes.JSON `json:"mappings" gorm:"type:jsonb;comment:成功映射数组"`
+	FailedItems   datatypes.JSON `json:"failed_items" gorm:"type:jsonb;comment:失败明细数组"`
+	Message       string         `json:"message" gorm:"type:text;comment:任务结束汇总信息"`
+	DurationSec   int            `json:"duration_sec" gorm:"default:0;comment:任务总耗时秒"`
+	CreatedAt     time.Time      `json:"created_at"`
+}
+
+// TableName 指定ImageMigrateLog模型的数据库表名
+func (ImageMigrateLog) TableName() string {
+	return "image_migrate_logs"
 }

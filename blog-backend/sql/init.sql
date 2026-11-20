@@ -1084,6 +1084,49 @@ COMMENT ON COLUMN user_notifications.is_read IS '是否已读';
 COMMENT ON COLUMN user_notifications.email_sent IS '邮件是否已发送';
 
 -- =============================================================================
+-- 图片迁移日志表（图片管理模块）
+-- 记录每次图床迁移任务的汇总信息与逐图映射，服务重启后仍可查历史
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS image_migrate_logs (
+    id SERIAL PRIMARY KEY,
+    operator_id INT,                          -- 操作用户ID（可空，兼容后台任务）
+    operator_name VARCHAR(50),                -- 操作用户名
+    target_storage VARCHAR(20) NOT NULL,      -- 目标存储类型：local/oss/cos/easyimage
+    delete_source BOOLEAN DEFAULT FALSE,      -- 是否删除了源文件
+    total_count INT DEFAULT 0,                -- 本次迁移图片总数
+    success_count INT DEFAULT 0,              -- 成功数
+    failed_count INT DEFAULT 0,               -- 失败数
+    updated_rows INT DEFAULT 0,               -- 数据库替换更新的记录行数
+    deleted_files INT DEFAULT 0,              -- 实际删除的源文件数
+    mappings JSONB,                           -- 成功映射 [{old_url,new_url}]
+    failed_items JSONB,                       -- 失败明细 [{url,error}]
+    message TEXT,                             -- 任务结束汇总信息
+    duration_sec INT DEFAULT 0,               -- 任务总耗时（秒）
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 图片迁移日志表索引
+CREATE INDEX IF NOT EXISTS idx_image_migrate_logs_created_at ON image_migrate_logs(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_image_migrate_logs_operator_id ON image_migrate_logs(operator_id);
+
+-- 图片迁移日志表注释
+COMMENT ON TABLE image_migrate_logs IS '图片迁移日志表，记录每次图床迁移任务的汇总与逐图映射';
+COMMENT ON COLUMN image_migrate_logs.operator_id IS '操作用户ID';
+COMMENT ON COLUMN image_migrate_logs.operator_name IS '操作用户名';
+COMMENT ON COLUMN image_migrate_logs.target_storage IS '目标存储类型：local/oss/cos/easyimage';
+COMMENT ON COLUMN image_migrate_logs.delete_source IS '是否删除了源文件';
+COMMENT ON COLUMN image_migrate_logs.total_count IS '本次迁移图片总数';
+COMMENT ON COLUMN image_migrate_logs.success_count IS '成功数';
+COMMENT ON COLUMN image_migrate_logs.failed_count IS '失败数';
+COMMENT ON COLUMN image_migrate_logs.updated_rows IS '数据库替换更新的记录行数';
+COMMENT ON COLUMN image_migrate_logs.deleted_files IS '实际删除的源文件数';
+COMMENT ON COLUMN image_migrate_logs.mappings IS '成功映射JSON数组：[{"old_url":"...","new_url":"..."}]';
+COMMENT ON COLUMN image_migrate_logs.failed_items IS '失败明细JSON数组：[{"url":"...","error":"..."}]';
+COMMENT ON COLUMN image_migrate_logs.message IS '任务结束汇总信息';
+COMMENT ON COLUMN image_migrate_logs.duration_sec IS '任务总耗时（秒）';
+COMMENT ON COLUMN image_migrate_logs.created_at IS '任务完成时间';
+
+-- =============================================================================
 -- 初始化完成
 -- =============================================================================
 -- 说明：
