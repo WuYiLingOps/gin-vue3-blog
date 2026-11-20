@@ -49,6 +49,7 @@ type ImageAsset struct {
 	Locations    []ImageUsageLocation  `json:"locations"`       // 使用位置明细
 	RefCount     int                   `json:"ref_count"`       // 引用次数
 	Deletable    bool                  `json:"deletable"`       // 源文件是否支持 API 删除
+	Alive        *bool                 `json:"alive"`           // 文件有效性：true-可访问 false-已失效（文件缺失/HTTP 非 200）nil-未检测
 }
 
 // MigrateImageRequest 发起图片迁移请求
@@ -270,12 +271,98 @@ func (s *ImageService) ScanImageAssets(storage, keyword string, refresh bool) ([
 		result = append(result, *asset)
 	}
 
+	// 有效性检测：本地文件查盘，远程 URL 并发 HEAD 探测（失败标记为失效，便于发现孤儿引用）
+	checkImageAssetsAlive(result)
+
 	// 无筛选条件的全集结果写入缓存（带筛选条件的结果不缓存）
 	if storage == "" && keyword == "" {
 		saveScanCache(result)
 	}
 
 	return result, nil
+}
+
+// aliveCheckConcurrency 有效性检测的并发数
+const aliveCheckConcurrency = 10
+
+// aliveCheckTimeout 远程图片有效性探测超时
+const aliveCheckTimeout = 8 * time.Second
+
+// checkImageAssetsAlive 对盘点结果做有效性检测（原地更新 Alive 字段）
+// 本地存储直接查文件系统；远程 URL 用 HEAD 请求探测（部分图床不支持 HEAD 时退化为 GET 前几字节）
+func checkImageAssetsAlive(assets []ImageAsset) {
+	if len(assets) == 0 {
+		return
+	}
+
+	var wg sync.WaitGroup
+	sem := make(chan struct{}, aliveCheckConcurrency)
+
+	for i := range assets {
+		asset := &assets[i]
+
+		// 本地存储：直接查文件系统（同步，开销极小）
+		if asset.StorageType == string(util.StorageLocal) {
+			localPath := strings.TrimPrefix(asset.URL, "/")
+			if _, err := os.Stat(localPath); err != nil {
+				dead := false
+				asset.Alive = &dead
+			} else {
+				live := true
+				asset.Alive = &live
+			}
+			continue
+		}
+
+		// 远程 URL：并发 HEAD 探测（外链/EasyImage/OSS/COS 全部检测）
+		wg.Add(1)
+		go func(a *ImageAsset) {
+			defer wg.Done()
+			sem <- struct{}{}
+			defer func() { <-sem }()
+
+			alive := probeRemoteImageAlive(a.URL)
+			a.Alive = &alive
+		}(asset)
+	}
+	wg.Wait()
+}
+
+// probeRemoteImageAlive 探测远程图片是否可访问
+// 优先 HEAD（不下载内容）；405/501 等不支持 HEAD 的响应退化为 GET（只读响应头即判定）
+func probeRemoteImageAlive(imgURL string) bool {
+	client := &http.Client{Timeout: aliveCheckTimeout}
+
+	check := func(method string) (bool, bool) {
+		req, err := http.NewRequest(method, imgURL, nil)
+		if err != nil {
+			return false, true
+		}
+		req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+
+		resp, err := client.Do(req)
+		if err != nil {
+			return false, true // 网络错误视为失效（超时/DNS 失败等）
+		}
+		defer resp.Body.Close()
+		// 读完并关闭 body（HEAD 无 body；GET 时只取少量字节避免拉全图）
+		io.Copy(io.Discard, io.LimitReader(resp.Body, 1024))
+
+		if resp.StatusCode >= 200 && resp.StatusCode < 300 {
+			return true, true
+		}
+		// 4xx/5xx：405 Method Not Allowed 表示不支持该 method，提示换 GET 重试
+		if resp.StatusCode == http.StatusMethodNotAllowed && method == http.MethodHead {
+			return false, false // 需要退化为 GET
+		}
+		return false, true
+	}
+
+	ok, final := check(http.MethodHead)
+	if !final {
+		ok, _ = check(http.MethodGet)
+	}
+	return ok
 }
 
 // GetMigrateStatus 获取迁移任务状态
@@ -540,6 +627,21 @@ func downloadImageForMigrate(imgURL string) ([]byte, string, string, error) {
 		}
 		contentType := guessContentType(localPath)
 		return data, contentType, filepath.Base(localPath), nil
+	}
+
+	// 本站域名下的 /uploads/ 绝对 URL：文件同样在服务器本地磁盘，直接读盘
+	// （历史上传存了带站点域名的完整 URL，如 https://example.com/uploads/avatars/x.jpg）
+	if util.IsLocalSiteUploadURL(imgURL) {
+		idx := strings.Index(imgURL, "/uploads/")
+		if idx != -1 {
+			localPath := imgURL[idx+1:] // 去掉域名部分，保留 uploads/ 开头
+			data, err := os.ReadFile(localPath)
+			if err != nil {
+				return nil, "", "", fmt.Errorf("读取本地文件失败: %w", err)
+			}
+			contentType := guessContentType(localPath)
+			return data, contentType, filepath.Base(localPath), nil
+		}
 	}
 
 	// 远程 URL：GitHub raw 图片走代理
