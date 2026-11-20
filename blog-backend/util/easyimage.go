@@ -21,6 +21,7 @@ import (
 	"net/http"
 	"net/url"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -112,7 +113,42 @@ func UploadToEasyImage(file *multipart.FileHeader, dir string) (string, error) {
 		return "", fmt.Errorf("上传到 EasyImage 失败（HTTP %d）", resp.StatusCode)
 	}
 
-	return result.URL, nil
+	return normalizeEasyImageURL(result.URL), nil
+}
+
+// normalizeEasyImageURL 按配置的访问域名改写 EasyImage 返回的图片 URL
+// EasyImage 的特性：即使站点配置了 https，上传接口返回的图片链接仍可能是 http（图床程序按请求协议或自身配置生成），
+// 会导致 https 页面出现 mixed content。配置 domain 后强制以它为协议+域名返回标准 URL；
+// 未配置 domain 时仅做同域名的 http→https 纠正（api_url 为 https 且图片 URL host 与其一致时），
+// host 不一致则原样返回（避免改写第三方 CDN 等场景）
+func normalizeEasyImageURL(rawURL string) string {
+	u, err := url.Parse(rawURL)
+	if err != nil || u.Host == "" {
+		return rawURL
+	}
+
+	// 配置了自定义访问域名：强制替换协议+域名
+	if domain := config.Cfg.EasyImage.Domain; domain != "" {
+		d, err := url.Parse(domain)
+		if err == nil && d.Scheme != "" && d.Host != "" {
+			u.Scheme = d.Scheme
+			u.Host = d.Host
+			return u.String()
+		}
+		return rawURL
+	}
+
+	// 未配置 domain：api_url 为 https 且图片 URL 与其同 host 且为 http 时，升级为 https
+	if apiURL := config.Cfg.EasyImage.ApiURL; apiURL != "" {
+		a, err := url.Parse(apiURL)
+		if err == nil && a.Scheme == "https" && a.Hostname() != "" &&
+			strings.EqualFold(u.Hostname(), a.Hostname()) && u.Scheme == "http" {
+			u.Scheme = "https"
+			return u.String()
+		}
+	}
+
+	return rawURL
 }
 
 // ValidateEasyImageConfig 验证 EasyImage 配置是否有效（仅本地校验，不做真实请求）
