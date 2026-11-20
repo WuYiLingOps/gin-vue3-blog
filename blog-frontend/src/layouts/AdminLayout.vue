@@ -31,6 +31,7 @@
         </div>
         <n-menu
           v-model:value="activeKey"
+          v-model:expanded-keys="expandedKeys"
           :collapsed="collapsed"
           :collapsed-width="64"
           :collapsed-icon-size="22"
@@ -62,6 +63,16 @@
 
             <div class="header-actions">
               <NotificationBell />
+
+              <n-button
+                text
+                :title="isDark ? '切换到浅色模式' : '切换到深色模式'"
+                @click="appStore.toggleTheme()"
+              >
+                <template #icon>
+                  <n-icon :component="isDark ? SunnyOutline : MoonOutline" size="20" />
+                </template>
+              </n-button>
 
               <n-button v-if="!isMobile" text @click="router.push('/')">
                 <template #icon>
@@ -100,6 +111,7 @@
         <div class="mobile-menu">
           <n-menu
             v-model:value="activeKey"
+            v-model:expanded-keys="expandedKeys"
             :options="menuOptions"
             @update:value="handleMobileMenuSelect"
           />
@@ -135,9 +147,11 @@ import {
   PulseOutline,
   TimeOutline,
   BuildOutline,
-  LibraryOutline
+  LibraryOutline,
+  SunnyOutline,
+  MoonOutline
 } from '@vicons/ionicons5'
-import { useAuthStore } from '@/stores'
+import { useAuthStore, useAppStore } from '@/stores'
 import { NIcon, useLoadingBar } from 'naive-ui'
 import NotificationBell from '@/components/NotificationBell.vue'
 
@@ -167,11 +181,20 @@ const LoadingBarHandler = defineComponent({
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
+const appStore = useAppStore()
 
 const collapsed = ref(false)
 const activeKey = ref(route.name as string)
 const mobileMenuVisible = ref(false)
 const isMobile = ref(false)
+
+const isDark = computed(() => appStore.theme === 'dark')
+
+// 侧边栏分组展开状态（持久化，刷新后保持）
+const expandedKeys = computed({
+  get: () => appStore.adminMenuExpanded,
+  set: keys => appStore.setAdminMenuExpanded(keys)
+})
 
 const currentTitle = computed(() => {
   return route.meta.title || ''
@@ -523,6 +546,9 @@ html.dark .admin-header {
   border-radius: 16px;
   padding: 0;
   min-height: calc(100vh - 112px);
+  /* 大屏限宽，避免内容被拉散 */
+  max-width: 1440px;
+  margin: 0 auto;
 }
 
 .ml-2 {

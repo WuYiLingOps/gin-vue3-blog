@@ -19,6 +19,7 @@ export const useAppStore = defineStore(
     // 状态
     const theme = ref<'light' | 'dark'>('light')
     const sidebarCollapsed = ref(false)
+    const adminMenuExpanded = ref<string[]>([]) // 后台侧边栏分组展开状态（持久化）
     const loading = ref(true) // 默认为 true，应用启动时显示加载动画
     const bgImages = ref<string[]>([]) // 全局背景图 URL 数组（从后台设置获取，不持久化）
     const pickedBgUrl = ref('') // 当前选中的背景图 URL（缓存后供 index.html 预加载）
@@ -39,6 +40,11 @@ export const useAppStore = defineStore(
     // 切换侧边栏
     function toggleSidebar() {
       sidebarCollapsed.value = !sidebarCollapsed.value
+    }
+
+    // 设置后台侧边栏分组展开状态
+    function setAdminMenuExpanded(keys: string[]) {
+      adminMenuExpanded.value = keys
     }
 
     // 设置加载状态
@@ -99,6 +105,7 @@ export const useAppStore = defineStore(
     return {
       theme,
       sidebarCollapsed,
+      adminMenuExpanded,
       loading,
       bgImages,
       pickedBgUrl,
@@ -106,6 +113,7 @@ export const useAppStore = defineStore(
       toggleTheme,
       setTheme,
       toggleSidebar,
+      setAdminMenuExpanded,
       setLoading,
       setBgImages,
       loadCachedBgImages,
@@ -117,7 +125,7 @@ export const useAppStore = defineStore(
     persist: {
       key: 'blog-app',
       storage: localStorage,
-      pick: ['theme', 'sidebarCollapsed']
+      pick: ['theme', 'sidebarCollapsed', 'adminMenuExpanded']
     }
   }
 )
