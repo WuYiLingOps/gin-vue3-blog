@@ -50,6 +50,11 @@ cos:
   secret_key: "xxxxxxx"
   # domain: "https://static.example.com" # 可选，自定义访问域名
 
+# EasyImage 简单图床配置（可选，如果不使用可以留空）
+easyimage:
+  api_url: ""  # 完整上传接口地址，如 http://img.example.com/api/index.php
+  token: ""    # 图床后台生成的 API token
+
 # 图片代理配置（用于导出ZIP时代理GitHub图片）
 image_proxy:
   url: "https://gh-proxy.com/"  # GitHub图片代理地址

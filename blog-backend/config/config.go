@@ -91,6 +91,12 @@ type Config struct {
 		Domain    string `mapstructure:"domain"`     // 自定义域名（可选）
 	} `mapstructure:"cos"`
 
+	// EasyImage 简单图床配置
+	EasyImage struct {
+		ApiURL string `mapstructure:"api_url"` // 完整上传接口地址，如 http://img.example.com/api/index.php
+		Token  string `mapstructure:"token"`   // 图床后台生成的 API token
+	} `mapstructure:"easyimage"`
+
 	// Security 安全配置
 	Security struct {
 		AdminIPWhitelist []string `mapstructure:"admin_ip_whitelist"` // 管理员IP白名单列表
@@ -234,6 +240,14 @@ func loadEnvOverrides(env string) {
 	}
 	if v := os.Getenv("COS_DOMAIN"); v != "" {
 		Cfg.COS.Domain = v
+	}
+
+	// EasyImage简单图床配置覆盖
+	if v := os.Getenv("EASYIMAGE_API_URL"); v != "" {
+		Cfg.EasyImage.ApiURL = v
+	}
+	if v := os.Getenv("EASYIMAGE_TOKEN"); v != "" {
+		Cfg.EasyImage.Token = v
 	}
 }
 

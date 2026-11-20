@@ -6,7 +6,7 @@
  * 系统用户：Administrator
  * 作　　者：無以菱
  * 联系邮箱：huangjing510@126.com
- * 功能描述：对象存储工具函数，提供本地存储、阿里云OSS和腾讯云COS的统一文件上传接口
+ * 功能描述：对象存储工具函数，提供本地存储、阿里云OSS、腾讯云COS和EasyImage简单图床的统一文件上传接口
  */
 package util
 
@@ -33,9 +33,10 @@ import (
 type StorageType string
 
 const (
-	StorageLocal StorageType = "local" // 本地存储
-	StorageOSS   StorageType = "oss"   // 阿里云OSS对象存储
-	StorageCOS   StorageType = "cos"   // 腾讯云COS对象存储
+	StorageLocal     StorageType = "local"     // 本地存储
+	StorageOSS       StorageType = "oss"       // 阿里云OSS对象存储
+	StorageCOS       StorageType = "cos"       // 腾讯云COS对象存储
+	StorageEasyImage StorageType = "easyimage" // EasyImage简单图床
 )
 
 // getUploadSettings 从数据库获取上传配置（仅存储类型）
@@ -66,6 +67,8 @@ func GetStorageType() StorageType {
 		return StorageOSS
 	case string(StorageCOS):
 		return StorageCOS
+	case string(StorageEasyImage):
+		return StorageEasyImage
 	}
 	return StorageLocal
 }
@@ -79,6 +82,8 @@ func UploadFile(file *multipart.FileHeader, dir string) (string, error) {
 		return UploadToOSS(file, dir)
 	case StorageCOS:
 		return UploadToCOS(file, dir)
+	case StorageEasyImage:
+		return UploadToEasyImage(file, dir)
 	default:
 		// 本地存储
 		filePath, err := SaveUploadedFile(file, dir)
@@ -365,6 +370,12 @@ func DeleteFileByURL(fileURL string) error {
 		return DeleteCOSFile(fileURL)
 	}
 
+	// EasyImage 文件：删除必须使用上传时返回的一次性 del 链接，
+	// 无法事后按 URL 构造删除请求，暂不支持删除，直接跳过
+	if isEasyImageFile(fileURL) {
+		return nil
+	}
+
 	// 本地文件
 	// 将 URL 转换为本地路径
 	filePath := strings.TrimPrefix(fileURL, "/")
@@ -415,6 +426,21 @@ func isCOSFile(fileURL string) bool {
 	}
 
 	return false
+}
+
+// isEasyImageFile 判断是否为 EasyImage 文件（按 API 地址的协议+主机前缀匹配）
+func isEasyImageFile(fileURL string) bool {
+	apiURL := config.Cfg.EasyImage.ApiURL
+	if apiURL == "" {
+		return false
+	}
+
+	u, err := url.Parse(apiURL)
+	if err != nil || u.Host == "" {
+		return false
+	}
+
+	return strings.HasPrefix(fileURL, u.Scheme+"://"+u.Host)
 }
 
 // ValidateOSSConfig 验证 OSS 配置是否有效
