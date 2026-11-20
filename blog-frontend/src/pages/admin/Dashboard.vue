@@ -9,42 +9,16 @@
  -->
 <template>
   <div class="dashboard-page">
-    <h1 style="margin-bottom: 24px">仪表盘</h1>
-
     <!-- 统计卡片 -->
     <n-grid cols="1 s:2 m:4" :x-gap="16" :y-gap="16" responsive="screen">
-      <n-gi>
-        <n-card>
-          <n-statistic label="文章总数" :value="stats.posts">
+      <n-gi v-for="item in statCards" :key="item.key">
+        <n-card class="stat-card" :class="`stat-card--${item.key}`" hoverable @click="router.push(item.to)">
+          <n-skeleton v-if="loading" width="60%" :sharp="false" />
+          <n-statistic v-else :label="item.label" :value="item.value">
             <template #prefix>
-              <n-icon :component="DocumentTextOutline" />
-            </template>
-          </n-statistic>
-        </n-card>
-      </n-gi>
-      <n-gi>
-        <n-card>
-          <n-statistic label="用户总数" :value="stats.users">
-            <template #prefix>
-              <n-icon :component="PeopleOutline" />
-            </template>
-          </n-statistic>
-        </n-card>
-      </n-gi>
-      <n-gi>
-        <n-card>
-          <n-statistic label="评论总数" :value="stats.comments">
-            <template #prefix>
-              <n-icon :component="ChatbubblesOutline" />
-            </template>
-          </n-statistic>
-        </n-card>
-      </n-gi>
-      <n-gi>
-        <n-card>
-          <n-statistic label="总浏览量" :value="stats.views">
-            <template #prefix>
-              <n-icon :component="EyeOutline" />
+              <div class="stat-icon">
+                <n-icon :component="item.icon" :size="20" />
+              </div>
             </template>
           </n-statistic>
         </n-card>
@@ -55,48 +29,42 @@
     <n-grid cols="1 m:2" :x-gap="16" :y-gap="16" style="margin-top: 24px" responsive="screen">
       <n-gi>
         <n-card title="文章分类统计">
-          <div ref="categoryChartRef" :style="chartStyle"></div>
+          <div v-show="categoryStats.length > 0" ref="categoryChartRef" :style="chartStyle"></div>
+          <n-empty
+            v-if="categoryStats.length === 0"
+            description="暂无分类数据"
+            :style="{ height: chartStyle.height }"
+          />
         </n-card>
       </n-gi>
       <n-gi>
         <n-card title="最近7天访问量">
-          <div ref="visitChartRef" :style="chartStyle"></div>
+          <div v-show="visitStats.length > 0" ref="visitChartRef" :style="chartStyle"></div>
+          <n-empty
+            v-if="visitStats.length === 0"
+            description="暂无访问数据"
+            :style="{ height: chartStyle.height }"
+          />
         </n-card>
       </n-gi>
     </n-grid>
 
     <!-- 快捷操作 -->
     <n-card title="快捷操作" style="margin-top: 24px">
-      <n-space :wrap="true">
-        <n-button type="primary" @click="router.push('/admin/posts')">
-          <template #icon>
-            <n-icon :component="AddOutline" />
-          </template>
-          写文章
-        </n-button>
-        <n-button @click="router.push('/admin/categories')">
-          <template #icon>
-            <n-icon :component="FolderOutline" />
-          </template>
-          管理分类
-        </n-button>
-        <n-button @click="router.push('/admin/tags')">
-          <template #icon>
-            <n-icon :component="PricetagsOutline" />
-          </template>
-          管理标签
-        </n-button>
-      </n-space>
-    </n-card>
-
-    <!-- 系统信息 -->
-    <n-card title="系统信息" style="margin-top: 24px">
-      <n-descriptions :column="isMobile ? 1 : 2">
-        <n-descriptions-item label="系统版本">v8.0.0</n-descriptions-item>
-        <n-descriptions-item label="Vue版本">3.3.4</n-descriptions-item>
-        <n-descriptions-item label="数据库">PostgreSQL</n-descriptions-item>
-        <n-descriptions-item label="后端框架">Go + Gin</n-descriptions-item>
-      </n-descriptions>
+      <div class="quick-actions">
+        <div
+          v-for="action in quickActions"
+          :key="action.label"
+          class="quick-action-item"
+          @click="router.push(action.to)"
+        >
+          <div class="quick-action-icon" :style="{ background: action.bg, color: action.color }">
+            <n-icon :component="action.icon" :size="22" />
+          </div>
+          <span class="quick-action-label">{{ action.label }}</span>
+          <n-badge v-if="action.badge" :value="action.badge" :max="99" />
+        </div>
+      </div>
     </n-card>
   </div>
 </template>
@@ -121,14 +89,19 @@ import {
   EyeOutline,
   AddOutline,
   FolderOutline,
-  PricetagsOutline
+  PricetagsOutline,
+  ImagesOutline,
+  ChatboxOutline,
+  CheckmarkDoneOutline,
+  CloudUploadOutline
 } from '@vicons/ionicons5'
-import { useAppStore } from '@/stores'
+import { useAppStore, useAuthStore } from '@/stores'
 import { getDashboardStats, getCategoryStats, getVisitStats } from '@/api'
 import type { DashboardStats, CategoryStat, VisitStat } from '@/api'
 
 const router = useRouter()
 const appStore = useAppStore()
+const authStore = useAuthStore()
 const message = useMessage()
 
 const stats = ref<DashboardStats>({
@@ -137,6 +110,64 @@ const stats = ref<DashboardStats>({
   comments: 0,
   views: 0
 })
+
+// 统计卡片配置：可点击跳转到对应管理页
+const statCards = computed(() => [
+  {
+    key: 'posts',
+    label: '文章总数',
+    value: stats.value.posts.toLocaleString(),
+    to: '/admin/posts',
+    icon: DocumentTextOutline
+  },
+  {
+    key: 'users',
+    label: '用户总数',
+    value: stats.value.users.toLocaleString(),
+    to: '/admin/users',
+    icon: PeopleOutline
+  },
+  {
+    key: 'comments',
+    label: '评论总数',
+    value: stats.value.comments.toLocaleString(),
+    to: '/admin/comments',
+    icon: ChatbubblesOutline
+  },
+  {
+    key: 'views',
+    label: '总浏览量',
+    value: stats.value.views.toLocaleString(),
+    to: '/',
+    icon: EyeOutline
+  }
+])
+
+// 快捷操作入口：根据角色过滤（部分入口仅 super_admin 可见），badge 预留待审数量展示
+interface QuickAction {
+  label: string
+  to: string
+  icon: typeof AddOutline
+  bg: string
+  color: string
+  superOnly: boolean
+  badge?: number
+}
+
+const allQuickActions: QuickAction[] = [
+  { label: '写文章', to: '/admin/posts', icon: AddOutline, bg: 'rgba(8, 145, 178, 0.12)', color: '#0891b2', superOnly: false },
+  { label: '上传 Markdown', to: '/admin/posts', icon: CloudUploadOutline, bg: 'rgba(5, 150, 105, 0.12)', color: '#059669', superOnly: false },
+  { label: '管理分类', to: '/admin/categories', icon: FolderOutline, bg: 'rgba(217, 119, 6, 0.12)', color: '#d97706', superOnly: false },
+  { label: '管理标签', to: '/admin/tags', icon: PricetagsOutline, bg: 'rgba(2, 132, 199, 0.12)', color: '#0284c7', superOnly: false },
+  { label: '评论管理', to: '/admin/comments', icon: ChatbubblesOutline, bg: 'rgba(124, 58, 237, 0.12)', color: '#7c3aed', superOnly: false },
+  { label: '说说管理', to: '/admin/moments', icon: ChatboxOutline, bg: 'rgba(236, 72, 153, 0.12)', color: '#ec4899', superOnly: false },
+  { label: '图片管理', to: '/admin/images', icon: ImagesOutline, bg: 'rgba(13, 148, 136, 0.12)', color: '#0d9488', superOnly: true },
+  { label: '审批管理', to: '/admin/post-revisions', icon: CheckmarkDoneOutline, bg: 'rgba(239, 68, 68, 0.12)', color: '#ef4444', superOnly: true }
+]
+
+const quickActions = computed(() =>
+  allQuickActions.filter(action => !action.superOnly || authStore.isSuperAdmin)
+)
 
 const categoryStats = ref<CategoryStat[]>([])
 const visitStats = ref<VisitStat[]>([])
@@ -162,7 +193,6 @@ function checkMobile() {
 // 获取统计数据
 async function fetchStats() {
   try {
-    loading.value = true
     const res = await getDashboardStats()
     if (res.data) {
       stats.value = res.data
@@ -170,8 +200,6 @@ async function fetchStats() {
   } catch (error) {
     message.error('获取统计数据失败')
     console.error(error)
-  } finally {
-    loading.value = false
   }
 }
 
@@ -216,10 +244,10 @@ onMounted(async () => {
   // 检测移动设备
   checkMobile()
 
-  // 获取统计数据
-  await fetchStats()
-  await fetchCategoryStats()
-  await fetchVisitStats()
+  // 并行获取所有统计数据，缩短首屏时间
+  loading.value = true
+  await Promise.all([fetchStats(), fetchCategoryStats(), fetchVisitStats()])
+  loading.value = false
 
   // 监听窗口大小变化
   window.addEventListener('resize', handleResize)
@@ -233,12 +261,15 @@ onUnmounted(() => {
 
 function handleResize() {
   checkMobile()
-  // 重新初始化图表以应用响应式配置
-  initCategoryChart()
-  initVisitChart()
-  categoryChart?.resize()
-  visitChart?.resize()
+  // 防抖：拖动窗口时避免频繁重绘图表
+  if (resizeTimer) window.clearTimeout(resizeTimer)
+  resizeTimer = window.setTimeout(() => {
+    categoryChart?.resize()
+    visitChart?.resize()
+  }, 200)
 }
+
+let resizeTimer: number | undefined
 
 // 初始化分类统计饼图
 function initCategoryChart() {
@@ -248,7 +279,9 @@ function initCategoryChart() {
     categoryChart = echarts.init(categoryChartRef.value)
   }
 
-  // 默认颜色方案
+  const isDark = appStore.theme === 'dark'
+
+  // 默认颜色方案：感知均匀色板，分类未设色/撞色时兜底，保证扇区间区分度
   const defaultColors = [
     '#5470c6',
     '#91cc75',
@@ -260,14 +293,25 @@ function initCategoryChart() {
     '#9a60b4'
   ]
 
-  // 转换数据格式
-  const chartData = categoryStats.value.map((item, index) => ({
-    value: item.value,
-    name: item.name,
-    itemStyle: {
-      color: item.color || defaultColors[index % defaultColors.length]
+  // 按数量降序排列，图例与扇区顺序一致，小分类沉底
+  const sorted = [...categoryStats.value].sort((a, b) => b.value - a.value)
+
+  // 转换数据格式：已设色的沿用分类色；未设色或与前面分类撞色时用兜底色板
+  const usedColors = new Set<string>()
+  const chartData = sorted.map((item, index) => {
+    let color = item.color?.trim()
+    if (!color || usedColors.has(color.toLowerCase())) {
+      color = defaultColors[index % defaultColors.length]
     }
-  }))
+    usedColors.add(color.toLowerCase())
+    return {
+      value: item.value,
+      name: item.name,
+      itemStyle: {
+        color
+      }
+    }
+  })
 
   // 获取容器实际宽度
   const containerWidth = categoryChartRef.value.clientWidth
@@ -276,6 +320,11 @@ function initCategoryChart() {
   const isNarrow = containerWidth < 500
 
   // 超小屏：图例在底部水平排列；窄屏：图例在右侧垂直排列；正常：同窄屏
+  // formatter 带上数量，图例即是迷你统计表
+  const legendFormatter = (name: string) => {
+    const found = sorted.find(item => item.name === name)
+    return found ? `${name}  ${found.value}` : name
+  }
   const legendConfig = isExtraSmall
     ? {
         type: 'scroll',
@@ -283,6 +332,7 @@ function initCategoryChart() {
         bottom: 0,
         left: 'center',
         padding: [8, 0, 0, 0],
+        formatter: legendFormatter,
         textStyle: {
           color: appStore.theme === 'dark' ? '#fff' : '#333',
           fontSize: 11,
@@ -303,6 +353,7 @@ function initCategoryChart() {
         right: '2%',
         top: 'middle',
         padding: [5, 10],
+        formatter: legendFormatter,
         textStyle: {
           color: appStore.theme === 'dark' ? '#fff' : '#333',
           fontSize: 12,
@@ -334,7 +385,8 @@ function initCategoryChart() {
         avoidLabelOverlap: true,
         itemStyle: {
           borderRadius: 8,
-          borderColor: '#fff',
+          // 扇区分隔色跟随主题，避免深色模式下白边刺眼
+          borderColor: isDark ? '#1e293b' : '#fff',
           borderWidth: 2
         },
         label: {
@@ -487,10 +539,14 @@ function initVisitChart() {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* 上浮动效只给统计卡和快捷入口，图表卡片保持稳定避免晃眼 */
 .dashboard-page :deep(.n-card:hover) {
-  transform: translateY(-4px);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
   border-color: rgba(8, 145, 178, 0.3);
+}
+
+.dashboard-page :deep(.n-card.stat-card:hover) {
+  transform: translateY(-4px);
 }
 
 /* 深色模式卡片 */
@@ -503,6 +559,60 @@ html.dark .dashboard-page :deep(.n-card) {
 html.dark .dashboard-page :deep(.n-card:hover) {
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
   border-color: rgba(56, 189, 248, 0.3);
+}
+
+/* 统计卡片：可点击跳转，彩色图标块区分指标 */
+.stat-card {
+  cursor: pointer;
+}
+
+.stat-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-card--posts .stat-icon {
+  background: rgba(8, 145, 178, 0.12);
+  color: #0891b2;
+}
+
+.stat-card--users .stat-icon {
+  background: rgba(5, 150, 105, 0.12);
+  color: #059669;
+}
+
+.stat-card--comments .stat-icon {
+  background: rgba(217, 119, 6, 0.12);
+  color: #d97706;
+}
+
+.stat-card--views .stat-icon {
+  background: rgba(2, 132, 199, 0.12);
+  color: #0284c7;
+}
+
+html.dark .stat-card--posts .stat-icon {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+}
+
+html.dark .stat-card--users .stat-icon {
+  background: rgba(74, 222, 128, 0.15);
+  color: #4ade80;
+}
+
+html.dark .stat-card--comments .stat-icon {
+  background: rgba(251, 191, 36, 0.15);
+  color: #fbbf24;
+}
+
+html.dark .stat-card--views .stat-icon {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
 }
 
 /* 统计数字样式优化 */
@@ -521,24 +631,65 @@ html.dark .dashboard-page :deep(.n-statistic .n-statistic-value) {
   background-clip: text;
 }
 
-/* 快捷操作按钮样式 */
-.dashboard-page :deep(.n-button) {
-  font-weight: 600;
-  transition: all 0.3s;
+/* 快捷操作图标网格 */
+.quick-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 12px;
 }
 
-.dashboard-page :deep(.n-button:hover) {
+.quick-action-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 8px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.quick-action-item:hover {
+  background: rgba(8, 145, 178, 0.06);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(8, 145, 178, 0.3);
 }
 
-/* 系统信息卡片 */
-.dashboard-page :deep(.n-descriptions-item-label) {
-  font-weight: 600;
-  color: #64748b;
+html.dark .quick-action-item:hover {
+  background: rgba(56, 189, 248, 0.08);
 }
 
-html.dark .dashboard-page :deep(.n-descriptions-item-label) {
-  color: #94a3b8;
+.quick-action-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+
+.quick-action-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #475569;
+}
+
+html.dark .quick-action-label {
+  color: #cbd5e1;
+}
+
+.quick-action-item .n-badge {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+}
+
+/* 减少动效偏好时关闭上浮 */
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-page :deep(.n-card.stat-card:hover),
+  .quick-action-item:hover {
+    transform: none;
+  }
+}
+
 </style>
