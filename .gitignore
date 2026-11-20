@@ -80,8 +80,7 @@ coverage/
 # Vite  Vite 相关配置/缓存
 *.local
 
-# Auto-generated frontend files（锁文件和自动生成的类型声明不需要提交）  前端自动生成文件，无需提交
-blog-frontend/pnpm-lock.yaml
+# Auto-generated frontend files（自动生成的类型声明不需要提交）  前端自动生成文件，无需提交
 blog-frontend/src/types/auto-imports.d.ts
 blog-frontend/src/types/components.d.ts
 
