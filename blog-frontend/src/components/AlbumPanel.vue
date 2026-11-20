@@ -1,16 +1,15 @@
 <!--
  * @ProjectName: go-vue3-blog
- * @FileName: AlbumManage.vue
- * @CreateTime: 2026-02-02 11:43:17
+ * @FileName: AlbumPanel.vue
+ * @CreateTime: 2026-11-20 10:00:00
  * @SystemUser: Administrator
  * @Author: 無以菱
  * @Contact: huangjing510@126.com
- * @Description: 相册管理页面组件，提供相册图片的增删改查功能
+ * @Description: 相册管理面板组件，由图片管理页面「我的相册」Tab 承载，提供相册图片的增删改查功能
  -->
 <template>
-  <div class="album-manage-page">
-    <div class="header">
-      <h1>我的相册</h1>
+  <div class="album-panel">
+    <div class="panel-toolbar">
       <n-space>
         <!-- 视图切换按钮（仅桌面端显示） -->
         <n-button-group v-if="!isMobile" size="small">
@@ -263,6 +262,7 @@ const columns: DataTableColumns<Album> = [
         [
           h('img', {
             src: row.image_url,
+            loading: 'lazy',
             style: {
               width: '80px',
               height: '80px',
@@ -434,37 +434,15 @@ watch(viewMode, newMode => {
 </script>
 
 <style scoped>
-.album-manage-page {
-  padding: 20px;
+.album-panel {
+  padding: 4px 0;
 }
 
-.header {
+.panel-toolbar {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
-  margin-bottom: 20px;
-}
-
-.header h1 {
-  margin: 0;
-  font-size: 24px;
-  font-weight: 600;
-}
-
-@media (max-width: 1100px) {
-  .album-manage-page {
-    padding: 12px;
-  }
-
-  .header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-
-  .header h1 {
-    font-size: 20px;
-  }
+  margin-bottom: 12px;
 }
 
 /* 卡片列表样式 */

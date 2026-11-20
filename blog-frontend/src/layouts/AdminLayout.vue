@@ -308,8 +308,8 @@ const baseMenuOptions = [
         icon: renderIcon(PersonOutline)
       },
       {
-        label: '我的相册',
-        key: 'AlbumManage',
+        label: '图片管理',
+        key: 'ImageManage',
         icon: renderIcon(ImagesOutline)
       }
     ]
@@ -324,7 +324,7 @@ const menuOptions = computed(() => {
     'SiteSettings',
     'AboutManage',
     'FriendLinkManage',
-    'AlbumManage',
+    'ImageManage',
     'OperationLogManage',
     'SubscriberManage',
     'PostRevisionManage'

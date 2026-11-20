@@ -295,10 +295,10 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '编辑记录', requiresAuth: true, requiresAdmin: true }
       },
       {
-        path: 'album',
-        name: 'AlbumManage',
-        component: () => import('@/pages/admin/AlbumManage.vue'),
-        meta: { title: '我的相册', requiresAuth: true, requiresAdmin: true, roles: ['super_admin'] }
+        path: 'images',
+        name: 'ImageManage',
+        component: () => import('@/pages/admin/ImageManage.vue'),
+        meta: { title: '图片管理', requiresAuth: true, requiresAdmin: true, roles: ['super_admin'] }
       }
     ]
   },
