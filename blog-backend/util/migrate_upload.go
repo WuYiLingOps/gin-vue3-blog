@@ -263,7 +263,7 @@ func uploadBytesToEasyImage(data []byte, contentType, filename string) (string, 
 		return "", fmt.Errorf("上传到 EasyImage 失败（HTTP %d）", resp.StatusCode)
 	}
 
-	return result.URL, nil
+	return normalizeEasyImageURL(result.URL), nil
 }
 
 // saveMigratedFileLocal 保存迁移文件到本地 uploads 目录
