@@ -676,17 +676,23 @@ easyimage:
   api_url: "http://img.example.com/api/index.php"
   # 图床后台生成的 API token
   token: "your-easyimage-token"
+  # 可选：图片访问域名（含协议）。设置后强制按它改写上传返回的图片 URL
+  # 适用场景：图床站点配置了 https，但上传接口返回的图片链接仍是 http（EasyImage 特性），
+  # 会造成 https 页面 mixed content 图片不加载；也可用于指向图床的 CDN 自定义域名
+  # domain: "https://img.example.com"
 ```
 
 > 说明：
 > - 需在 EasyImage 图床后台开启「图床安全 → API上传」，并生成 API token；
 > - 上传成功后返回图床站点的完整 URL；
+> - **返回 URL 协议纠正**：未配置 `domain` 时，若 `api_url` 为 https 且图床返回的图片链接与它同主机名但协议是 http，会自动升级为 https；配置了 `domain` 则强制按 domain 的协议+域名改写（host 不同的第三方 CDN 场景也可用）；
+> - **来源识别按主机名匹配**：图片 URL 与 `api_url` 主机名相同即识别为 EasyImage（忽略 http/https 差异）；
 > - **暂不支持删除联动**：EasyImage 删除图片必须使用上传时返回的一次性 del 链接，无法事后按 URL 构造删除请求，因此删除博客内容时图床上的文件不会被删除。
 
 > 说明：
 > - 存储类型的开关（local / oss / cos / easyimage）保存在数据库的系统设置中，通过管理后台页面修改；
 > - OSS / COS / EasyImage 的连接参数通过 `config-dev.yml` / `config-prod.yml` 加载；
-> - 如需在不同环境中安全管理敏感信息（如密钥、密码），可在后端项目根目录（`blog-backend/`）创建对应的 `.env.config.<env>` 文件（如 `.env.config.dev` / `.env.config.prod`），覆盖配置文件中的默认值（EasyImage 对应环境变量 `EASYIMAGE_API_URL`、`EASYIMAGE_TOKEN`）。
+> - 如需在不同环境中安全管理敏感信息（如密钥、密码），可在后端项目根目录（`blog-backend/`）创建对应的 `.env.config.<env>` 文件（如 `.env.config.dev` / `.env.config.prod`），覆盖配置文件中的默认值（EasyImage 对应环境变量 `EASYIMAGE_API_URL`、`EASYIMAGE_TOKEN`、`EASYIMAGE_DOMAIN`）。
 
 ### 图片管理与迁移
 
