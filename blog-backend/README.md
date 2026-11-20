@@ -723,7 +723,7 @@ easyimage:
 > - **EasyImage 无法 API 删除**：迁移后需登录 EasyImage 图床后台手动清理源文件；
 > - **外链图片**：文章中引用的第三方图床 URL 会被识别为「外链」，可迁入自有图床，但源文件无法删除；
 > - **settings 配置仅收录图片类 URL**：系统配置中的社交链接（social_gitee 等）、站点地址（site_url）等非图片 URL 不会出现在盘点结果中；JSON 配置内嵌的图片字段（avatar/img/cover/icon 等）会被提取；
-> - **来源识别规则**：本地 `/uploads/` 路径按本地存储识别；腾讯云 COS（`*.cos.*.myqcloud.com`）与阿里云 OSS（`*.oss*.aliyuncs.com`）的标准域名按厂商格式识别，无论 bucket 是否在当前配置中；自定义域名和 EasyImage 按当前 `config` 中的域名前缀识别。历史 bucket 与当前配置不一致的图片会显示正确厂商但「可删源」为否（无密钥无法 API 删除）；
+> - **来源识别规则**：本地存储识别两类 URL——库内相对路径 `/uploads/...`，以及**本站域名**（`config` 的 `blog_url` 或管理后台 `site_url`）下的 `/uploads/` 绝对 URL（历史上传可能存了完整域名 URL）；腾讯云 COS（`*.cos.*.myqcloud.com`）与阿里云 OSS（`*.oss*.aliyuncs.com`）的标准域名按厂商格式识别，无论 bucket 是否在当前配置中；EasyImage 按当前 `config` 中 `api_url` 的**主机名**匹配（忽略 http/https 差异）。历史 bucket 与当前配置不一致的图片会显示正确厂商但「可删源」为否（无密钥无法 API 删除）；
 > - **单张上限 50MB**：迁移通道放宽了普通上传的 5MB 限制，但仅支持 jpg/png/gif/webp 格式；
 > - **替换范围**：替换覆盖 `posts`/`post_revisions`/`users`/`moments`/`albums`/`friend_links`/`chat_messages`/`settings` 中原样出现的 URL（含 markdown 正文内嵌图），迁移完成后站内所有引用处会自动指向新地址；单图失败仅跳过该图，不影响其他图片；
 > - **迁移任务为进程内单例**：同一时间只允许一个迁移任务，服务重启后最近一次任务结果不再可查（数据库替换在任务内已完成，不受影响）。
