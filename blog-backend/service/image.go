@@ -303,8 +303,12 @@ func checkImageAssetsAlive(assets []ImageAsset) {
 
 		// 本地存储：直接查文件系统（同步，开销极小）
 		if asset.StorageType == string(util.StorageLocal) {
-			localPath := strings.TrimPrefix(asset.URL, "/")
-			if _, err := os.Stat(localPath); err != nil {
+			localPath := localUploadDiskPath(asset.URL)
+			if localPath == "" {
+				// 既非相对路径也非本站绝对 URL，无法定位磁盘文件，不标记失效
+				live := true
+				asset.Alive = &live
+			} else if _, err := os.Stat(localPath); err != nil {
 				dead := false
 				asset.Alive = &dead
 			} else {
@@ -328,8 +332,21 @@ func checkImageAssetsAlive(assets []ImageAsset) {
 	wg.Wait()
 }
 
+// localUploadDiskPath 从本地存储类 URL 中提取服务器磁盘路径
+// 支持两种形态：相对路径 /uploads/x.jpg → uploads/x.jpg；
+// 本站绝对 URL https://host/uploads/x.jpg → uploads/x.jpg（截取 /uploads/ 及之后部分）
+// 非 /uploads/ 路径返回空串
+func localUploadDiskPath(imgURL string) string {
+	idx := strings.Index(imgURL, "/uploads/")
+	if idx == -1 {
+		return ""
+	}
+	return imgURL[idx+1:]
+}
+
 // probeRemoteImageAlive 探测远程图片是否可访问
-// 优先 HEAD（不下载内容）；405/501 等不支持 HEAD 的响应退化为 GET（只读响应头即判定）
+// HEAD 非 2xx 一律退化为 GET 重试（部分图床/CDN/防火墙对 HEAD 返回 403/405，但 GET 正常）；
+// GET 以 2xx/3xx 判活（重定向到实际图片地址也算可访问）
 func probeRemoteImageAlive(imgURL string) bool {
 	client := &http.Client{Timeout: aliveCheckTimeout}
 
@@ -348,11 +365,11 @@ func probeRemoteImageAlive(imgURL string) bool {
 		// 读完并关闭 body（HEAD 无 body；GET 时只取少量字节避免拉全图）
 		io.Copy(io.Discard, io.LimitReader(resp.Body, 1024))
 
-		if resp.StatusCode >= 200 && resp.StatusCode < 300 {
+		if resp.StatusCode >= 200 && resp.StatusCode < 400 {
 			return true, true
 		}
-		// 4xx/5xx：405 Method Not Allowed 表示不支持该 method，提示换 GET 重试
-		if resp.StatusCode == http.StatusMethodNotAllowed && method == http.MethodHead {
+		// HEAD 被拒（403/405 等）时换 GET 重试；GET 仍失败才判死
+		if method == http.MethodHead {
 			return false, false // 需要退化为 GET
 		}
 		return false, true
@@ -618,30 +635,18 @@ const migrateImageTimeout = 60 * time.Second
 // downloadImageForMigrate 下载图片内容
 // 本地存储 URL 直接读本地文件（同机部署时无需 HTTP），远程 URL 走 HTTP（GitHub raw 走代理）
 func downloadImageForMigrate(imgURL string) ([]byte, string, string, error) {
-	// 本地相对路径直接读盘
-	if strings.HasPrefix(imgURL, "/uploads/") {
-		localPath := strings.TrimPrefix(imgURL, "/")
+	// 本地存储（相对路径或本站绝对 URL）：文件在服务器本地磁盘，直接读盘
+	if strings.HasPrefix(imgURL, "/uploads/") || util.IsLocalSiteUploadURL(imgURL) {
+		localPath := localUploadDiskPath(imgURL)
+		if localPath == "" {
+			return nil, "", "", fmt.Errorf("无法从 URL 定位本地文件: %s", imgURL)
+		}
 		data, err := os.ReadFile(localPath)
 		if err != nil {
 			return nil, "", "", fmt.Errorf("读取本地文件失败: %w", err)
 		}
 		contentType := guessContentType(localPath)
 		return data, contentType, filepath.Base(localPath), nil
-	}
-
-	// 本站域名下的 /uploads/ 绝对 URL：文件同样在服务器本地磁盘，直接读盘
-	// （历史上传存了带站点域名的完整 URL，如 https://example.com/uploads/avatars/x.jpg）
-	if util.IsLocalSiteUploadURL(imgURL) {
-		idx := strings.Index(imgURL, "/uploads/")
-		if idx != -1 {
-			localPath := imgURL[idx+1:] // 去掉域名部分，保留 uploads/ 开头
-			data, err := os.ReadFile(localPath)
-			if err != nil {
-				return nil, "", "", fmt.Errorf("读取本地文件失败: %w", err)
-			}
-			contentType := guessContentType(localPath)
-			return data, contentType, filepath.Base(localPath), nil
-		}
 	}
 
 	// 远程 URL：GitHub raw 图片走代理
