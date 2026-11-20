@@ -616,18 +616,19 @@ proxy: {
 
 ### 存储类型
 
-当前支持三种存储方式：
+当前支持四种存储方式：
 
 1. **本地存储（local）**：文件保存在服务器本地 `uploads` 目录
 2. **阿里云 OSS 存储（oss）**：文件上传到阿里云对象存储
 3. **腾讯云 COS 存储（cos）**：文件上传到腾讯云对象存储
+4. **EasyImage 简单图床（easyimage）**：文件上传到自建 EasyImage 图床站点
 
 可以在管理后台的「网站设置 → 上传存储配置」中切换存储类型。
 
 #### 用户角色与存储策略
 
-- **普通用户上传头像**：强制使用本地存储，无论后台配置如何，都不会上传到 OSS/COS，节省云存储成本
-- **管理员上传头像**：根据后台配置的存储类型选择存储方式（本地/OSS/COS）
+- **普通用户上传头像**：强制使用本地存储，无论后台配置如何，都不会上传到 OSS/COS/EasyImage，节省云存储成本
+- **管理员上传头像**：根据后台配置的存储类型选择存储方式（本地/OSS/COS/EasyImage）
 - **图片上传（通用）**：所有用户都根据后台配置的存储类型选择存储方式
 
 #### 阿里云 OSS 配置示例
@@ -665,10 +666,27 @@ cos:
   # domain: "https://static.example.com"
 ```
 
+#### EasyImage 简单图床配置示例
+
+在 `config/config-dev.yml` 或 `config/config-prod.yml` 中配置 `easyimage` 节点（示例）：
+
+```yaml
+easyimage:
+  # 完整上传接口地址（EasyImage 站点的 /api/index.php）
+  api_url: "http://img.example.com/api/index.php"
+  # 图床后台生成的 API token
+  token: "your-easyimage-token"
+```
+
 > 说明：
-> - 存储类型的开关（local / oss / cos）保存在数据库的系统设置中，通过管理后台页面修改；
-> - OSS / COS 的连接参数通过 `config-dev.yml` / `config-prod.yml` 加载；
-> - 如需在不同环境中安全管理敏感信息（如密钥、密码），可在后端项目根目录（`blog-backend/`）创建对应的 `.env.config.<env>` 文件（如 `.env.config.dev` / `.env.config.prod`），覆盖配置文件中的默认值。
+> - 需在 EasyImage 图床后台开启「图床安全 → API上传」，并生成 API token；
+> - 上传成功后返回图床站点的完整 URL；
+> - **暂不支持删除联动**：EasyImage 删除图片必须使用上传时返回的一次性 del 链接，无法事后按 URL 构造删除请求，因此删除博客内容时图床上的文件不会被删除。
+
+> 说明：
+> - 存储类型的开关（local / oss / cos / easyimage）保存在数据库的系统设置中，通过管理后台页面修改；
+> - OSS / COS / EasyImage 的连接参数通过 `config-dev.yml` / `config-prod.yml` 加载；
+> - 如需在不同环境中安全管理敏感信息（如密钥、密码），可在后端项目根目录（`blog-backend/`）创建对应的 `.env.config.<env>` 文件（如 `.env.config.dev` / `.env.config.prod`），覆盖配置文件中的默认值（EasyImage 对应环境变量 `EASYIMAGE_API_URL`、`EASYIMAGE_TOKEN`）。
 
 ---
 

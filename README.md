@@ -1419,8 +1419,8 @@ myBlog/
 ## 9.7 上传相关
 
 - `POST /api/upload/avatar` - 上传头像（需认证）
-  - 普通用户：强制使用本地存储，不上传到 OSS/COS
-  - 管理员：根据后台配置选择存储方式（本地/OSS/COS）
+  - 普通用户：强制使用本地存储，不上传到 OSS/COS/EasyImage
+  - 管理员：根据后台配置选择存储方式（本地/OSS/COS/EasyImage）
 - `POST /api/upload/image` - 上传通用图片（需认证，根据配置选择存储方式）
 - `POST /api/upload/photo-album` - 上传相册图片（需认证，存储到 `uploads/photoAlbum/`）
 - `POST /api/upload/friend-link` - 上传友链图片（需认证，存储到 `uploads/friendLinks/`）
