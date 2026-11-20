@@ -93,6 +93,7 @@ func SetupRouter() (*gin.Engine, *service.NotificationService) {
 	subscriberHandler := handler.NewSubscriberHandler(config.Cfg)
 	rssHandler := handler.NewRSSHandler(config.Cfg)
 	notificationHandler := handler.NewNotificationHandler(notificationHub, notificationService)
+	imageHandler := handler.NewImageHandler()
 
 	// 健康检查接口（用于服务监控和负载均衡器健康检查）
 	r.GET("/health", func(c *gin.Context) {
@@ -118,7 +119,7 @@ func SetupRouter() (*gin.Engine, *service.NotificationService) {
 		setupSubscriberRoutes(api, subscriberHandler)                                                                                                                                                                                     // 邮件订阅路由
 		setupRSSRoutes(api, rssHandler)                                                                                                                                                                                                   // RSS 订阅路由
 		setupNotificationRoutes(api, notificationHandler)                                                                                                                                                                                 // 通知路由
-		setupAdminRoutes(api, userHandler, postHandler, postRevisionHandler, commentHandler, dashboardHandler, momentHandler, ipBlacklistHandler, ipWhitelistHandler, chatHandler, friendLinkHandler, friendLinkCategoryHandler, settingHandler, albumHandler, operationLogHandler, subscriberHandler, rssHandler, notificationHandler) // 管理后台路由
+		setupAdminRoutes(api, userHandler, postHandler, postRevisionHandler, commentHandler, dashboardHandler, momentHandler, ipBlacklistHandler, ipWhitelistHandler, chatHandler, friendLinkHandler, friendLinkCategoryHandler, settingHandler, albumHandler, operationLogHandler, subscriberHandler, rssHandler, notificationHandler, imageHandler) // 管理后台路由
 	}
 
 	return r, notificationService
@@ -426,7 +427,7 @@ func setupChatRoutes(api *gin.RouterGroup, h *handler.ChatHandler) {
 //   - subscriberHandler: 订阅者处理器实例
 //   - rssHandler: RSS 处理器实例
 //   - notificationHandler: 通知处理器实例
-func setupAdminRoutes(api *gin.RouterGroup, userHandler *handler.UserHandler, postHandler *handler.PostHandler, postRevisionHandler *handler.PostRevisionHandler, commentHandler *handler.CommentHandler, dashboardHandler *handler.DashboardHandler, momentHandler *handler.MomentHandler, ipBlacklistHandler *handler.IPBlacklistHandler, ipWhitelistHandler *handler.IPWhitelistHandler, chatHandler *handler.ChatHandler, friendLinkHandler *handler.FriendLinkHandler, friendLinkCategoryHandler *handler.FriendLinkCategoryHandler, settingHandler *handler.SettingHandler, albumHandler *handler.AlbumHandler, operationLogHandler *handler.OperationLogHandler, subscriberHandler *handler.SubscriberHandler, rssHandler *handler.RSSHandler, notificationHandler *handler.NotificationHandler) {
+func setupAdminRoutes(api *gin.RouterGroup, userHandler *handler.UserHandler, postHandler *handler.PostHandler, postRevisionHandler *handler.PostRevisionHandler, commentHandler *handler.CommentHandler, dashboardHandler *handler.DashboardHandler, momentHandler *handler.MomentHandler, ipBlacklistHandler *handler.IPBlacklistHandler, ipWhitelistHandler *handler.IPWhitelistHandler, chatHandler *handler.ChatHandler, friendLinkHandler *handler.FriendLinkHandler, friendLinkCategoryHandler *handler.FriendLinkCategoryHandler, settingHandler *handler.SettingHandler, albumHandler *handler.AlbumHandler, operationLogHandler *handler.OperationLogHandler, subscriberHandler *handler.SubscriberHandler, rssHandler *handler.RSSHandler, notificationHandler *handler.NotificationHandler, imageHandler *handler.ImageHandler) {
 	admin := api.Group("/admin")
 	// admin 路由基础权限：admin 或 super_admin
 	admin.Use(middleware.AuthMiddleware(), middleware.AdminMiddleware())
@@ -480,6 +481,13 @@ func setupAdminRoutes(api *gin.RouterGroup, userHandler *handler.UserHandler, po
 			// 文章修订审批（仅超级管理员）
 			super.POST("/revisions/:id/approve", postRevisionHandler.Approve)
 			super.POST("/revisions/:id/reject", postRevisionHandler.Reject)
+
+			// 图片管理（仅超级管理员）
+			super.GET("/images/assets", imageHandler.ScanAssets)
+			super.POST("/images/assets/migrate", imageHandler.Migrate)
+			super.GET("/images/assets/migrate/status", imageHandler.MigrateStatus)
+			super.GET("/images/migrate-logs", imageHandler.MigrateLogs)
+			super.POST("/images/migrate-logs/delete", imageHandler.DeleteMigrateLogs)
 		}
 
 		// 文章修订管理（管理员可查看和撤回自己的修订）
