@@ -12,6 +12,8 @@ package util
 
 import (
 	"blog-backend/config"
+	"blog-backend/db"
+	"blog-backend/repository"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -45,7 +47,8 @@ const MigrationMaxFileSize = 50 << 20
 const StorageExternal StorageType = "external"
 
 // ClassifyImageURL 识别图片 URL 所属的存储类型
-// 判断规则：本地 /uploads/ 前缀 → local；配置域名前缀精确匹配 → 对应存储；
+// 判断规则：本地 /uploads/ 前缀 → local；本站域名（BlogURL/site_url）下的 /uploads/ 绝对 URL → local
+// （历史上传可能存了带站点域名的完整 URL）；配置域名前缀精确匹配 → 对应存储；
 // 标准厂商域名格式（*.cos.*.myqcloud.com / *.oss*.aliyuncs.com）结构化识别 → 对应存储；都不匹配 → external 外链
 func ClassifyImageURL(fileURL string) StorageType {
 	if fileURL == "" {
@@ -54,6 +57,12 @@ func ClassifyImageURL(fileURL string) StorageType {
 
 	// 本地存储：相对路径或站点 /uploads/ 路径
 	if strings.HasPrefix(fileURL, "/uploads/") {
+		return StorageLocal
+	}
+
+	// 本站域名下的 /uploads/ 绝对 URL 也属于本地存储
+	// （历史上传可能存了带站点域名的完整 URL，如 https://example.com/uploads/avatars/x.jpg）
+	if IsLocalSiteUploadURL(fileURL) {
 		return StorageLocal
 	}
 
@@ -83,6 +92,53 @@ func ClassifyImageURL(fileURL string) StorageType {
 	return StorageExternal
 }
 
+// IsLocalSiteUploadURL 判断是否为本站域名下的 /uploads/ 绝对 URL
+// 站点域名来源：config.App.BlogURL 与 settings 表的 site_url（管理后台可配置）
+func IsLocalSiteUploadURL(fileURL string) bool {
+	if !strings.Contains(fileURL, "/uploads/") {
+		return false
+	}
+
+	u, err := url.Parse(fileURL)
+	if err != nil || u.Host == "" {
+		return false
+	}
+	hostname := strings.ToLower(u.Hostname())
+
+	// 比对 BlogURL 的主机名
+	if config.Cfg != nil && config.Cfg.App.BlogURL != "" {
+		if b, err := url.Parse(config.Cfg.App.BlogURL); err == nil && b.Hostname() != "" {
+			if hostname == strings.ToLower(b.Hostname()) {
+				return true
+			}
+		}
+	}
+
+	// 比对 settings 表的 site_url（可能带端口，如 localhost:3000）
+	if siteURL := getSettingValue("site_url"); siteURL != "" {
+		if s, err := url.Parse(siteURL); err == nil && s.Hostname() != "" {
+			if hostname == strings.ToLower(s.Hostname()) {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+// getSettingValue 从 settings 表读取单个配置值（查询失败返回空，静默降级）
+func getSettingValue(key string) string {
+	if db.DB == nil {
+		return ""
+	}
+	settingRepo := repository.NewSettingRepository()
+	setting, err := settingRepo.GetByKey(key)
+	if err != nil || setting == nil {
+		return ""
+	}
+	return setting.Value
+}
+
 // IsManagedStorageURL 判断 URL 是否属于当前运行配置可管理的存储（能通过 API 删除源文件）
 // 与 ClassifyImageURL 的区别：结构化识别出的历史 bucket 不在当前配置内，无法 API 删除，返回 false
 func IsManagedStorageURL(fileURL string) bool {
@@ -90,8 +146,8 @@ func IsManagedStorageURL(fileURL string) bool {
 		return false
 	}
 
-	if strings.HasPrefix(fileURL, "/uploads/") {
-		// 本地文件可管理，删除时文件不存在会被视为成功
+	// 本地存储：相对路径，或本站域名下的 /uploads/ 绝对 URL（文件在服务器本地磁盘）
+	if strings.HasPrefix(fileURL, "/uploads/") || IsLocalSiteUploadURL(fileURL) {
 		return true
 	}
 
