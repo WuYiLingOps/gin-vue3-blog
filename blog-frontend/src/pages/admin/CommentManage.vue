@@ -10,7 +10,6 @@
 <template>
   <div class="comment-manage-page">
     <div class="page-header">
-      <h1 class="page-title">评论管理</h1>
       <!-- 视图切换按钮（仅桌面端显示） -->
       <n-button-group v-if="!isMobile" size="small" class="view-toggle-group">
         <n-button :type="viewMode === 'table' ? 'primary' : 'default'" @click="viewMode = 'table'">
@@ -305,14 +304,9 @@ function handleDelete(id: number) {
 
 .page-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   margin-bottom: 16px;
-}
-
-.page-title {
-  margin: 0;
-  font-size: 24px;
 }
 
 .view-toggle-group {
@@ -339,10 +333,6 @@ function handleDelete(id: number) {
 
 /* 移动端样式 (断点调整为 1100px) */
 @media (max-width: 1100px) {
-  .page-title {
-    font-size: 20px;
-  }
-
   .comment-manage-page :deep(.n-data-table) {
     font-size: 13px;
   }

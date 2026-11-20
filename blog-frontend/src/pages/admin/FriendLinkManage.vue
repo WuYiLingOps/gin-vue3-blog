@@ -10,7 +10,6 @@
 <template>
   <div class="friendlink-manage-page">
     <div class="header">
-      <h1>友链管理</h1>
       <n-space v-if="activeTab === 'links'">
         <!-- 视图切换按钮（仅桌面端显示） -->
         <n-button-group v-if="!isMobile" size="small">
@@ -175,8 +174,10 @@
             />
           </div>
         </div>
+        <!-- remote：data 为后端分页返回的当前页，由本组件控制页码，避免按切片长度钳制页码 -->
         <n-data-table
           v-else-if="viewMode === 'table'"
+          remote
           :columns="columns"
           :data="friendLinks"
           :loading="loading"
@@ -539,6 +540,7 @@ const myInfoRules = {
   ]
 }
 
+// remote 模式下分页对象：页码/条数/总数用 ref 直接引用，保持与查询状态同步
 const pagination = reactive({
   page: currentPage,
   pageSize: pageSize,
@@ -1052,15 +1054,10 @@ const categoryFormRef = ref()
 <style scoped>
 .header {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   margin-bottom: 16px;
   gap: 12px;
-}
-
-.header h1 {
-  margin: 0;
-  font-size: 24px;
 }
 
 .filter-bar {
@@ -1072,10 +1069,6 @@ const categoryFormRef = ref()
 
 /* 移动端样式 (断点调整为 1100px) */
 @media (max-width: 1100px) {
-  .header h1 {
-    font-size: 20px;
-  }
-
   .friendlink-manage-page :deep(.n-data-table) {
     font-size: 13px;
   }

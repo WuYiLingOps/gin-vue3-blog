@@ -9,7 +9,6 @@
 <template>
   <div class="revision-manage-page">
     <div class="page-header">
-      <h1 class="page-title">待审批修订</h1>
       <n-button-group v-if="!isMobile" size="small" class="view-toggle-group">
         <n-button :type="viewMode === 'table' ? 'primary' : 'default'" @click="viewMode = 'table'">
           <template #icon>
@@ -497,15 +496,9 @@ function formatValue(field: string, value: any): string {
 
   .page-header {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     align-items: center;
     margin-bottom: 20px;
-
-    .page-title {
-      font-size: 24px;
-      font-weight: 600;
-      margin: 0;
-    }
   }
 
   .content-area {
@@ -566,12 +559,6 @@ function formatValue(field: string, value: any): string {
 @media (max-width: 1100px) {
   .revision-manage-page {
     padding: 12px;
-
-    .page-header {
-      .page-title {
-        font-size: 20px;
-      }
-    }
 
     .content-area {
       padding: 12px;

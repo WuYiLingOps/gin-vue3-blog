@@ -10,7 +10,6 @@
 <template>
   <div class="category-manage-page">
     <div class="header">
-      <h1>分类管理</h1>
       <n-space>
         <!-- 桌面端视图切换按钮 -->
         <n-button-group v-if="!isMobile" size="medium">
@@ -321,23 +320,14 @@ function resetForm() {
 <style scoped>
 .header {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   margin-bottom: 16px;
   gap: 12px;
 }
 
-.header h1 {
-  margin: 0;
-  font-size: 24px;
-}
-
 /* 移动端样式 (断点调整为 1100px) */
 @media (max-width: 1100px) {
-  .header h1 {
-    font-size: 20px;
-  }
-
   .category-manage-page :deep(.n-data-table) {
     font-size: 13px;
   }

@@ -287,9 +287,8 @@ const columns: DataTableColumns<OperationLog> = [
     title: 'ID',
     key: 'id',
     width: 60,
-    render: (_row, index) => {
-      return (currentPage.value - 1) * pageSize + index + 1
-    }
+    // 显示数据库自增 ID：真实 ID 随时间递增，可直观看出新旧；原先渲染的是页内行号（1,2,3…），会让人误以为按序号排列
+    render: row => row.id
   },
   {
     title: '操作用户',

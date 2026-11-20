@@ -10,7 +10,6 @@
 <template>
   <div class="image-manage-page">
     <div class="header">
-      <h1>图片管理</h1>
       <n-space>
         <template v-if="activeTab === 'assets'">
           <n-button
@@ -97,7 +96,9 @@
     </div>
 
     <!-- 资产表格（客户端分页，每页 20 条，图片懒加载） -->
+    <!-- remote：数据在前端已完成全量+本地过滤，由本组件自行切片，避免 n-data-table 按切片长度钳制页码 -->
     <n-data-table
+      remote
       :columns="columns"
       :data="pagedAssets"
       :loading="scanning"
@@ -123,7 +124,9 @@
 
     <!-- 迁移日志视图 -->
     <template v-else-if="activeTab === 'logs'">
+      <!-- remote：数据为后端分页返回的当前页，由本组件控制页码，避免按切片长度钳制页码 -->
       <n-data-table
+        remote
         :columns="logColumns"
         :data="logs"
         :loading="logsLoading"
@@ -882,15 +885,9 @@ onMounted(() => {
 
 .header {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   margin-bottom: 16px;
-}
-
-.header h1 {
-  margin: 0;
-  font-size: 24px;
-  font-weight: 600;
 }
 
 .tips-alert {
@@ -1002,10 +999,6 @@ onMounted(() => {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
-  }
-
-  .header h1 {
-    font-size: 20px;
   }
 
   .filter-bar {

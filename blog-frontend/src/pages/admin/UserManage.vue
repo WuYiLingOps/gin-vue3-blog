@@ -9,8 +9,6 @@
  -->
 <template>
   <div class="user-manage-page">
-    <h1 class="page-title">用户管理</h1>
-
     <!-- 注册开关 -->
     <n-card class="register-settings-card" style="margin-bottom: 16px">
       <n-space align="center" justify="space-between">
@@ -434,11 +432,6 @@ async function handleToggleRegister(value: boolean) {
   position: relative;
 }
 
-.page-title {
-  margin-bottom: 16px;
-  font-size: 24px;
-}
-
 /* 内容区域 */
 .content-area {
   position: relative;
@@ -508,10 +501,6 @@ async function handleToggleRegister(value: boolean) {
 
 /* 移动端样式 (断点调整为 1100px) */
 @media (max-width: 1100px) {
-  .page-title {
-    font-size: 20px;
-  }
-
   .user-manage-page :deep(.n-data-table) {
     font-size: 13px;
   }

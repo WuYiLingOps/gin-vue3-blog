@@ -9,8 +9,6 @@
  -->
 <template>
   <div class="ip-access-control-page">
-    <h1 class="page-title">IP 访问控制</h1>
-
     <!-- 标签页 -->
     <n-tabs v-model:value="activeTab" type="line" animated @update:value="onTabChange">
       <!-- 黑名单标签页 -->
@@ -124,8 +122,10 @@
         </div>
 
         <!-- 数据表格 (PC端) -->
+        <!-- remote：data 为后端分页返回的当前页，由本组件控制页码，避免按切片长度钳制页码 -->
         <n-data-table
           v-else
+          remote
           :columns="blacklistColumns"
           :data="blacklist"
           :loading="blacklistLoading"
@@ -242,8 +242,10 @@
         </div>
 
         <!-- 数据表格 (PC端) -->
+        <!-- remote：data 为后端分页返回的当前页，由本组件控制页码，避免按切片长度钳制页码 -->
         <n-data-table
           v-else
+          remote
           :columns="whitelistColumns"
           :data="whitelist"
           :loading="whitelistLoading"
@@ -1163,22 +1165,12 @@ onUnmounted(() => {
   padding: 20px;
 }
 
-.page-title {
-  margin-bottom: 16px;
-  font-size: 24px;
-  font-weight: 600;
-}
-
 .check-result-info {
   margin-top: 16px;
 }
 
 /* 移动端样式 */
 @media (max-width: 1100px) {
-  .page-title {
-    font-size: 20px;
-  }
-
   .ip-access-control-page :deep(.n-data-table) {
     font-size: 13px;
   }

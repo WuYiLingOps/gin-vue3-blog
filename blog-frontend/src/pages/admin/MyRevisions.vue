@@ -23,7 +23,9 @@
       </div>
 
       <!-- 修订列表 -->
+      <!-- remote：data 为后端分页返回的当前页，由本组件控制页码，避免按切片长度钳制页码 -->
       <n-data-table
+        remote
         :columns="columns"
         :data="revisions"
         :loading="loading"

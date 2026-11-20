@@ -9,10 +9,6 @@
  -->
 <template>
   <div class="subscriber-manage-page">
-    <div class="page-header">
-      <h1 class="page-title">订阅管理</h1>
-    </div>
-
     <!-- Tab 切换 -->
     <n-tabs v-model:value="activeTab" type="line" animated>
       <!-- 订阅者管理 Tab -->
@@ -572,19 +568,6 @@ onUnmounted(() => {
 .subscriber-manage-page {
   padding: 20px;
 
-  .page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-
-    .page-title {
-      font-size: 24px;
-      font-weight: 600;
-      margin: 0;
-    }
-  }
-
   .tab-header {
     display: flex;
     justify-content: flex-end;
@@ -673,12 +656,6 @@ html.dark .subscriber-manage-page {
 @media (max-width: 768px) {
   .subscriber-manage-page {
     padding: 12px;
-
-    .page-header {
-      .page-title {
-        font-size: 20px;
-      }
-    }
 
     .content-area {
       padding: 12px;

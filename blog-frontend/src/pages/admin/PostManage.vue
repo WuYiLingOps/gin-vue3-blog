@@ -10,7 +10,6 @@
 <template>
   <div class="post-manage-page">
     <div class="header">
-      <h1>文章管理</h1>
       <n-space>
         <n-button type="info" :size="isMobile ? 'small' : 'medium'" @click="showUploadModal = true">
           <template #icon>
@@ -1102,15 +1101,10 @@ function handleModalClose() {
 
 .header {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   margin-bottom: 16px;
   gap: 12px;
-}
-
-.header h1 {
-  margin: 0;
-  font-size: 24px;
 }
 
 /* 筛选栏样式 */
@@ -1139,10 +1133,6 @@ function handleModalClose() {
 
 /* 移动端样式 (断点调整为 1100px) */
 @media (max-width: 1100px) {
-  .header h1 {
-    font-size: 20px;
-  }
-
   .post-manage-page :deep(.n-data-table) {
     font-size: 13px;
   }
