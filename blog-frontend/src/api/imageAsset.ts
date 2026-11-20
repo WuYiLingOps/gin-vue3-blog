@@ -31,6 +31,7 @@ export interface ImageAsset {
   locations: ImageUsageLocation[] // 使用位置明细
   ref_count: number // 引用次数
   deletable: boolean // 源文件是否支持 API 删除
+  alive?: boolean | null // 文件有效性：true-可访问 false-已失效 null-未检测
 }
 
 /**
