@@ -58,7 +58,6 @@ REDIS_PORT=${redisPort}
 REDIS_PASSWORD=${redisPassword}
 JWT_SECRET=your-jwt-secret-key
 JWT_EXPIRE_HOURS=72
-GITEE_CALENDAR_API_URL=https://huangjingblog.cn/gitee-calendar-api
 EMAIL_HOST=smtp.qq.com
 EMAIL_PORT=587
 EMAIL_USERNAME=
