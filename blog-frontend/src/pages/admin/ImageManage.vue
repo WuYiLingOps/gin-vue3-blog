@@ -93,6 +93,9 @@
         size="small"
         class="keyword-input"
       />
+      <n-checkbox v-model:checked="onlyDead" class="dead-filter">
+        仅看失效（{{ deadCount }}）
+      </n-checkbox>
     </div>
 
     <!-- 资产表格（客户端分页，每页 20 条，图片懒加载） -->
@@ -442,6 +445,13 @@ const scanning = ref(false)
 const filterStorage = ref('')
 const keyword = ref('')
 const checkedKeys = ref<string[]>([])
+// 仅看失效图片（文件缺失 / 远程不可访问的孤儿引用）
+const onlyDead = ref(false)
+
+// 失效图片数量
+const deadCount = computed(
+  () => assets.value.filter(asset => asset.alive === false).length
+)
 
 // 客户端分页：避免一次渲染几百行表格和图片
 const pagination = reactive({
@@ -453,16 +463,17 @@ const pagedAssets = computed(() => {
   return filteredAssets.value.slice(start, start + pagination.pageSize)
 })
 // 筛选条件变化时回到第一页
-watch([filterStorage, keyword], () => {
+watch([filterStorage, keyword, onlyDead], () => {
   pagination.page = 1
 })
 
-// 本地过滤：按存储类型 + URL 关键字
+// 本地过滤：按存储类型 + URL 关键字 + 失效状态
 const filteredAssets = computed(() => {
   const kw = keyword.value.trim().toLowerCase()
   return assets.value.filter(asset => {
     if (filterStorage.value && asset.storage_type !== filterStorage.value) return false
     if (kw && !asset.url.toLowerCase().includes(kw)) return false
+    if (onlyDead.value && asset.alive !== false) return false
     return true
   })
 })
@@ -552,7 +563,10 @@ const columns: DataTableColumns<ImageAsset> = [
           cursor: 'pointer',
           display: 'block',
           margin: '4px auto',
-          background: 'rgba(128, 128, 128, 0.1)'
+          background: 'rgba(128, 128, 128, 0.1)',
+          // 失效图片明显弱化显示
+          opacity: row.alive === false ? 0.35 : 1,
+          filter: row.alive === false ? 'grayscale(1)' : 'none'
         },
         onClick: () => window.open(getFileUrl(row.url), '_blank')
       })
@@ -582,15 +596,30 @@ const columns: DataTableColumns<ImageAsset> = [
   {
     title: '来源存储',
     key: 'storage_type',
-    width: 110,
+    width: 130,
     render(row) {
-      return h(
+      const tag = h(
         'span',
         {
           class: `storage-tag storage-${row.storage_type}`
         },
         storageLabelMap[row.storage_type] || row.storage_type
       )
+      // 失效标记：文件缺失 / 远程不可访问
+      if (row.alive === false) {
+        return h('div', { style: { display: 'flex', alignItems: 'center', gap: '6px' } }, [
+          tag,
+          h(
+            'span',
+            {
+              class: 'dead-tag',
+              title: '文件已失效：本地文件缺失或远程访问失败（孤儿引用，前台不显示）'
+            },
+            '失效'
+          )
+        ])
+      }
+      return tag
     }
   },
   {
@@ -907,6 +936,20 @@ onMounted(() => {
 
 .keyword-input {
   width: 220px;
+}
+
+.dead-filter {
+  white-space: nowrap;
+}
+
+.dead-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  background: rgba(208, 48, 80, 0.12);
+  color: #d03050;
+  cursor: help;
 }
 
 .storage-tag {
