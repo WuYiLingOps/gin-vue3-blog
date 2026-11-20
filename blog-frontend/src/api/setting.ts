@@ -50,7 +50,7 @@ export interface SiteSettings {
  * 上传设置接口
  */
 export interface UploadSettings {
-  storage_type?: string // 存储类型：'local' | 'oss'
+  storage_type?: string // 存储类型：'local' | 'oss' | 'cos' | 'easyimage'
   oss_endpoint?: string // OSS端点地址
   oss_access_key_id?: string // OSS访问密钥ID
   oss_access_key_secret?: string // OSS访问密钥Secret

@@ -272,6 +272,7 @@
               <n-radio value="local">本地存储</n-radio>
               <n-radio value="oss">阿里云 OSS</n-radio>
               <n-radio value="cos">腾讯云 COS</n-radio>
+              <n-radio value="easyimage">EasyImage 图床</n-radio>
             </n-space>
           </n-radio-group>
         </n-form-item>
@@ -292,6 +293,15 @@
         >
           COS 配置需要在服务器配置文件中设置（config/config-dev.yml 或 config/config-prod.yml 的 cos
           节点）
+        </n-alert>
+
+        <n-alert
+          v-if="uploadFormData.storage_type === 'easyimage'"
+          type="info"
+          style="margin-bottom: 16px"
+        >
+          EasyImage 配置需要在服务器配置文件中设置（config/config-dev.yml 或 config/config-prod.yml
+          的 easyimage 节点）
         </n-alert>
 
         <n-form-item>
