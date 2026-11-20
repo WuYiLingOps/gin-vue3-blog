@@ -11,6 +11,7 @@
 package handler
 
 import (
+	"fmt"
 	"strconv"
 
 	"blog-backend/service"
@@ -76,7 +77,38 @@ func (h *ImageHandler) Migrate(c *gin.Context) {
 		return
 	}
 
+	// 记录操作日志（迁移为异步任务，此处记录发起动作，结果在迁移日志模块查看）
+	util.LogOperation(
+		c, "update", "image", nil, targetStorageLabel(req.TargetStorag),
+		fmt.Sprintf("发起图床迁移：%d 张图片迁移到 %s（删源：%s）",
+			len(req.URLs), targetStorageLabel(req.TargetStorag), deleteSourceText(req.DeleteSource)),
+	)
+
 	util.SuccessWithMessage(c, "迁移任务已启动", nil)
+}
+
+// targetStorageLabel 目标存储类型的中文标签
+func targetStorageLabel(storage string) string {
+	switch storage {
+	case "local":
+		return "本地存储"
+	case "oss":
+		return "阿里云OSS"
+	case "cos":
+		return "腾讯云COS"
+	case "easyimage":
+		return "EasyImage 图床"
+	default:
+		return storage
+	}
+}
+
+// deleteSourceText 是否删除源文件的文案
+func deleteSourceText(deleteSource bool) string {
+	if deleteSource {
+		return "是"
+	}
+	return "否"
 }
 
 // MigrateStatus 获取迁移任务进度

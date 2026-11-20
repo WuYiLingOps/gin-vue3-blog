@@ -51,9 +51,9 @@ func (r *OperationLogRepository) List(page, pageSize int, module, action, userna
 		return nil, 0, err
 	}
 
-	// 分页查询
+	// 分页查询（id DESC 作为次级排序：created_at 为秒级精度，同秒内按自增 ID 保证最新在前）
 	offset := (page - 1) * pageSize
-	err := query.Order("created_at DESC").
+	err := query.Order("created_at DESC, id DESC").
 		Offset(offset).
 		Limit(pageSize).
 		Preload("User").
@@ -73,7 +73,7 @@ func (r *OperationLogRepository) GetByID(id uint) (*model.OperationLog, error) {
 func (r *OperationLogRepository) GetByUserID(userID uint, limit int) ([]model.OperationLog, error) {
 	var logs []model.OperationLog
 	query := db.DB.Where("user_id = ?", userID).
-		Order("created_at DESC").
+		Order("created_at DESC, id DESC").
 		Limit(limit).
 		Find(&logs)
 	return logs, query.Error
@@ -83,7 +83,7 @@ func (r *OperationLogRepository) GetByUserID(userID uint, limit int) ([]model.Op
 func (r *OperationLogRepository) GetByModule(module string, limit int) ([]model.OperationLog, error) {
 	var logs []model.OperationLog
 	query := db.DB.Where("module = ?", module).
-		Order("created_at DESC").
+		Order("created_at DESC, id DESC").
 		Limit(limit).
 		Preload("User").
 		Find(&logs)
