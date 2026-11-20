@@ -93,8 +93,9 @@ type Config struct {
 
 	// EasyImage 简单图床配置
 	EasyImage struct {
-		ApiURL string `mapstructure:"api_url"` // 完整上传接口地址，如 http://img.example.com/api/index.php
+		ApiURL string `mapstructure:"api_url"` // 完整上传接口地址，如 https://img.example.com/api/index.php
 		Token  string `mapstructure:"token"`   // 图床后台生成的 API token
+		Domain string `mapstructure:"domain"`  // 可选，图片访问域名（含协议，如 https://img.example.com）。设置后强制按此域名改写上传返回的图片 URL，用于解决图床返回 http 链接导致 https 页面 mixed content 的问题
 	} `mapstructure:"easyimage"`
 
 	// Security 安全配置
@@ -248,6 +249,9 @@ func loadEnvOverrides(env string) {
 	}
 	if v := os.Getenv("EASYIMAGE_TOKEN"); v != "" {
 		Cfg.EasyImage.Token = v
+	}
+	if v := os.Getenv("EASYIMAGE_DOMAIN"); v != "" {
+		Cfg.EasyImage.Domain = v
 	}
 }
 
