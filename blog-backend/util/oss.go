@@ -428,7 +428,9 @@ func isCOSFile(fileURL string) bool {
 	return false
 }
 
-// isEasyImageFile 判断是否为 EasyImage 文件（按 API 地址的协议+主机前缀匹配）
+// isEasyImageFile 判断是否为 EasyImage 文件（按 API 地址的主机名匹配，忽略协议差异）
+// 图床站点 http/https 均可访问同一批文件（如配置 https 上传但图片链接返回 http），
+// 若连同协议前缀匹配会漏识别，故仅比对主机名
 func isEasyImageFile(fileURL string) bool {
 	apiURL := config.Cfg.EasyImage.ApiURL
 	if apiURL == "" {
@@ -436,11 +438,16 @@ func isEasyImageFile(fileURL string) bool {
 	}
 
 	u, err := url.Parse(apiURL)
-	if err != nil || u.Host == "" {
+	if err != nil || u.Hostname() == "" {
 		return false
 	}
 
-	return strings.HasPrefix(fileURL, u.Scheme+"://"+u.Host)
+	fileURLParsed, err := url.Parse(fileURL)
+	if err != nil {
+		return false
+	}
+
+	return strings.EqualFold(fileURLParsed.Hostname(), u.Hostname())
 }
 
 // ValidateOSSConfig 验证 OSS 配置是否有效
